@@ -11,10 +11,18 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # polymc.url = "github:PolyMC/PolyMC";
+    nix-matlab = {
+      # nix-matlab's Nixpkgs input follows Nixpkgs' nixos-unstable branch. However
+      # your Nixpkgs revision might not follow the same branch. You'd want to
+      # match your Nixpkgs and nix-matlab to ensure fontconfig related
+      # compatibility.
+      inputs.nixpkgs.follows = "nixpkgs";
+      url = "gitlab:doronbehar/nix-matlab";
+    };
+
   };
 
-  outputs = { self, nixpkgs, nixpkgs-stable, home-manager, ... }@inputs:
+  outputs = { self, nixpkgs, nixpkgs-stable, home-manager, nix-matlab, ... }@inputs:
 
     let
       system = "x86_64-linux";
@@ -22,26 +30,31 @@
         inherit system;
         config.allowUnfree = true;
       };
-    in {
+    in
+    {
 
-    nixosConfigurations.nixos-pc = nixpkgs.lib.nixosSystem {
-      specialArgs = {
-        inherit pkgs-stable inputs system;
+      nixosConfigurations.nixos-pc = nixpkgs.lib.nixosSystem {
+        specialArgs = {
+          inherit pkgs-stable inputs system;
+        };
+        modules = [
+          ./nixos/configuration.nix
+          ./nixos/hardware-configuration.nix
+
+          {
+            nixpkgs.overlays = [ nix-matlab.overlay ];
+          }
+
+          home-manager.nixosModules.home-manager
+          {
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+
+            home-manager.extraSpecialArgs = { inherit pkgs-stable inputs; };
+
+            home-manager.users.rokokol = import ./home-manager/home.nix;
+          }
+        ];
       };
-      modules = [
-        ./nixos/configuration.nix
-        ./nixos/hardware-configuration.nix
-
-        home-manager.nixosModules.home-manager
-        {
-          home-manager.useGlobalPkgs = true;
-          home-manager.useUserPackages = true;
-          
-          home-manager.extraSpecialArgs = { inherit pkgs-stable inputs; };
-
-          home-manager.users.rokokol = import ./home-manager/home.nix;
-        }
-      ];
     };
-  };
 }
