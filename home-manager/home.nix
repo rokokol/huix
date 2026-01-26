@@ -9,7 +9,6 @@
     ./programs/kitty.nix
     ./desktop/gnome.nix
     ./desktop/desktop-entries.nix
-    ./desktop/mime.nix
   ];
 
   home.username = "rokokol";
@@ -18,7 +17,6 @@
 
   # Global packages not bound to specific program configs
   home.packages = with pkgs; [
-    #    nautilus-open-any-terminal
   ];
 
   # Global session variables

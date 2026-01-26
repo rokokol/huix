@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, inputs, ... }:
 
 {
   nixpkgs.config.allowUnfree = true;
@@ -10,7 +10,6 @@
   # --- Core & Shell ---
   programs.zsh.enable = true;
   programs.starship.enable = true;
-  programs.nix-ld.enable = true; # Essential for running unpatched binaries
   programs.gnupg.agent.enable = true;
   programs.dconf.enable = true;
 
@@ -30,6 +29,10 @@
   # --- Gaming ---
   programs.steam.enable = true;
 
+  # --- Nautilus ---
+  # programs.nautilus-open-any-terminal.enable = true;
+  # programs.nautilus-open-any-terminal.terminal = "kitty";
+
   # ============================================================================
   #  SYSTEM PACKAGES
   # ============================================================================
@@ -46,6 +49,7 @@
     lm_sensors # Hardware sensors
     killall
     unzip
+    trash-cli # Trash manipulation
 
     # --- 2. DEVELOPMENT & PROGRAMMING ---
     # Core Editors & Tools
@@ -53,21 +57,45 @@
     kitty # GPU-accelerated terminal
     gh # GitHub CLI
     steam-run # FHS environment to run binaries
-    trash-cli # Trash manipulation
 
     # Python
-    python3
     uv # Fast Python package installer
+    # jupyter-all
+    (python313.withPackages (ps: with ps; [
+      # Python libraries
+      matplotlib
+      pandas
+      scipy
+      seaborn
+      numpy
+      sympy
 
-    # MATLAB
+      # Jupyter
+      notebook
+      jupyterlab
+      ipykernel
+      jupyter-lsp
+      python-lsp-server
+      octave-kernel
+      # jupyterlab-code-formatter
+      black
+      isort
+      octave-kernel
+    ]))
+
+    # MATLAB & Octave
     matlab
-    matlab-language-server
+    octaveFull
+    octave-kernel.launcher
+    # python313Packages.miss-hit-core
+    # matlab-language-server # Fuck you, proprietary
 
     # --- 3. DESKTOP, UI & WAYLAND TOOLS ---
     papirus-icon-theme
     gnome-tweaks
     gnomeExtensions.vitals # System monitoring in panel
     gnomeExtensions.appindicator # Tray icons support
+    nautilus-open-any-terminal
 
     wl-clipboard # Clipboard utils for Wayland
     xdotool # Window automation (X11/XWayland)
@@ -89,7 +117,15 @@
     bambu-studio # 3D Printing Slicer
     easyeffects # Audio processing (EQ, Noise reduction) - Crucial for mic/guitar
     vial # Mechanical keyboard configuration (QMK/Vial)
-  ];
+    solvespace # 3D CAD
+    darktable # RAW editor
+    kdePackages.kdenlive # Video editor
+    gimp2-with-plugins # Shitty image manipulation
+    krita # Drawing program
+    aseprite # Pixel art
+  ] ++ (with inputs; [
+    freesmlauncher.packages.${pkgs.system}.default # Minecraft
+  ]);
 
   # ============================================================================
   #  CLEANUP & EXCLUSIONS
