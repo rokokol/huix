@@ -59,7 +59,7 @@
       shellcheck # Linter для bash 
 
       # --- 8. MATLAB ---
-      matlab-language-server
+      # matlab-language-server
 
       # --- 9. SYSTEM DEPENDENCIES ---
       tree-sitter

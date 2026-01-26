@@ -5,7 +5,7 @@
     ll = "ls -l";
     la = "ls -la";
     v = "nvim";
-    conf = "cd ~/.config/home-manager && nvim home.nix";
+    conf = "cd ~/huix/home-manager/ && nvim home.nix";
 
     ".." = "cd ..";
     "..." = "cd ../..";
@@ -17,10 +17,20 @@
     rebuild = "sudo nixos-rebuild switch --flake ~/huix";
   };
 
+  programs.zoxide = {
+    enable = true;
+    enableZshIntegration = true;
+  };
+
+  programs.fzf = {
+    enable = true;
+    enableZshIntegration = true;
+  };
+
   programs.zsh = {
     enable = true;
     enableCompletion = true;
-    autosuggestion.enable = false; # Disabled by choice
+    autosuggestion.enable = false;
     syntaxHighlighting.enable = true;
     autocd = true;
 

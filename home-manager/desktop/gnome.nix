@@ -8,6 +8,12 @@
       icon-theme = "Papirus";
     };
 
+    "com/github/stunkymonkey/nautilus-open-any-terminal" = {
+      terminal = "kitty";
+      new-tab = false; # Open new term
+      flatpak = "system";
+    };
+
     "org/gnome/desktop/search-providers" = {
       disabled = [ "org.gnome.Epiphany.desktop" ];
     };
@@ -29,7 +35,7 @@
       favorite-apps = [
         "firefox.desktop"
         "org.gnome.Nautilus.desktop"
-        "org.gnome.Console.desktop"
+        "AmneziaVPN.desktop"
         "obsidian.desktop"
       ];
       disable-user-extensions = false;

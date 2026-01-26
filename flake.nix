@@ -20,9 +20,17 @@
       url = "gitlab:doronbehar/nix-matlab";
     };
 
+    freesmlauncher = {
+      url = "github:FreesmTeam/FreesmLauncher";
+      inputs = {
+        nixpkgs = {
+          follows = "nixpkgs";
+        };
+      };
+    };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-stable, home-manager, nix-matlab, ... }@inputs:
+  outputs = { self, nixpkgs, nixpkgs-stable, home-manager, nix-matlab, freesmlauncher, ... }@inputs:
 
     let
       system = "x86_64-linux";
