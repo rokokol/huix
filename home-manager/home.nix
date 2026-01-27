@@ -14,6 +14,7 @@
   home.username = "rokokol";
   home.homeDirectory = "/home/rokokol";
   home.stateVersion = "25.11";
+  home.file.".face".source = ../logo.jpg;
 
   # Global packages not bound to specific program configs
   home.packages = with pkgs; [

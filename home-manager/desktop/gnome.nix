@@ -8,6 +8,19 @@
       icon-theme = "Papirus";
     };
 
+    # Wallpaper
+    "org/gnome/desktop/background" = {
+      picture-uri = "file:///home/rokokol/huix/wallpaper.png";
+      picture-uri-dark = "file:///home/rokokol/huix/wallpaper.png";
+      picture-options = "scaled";
+    };
+
+    # Lock screen wallpaper
+    "org/gnome/desktop/screensaver" = {
+      picture-uri = "file:///home/rokokol/huix/wallpaper.png";
+      picture-options = "zoom";
+    };
+
     "com/github/stunkymonkey/nautilus-open-any-terminal" = {
       terminal = "kitty";
       new-tab = false; # Open new term
