@@ -21,7 +21,7 @@
     "org/gnome/shell/extensions/vitals" = {
       hot-sensors = [
         "_temperature_k10temp_tctl_"
-        "_memory_usage_"
+        "_memory_allocated_"
         "_processor_usage_"
         "_gpu#1_temperature_"
         "_gpu#1_memory_used_"
@@ -60,7 +60,7 @@
     # --- System Keybindings ---
     "org/gnome/shell/keybindings" = {
       toggle-message-tray = [ "<Super>c" ];
-      show-screenshot-ui = [ "<Super><Shift>s" ];
+      # show-screenshot-ui = [ "<Super><Shift>s" ];
     };
 
     "org/gnome/settings-daemon/plugins/media-keys" = {
@@ -71,6 +71,7 @@
         "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2/"
         "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3/"
         "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom4/"
+        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom5/"
       ];
     };
 
@@ -103,6 +104,12 @@
       binding = "<Super><Shift>g";
       command = "PureRef";
       name = "PureRef";
+    };
+
+    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom5" = {
+      binding = "<Super><Shift>s";
+      command = "gradia --screenshot=INTERACTIVE";
+      name = "Screenshot";
     };
   };
 }
