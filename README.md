@@ -8,6 +8,9 @@ My NixOS config ☠️☠️
 - [ ] Настроить работу с дровами моего компа
 - [x] Сделать себе нормлаьный терминал
 - [ ] Наконец-то навести порядок в конфиге nvim
+- [ ] Перейти на nixvim или [это](https://www.youtube.com/watch?v=uP9jDrRvAwM)
+  - https://www.youtube.com/watch?v=VTIGSxpzlIM
+- [ ] Попробовать stylix
 
 
 Каким-то образом это качает MATLAB:

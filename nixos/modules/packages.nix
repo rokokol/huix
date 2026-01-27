@@ -60,33 +60,19 @@
 
     # Python
     uv # Fast Python package installer
-    # jupyter-all
     (python313.withPackages (ps: with ps; [
-      # Python libraries
       matplotlib
       pandas
       scipy
       seaborn
       numpy
       sympy
-
-      # Jupyter
-      notebook
-      jupyterlab
-      ipykernel
-      jupyter-lsp
-      python-lsp-server
-      octave-kernel
-      # jupyterlab-code-formatter
-      black
-      isort
-      octave-kernel
     ]))
 
     # MATLAB & Octave
     matlab
     octaveFull
-    octave-kernel.launcher
+    # octave-kernel.launcher
     # python313Packages.miss-hit-core
     # matlab-language-server # Fuck you, proprietary
 
@@ -96,6 +82,7 @@
     gnomeExtensions.vitals # System monitoring in panel
     gnomeExtensions.appindicator # Tray icons support
     nautilus-open-any-terminal
+    gradia # The Flameshot alternative
 
     wl-clipboard # Clipboard utils for Wayland
     xdotool # Window automation (X11/XWayland)

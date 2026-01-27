@@ -19,6 +19,20 @@
   home.packages = with pkgs; [
   ];
 
+  # Directories
+  systemd.user.tmpfiles.rules = [
+    "d %h/notebooks 0755 - - -"
+    "d %h/Projects 0755 - - -"
+    "d %h/Screenshots 0700 - - 30d"
+  ];
+
+  # Files
+  home.file.".octaverc".text = ''
+    PS1('>> ');
+    # to disable octave warn
+    warning('off', 'Octave:graphics-toolkit-gnuplot');
+  '';
+
   # Global session variables
   home.sessionVariables = {
     EDITOR = "nvim";
