@@ -1,5 +1,7 @@
 # huix
 My NixOS config ☠️☠️
+![Текущее лого](./logo.jpg)
+
 
 - [x] Сделать нормальное разделение по файлам
 - [x] Разобраться с видеокартой
@@ -18,4 +20,6 @@ My NixOS config ☠️☠️
 nix run gitlab:doronbehar/nix-matlab#matlab-shell -- /run/media/rokokol/MATHWORKS_R2025A/install
 nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHWORKS_R2025A/install
 ```
+
+![Текущие обои](./wallpaper.png)
 
