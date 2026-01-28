@@ -25,6 +25,7 @@
     "d %h/notebooks 0755 - - -"
     "d %h/Projects 0755 - - -"
     "d %h/Screenshots 0700 - - 30d"
+    "D %h/Temp 0777 - - -"
   ];
 
   # Files

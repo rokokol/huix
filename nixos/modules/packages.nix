@@ -11,7 +11,6 @@
   programs.zsh.enable = true;
   programs.starship.enable = true;
   programs.gnupg.agent.enable = true;
-  programs.dconf.enable = true;
 
   # --- Internet & Privacy ---
   programs.firefox.enable = true;
@@ -20,11 +19,11 @@
   services.tor.client.enable = true;
 
   # --- Desktop Environment Integrations ---
-  services.flatpak.enable = true;
+  # services.flatpak.enable = true;
   programs.appimage.enable = true;
   programs.gpaste.enable = true; # Clipboard history
   services.zeitgeist.enable = true; # Activity logging (needed for some GNOME features)
-  services.gnome.gnome-browser-connector.enable = true; # Gnome extensions in browser
+  # services.gnome.gnome-browser-connector.enable = true; # Gnome extensions in browser
 
   # --- Gaming ---
   programs.steam.enable = true;
@@ -60,14 +59,14 @@
 
     # Python
     uv # Fast Python package installer
-    (python313.withPackages (ps: with ps; [
-      matplotlib
-      pandas
-      scipy
-      seaborn
-      numpy
-      sympy
-    ]))
+    # (python313.withPackages (ps: with ps; [
+    #   matplotlib
+    #   pandas
+    #   scipy
+    #   seaborn
+    #   numpy
+    #   sympy
+    # ]))
 
     # MATLAB & Octave
     matlab
@@ -81,11 +80,9 @@
     gnome-tweaks
     gnomeExtensions.vitals # System monitoring in panel
     gnomeExtensions.appindicator # Tray icons support
-    nautilus-open-any-terminal
     gradia # The Flameshot alternative
 
     wl-clipboard # Clipboard utils for Wayland
-    xdotool # Window automation (X11/XWayland)
     libnotify # Notifications
 
     # --- 4. PRODUCTIVITY & OFFICE ---

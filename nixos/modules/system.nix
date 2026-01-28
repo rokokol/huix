@@ -3,6 +3,7 @@
 {
   networking.hostName = "nixos-pc";
   networking.networkmanager.enable = true;
+  networking.firewall.allowedTCPPorts = [ 8888 ];
 
   # Time and Locale
   time.timeZone = "Europe/Moscow";

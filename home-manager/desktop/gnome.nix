@@ -73,7 +73,7 @@
     # --- System Keybindings ---
     "org/gnome/shell/keybindings" = {
       toggle-message-tray = [ "<Super>c" ];
-      # show-screenshot-ui = [ "<Super><Shift>s" ];
+      show-screenshot-ui = [ "<Super><Shift>s" ];
     };
 
     "org/gnome/settings-daemon/plugins/media-keys" = {
@@ -120,7 +120,7 @@
     };
 
     "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom5" = {
-      binding = "<Super><Shift>s";
+      binding = "<Super><Control><Shift>s";
       command = "gradia --screenshot=INTERACTIVE";
       name = "Screenshot";
     };
