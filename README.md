@@ -13,6 +13,12 @@ My NixOS config ☠️☠️
 - [ ] Перейти на nixvim или [это](https://www.youtube.com/watch?v=uP9jDrRvAwM)
   - https://www.youtube.com/watch?v=VTIGSxpzlIM
 - [ ] Попробовать stylix
+- [ ] Настроить создание папок в Gnome (нахуя только?)
+- Полностью декларативно настроить Gnome
+  - [ ] Night Light
+  - [ ] Папки на десктопе
+  - [ ] ..?
+- [ ] Декларативно настроить разметку диска
 
 
 Каким-то образом это качает MATLAB:
@@ -20,6 +26,8 @@ My NixOS config ☠️☠️
 nix run gitlab:doronbehar/nix-matlab#matlab-shell -- /run/media/rokokol/MATHWORKS_R2025A/install
 nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHWORKS_R2025A/install
 ```
+
+---
 
 ![Текущие обои](./wallpaper.png)
 

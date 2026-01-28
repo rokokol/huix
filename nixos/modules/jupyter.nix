@@ -26,7 +26,7 @@ in
     notebookConfig = ''
       c.KernelSpecManager.ensure_native_kernel = False
 
-      visible_kernels = {'octave', 'python-datascience'}
+      visible_kernels = {'python-datascience', 'octave'}
       # whitelist (legacy syntax), и allowlist (new syntax),
       c.KernelSpecManager.whitelist = visible_kernels
       c.KernelSpecManager.allowlist = visible_kernels
