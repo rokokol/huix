@@ -25,7 +25,7 @@
     isNormalUser = true;
     description = "sigma pro";
     shell = pkgs.zsh;
-    extraGroups = [ "networkmanager" "wheel" "video" "audio" "docker" "input" ];
+    extraGroups = [ "networkmanager" "wheel" "video" "render" "audio" "docker" "input" ];
     packages = [ ];
   };
 
@@ -34,7 +34,7 @@
   nix.settings.auto-optimise-store = true;
   nix.gc = {
     automatic = true;
-    dates = "weekly";
+    dates = "daily";
     options = "--delete-older-than 7d";
   };
 }

@@ -13,12 +13,13 @@
       ./modules/system.nix
       ./modules/nix-ld.nix
       ./modules/jupyter.nix
+      ./modules/docker.nix
       ./fonts/fonts.nix
     ];
 
   fileSystems."/home/rokokol/govno" = {
     device = "/dev/disk/by-uuid/014B8F2D5325F68F";
-    fsType = "ntfs-3g";
+    fsType = "ntfs3";
     options = [
       "rw" # Read & Write
       "uid=1000" # rokokol's id
