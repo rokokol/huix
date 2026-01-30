@@ -42,13 +42,15 @@
     wget
     curl
     git
-    btop # Resource monitor
+    btop-cuda # Resource monitor patched
+    nvtopPackages.nvidia
     fastfetch # System info
     usbutils # lsusb, etc.
     lm_sensors # Hardware sensors
     killall
     unzip
     trash-cli # Trash manipulation
+    yt-dlp # video download
 
     # --- 2. DEVELOPMENT & PROGRAMMING ---
     # Core Editors & Tools
@@ -70,7 +72,16 @@
 
     # MATLAB & Octave
     matlab
-    octaveFull
+    # octaveFull
+    # To better GUI
+    (pkgs.symlinkJoin {
+      name = "octave-wrapped";
+      paths = [ pkgs.octaveFull ];
+      buildInputs = [ pkgs.makeWrapper ];
+      postBuild = ''
+        wrapProgram $out/bin/octave --set QT_QPA_PLATFORM xcb
+      '';
+    })
     # octave-kernel.launcher
     # python313Packages.miss-hit-core
     # matlab-language-server # Fuck you, proprietary
@@ -105,6 +116,7 @@
     darktable # RAW editor
     kdePackages.kdenlive # Video editor
     gimp2-with-plugins # Shitty image manipulation
+    gimpPlugins.gmic
     krita # Drawing program
     aseprite # Pixel art
   ] ++ (with inputs; [

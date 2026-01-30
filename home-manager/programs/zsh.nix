@@ -10,9 +10,9 @@
     ".." = "cd ..";
     "..." = "cd ../..";
 
-    cp = "cp -iv";
-    mv = "mv -iv";
-    rm = "rm -iv";
+    # cp = "cp -iv";
+    # mv = "mv -iv";
+    # rm = "rm -iv";
     tp = "trash-put";
     rebuild = "sudo nixos-rebuild switch --flake ~/huix";
   };
@@ -32,7 +32,7 @@
     enableCompletion = true;
     autosuggestion.enable = false;
     syntaxHighlighting.enable = true;
-    autocd = true;
+    autocd = false;
 
     initContent = ''
       # Enable selection menu
