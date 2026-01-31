@@ -13,6 +13,8 @@
 
     plugins = with pkgs.vimPlugins; [
       nvim-treesitter-parsers.matlab
+      gruvbox-nvim
+      gruvbox-material-nvim
     ];
 
     extraPackages = with pkgs; [
@@ -42,16 +44,13 @@
       statix # Linter 
 
       # --- 4. PYTHON ---
-      pyright # LSP
-      black # Formatter
-      isort # Sort imports
       ruff # Fast Linter 
 
       # --- 5. C / C++ ---
       clang-tools # clangd (LSP) & clang-format
 
       # --- 6. LUA ---
-      lua-language-server # LSP
+      matlab-language-server
       stylua # Formatter
 
       # --- 7. SHELL / BASH ---
@@ -59,7 +58,7 @@
       shellcheck # Linter для bash 
 
       # --- 8. MATLAB ---
-      # matlab-language-server
+      matlab-language-server
 
       # --- 9. SYSTEM DEPENDENCIES ---
       tree-sitter
