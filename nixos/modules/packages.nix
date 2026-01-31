@@ -51,6 +51,7 @@
     unzip
     trash-cli # Trash manipulation
     yt-dlp # video download
+    imagemagick
 
     # --- 2. DEVELOPMENT & PROGRAMMING ---
     # Core Editors & Tools
@@ -61,18 +62,17 @@
 
     # Python
     uv # Fast Python package installer
-    # (python313.withPackages (ps: with ps; [
-    #   matplotlib
-    #   pandas
-    #   scipy
-    #   seaborn
-    #   numpy
-    #   sympy
-    # ]))
+    (python313.withPackages (ps: with ps; [
+      matplotlib
+      pandas
+      scipy
+      seaborn
+      numpy
+      sympy
+    ]))
 
     # MATLAB & Octave
     matlab
-    # octaveFull
     # To better GUI
     (pkgs.symlinkJoin {
       name = "octave-wrapped";
@@ -82,9 +82,6 @@
         wrapProgram $out/bin/octave --set QT_QPA_PLATFORM xcb
       '';
     })
-    # octave-kernel.launcher
-    # python313Packages.miss-hit-core
-    # matlab-language-server # Fuck you, proprietary
 
     # --- 3. DESKTOP, UI & WAYLAND TOOLS ---
     papirus-icon-theme

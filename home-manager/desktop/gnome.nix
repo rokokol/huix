@@ -10,15 +10,15 @@
 
     # Wallpaper
     "org/gnome/desktop/background" = {
-      picture-uri = "file:///home/rokokol/huix/wallpaper.png";
-      picture-uri-dark = "file:///home/rokokol/huix/wallpaper.png";
-      picture-options = "scaled";
+      picture-uri = "file:///home/rokokol/huix/wallpaper_light.png";
+      picture-uri-dark = "file:///home/rokokol/huix/wallpaper_dark.png";
+      picture-options = "fill";
     };
 
     # Lock screen wallpaper
     "org/gnome/desktop/screensaver" = {
-      picture-uri = "file:///home/rokokol/huix/wallpaper.png";
-      picture-options = "zoom";
+      picture-uri = "file:///home/rokokol/huix/wallpaper_light.png";
+      picture-options = "fill";
     };
 
     "com/github/stunkymonkey/nautilus-open-any-terminal" = {

@@ -19,6 +19,7 @@ My NixOS config ☠️☠️
   - [ ] Папки на десктопе
   - [ ] ..?
 - [ ] Декларативно настроить разметку диска
+- [ ] Распределить музыку по плейлистам
 
 
 Каким-то образом это качает MATLAB:
@@ -29,5 +30,6 @@ nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHW
 
 ---
 
-![Текущие обои](./wallpaper.png)
+![Текущие темные обои](./wallpaper_dark.png)
+![Текущие светлые обои](./wallpaper_light.png)
 
