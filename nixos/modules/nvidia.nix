@@ -1,4 +1,4 @@
-{ config, pkgs, pkgs-stable, ... }:
+{ config, pkgs, ... }:
 
 {
   # OpenGL on (Hardware Graphics)
@@ -17,7 +17,7 @@
     nvidiaSettings = true;
 
     # Stable kernel
-    package = pkgs-stable.linuxPackages_latest.nvidiaPackages.stable;
+    package = pkgs.stable.linuxPackages_latest.nvidiaPackages.stable;
   };
 }
 

@@ -30,27 +30,37 @@
 
     let
       system = "x86_64-linux";
-      pkgs-stable = import nixpkgs-stable {
-        inherit system;
-        config.allowUnfree = true;
+
+      config = {
+        allowUnfree = true;
+        cuda.acceptLicense = true;
+        permittedInsecurePackages = [ ];
+      };
+
+      overlay-stable = final: prev: {
+        stable = import nixpkgs-stable {
+          inherit system;
+          config = config;
+        };
       };
     in
     {
 
       nixosConfigurations.nixos-pc = nixpkgs.lib.nixosSystem {
         specialArgs = {
-          inherit pkgs-stable inputs system;
+          inherit inputs system;
         };
         modules = [
-          {
-            nixpkgs.hostPlatform = system;
-          }
-
           ./nixos/configuration.nix
           ./nixos/hardware-configuration.nix
 
           {
-            nixpkgs.overlays = [ nix-matlab.overlay ];
+            nixpkgs.hostPlatform = system;
+            nixpkgs.config = config;
+            nixpkgs.overlays = [
+              overlay-stable
+              nix-matlab.overlay
+            ];
           }
 
           home-manager.nixosModules.home-manager
@@ -58,7 +68,7 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
 
-            home-manager.extraSpecialArgs = { inherit pkgs-stable inputs; };
+            home-manager.extraSpecialArgs = { inherit inputs; };
 
             home-manager.users.rokokol = import ./home-manager/home.nix;
           }
