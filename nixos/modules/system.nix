@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 
 {
   networking.hostName = "nixos-pc";
@@ -30,12 +30,29 @@
   };
 
   # Nix Settings
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
-  nix.settings.auto-optimise-store = true;
-  nix.gc = {
-    automatic = true;
-    dates = "daily";
-    options = "--delete-older-than 7d";
+  nix = {
+    settings = {
+      experimental-features = [ "nix-command" "flakes" ];
+      auto-optimise-store = true;
+    };
+    gc = {
+      automatic = true;
+      dates = "daily";
+      options = "--delete-older-than 7d";
+    };
+  };
+
+  fileSystems."/home/rokokol/govno" = {
+    device = lib.mkForce "/dev/disk/by-label/govno";
+    fsType = "ntfs3";
+    options = [
+      "rw" # Read & Write
+      "uid=1000" # rokokol's id
+      "gid=100" # rokokol's group id
+      "umask=0022" # Access roules (0755 for dirs, 0644 for files)
+      "nofail" # Do not break system if fails
+      "windows_names" # Do not break ntfs
+    ];
   };
 }
 

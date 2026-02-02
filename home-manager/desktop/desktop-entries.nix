@@ -1,17 +1,14 @@
 { pkgs, ... }:
 
 {
-  # ... твои импорты и другие настройки
-
-  # Создаем "ярлык" для Neovim, чтобы он был виден в списке приложений
   xdg.desktopEntries = {
     nvim = {
       name = "Neovim (Kitty)";
       genericName = "Text Editor";
       comment = "Edit text files in Neovim inside Kitty";
-      exec = "kitty -e nvim %F"; # %F передает путь к файлу в nvim
+      exec = "kitty -e nvim %F"; # %F gives file path to vim
       icon = "nvim";
-      terminal = false; # Ставим false, так как мы сами запускаем kitty
+      terminal = false;
       categories = [ "Utility" "TextEditor" "Development" ];
       mimeType = [ "text/plain" "text/markdown" "application/x-shellscript" ];
     };

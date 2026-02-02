@@ -43,6 +43,13 @@
       icon-style = 0;
     };
 
+    # --- Power ---
+    "org/gnome/settings-daemon/plugins/power" = {
+      sleep-inactive-ac-timeout = 7200;
+      sleep-inactive-battery-timeout = 7200;
+      button-power-action = "suspend";
+    };
+
     # --- Extensions & Favorites ---
     "org/gnome/shell" = {
       favorite-apps = [
@@ -73,7 +80,7 @@
     # --- System Keybindings ---
     "org/gnome/shell/keybindings" = {
       toggle-message-tray = [ "<Super>c" ];
-      show-screenshot-ui = [ "<Super><Shift>s" ];
+      # show-screenshot-ui = [ "<Super><Shift>s" ];
     };
 
     "org/gnome/settings-daemon/plugins/media-keys" = {
@@ -120,8 +127,9 @@
     };
 
     "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom5" = {
-      binding = "<Super><Control><Shift>s";
-      command = "gradia --screenshot=INTERACTIVE";
+      binding = "<Super><Shift>s";
+      # command = "gradia --screenshot=INTERACTIVE";
+      command = "script --command \"flameshot gui\" /dev/null";
       name = "Screenshot";
     };
   };

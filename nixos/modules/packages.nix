@@ -17,6 +17,7 @@
   programs.amnezia-vpn.enable = true;
   services.tor.enable = true;
   services.tor.client.enable = true;
+  programs.geary.enable = true;
 
   # --- Desktop Environment Integrations ---
   # services.flatpak.enable = true;
@@ -37,7 +38,6 @@
   # ============================================================================
 
   environment.systemPackages = with pkgs; [
-
     # --- 1. CORE UTILITIES & CLI ---
     wget
     curl
@@ -58,7 +58,7 @@
     neovim
     kitty # GPU-accelerated terminal
     gh # GitHub CLI
-    steam-run # FHS environment to run binaries
+    steam-run # FHS environment to run binaries   
 
     # Python
     uv # Fast Python package installer
@@ -88,7 +88,15 @@
     gnome-tweaks
     gnomeExtensions.vitals # System monitoring in panel
     gnomeExtensions.appindicator # Tray icons support
-    gradia # The Flameshot alternative
+    # gradia # The Flameshot alternative
+    (pkgs.flameshot.overrideAttrs (oldAttrs: {
+      nativeBuildInputs = (oldAttrs.nativeBuildInputs or [ ]) ++ [ pkgs.makeWrapper ];
+      postInstall = (oldAttrs.postInstall or "") + ''
+        wrapProgram $out/bin/flameshot \
+          --set QT_QPA_PLATFORM xcb \
+          --set SDL_VIDEODRIVER x11 \
+      '';
+    }))
 
     wl-clipboard # Clipboard utils for Wayland
     libnotify # Notifications
