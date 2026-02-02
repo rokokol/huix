@@ -29,6 +29,11 @@ nix run gitlab:doronbehar/nix-matlab#matlab-shell -- /run/media/rokokol/MATHWORK
 nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHWORKS_R2025A/install
 ```
 
+Перед каждой сборкой архижелательно обновлять `hardware-configuration.nix`:
+```
+sudo nixos-generate-config --show-hardware-config > hardware-configuration.nix 
+```
+
 ---
 
 ![Текущие темные обои](./wallpaper_dark.png)

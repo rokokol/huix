@@ -8,20 +8,32 @@
     [ (modulesPath + "/installer/scan/not-detected.nix")
     ];
 
-  boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod" ];
+  boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "usbhid" "sd_mod" ];
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ "kvm-amd" ];
   boot.extraModulePackages = [ ];
 
   fileSystems."/" =
-    { device = "/dev/disk/by-uuid/69e1fb13-666d-46e2-907f-d62db88fa5ab";
-      fsType = "ext4";
+    { device = "/dev/disk/by-uuid/77b63db9-3fe2-4618-9400-ca3e7ae11d45";
+      fsType = "btrfs";
+      options = [ "subvol=@" ];
+    };
+
+  fileSystems."/home" =
+    { device = "/dev/disk/by-uuid/77b63db9-3fe2-4618-9400-ca3e7ae11d45";
+      fsType = "btrfs";
+      options = [ "subvol=@home" ];
     };
 
   fileSystems."/boot" =
     { device = "/dev/disk/by-uuid/79BA-B9CB";
       fsType = "vfat";
       options = [ "fmask=0077" "dmask=0077" ];
+    };
+
+  fileSystems."/home/rokokol/govno" =
+    { device = "/dev/disk/by-uuid/014B8F2D5325F68F";
+      fsType = "ntfs3";
     };
 
   swapDevices = [ ];
