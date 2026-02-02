@@ -1,7 +1,7 @@
-{ pkgs, pkgs-stable, inputs, ... }:
+{ pkgs, inputs, ... }:
 
 {
-  nixpkgs.config.allowUnfree = true;
+  # nixpkgs.config.allowUnfree = true;
 
   # ============================================================================
   #  PROGRAMS & SERVICES CONFIGURATION
@@ -42,6 +42,7 @@
     wget
     curl
     git
+    lazygit
     btop-cuda # Resource monitor patched
     nvtopPackages.nvidia
     fastfetch # System info
@@ -120,7 +121,7 @@
     vial # Mechanical keyboard configuration (QMK/Vial)
     solvespace # 3D CAD
     darktable # RAW editor
-    pkgs-stable.kdePackages.kdenlive # Video editor
+    stable.kdePackages.kdenlive # Video editor
     gimp2-with-plugins # Shitty image manipulation
     gimpPlugins.gmic
     krita # Drawing program
