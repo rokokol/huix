@@ -12,10 +12,6 @@
     };
 
     nix-matlab = {
-      # nix-matlab's Nixpkgs input follows Nixpkgs' nixos-unstable branch. However
-      # your Nixpkgs revision might not follow the same branch. You'd want to
-      # match your Nixpkgs and nix-matlab to ensure fontconfig related
-      # compatibility.
       inputs.nixpkgs.follows = "nixpkgs";
       url = "gitlab:doronbehar/nix-matlab";
     };
@@ -46,6 +42,10 @@
           inherit pkgs-stable inputs system;
         };
         modules = [
+          {
+            nixpkgs.hostPlatform = system;
+          }
+
           ./nixos/configuration.nix
           ./nixos/hardware-configuration.nix
 

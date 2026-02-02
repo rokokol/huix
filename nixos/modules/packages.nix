@@ -1,4 +1,4 @@
-{ pkgs, inputs, ... }:
+{ pkgs, pkgs-stable, inputs, ... }:
 
 {
   nixpkgs.config.allowUnfree = true;
@@ -52,6 +52,7 @@
     trash-cli # Trash manipulation
     yt-dlp # video download
     imagemagick
+    ffmpeg_7
 
     # --- 2. DEVELOPMENT & PROGRAMMING ---
     # Core Editors & Tools
@@ -119,13 +120,13 @@
     vial # Mechanical keyboard configuration (QMK/Vial)
     solvespace # 3D CAD
     darktable # RAW editor
-    kdePackages.kdenlive # Video editor
+    pkgs-stable.kdePackages.kdenlive # Video editor
     gimp2-with-plugins # Shitty image manipulation
     gimpPlugins.gmic
     krita # Drawing program
     aseprite # Pixel art
   ] ++ (with inputs; [
-    freesmlauncher.packages.${pkgs.system}.default # Minecraft
+    freesmlauncher.packages.${pkgs.stdenv.hostPlatform.system}.default # Minecraft
   ]);
 
   # ============================================================================
