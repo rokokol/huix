@@ -61,9 +61,6 @@
   home.sessionVariables = {
     NIXPKGS_ALLOW_UNFREE = "1";
     EDITOR = "nvim";
-    VISUAL = "nvim";
-    PAGER = "nvim -R"; # Read-only
-    MANPAGER = "nvim +Man!";
     QT_QPA_PLATFORM = "wayland";
     SDL_VIDEODRIVER = "wayland";
     XDG_CURRENT_DESKTOP = "GNOME";

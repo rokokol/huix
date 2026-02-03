@@ -1,7 +1,7 @@
 { pkgs, ... }:
 
 {
-  # X11 & GNOME
+  #X11 & GNOME
   services.xserver.enable = true;
   services.displayManager.gdm.enable = true;
   services.desktopManager.gnome.enable = true;
@@ -23,12 +23,11 @@
     ];
     config = {
       common = {
-        default = "*";
-      };
-      gnome = {
-        default = "gnome";
+        default = [
+          "gnome"
+          "gtk"
+        ];
       };
     };
   };
 }
-

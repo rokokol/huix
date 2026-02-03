@@ -2,9 +2,9 @@
   description = "I love Monika btw";
 
   inputs = {
-
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-25.11";
+    nixvim.url = "github:nix-community/nixvim";
 
     home-manager = {
       url = "github:nix-community/home-manager";
@@ -12,8 +12,8 @@
     };
 
     nix-matlab = {
-      inputs.nixpkgs.follows = "nixpkgs";
       url = "gitlab:doronbehar/nix-matlab";
+      inputs.nixpkgs.follows = "nixpkgs-stable";
     };
 
     freesmlauncher = {
@@ -26,7 +26,14 @@
     };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-stable, home-manager, nix-matlab, freesmlauncher, ... }@inputs:
+  outputs =
+    {
+      nixpkgs,
+      nixpkgs-stable,
+      home-manager,
+      nix-matlab,
+      ...
+    }@inputs:
 
     let
       system = "x86_64-linux";
@@ -65,12 +72,14 @@
 
           home-manager.nixosModules.home-manager
           {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
+            home-manager = {
+              useGlobalPkgs = true;
+              useUserPackages = true;
 
-            home-manager.extraSpecialArgs = { inherit inputs; };
+              extraSpecialArgs = { inherit inputs; };
 
-            home-manager.users.rokokol = import ./home-manager/home.nix;
+              users.rokokol = import ./home-manager/home.nix;
+            };
           }
         ];
       };
