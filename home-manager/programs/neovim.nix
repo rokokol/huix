@@ -2,7 +2,7 @@
 
 {
   programs.neovim = {
-    enable = true;
+    enable = false;
     defaultEditor = true;
     viAlias = true;
     vimAlias = true;
@@ -14,14 +14,11 @@
     plugins = with pkgs.vimPlugins; [
       nvim-treesitter-parsers.matlab
       gruvbox-nvim
-      gruvbox-material-nvim
     ];
 
     extraPackages = with pkgs; [
       # --- 1. CORE TOOLS ---
       # For Mason & Telescope
-      git
-      lazygit
       ripgrep
       fd
       bottom
@@ -50,7 +47,6 @@
       clang-tools # clangd (LSP) & clang-format
 
       # --- 6. LUA ---
-      matlab-language-server
       stylua # Formatter
 
       # --- 7. SHELL / BASH ---
