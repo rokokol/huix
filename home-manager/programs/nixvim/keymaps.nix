@@ -194,9 +194,28 @@
       }
       {
         mode = "n";
+        key = "<leader>C";
+        action = "<cmd>BufferLineCloseOthers<cr>";
+        options = {
+          silent = true;
+          desc = "Close Unactive Buffers";
+        };
+      }
+      {
+        mode = "n";
         key = "<leader>d";
         action = ":cd %:p:h | pwd<CR>";
         options.desc = "Global CD to Buffer";
+      }
+
+      {
+        mode = "n";
+        key = "<leader>bb";
+        action = "<cmd>BufferLinePick<cr>";
+        options = {
+          desc = "Pick the Buffer";
+          silent = true;
+        };
       }
 
       # --- Editing & Navigation ---
@@ -288,6 +307,22 @@
         key = "<esc>";
         action = ":nohlsearch<cr>";
       }
+      {
+        mode = "n";
+        key = "L";
+        action = "<C-i>";
+        options = {
+          desc = "Jump forward";
+        };
+      }{
+        mode = "n";
+        key = "L";
+        action = "<C-o>";
+        options = {
+          desc = "Jump backward";
+        };
+      }
+
     ];
   };
 }

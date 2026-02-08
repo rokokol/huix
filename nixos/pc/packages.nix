@@ -18,18 +18,13 @@
   programs.geary.enable = true;
 
   # --- Desktop Environment Integrations ---
-  # services.flatpak.enable = true;
+  services.flatpak.enable = true;
   programs.appimage.enable = true;
   programs.gpaste.enable = true; # Clipboard history
   services.zeitgeist.enable = true; # Activity logging (needed for some GNOME features)
-  # services.gnome.gnome-browser-connector.enable = true; # Gnome extensions in browser
 
   # --- Gaming ---
   programs.steam.enable = true;
-
-  # --- Nautilus ---
-  # programs.nautilus-open-any-terminal.enable = true;
-  # programs.nautilus-open-any-terminal.terminal = "kitty";
 
   # ============================================================================
   #  SYSTEM PACKAGES
@@ -133,23 +128,6 @@
     ++ (with inputs; [
       freesmlauncher.packages.${pkgs.stdenv.hostPlatform.system}.default # Minecraft
     ]);
-
-  # ============================================================================
-  #  CLEANUP & EXCLUSIONS
-  # ============================================================================
-
-  # Remove default GNOME bloatware
-  environment.gnome.excludePackages = (
-    with pkgs;
-    [
-      gnome-software
-      epiphany # Default web browser
-      gnome-maps
-      snapshot # Camera app
-      gnome-tour
-      simple-scan
-    ]
-  );
 
   # Exclude basic X11 terminal
   services.xserver.excludePackages = [ pkgs.xterm ];
