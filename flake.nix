@@ -52,14 +52,12 @@
       };
     in
     {
-
       nixosConfigurations.nixos-pc = nixpkgs.lib.nixosSystem {
         specialArgs = {
           inherit inputs system;
         };
         modules = [
-          ./nixos/configuration.nix
-          ./nixos/hardware-configuration.nix
+          ./nixos/configuration-pc.nix
 
           {
             nixpkgs.hostPlatform = system;
@@ -78,7 +76,36 @@
 
               extraSpecialArgs = { inherit inputs; };
 
-              users.rokokol = import ./home-manager/home.nix;
+              users.rokokol = import ./home-manager/home-pc.nix;
+            };
+          }
+        ];
+      };
+
+      nixosConfigurations.nixos-laptop = nixpkgs.lib.nixosSystem {
+        specialArgs = {
+          inherit inputs system;
+        };
+        modules = [
+          ./nixos/configuration-laptop.nix
+
+          {
+            nixpkgs.hostPlatform = system;
+            nixpkgs.config = config;
+            nixpkgs.overlays = [
+              overlay-stable
+            ];
+          }
+
+          home-manager.nixosModules.home-manager
+          {
+            home-manager = {
+              useGlobalPkgs = true;
+              useUserPackages = true;
+
+              extraSpecialArgs = { inherit inputs; };
+
+              users.rokokol = import ./home-manager/home-laptop.nix;
             };
           }
         ];

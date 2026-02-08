@@ -26,7 +26,6 @@
     description = "sigma pro";
     shell = pkgs.zsh;
     extraGroups = [ "networkmanager" "wheel" "video" "render" "audio" "docker" "input" ];
-    packages = [ ];
   };
 
   # Nix Settings
