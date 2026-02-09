@@ -1,4 +1,5 @@
 { ... }:
+
 {
   programs.waybar = {
     enable = true;
@@ -23,14 +24,11 @@
         ];
         modules-center = [ "clock" ];
         modules-right = [
-          "cpu"
-          "memory"
-          "temperature"
-          "backlight"
+          "group/hardware"
+          "custom/gpu"
           "pulseaudio"
           "hyprland/language"
           "network"
-          "battery"
         ];
 
         "custom/menu" = {
@@ -75,48 +73,50 @@
           };
         };
 
-        "backlight" = {
-          device = "intel_backlight";
-          format = "{percent}% {icon}";
-          format-icons = [
-            "🌑"
-            "🌘"
-            "🌗"
-            "🌖"
-            "🌕"
-          ];
-          on-scroll-up = "brightnessctl set 1%+";
-          on-scroll-down = "brightnessctl set 1%-";
-        };
         "hyprland/language" = {
           format = "{}";
           format-en = "🏳‍🌈";
           format-ru = "ZOV";
         };
+
+        "group/hardware" = {
+          orientation = "horizontal";
+          modules = [
+            "cpu"
+            "memory"
+            "temperature"
+          ];
+        };
+
         "cpu" = {
           format = "{usage}% 💻";
           interval = 2;
         };
+
         "temperature" = {
-          # thermal-zone = 2;
-          # hwmon-path = "/sys/class/hwmon/hwmon2/temp1_input";
           format = "{temperatureC}°C 🌡️";
           critical-threshold = 80;
           format-critical = "{temperatureC}°C ⚠️";
         };
+
         "memory" = {
-          format = "{used:0.1f}G 🧠";
+          format = "{used:0.1f}Gb 🧠";
           interval = 2;
         };
-        "battery" = {
-          format = "{capacity}% {icon}";
-          format-icons = [ "🔋" ];
+
+        "custom/gpu" = {
+          exec = "nvidia-smi --query-gpu=utilization.gpu,memory.used,temperature.gpu --format=csv,noheader,nounits | awk -F', ' '{printf \"%d%% %.1fGB %d°C 📹\", $1, $2/1024, $3}'";
+          format = "{}";
+          interval = 2;
+          tooltip = false;
         };
+
         "network" = {
           format-wifi = "📶";
           format-ethernet = "🌐";
           tooltip-format = "{essid}";
         };
+
         "pulseaudio" = {
           format = "{volume}% {icon}";
           format-icons = {
@@ -128,7 +128,6 @@
     };
 
     style = ''
-      /* transition: all 0.5s ease-in-out; to animation */
       * {
           border: none;
           font-family: "Doki";
@@ -141,13 +140,22 @@
       }
 
       /* Modules style (islands) */
-      #custom-menu, #workspaces, #window, #clock, #cpu, #memory, #pulseaudio, #temperature, #network, #battery, #language, #backlight {
+      #custom-menu, #workspaces, #window, #clock, #pulseaudio, #network, #language, #custom-gpu, #hardware {
           background: rgba(255, 240, 245, 0.9);
           color: #4c4c4c;
           padding: 0px 8px;   
           margin: 2px 1px;    
           border-radius: 12px;
           border: 1px solid #ff70a6;
+      }
+
+      /* Remove borders/backgrounds from modules inside the hardware group so they blend */
+      #cpu, #memory, #temperature {
+          background: transparent;
+          border: none;
+          margin: 0;
+          padding: 0 4px;
+          color: #4c4c4c;
       }
 
       #clock {

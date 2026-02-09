@@ -1,3 +1,5 @@
+{ ... }:
+
 {
   programs.nixvim.plugins = {
     # --- Language Servers ---

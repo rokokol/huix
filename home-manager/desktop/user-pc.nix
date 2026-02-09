@@ -92,7 +92,6 @@
       gimpPlugins.gmic
       krita # Drawing program
       aseprite # Pixel art
-      neovim
 
       # --- ICONS AND SHIT ---
       adwaita-icon-theme

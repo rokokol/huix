@@ -117,6 +117,15 @@
       };
     };
 
+    # Mini
+    mini = {
+      enable = true;
+      modules = {
+        icons = { };
+      };
+      mockDevIcons = true;
+    };
+
     # Session Management
     persistence.enable = true;
   };

@@ -14,7 +14,6 @@
     ./programs/rofi.nix
     ./programs/zsh.nix
     ./programs/git.nix
-    ./programs/neovim.nix
     ./programs/starship.nix
     ./programs/kitty.nix
     ./programs/btop.nix
