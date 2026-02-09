@@ -15,7 +15,6 @@
     waybar
     libsForQt5.qt5.qtwayland
     qt6.qtwayland
-    pavucontrol
     brightnessctl
     cliphist
     grim
@@ -24,13 +23,28 @@
     hyprpicker
     libnotify
     seahorse
-    swayimg
+    (symlinkJoin {
+      name = "pavucontrol";
+      paths = [ pavucontrol ];
+      buildInputs = [ makeWrapper ];
+      postBuild = ''
+        wrapProgram $out/bin/pavucontrol \
+          --set GTK_THEME Adwaita
+      '';
+    })
 
     # programs
     ayugram-desktop
-    kdePackages.dolphin
     adwaita-icon-theme
     obsidian
+    bambu-studio
+    gnome-disk-utility
+    celluloid
+    swayimg
+    loupe
+    file-roller
+
+    rose-pine-kvantum
   ];
 
   home.sessionVariables = {
@@ -43,5 +57,37 @@
     SSH_ASKPASS = "${pkgs.seahorse}/libexec/seahorse/ssh-askpass";
     SSH_ASKPASS_REQUIRE = "force";
     SSH_AUTH_SOCK = "$XDG_RUNTIME_DIR/keyring/ssh";
+    GTK_THEME = "rose-pine-dawn";
   };
+
+  gtk = {
+    enable = true;
+    theme = {
+      name = "rose-pine-dawn";
+      package = pkgs.rose-pine-gtk-theme;
+    };
+    iconTheme = {
+      name = "rose-pine-dawn";
+      package = pkgs.rose-pine-icon-theme;
+    };
+  };
+
+  # qt = {
+  #   enable = true;
+  #   platformTheme.name = "kvantum";
+  #   style.name = "kvantum";
+  # };
+
+  home.file.".config/swayimg/config".text = ''
+    [info]
+    show = no
+
+    [keys.viewer]
+    Ctrl+c = exec wl-copy < "%"
+    i = info
+    Left = prev_file
+    Right = next_file
+    r = rotate_right
+    m = flip_horizontal
+  '';
 }

@@ -12,6 +12,9 @@
   services.gnome.gnome-keyring.enable = true;
   security.pam.services.login.enableGnomeKeyring = true;
   security.pam.services.hyprland.enableGnomeKeyring = true;
+  services.udisks2.enable = true;
+  services.gvfs.enable = true;
+  services.tumbler.enable = true;
 
   environment.systemPackages = with pkgs; [
     neovim
@@ -24,11 +27,22 @@
     dex
     imagemagick
     killall
+    pup
+    jq
     translate-shell
     gnome-keyring
     gcr
     seahorse
     libsecret
+
+    thunar
+    tumbler
+    ffmpegthumbnailer
+    poppler
+    libgsf
+    ffmpeg-full
+
+    octaveFull
 
     (pkgs.catppuccin-sddm.override {
       flavor = "mocha";
@@ -41,4 +55,7 @@
       ];
     })
   ];
+
+  # Remove X11 term
+  services.xserver.excludePackages = [ pkgs.xterm ];
 }

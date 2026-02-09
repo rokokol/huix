@@ -62,6 +62,15 @@
       settings = {
         indent.enable = true;
         highlight.enable = true;
+        ensure_installed = [
+          "markdown"
+          "markdown_inline"
+          "bash"
+          "css"
+          "html"
+          "hyprlang"
+          "json"
+        ];
       };
     };
 

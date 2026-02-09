@@ -314,9 +314,10 @@
         options = {
           desc = "Jump forward";
         };
-      }{
+      }
+      {
         mode = "n";
-        key = "L";
+        key = "H";
         action = "<C-o>";
         options = {
           desc = "Jump backward";
