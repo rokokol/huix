@@ -13,6 +13,8 @@
 
     # System packages required for plugins and tools
     extraPackages = with pkgs; [
+      tree-sitter
+
       ripgrep
       fd
       bottom
@@ -45,7 +47,6 @@
 
     extraPlugins = with pkgs.vimPlugins; [
       nvim-treesitter-parsers.matlab
-      gruvbox
       gruvbox-nvim
     ];
   };

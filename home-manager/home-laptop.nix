@@ -6,8 +6,8 @@
 {
   imports = [
     inputs.nixvim.homeModules.nixvim
+    ./hyprland/hyprland-laptop.nix
     ./hyprland/cursor.nix
-    ./hyprland/hyprland.nix
     ./hyprland/hypridle.nix
     ./hyprland/waybar-laptop.nix
     ./programs/mako.nix
