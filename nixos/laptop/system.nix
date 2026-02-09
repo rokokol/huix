@@ -24,6 +24,7 @@
   users.users.rokokol = {
     isNormalUser = true;
     description = "rokokol";
+    shell = pkgs.zsh;
     extraGroups = [
       "networkmanager"
       "wheel"

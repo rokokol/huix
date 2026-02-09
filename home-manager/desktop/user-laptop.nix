@@ -43,8 +43,7 @@
     swayimg
     loupe
     file-roller
-
-    rose-pine-kvantum
+    octaveFull
   ];
 
   home.sessionVariables = {
@@ -71,12 +70,6 @@
       package = pkgs.rose-pine-icon-theme;
     };
   };
-
-  # qt = {
-  #   enable = true;
-  #   platformTheme.name = "kvantum";
-  #   style.name = "kvantum";
-  # };
 
   home.file.".config/swayimg/config".text = ''
     [info]
