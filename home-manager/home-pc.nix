@@ -4,7 +4,7 @@
   imports = [
     inputs.nixvim.homeModules.nixvim
     ./hyprland/cursor.nix
-    ./hyprland/hyprland.nix
+    ./hyprland/hyprland-pc.nix
     ./hyprland/hypridle.nix
     ./hyprland/waybar-pc.nix
     ./programs/mako.nix

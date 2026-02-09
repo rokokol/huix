@@ -105,7 +105,7 @@
           format-critical = "{temperatureC}°C ⚠️";
         };
         "memory" = {
-          format = "{used:0.1f}G 🧠";
+          format = "{used:0.1f}Gb 🧠";
           interval = 2;
         };
         "battery" = {

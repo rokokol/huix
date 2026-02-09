@@ -1,3 +1,5 @@
+{ ... }:
+
 {
   imports = [
     ./alpha.nix

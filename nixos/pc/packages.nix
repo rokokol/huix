@@ -22,7 +22,6 @@
   # --- Desktop Environment Integrations ---
   services.flatpak.enable = true;
   programs.appimage.enable = true;
-  services.zeitgeist.enable = true;
 
   # --- Gaming ---
   programs.steam.enable = true;
