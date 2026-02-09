@@ -14,6 +14,8 @@
     ./services/docker.nix
     ./services/jupyter.nix
     ./services/searxng.nix
+    ./services/wl-clip-persist.nix
+    ./services/sddm.nix
   ];
 
   system.stateVersion = "25.11";

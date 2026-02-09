@@ -42,5 +42,11 @@
       lua-language-server
       bash-language-server
     ];
+
+    extraPlugins = with pkgs.vimPlugins; [
+      nvim-treesitter-parsers.matlab
+      gruvbox
+      gruvbox-nvim
+    ];
   };
 }

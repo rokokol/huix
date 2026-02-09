@@ -1,11 +1,6 @@
 { pkgs, ... }:
 
 {
-  #X11 & GNOME
-  services.xserver.enable = true;
-  services.displayManager.gdm.enable = true;
-  services.desktopManager.gnome.enable = true;
-
   # Keyboard layouts
   services.xserver.xkb = {
     layout = "us,ru";
@@ -17,17 +12,18 @@
   xdg.portal = {
     enable = true;
     xdgOpenUsePortal = true;
-    extraPortals = [
-      pkgs.xdg-desktop-portal-gnome
-      pkgs.xdg-desktop-portal-gtk
+    extraPortals = with pkgs; [
+      xdg-desktop-portal-hyprland
+      xdg-desktop-portal-gtk
     ];
-    config = {
-      common = {
-        default = [
-          "gnome"
-          "gtk"
-        ];
-      };
+
+    config.common = {
+      default = [
+        "hyprland"
+        "gtk"
+      ];
+      # "org.freedesktop.impl.portal.Screenshot" = [ "hyprland" ];
+      # "org.freedesktop.impl.portal.ScreenCast" = [ "hyprland" ];
     };
   };
 }

@@ -25,15 +25,29 @@
     isNormalUser = true;
     description = "sigma pro";
     shell = pkgs.zsh;
-    extraGroups = [ "networkmanager" "wheel" "video" "render" "audio" "docker" "input" ];
+    extraGroups = [
+      "networkmanager"
+      "wheel"
+      "video"
+      "render"
+      "audio"
+      "docker"
+      "input"
+    ];
   };
 
   # Nix Settings
   nix = {
     settings = {
-      experimental-features = [ "nix-command" "flakes" ];
+      experimental-features = [
+        "nix-command"
+        "flakes"
+      ];
       auto-optimise-store = true;
-      trusted-users = [ "root" "rokokol" ];
+      trusted-users = [
+        "root"
+        "rokokol"
+      ];
     };
     gc = {
       automatic = true;
@@ -55,4 +69,3 @@
     ];
   };
 }
-

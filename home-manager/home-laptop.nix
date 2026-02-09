@@ -9,7 +9,7 @@
     ./hyprland/cursor.nix
     ./hyprland/hyprland.nix
     ./hyprland/hypridle.nix
-    ./hyprland/waybar.nix
+    ./hyprland/waybar-laptop.nix
     ./programs/mako.nix
     ./programs/rofi.nix
     ./programs/zsh.nix

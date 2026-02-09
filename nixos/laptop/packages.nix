@@ -1,6 +1,7 @@
 { pkgs, ... }:
 
 {
+  programs.zsh.enable = true;
   nixpkgs.config.allowUnfree = true;
   programs.hyprland.enable = true;
   security.polkit.enable = true;
@@ -15,6 +16,7 @@
   services.udisks2.enable = true;
   services.gvfs.enable = true;
   services.tumbler.enable = true;
+  programs.gnupg.agent.enable = true;
 
   environment.systemPackages = with pkgs; [
     neovim
@@ -41,8 +43,7 @@
     poppler
     libgsf
     ffmpeg-full
-
-    octaveFull
+    trash-cli
 
     (pkgs.catppuccin-sddm.override {
       flavor = "mocha";
