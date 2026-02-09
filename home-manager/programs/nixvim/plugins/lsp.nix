@@ -10,6 +10,10 @@
         clangd.enable = true;
         lua_ls.enable = true;
         bashls.enable = true;
+        html.enable = true;
+        cssls.enable = true;
+        marksman.enable = true;
+        hyprls.enable = true;
       };
     };
 
@@ -42,7 +46,20 @@
     lsp-lines.enable = true;
 
     # "Panda" for LSP in Markdown/Strings
-    otter.enable = true;
+    plugins.otter = {
+      enable = true;
+      settings = {
+        languages = [
+          "html"
+          "css"
+          "bash"
+          "python"
+          "hyprlang" # Если хотите подсказки для hyprland внутри nix
+          "lua"
+        ];
+        handle_leading_whitespace = true;
+      };
+    };
 
     # Function argument signatures
     lsp-signature = {
