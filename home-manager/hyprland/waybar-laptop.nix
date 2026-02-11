@@ -98,8 +98,6 @@
           interval = 2;
         };
         "temperature" = {
-          # thermal-zone = 2;
-          # hwmon-path = "/sys/class/hwmon/hwmon2/temp1_input";
           format = "{temperatureC}°C 🌡️";
           critical-threshold = 80;
           format-critical = "{temperatureC}°C ⚠️";
@@ -119,8 +117,13 @@
         };
         "pulseaudio" = {
           format = "{volume}% {icon}";
+          format-muted = "{volume}% 🔇";
           format-icons = {
-            default = [ "🔊" ];
+            default = [
+              "🔈"
+              "🔉"
+              "🔊"
+            ];
           };
           on-click = "pavucontrol";
         };

@@ -24,6 +24,7 @@
           { name = "path"; }
           { name = "buffer"; }
           { name = "luasnip"; }
+          { name = "otter"; }
         ];
         formatting = {
           fields = [
@@ -34,17 +35,24 @@
           format = ''
             function(entry, vim_item)
               local kind_icons = {
-                Text = "(Txt)", Method = "(Met)", Function = "(Fnc)",
-                Constructor = "(Con)", Field = "(Fld)", Variable = "(Var)",
-                Class = "(Cls)", Interface = "(Int)", Module = "(Mod)",
-                Property = "(Prp)", Unit = "(Unt)", Value = "(Val)",
-                Enum = "(Enm)", Keyword = "(Key)", Snippet = "(Snp)",
-                Color = "(Col)", File = "(Fil)", Reference = "(Ref)",
-                Folder = "(Fol)", EnumMember = "(Mem)", Constant = "(Cst)",
-                Struct = "(Str)", Event = "(Evt)", Operator = "(Opr)",
-                TypeParameter = "(Typ)"
-              }
+                Text = "󰉿", Method = "󰆧", Function = "󰊕",
+                Constructor = "", Field = "󰜢", Variable = "󰀫",
+                Class = "󰠱", Interface = "", Module = "",
+                Property = "󰜢", Unit = "󰙅", Value = "󰎠",
+                Enum = "", Keyword = "󰌋", Snippet = "",
+                Color = "󰏘", File = "󰈙", Reference = "󰬲",
+                Folder = "󰉋", EnumMember = "", Constant = "󰏿",
+                Struct = "󰙅", Event = "", Operator = "󰆕",
+                TypeParameter = "󰏫"              }
               vim_item.kind = string.format("%s %s", kind_icons[vim_item.kind] or "", vim_item.kind)
+
+              vim_item.menu = ({
+                nvim_lsp = "[LSP]",
+                luasnip  = "[Snip]",
+                buffer   = "[Buf]",
+                path     = "[Path]",
+              })[entry.source.name]
+
               return vim_item
             end
           '';

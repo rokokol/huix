@@ -119,8 +119,13 @@
 
         "pulseaudio" = {
           format = "{volume}% {icon}";
+          format-muted = "{volume}% 🔇";
           format-icons = {
-            default = [ "🔊" ];
+            default = [
+              "🔈"
+              "🔉"
+              "🔊"
+            ];
           };
           on-click = "pavucontrol";
         };

@@ -14,7 +14,7 @@
 
         follow_mouse = 1;
 
-        sensitivity = 0; 
+        sensitivity = 0;
       };
     };
 
@@ -22,4 +22,6 @@
       source = /home/rokokol/huix/home-manager/hyprland/hyprland.conf
     '';
   };
+
+  imports = [ ./hyprland-packages.nix ];
 }

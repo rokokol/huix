@@ -70,17 +70,4 @@
       package = pkgs.rose-pine-icon-theme;
     };
   };
-
-  home.file.".config/swayimg/config".text = ''
-    [info]
-    show = no
-
-    [keys.viewer]
-    Ctrl+c = exec wl-copy < "%"
-    i = info
-    Left = prev_file
-    Right = next_file
-    r = rotate_right
-    m = flip_horizontal
-  '';
 }

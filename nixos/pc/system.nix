@@ -33,6 +33,8 @@
       "audio"
       "docker"
       "input"
+      "lp"
+      "scanner"
     ];
   };
 
