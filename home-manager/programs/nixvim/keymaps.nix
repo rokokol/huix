@@ -258,6 +258,11 @@
         action = "\"_D";
       }
       {
+        mode = "n";
+        key = "s";
+        action = "\"_s";
+      }
+      {
         mode = "v";
         key = "p";
         action = "\"_dP";

@@ -26,4 +26,6 @@
       source = /home/rokokol/huix/home-manager/hyprland/hyprland.conf
     '';
   };
+
+  imports = [ ./hyprland-packages.nix ];
 }

@@ -16,22 +16,44 @@
         };
         default_component_configs = {
           icon = {
-            folder_closed = "[+]";
-            folder_open = "[-]";
-            folder_empty = "[0]";
-            default = " ";
+            folder_closed = "";
+            folder_open = "";
+            folder_empty = "";
+            default = "";
+            highlight = "NeoTreeFileIcon";
           };
+          modified = {
+            symbol = "[+]";
+            highlight = "NeoTreeModified";
+          };
+
           git_status = {
             symbols = {
-              added = "A";
-              modified = "M";
-              deleted = "D";
-              renamed = "R";
-              untracked = "?";
-              ignored = "!";
-              unstaged = "U";
-              staged = "S";
-              conflict = "C";
+              added = "";
+              modified = "";
+              deleted = "";
+              renamed = "";
+
+              untracked = "";
+              ignored = "";
+              unstaged = "󰄱";
+              staged = "";
+              conflict = "";
+            };
+          };
+
+          diagnostics = {
+            symbols = {
+              hint = "";
+              info = "";
+              warn = "";
+              error = "";
+            };
+            highlights = {
+              hint = "DiagnosticSignHint";
+              info = "DiagnosticSignInfo";
+              warn = "DiagnosticSignWarn";
+              error = "DiagnosticSignError";
             };
           };
         };

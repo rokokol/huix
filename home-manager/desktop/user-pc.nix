@@ -52,35 +52,13 @@
       obsidian
       bambu-studio
       gnome-disk-utility
-      celluloid
       swayimg
+      celluloid
       loupe
+      zathura
       file-roller
       vesktop # Discord client with Vencord
       tor-browser # Privacy browsing
-
-      # --- HYPRLAND & DESKTOP ---
-      swww
-      hypridle
-      hyprlock
-      hyprpolkitagent
-      hyprpicker
-      libnotify
-      seahorse
-      (symlinkJoin {
-        name = "pavucontrol";
-        paths = [ pavucontrol ];
-        buildInputs = [ makeWrapper ];
-        postBuild = ''
-          wrapProgram $out/bin/pavucontrol \
-            --set GTK_THEME Adwaita
-        '';
-      })
-      cliphist
-      grim
-      slurp
-      satty
-      brightnessctl
 
       # --- CREATIVITY, HARDWARE & AUDIO ---
       bambu-studio # 3D Printing Slicer
@@ -140,7 +118,7 @@
 
   # Directories
   systemd.user.tmpfiles.rules = [
-    "d %h/notebooks 0755 - - -"
+    "d %h/Notebooks 0755 - - -"
     "d %h/Projects 0755 - - -"
     "d %h/govno/Pictures/Screenshots 0700 - - 30d"
     "D %h/Temp 0777 - - -"
@@ -157,30 +135,12 @@
     INSTALL_DIR=$HOME/MATLAB2025a/ 
   '';
 
-  home.file.".config/swayimg/config".text = ''
-    [info]
-    show = no
-
-    [keys.viewer]
-    Ctrl+c = exec wl-copy < "%"
-    i = info
-    Left = prev_file
-    Right = next_file
-    r = rotate_right
-    m = flip_horizontal
-  '';
-
   # Global session variables
   home.sessionVariables = {
     NIXPKGS_ALLOW_UNFREE = "1";
     EDITOR = "nvim";
-    QT_QPA_PLATFORM = "wayland";
-    SDL_VIDEODRIVER = "wayland";
     TERMINAL = "kitty";
     BROWSER = "firefox";
-    SSH_ASKPASS = "${pkgs.seahorse}/libexec/seahorse/ssh-askpass";
-    SSH_ASKPASS_REQUIRE = "force";
-    SSH_AUTH_SOCK = "$XDG_RUNTIME_DIR/keyring/ssh";
     GTK_THEME = "rose-pine-dawn";
   };
 }

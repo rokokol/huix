@@ -9,8 +9,9 @@
   programs.gnupg.agent.enable = true;
   programs.hyprland.enable = true;
   programs.zsh.enable = true;
-  services.tumbler.enable = true;
   services.gvfs.enable = true;
+  services.tumbler.enable = true;
+  programs.system-config-printer.enable = true;
 
   # --- Internet & Privacy ---
   programs.firefox.enable = true;
@@ -60,12 +61,7 @@
       flavor = "mocha";
       accent = "maroon";
     })
-    (tesseract5.override {
-      enableLanguages = [
-        "rus"
-        "eng"
-      ];
-    })
+    file
   ];
 
   # Exclude basic X11 terminal
