@@ -4,20 +4,20 @@
   home.username = "rokokol";
   home.homeDirectory = "/home/rokokol";
   home.stateVersion = "25.11";
+  home.file.".face".source = ../../logo.jpg;
 
   home.packages = with pkgs; [
     # programs
     ayugram-desktop
-    adwaita-icon-theme
     obsidian
-    bambu-studio
     gnome-disk-utility
     celluloid
-    swayimg
     gthumb
     file-roller
     octaveFull
   ];
+
+  gtk.enable = true;
 
   home.sessionVariables = {
     NIXPKGS_ALLOW_UNFREE = "1";

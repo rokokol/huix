@@ -22,17 +22,11 @@
     gh
     wl-clipboard
     wl-clip-persist
-    gtk3
-    dex
     imagemagick
     killall
     pup
     jq
     translate-shell
-    gnome-keyring
-    gcr
-    seahorse
-    libsecret
 
     thunar
     tumbler

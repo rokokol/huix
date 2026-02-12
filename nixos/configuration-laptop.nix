@@ -11,6 +11,7 @@
     ./laptop/system.nix
     ./services/wl-clip-persist.nix
     ./services/sddm.nix
+    ./services/keys.nix
   ];
 
   system.stateVersion = "25.11";

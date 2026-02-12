@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # 1. Получаем геометрию (белый полупрозрачный фон, тонкая рамка)
-GEOM=$(slurp -b ffffff66 -w 0 -f "%x %y %w %h")
+GEOM=$(slurp -b ffffff66 -w 1 -f "%x %y %w %h")
 [ -z "$GEOM" ] && exit 0
 
 # 2. Парсим координаты через read (быстрее и чище)

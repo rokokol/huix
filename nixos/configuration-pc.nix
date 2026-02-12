@@ -16,6 +16,7 @@
     ./services/searxng.nix
     ./services/wl-clip-persist.nix
     ./services/sddm.nix
+    ./services/tablet.nix
   ];
 
   system.stateVersion = "25.11";

@@ -49,7 +49,6 @@
       vial # Mechanical keyboard configuration (QMK/Vial)
       ayugram-desktop
       obsidian
-      bambu-studio
       gnome-disk-utility
       swayimg
       celluloid
@@ -60,7 +59,6 @@
       tor-browser # Privacy browsing
 
       # --- CREATIVITY, HARDWARE & AUDIO ---
-      bambu-studio # 3D Printing Slicer
       easyeffects # Audio processing (EQ, Noise reduction) - Crucial for mic/guitar
       solvespace # 3D CAD
       darktable # RAW editor
