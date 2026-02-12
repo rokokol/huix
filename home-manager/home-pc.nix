@@ -16,6 +16,7 @@
     ./programs/btop-gpu.nix
     ./programs/nixvim/nixvim.nix
     ./desktop/user-pc.nix
+    ./desktop/dconf.nix
   ];
 
   programs.home-manager.enable = true;

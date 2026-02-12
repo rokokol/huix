@@ -47,15 +47,14 @@
 
       # --- SOFTWARE, UI ---
       vial # Mechanical keyboard configuration (QMK/Vial)
-      kitty
       ayugram-desktop
       obsidian
       bambu-studio
       gnome-disk-utility
       swayimg
       celluloid
-      loupe
-      zathura
+      gthumb
+      evince
       file-roller
       vesktop # Discord client with Vencord
       tor-browser # Privacy browsing
@@ -70,11 +69,7 @@
       gimpPlugins.gmic
       krita # Drawing program
       aseprite # Pixel art
-
-      # --- ICONS AND SHIT ---
-      adwaita-icon-theme
-      libsForQt5.qt5.qtwayland
-      qt6.qtwayland
+      obs-studio
     ]
     ++ (with inputs; [
       freesmlauncher.packages.${pkgs.stdenv.hostPlatform.system}.default # Minecraft
@@ -105,15 +100,6 @@
       "file:///home/rokokol/myWiki/media/"
       "file:///"
     ];
-
-    theme = {
-      name = "rose-pine-dawn";
-      package = pkgs.rose-pine-gtk-theme;
-    };
-    iconTheme = {
-      name = "rose-pine-dawn";
-      package = pkgs.rose-pine-icon-theme;
-    };
   };
 
   # Directories
@@ -141,6 +127,5 @@
     EDITOR = "nvim";
     TERMINAL = "kitty";
     BROWSER = "firefox";
-    GTK_THEME = "rose-pine-dawn";
   };
 }

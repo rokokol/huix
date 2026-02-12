@@ -17,13 +17,20 @@
       xdg-desktop-portal-gtk
     ];
 
-    config.common = {
-      default = [
-        "hyprland"
-        "gtk"
-      ];
-      # "org.freedesktop.impl.portal.Screenshot" = [ "hyprland" ];
-      # "org.freedesktop.impl.portal.ScreenCast" = [ "hyprland" ];
+    config = {
+      hyprland = {
+        "org.freedesktop.impl.portal.OpenURI" = [ "gtk" ];
+        "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
+
+        default = [
+          "hyprland"
+          "gtk"
+        ];
+      };
+
+      common = {
+        default = [ "gtk" ];
+      };
     };
   };
 }

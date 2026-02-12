@@ -23,8 +23,6 @@
         "hyprland"
         "gtk"
       ];
-      # "org.freedesktop.impl.portal.Screenshot" = [ "hyprland" ];
-      # "org.freedesktop.impl.portal.ScreenCast" = [ "hyprland" ];
     };
   };
 }

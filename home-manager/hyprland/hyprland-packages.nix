@@ -5,41 +5,64 @@
   services.playerctld.enable = true;
 
   home.packages = with pkgs; [
+    kitty
     swww
     hypridle
     hyprlock
     hyprpolkitagent
     hyprpicker
     libnotify
-    seahorse
-    (symlinkJoin {
-      name = "pavucontrol";
-      paths = [ pavucontrol ];
-      buildInputs = [ makeWrapper ];
-      postBuild = ''
-        wrapProgram $out/bin/pavucontrol \
-          --set GTK_THEME Adwaita
-      '';
-    })
+    pavucontrol
     cliphist
     grim
     slurp
     satty
     brightnessctl
     swayosd
+    gtk3
+    dex
     (tesseract5.override {
       enableLanguages = [
         "rus"
         "eng"
       ];
     })
+
+    libsForQt5.qt5.qtwayland
+    qt6.qtwayland
+    gtk-engine-murrine
+    gnome-themes-extra
   ];
 
-  home.sessionVariables = {
-    QT_QPA_PLATFORM = "wayland";
-    SDL_VIDEODRIVER = "wayland";
-    SSH_ASKPASS = "${pkgs.seahorse}/libexec/seahorse/ssh-askpass";
-    SSH_AUTH_SOCK = "$XDG_RUNTIME_DIR/keyring/ssh";
+  gtk = {
+    theme = {
+      name = "Gruvbox-Light";
+      package = pkgs.gruvbox-gtk-theme;
+    };
+
+    iconTheme = {
+      name = "rose-pine-dawn";
+      package = pkgs.rose-pine-icon-theme;
+    };
+
+    gtk3.extraConfig = {
+      gtk-application-prefer-dark-theme = 0;
+    };
+
+    gtk4.extraConfig = {
+      gtk-application-prefer-dark-theme = 0;
+    };
+  };
+
+  xdg.mimeApps = {
+    enable = true;
+    defaultApplications = {
+      "text/html" = "firefox.desktop";
+      "x-scheme-handler/http" = "firefox.desktop";
+      "x-scheme-handler/https" = "firefox.desktop";
+      "x-scheme-handler/about" = "firefox.desktop";
+      "x-scheme-handler/unknown" = "firefox.desktop";
+    };
   };
 
   home.file.".config/swayimg/config".text = ''
