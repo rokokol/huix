@@ -6,12 +6,13 @@
   # ============================================================================
 
   # --- Core & Shell ---
-  programs.gnupg.agent.enable = true;
   programs.hyprland.enable = true;
+  programs.dconf.enable = true;
   programs.zsh.enable = true;
   services.gvfs.enable = true;
   services.tumbler.enable = true;
   programs.system-config-printer.enable = true;
+  security.polkit.enable = true;
 
   # --- Internet & Privacy ---
   programs.firefox.enable = true;
@@ -39,17 +40,12 @@
     gh
     wl-clipboard
     wl-clip-persist
-    gtk3
-    dex
     imagemagick
     killall
     pup
     jq
     translate-shell
-    gnome-keyring
-    gcr
-    seahorse
-    libsecret
+    file
 
     thunar
     ffmpegthumbnailer
@@ -61,7 +57,6 @@
       flavor = "mocha";
       accent = "maroon";
     })
-    file
   ];
 
   # Exclude basic X11 terminal

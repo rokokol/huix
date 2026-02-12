@@ -108,7 +108,7 @@
               cursor = 3;
               width = 40;
               align_shortcut = "right";
-              hl = "Type";
+              hl = "Identifier";
               hl_shortcut = "WarningMsg";
               # Keymap to prevent buffer modification error
               keymap = [

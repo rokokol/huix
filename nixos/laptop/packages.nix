@@ -10,13 +10,10 @@
   hardware.bluetooth.enable = true;
   hardware.bluetooth.powerOnBoot = true;
   services.blueman.enable = true;
-  services.gnome.gnome-keyring.enable = true;
-  security.pam.services.login.enableGnomeKeyring = true;
-  security.pam.services.hyprland.enableGnomeKeyring = true;
   services.udisks2.enable = true;
   services.gvfs.enable = true;
+  programs.dconf.enable = true;
   services.tumbler.enable = true;
-  programs.gnupg.agent.enable = true;
 
   environment.systemPackages = with pkgs; [
     neovim
