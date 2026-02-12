@@ -7,6 +7,7 @@
   imports = [
     inputs.nixvim.homeModules.nixvim
     ./hyprland/hyprland-laptop.nix
+    ./hyprland/hyprland-packages.nix
     ./hyprland/cursor.nix
     ./hyprland/hypridle.nix
     ./hyprland/waybar-laptop.nix

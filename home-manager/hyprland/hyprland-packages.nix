@@ -19,6 +19,7 @@
     satty
     brightnessctl
     swayosd
+    swayimg
     gtk3
     dex
     (tesseract5.override {
@@ -32,6 +33,7 @@
     qt6.qtwayland
     gtk-engine-murrine
     gnome-themes-extra
+    gsettings-desktop-schemas
   ];
 
   gtk = {
@@ -62,6 +64,24 @@
       "x-scheme-handler/https" = "firefox.desktop";
       "x-scheme-handler/about" = "firefox.desktop";
       "x-scheme-handler/unknown" = "firefox.desktop";
+
+      "image/jpeg" = "swayimg.desktop"; # jpg, JPG
+      "image/png" = "swayimg.desktop"; # png
+      "image/gif" = "swayimg.desktop"; # gif
+      "image/x-canon-cr2" = "swayimg.desktop"; # cr2
+      "image/x-raw" = "swayimg.desktop"; # raw
+      "image/x-dcraw" = "swayimg.desktop";
+      "image/tiff" = "swayimg.desktop";
+      "image/bmp" = "swayimg.desktop";
+      "image/webp" = "swayimg.desktop";
+
+      "video/mp4" = "io.github.celluloid_player.Celluloid.desktop";
+      "video/x-matroska" = "io.github.celluloid_player.Celluloid.desktop";
+      "video/webm" = "io.github.celluloid_player.Celluloid.desktop";
+      "video/quicktime" = "io.github.celluloid_player.Celluloid.desktop";
+      "video/x-msvideo" = "io.github.celluloid_player.Celluloid.desktop";
+      "video/mpeg" = "io.github.celluloid_player.Celluloid.desktop";
+      "video/3gpp" = "io.github.celluloid_player.Celluloid.desktop";
     };
   };
 
