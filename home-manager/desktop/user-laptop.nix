@@ -15,6 +15,9 @@
     gthumb
     file-roller
     octaveFull
+
+    brightnessctl
+    networkmanager
   ];
 
   gtk.enable = true;

@@ -16,8 +16,7 @@
     cliphist
     grim
     slurp
-    satty
-    brightnessctl
+    satty 
     swayosd
     swayimg
     gtk3
