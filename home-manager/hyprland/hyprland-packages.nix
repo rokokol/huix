@@ -16,11 +16,10 @@
     cliphist
     grim
     slurp
-    satty 
+    satty
     swayosd
     swayimg
     gtk3
-    dex
     (tesseract5.override {
       enableLanguages = [
         "rus"
@@ -64,11 +63,11 @@
       "x-scheme-handler/about" = "firefox.desktop";
       "x-scheme-handler/unknown" = "firefox.desktop";
 
-      "image/jpeg" = "swayimg.desktop"; # jpg, JPG
-      "image/png" = "swayimg.desktop"; # png
-      "image/gif" = "swayimg.desktop"; # gif
-      "image/x-canon-cr2" = "swayimg.desktop"; # cr2
-      "image/x-raw" = "swayimg.desktop"; # raw
+      "image/jpeg" = "swayimg.desktop";
+      "image/png" = "swayimg.desktop";
+      "image/gif" = "swayimg.desktop";
+      "image/x-canon-cr2" = "swayimg.desktop";
+      "image/x-raw" = "swayimg.desktop";
       "image/x-dcraw" = "swayimg.desktop";
       "image/tiff" = "swayimg.desktop";
       "image/bmp" = "swayimg.desktop";
@@ -81,6 +80,19 @@
       "video/x-msvideo" = "io.github.celluloid_player.Celluloid.desktop";
       "video/mpeg" = "io.github.celluloid_player.Celluloid.desktop";
       "video/3gpp" = "io.github.celluloid_player.Celluloid.desktop";
+
+      "application/pdf" = "org.gnome.Evince.desktop";
+      "application/x-bzpdf" = "org.gnome.Evince.desktop";
+      "application/x-gzpdf" = "org.gnome.Evince.desktop";
+      "application/x-ext-pdf" = "org.gnome.Evince.desktop";
+      "application/postscript" = "org.gnome.Evince.desktop";
+      "application/x-bzpostscript" = "org.gnome.Evince.desktop";
+      "application/x-gzpostscript" = "org.gnome.Evince.desktop";
+      "image/vnd.djvu" = "org.gnome.Evince.desktop";
+      "application/x-ext-djvu" = "org.gnome.Evince.desktop";
+      "application/x-cbz" = "org.gnome.Evince.desktop";
+      "application/x-cbr" = "org.gnome.Evince.desktop";
+      "application/epub+zip" = "org.gnome.Evince.desktop";
     };
   };
 

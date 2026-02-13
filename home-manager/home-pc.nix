@@ -15,8 +15,8 @@
     ./programs/kitty.nix
     ./programs/btop-gpu.nix
     ./programs/nixvim/nixvim.nix
+    ./programs/ssh.nix
     ./desktop/user-pc.nix
-    ./desktop/dconf.nix
   ];
 
   programs.home-manager.enable = true;

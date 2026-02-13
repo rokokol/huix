@@ -19,6 +19,7 @@
     ./programs/kitty.nix
     ./programs/btop.nix
     ./programs/nixvim/nixvim.nix
+    ./programs/ssh.nix
     ./desktop/user-laptop.nix
   ];
 
