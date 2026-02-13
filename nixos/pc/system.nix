@@ -70,4 +70,6 @@
       "windows_names" # Do not break ntfs
     ];
   };
+
+  services.xserver.desktopManager.runXdgAutostartIfNone = true;
 }

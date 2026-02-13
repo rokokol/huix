@@ -7,19 +7,16 @@
 
   # --- Core & Shell ---
   programs.hyprland.enable = true;
-  programs.dconf.enable = true;
   programs.zsh.enable = true;
   services.gvfs.enable = true;
   services.tumbler.enable = true;
-  programs.system-config-printer.enable = true;
-  security.polkit.enable = true;
 
   # --- Internet & Privacy ---
   programs.firefox.enable = true;
   programs.amnezia-vpn.enable = true;
   services.tor.enable = true;
   services.tor.client.enable = true;
-  programs.geary.enable = true;
+  programs.thunderbird.enable = true;
 
   # --- Desktop Environment Integrations ---
   services.flatpak.enable = true;

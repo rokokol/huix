@@ -63,6 +63,5 @@
     serif = [ "Inter" ];
   };
 
-  services.dbus.packages = [ pkgs.gcr ];
   services.xserver.desktopManager.runXdgAutostartIfNone = true;
 }

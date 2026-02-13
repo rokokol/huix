@@ -17,6 +17,8 @@
     ./services/wl-clip-persist.nix
     ./services/sddm.nix
     ./services/tablet.nix
+    ./services/printing.nix
+    ./services/keys.nix
   ];
 
   system.stateVersion = "25.11";
