@@ -1,9 +1,14 @@
 { pkgs, ... }:
 
+let
+  askpass = pkgs.writeShellScript "rofi-askpass" ''
+    ${pkgs.rofi}/bin/rofi -dmenu -password -p "🤫" "$@"
+  '';
+in
 {
   programs.ssh = {
     startAgent = true;
-    askPassword = "${pkgs.kdePackages.ksshaskpass}/bin/ksshaskpass";
+    askPassword = "${askpass}";
     enableAskPassword = true;
   };
 
@@ -11,5 +16,5 @@
     polkit.enable = true;
   };
 
-  environment.systemPackages = [ pkgs.kdePackages.ksshaskpass ];
+  environment.systemPackages = [ pkgs.rofi ];
 }
