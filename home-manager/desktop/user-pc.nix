@@ -19,6 +19,7 @@
       trash-cli # Trash manipulation
       yt-dlp # video download
       gdu
+      lm_sensors
 
       # --- DEVELOPMENT & PROGRAMMING ---
       # Python

@@ -18,6 +18,7 @@
 
     brightnessctl
     networkmanager
+    lm_sensors
   ];
 
   gtk.enable = true;
