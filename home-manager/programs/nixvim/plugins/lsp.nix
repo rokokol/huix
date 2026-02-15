@@ -47,21 +47,21 @@
 
     lsp-lines.enable = true;
 
-    # "Panda" for LSP in Markdown/Strings
-    plugins.otter = {
-      enable = true;
-      settings = {
-        languages = [
-          "html"
-          "css"
-          "bash"
-          "python"
-          "hyprlang" # Если хотите подсказки для hyprland внутри nix
-          "lua"
-        ];
-        handle_leading_whitespace = true;
-      };
-    };
+    # Doesn't work
+    # plugins.otter = {
+    #   enable = true;
+    #   settings = {
+    #     languages = [
+    #       "html"
+    #       "css"
+    #       "bash"
+    #       "python"
+    #       "hyprlang"
+    #       "lua"
+    #     ];
+    #     handle_leading_whitespace = true;
+    #   };
+    # };
 
     # Function argument signatures
     lsp-signature = {

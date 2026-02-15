@@ -1,3 +1,5 @@
+{ ... }:
+
 {
   programs.nixvim.plugins = {
     # File Explorer
@@ -9,11 +11,29 @@
           follow_current_file.enabled = true;
           use_libuv_file_watcher = true;
         };
+
+        commands = {
+          system_open = {
+            __raw = ''
+              function(state)
+                 local node = state.tree:get_node()
+                 local path = node:get_id()
+                 
+                 vim.fn.jobstart({"xdg-open", path}, {detach = true})
+               end
+            '';
+          };
+        };
+
         window = {
           width = 30;
           auto_expand_width = false;
           position = "left";
+          mappings = {
+            "O" = "system_open";
+          };
         };
+
         default_component_configs = {
           icon = {
             folder_closed = "";
@@ -26,14 +46,12 @@
             symbol = "[+]";
             highlight = "NeoTreeModified";
           };
-
           git_status = {
             symbols = {
               added = "";
               modified = "";
               deleted = "";
               renamed = "";
-
               untracked = "";
               ignored = "";
               unstaged = "󰄱";
@@ -41,7 +59,6 @@
               conflict = "";
             };
           };
-
           diagnostics = {
             symbols = {
               hint = "";
@@ -58,7 +75,6 @@
           };
         };
       };
-      gitStatus.enable = true;
     };
 
     # Fuzzy Finder
