@@ -97,11 +97,12 @@
           format = "{usage}% 💻";
           interval = 2;
         };
-        # "temperature" = { # rewrite to correct temp by lm_sensors
-        #   format = "{temperatureC}°C 🌡️";
-        #   critical-threshold = 80;
-        #   format-critical = "{temperatureC}°C ⚠️";
-        # };
+        "temperature" = {
+          # rewrite to correct temp by lm_sensors
+          format = "{temperatureC}°C 🌡️";
+          critical-threshold = 80;
+          format-critical = "{temperatureC}°C ⚠️";
+        };
         "memory" = {
           format = "{used:0.1f}Gb 🧠";
           interval = 2;
