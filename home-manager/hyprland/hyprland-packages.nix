@@ -19,7 +19,9 @@
     satty
     swayosd
     swayimg
+    evince
     gtk3
+    lm_sensors
     (tesseract5.override {
       enableLanguages = [
         "rus"

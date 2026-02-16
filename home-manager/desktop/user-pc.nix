@@ -19,7 +19,6 @@
       trash-cli # Trash manipulation
       yt-dlp # video download
       gdu
-      lm_sensors
       appimage-run
 
       # --- DEVELOPMENT & PROGRAMMING ---
