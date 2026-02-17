@@ -23,6 +23,17 @@
                end
             '';
           };
+
+          copy_path = {
+            __raw = ''
+              function(state)
+                local node = state.tree:get_node()
+                local path = node:get_id()
+                vim.fn.setreg("+", path)
+                vim.notify("Path yanked: " .. path)
+              end
+            '';
+          };
         };
 
         window = {
@@ -31,6 +42,7 @@
           position = "left";
           mappings = {
             "O" = "system_open";
+            "Y" = "copy_path";
           };
         };
 

@@ -6,6 +6,7 @@
     la = "ls -la";
     v = "nvim";
     conf = "cd ~/huix/home-manager/ && nvim home.nix";
+    syssync = "bash ~/huix/home-manager/hyprland/scripts/sync.sh";
 
     ".." = "cd ..";
     "..." = "cd ../..";
@@ -59,4 +60,3 @@
     ];
   };
 }
-
