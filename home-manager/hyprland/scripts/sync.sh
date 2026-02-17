@@ -22,5 +22,5 @@ fi
 if ! git push; then
   notify-send "Push Error (#｀ε´#ゞ"
 else
-  notify-send "Pushed （´ω｀♡%）" "$(git log -1 --pretty=%B)"
+  notify-send "Pushed o(^▽^)o" "$(git log -1 --pretty=%B)"
 fi
