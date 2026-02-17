@@ -13,8 +13,9 @@ fi
 NEW_REV=$(git rev-parse HEAD)
 
 git add .
-if git commit -m "sync $(date) from $(hostname)"; then
+if ! git commit -m "sync $(date) from $(hostname)"; then
   notify-send "Nothing to pull (((o(*ﾟ▽ﾟ*)o)))"
+  exit 1
 fi
 
 if ! git push; then
