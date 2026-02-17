@@ -17,7 +17,6 @@
     octaveFull
 
     brightnessctl
-    networkmanager
   ];
 
   gtk.enable = true;
