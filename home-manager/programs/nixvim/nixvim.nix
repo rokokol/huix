@@ -49,6 +49,7 @@
     extraPlugins = with pkgs.vimPlugins; [
       nvim-treesitter-parsers.matlab
       gruvbox-nvim
+      cmp-zsh
     ];
   };
 }

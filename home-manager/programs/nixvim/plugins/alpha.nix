@@ -100,7 +100,7 @@
             type = "button";
             val = "  Restore Session";
             on_press = {
-              __raw = "function() require('persistence').load() end";
+              __raw = "function() require('persistence').load().load({ last = true }) end";
             };
             opts = {
               position = "center";

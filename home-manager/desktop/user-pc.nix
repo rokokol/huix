@@ -35,6 +35,14 @@
         ]
       ))
 
+      # C++
+      gcc
+      cmake
+      openmpi
+      eigen
+      pkg-config
+      llvmPackages.openmp
+
       # MATLAB & Octave
       matlab
       (pkgs.symlinkJoin {

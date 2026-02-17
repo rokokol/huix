@@ -43,7 +43,8 @@
                 Color = "󰏘", File = "󰈙", Reference = "󰬲",
                 Folder = "󰉋", EnumMember = "", Constant = "󰏿",
                 Struct = "󰙅", Event = "", Operator = "󰆕",
-                TypeParameter = "󰏫"              }
+                TypeParameter = "󰏫"
+                }
               vim_item.kind = string.format("%s %s", kind_icons[vim_item.kind] or "", vim_item.kind)
 
               vim_item.menu = ({
