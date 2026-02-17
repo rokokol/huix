@@ -4,7 +4,7 @@
   home.username = "rokokol";
   home.homeDirectory = "/home/rokokol";
   home.stateVersion = "25.11";
-  home.file.".face".source = ../../logo.jpg;
+  fhome.file.".face".source = ../../logo.jpg;
 
   home.packages = with pkgs; [
     # programs

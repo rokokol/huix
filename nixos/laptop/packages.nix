@@ -19,6 +19,7 @@
     wget
     git
     gh
+    lazygit
     wl-clipboard
     wl-clip-persist
     imagemagick
