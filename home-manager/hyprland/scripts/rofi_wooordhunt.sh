@@ -20,7 +20,7 @@ MEANINGS_LIST=$(echo "$HTML" | pup '.t_inline_en text{}' | sed 's/, /\n/g' | gre
 
 if [ -z "$MEANINGS_LIST" ]; then
   echo -en "\0message\x1f (,,#ﾟДﾟ)\n"
-  echo "$LINK"
+  echo "$LINK$MARKER"
   exit 0
 else
   echo -en "\0message\x1f${TRANSCRIPTION}\n"
