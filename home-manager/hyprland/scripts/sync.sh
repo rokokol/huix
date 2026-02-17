@@ -1,11 +1,16 @@
 #!/bin/sh
-cd /home/rokokol/huix || notify-send "No dir 💀"
+cd "$HUIX" || {
+  notify-send "No dir 💀"
+  exit 1
+}
 
+OLD_REV=$(git rev-parse HEAD)
 if ! git pull; then
   notify-send "Sync Error (#｀ε´#ゞ"
 else
-  notify-send "Synchronized （´ω｀♡%）" "$(git log -1 --pretty=%B)"
+  notify-send "Synchronized （´ω｀♡%）" "$(git log "$OLD_REV..$NEW_REV" --oneline)"
 fi
+NEW_REV=$(git rev-parse HEAD)
 
 git add .
 git commit -m "sync $(date) from $(hostname)"

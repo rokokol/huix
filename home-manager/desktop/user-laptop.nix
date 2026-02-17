@@ -26,6 +26,7 @@
     EDITOR = "nvim";
     TERMINAL = "kitty";
     BROWSER = "firefox";
+    HUIX = "$HOME/huix";
   };
 
   # Files
