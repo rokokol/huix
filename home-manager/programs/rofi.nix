@@ -21,6 +21,7 @@
       display-calc = "🧮";
       display-clip = "📋";
       display-kaomoji = "(,,#ﾟДﾟ)";
+      display-dictionary = "🤓";
       sorting-method = "fzf";
     };
 

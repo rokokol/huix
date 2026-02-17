@@ -1,4 +1,5 @@
 #!/bin/sh
+
 cd "$HUIX" || {
   notify-send "No dir 💀"
   exit 1

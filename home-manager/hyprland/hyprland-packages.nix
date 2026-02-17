@@ -22,6 +22,8 @@
     evince
     gtk3
     lm_sensors
+    pup
+    jq
     (tesseract5.override {
       enableLanguages = [
         "rus"
