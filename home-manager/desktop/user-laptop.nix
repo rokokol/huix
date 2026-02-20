@@ -15,6 +15,8 @@
     gthumb
     file-roller
     octaveFull
+    cheese
+    fastfetch
 
     brightnessctl
   ];
@@ -40,7 +42,6 @@
 
   # Directories
   systemd.user.tmpfiles.rules = [
-    "d %h/Notebooks 0755 - - -"
     "d %h/Projects 0755 - - -"
     "D %h/Temp 0777 - - -"
   ];

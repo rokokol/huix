@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ pkgs, ... }:
 
 {
   # OpenGL on (Hardware Graphics)
@@ -20,4 +20,3 @@
     package = pkgs.stable.linuxPackages_latest.nvidiaPackages.stable;
   };
 }
-

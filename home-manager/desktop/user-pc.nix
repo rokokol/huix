@@ -111,7 +111,6 @@
 
   # Directories
   systemd.user.tmpfiles.rules = [
-    "d %h/Notebooks 0755 - - -"
     "d %h/Projects 0755 - - -"
     "d %h/govno/Pictures/Screenshots 0700 - - 30d"
     "D %h/Temp 0777 - - -"

@@ -1,9 +1,16 @@
-{ pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
+let
+  homeDir = config.users.users.rokokol.home;
+in
 {
   networking.hostName = "nixos-pc";
   networking.networkmanager.enable = true;
-  networking.firewall.allowedTCPPorts = [ 8888 ];
 
   # Time and Locale
   time.timeZone = "Europe/Moscow";
@@ -58,7 +65,7 @@
     };
   };
 
-  fileSystems."/home/rokokol/govno" = {
+  fileSystems."${homeDir}/govno" = {
     device = lib.mkForce "/dev/disk/by-label/govno";
     fsType = "ntfs3";
     options = [

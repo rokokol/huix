@@ -38,9 +38,15 @@
     let
       system = "x86_64-linux";
 
-      config = {
+      configCuda = {
         allowUnfree = true;
         cuda.acceptLicense = true;
+        cudaSupport = true;
+        permittedInsecurePackages = [ ];
+      };
+
+      config = {
+        allowUnfree = true;
         permittedInsecurePackages = [ ];
       };
 
@@ -48,6 +54,13 @@
         stable = import nixpkgs-stable {
           inherit system;
           config = config;
+        };
+      };
+
+      overlay-stable-cuda = final: prev: {
+        stable = import nixpkgs-stable {
+          inherit system;
+          config = configCuda;
         };
       };
     in
@@ -63,7 +76,7 @@
             nixpkgs.hostPlatform = system;
             nixpkgs.config = config;
             nixpkgs.overlays = [
-              overlay-stable
+              overlay-stable-cuda
               nix-matlab.overlay
             ];
           }
