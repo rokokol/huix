@@ -7,7 +7,7 @@ cd "$HUIX" || {
 
 OLD_REV=$(git rev-parse HEAD)
 if ! git pull; then
-  notify-send "Sync Error (#｀ε´#ゞ"
+  notify-send -u critical "Sync Error (#｀ε´#ゞ"
 else
   notify-send "Synchronized （´ω｀♡%）" "$(git log "$OLD_REV..$NEW_REV" --oneline)"
 fi
@@ -20,7 +20,7 @@ if ! git commit -m "sync $(date) from $(hostname)"; then
 fi
 
 if ! git push; then
-  notify-send "Push Error (#｀ε´#ゞ"
+  notify-send -u critical "Push Error (#｀ε´#ゞ"
 else
   notify-send "Pushed o(^▽^)o" "$(git log -1 --pretty=%B)"
 fi
