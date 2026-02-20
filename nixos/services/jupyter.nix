@@ -1,15 +1,19 @@
-{ config, pkgs, ... }:
-let
-  python-datascience = pkgs.python3.withPackages (ps: with ps; [
-    ipykernel
+{ pkgs, ... }:
 
-    matplotlib
-    pandas
-    seaborn
-    numpy
-    sympy
-    scikit-learn
-  ]);
+let
+  python-datascience = pkgs.python3.withPackages (
+    ps: with ps; [
+      ipykernel
+
+      matplotlib
+      pandas
+      seaborn
+      numpy
+      sympy
+      scikit-learn
+      transformers
+    ]
+  );
 in
 {
   services.jupyter.enable = true;
@@ -58,4 +62,6 @@ in
       logo64 = "${python-datascience}/${python-datascience.sitePackages}/ipykernel/resources/logo-64x64.png";
     };
   };
+
+  networking.firewall.allowedTCPPorts = [ 8888 ];
 }

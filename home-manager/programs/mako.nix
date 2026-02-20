@@ -19,6 +19,7 @@
         background-color = "#e8f5e9";
         text-color = "#1b5e20";
         border-color = "#4caf50";
+        progress-color = "over #c8e6c9";
         default-timeout = 4000;
       };
 
@@ -26,6 +27,7 @@
         background-color = "#fff8e1";
         text-color = "#825e00";
         border-color = "#ffb300";
+        progress-color = "over #ffe082";
         default-timeout = 8000;
       };
 
@@ -33,6 +35,7 @@
         background-color = "#ffebee";
         text-color = "#b71c1c";
         border-color = "#e53935";
+        progress-color = "over #ffcdd2";
         default-timeout = 20000;
       };
     };
