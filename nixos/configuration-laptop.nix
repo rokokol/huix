@@ -11,6 +11,7 @@
     ./laptop/system.nix
     ./services/wl-clip-persist.nix
     ./services/sddm.nix
+    ./services/jupyter.nix
     ./services/keys.nix
   ];
 

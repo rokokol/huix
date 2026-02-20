@@ -4,7 +4,7 @@
   home.username = "rokokol";
   home.homeDirectory = "/home/rokokol";
   home.stateVersion = "25.11";
-  fhome.file.".face".source = ../../logo.jpg;
+  home.file.".face".source = ../../logo.jpg;
 
   home.packages = with pkgs; [
     # programs
@@ -19,7 +19,16 @@
     brightnessctl
   ];
 
-  gtk.enable = true;
+  gtk = {
+    enable = true;
+    gtk3.bookmarks = [
+      "file:///home/rokokol/Downloads/"
+      "file:///home/rokokol/huix/"
+      "file:///home/rokokol/Temp/"
+      "file:///home/rokokol/myWiki/media/"
+      "file:///"
+    ];
+  };
 
   home.sessionVariables = {
     NIXPKGS_ALLOW_UNFREE = "1";
@@ -28,6 +37,13 @@
     BROWSER = "firefox";
     HUIX = "$HOME/huix";
   };
+
+  # Directories
+  systemd.user.tmpfiles.rules = [
+    "d %h/Notebooks 0755 - - -"
+    "d %h/Projects 0755 - - -"
+    "D %h/Temp 0777 - - -"
+  ];
 
   # Files
   home.file.".octaverc".text = ''
