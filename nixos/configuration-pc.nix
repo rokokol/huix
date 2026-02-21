@@ -31,9 +31,9 @@
     librosa
 
     scikit-learn
-    transformers
-    torch-bin
-    torchvision-bin
-    torchaudio-bin
+    # transformers
+    # torch-bin
+    # torchvision-bin
+    # torchaudio-bin
   ];
 }
