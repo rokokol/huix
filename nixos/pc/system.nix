@@ -1,13 +1,5 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
-}:
+{ pkgs, lib, ... }:
 
-let
-  homeDir = config.users.users.rokokol.home;
-in
 {
   networking.hostName = "nixos-pc";
   networking.networkmanager.enable = true;
@@ -65,7 +57,7 @@ in
     };
   };
 
-  fileSystems."${homeDir}/govno" = {
+  fileSystems."/home/rokokol/govno" = {
     device = lib.mkForce "/dev/disk/by-label/govno";
     fsType = "ntfs3";
     options = [

@@ -13,7 +13,7 @@
     ./programs/git.nix
     ./programs/starship.nix
     ./programs/kitty.nix
-    ./programs/btop-gpu.nix
+    ./programs/btop-cuda.nix
     ./programs/nixvim/nixvim.nix
     ./programs/ssh.nix
     ./desktop/user-pc.nix
