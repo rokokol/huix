@@ -8,7 +8,6 @@
     };
 
     kernelPackages = pkgs.linuxPackages_latest;
-
     tmp = {
       useTmpfs = true;
       tmpfsSize = "50G";

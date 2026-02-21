@@ -24,7 +24,7 @@
       # --- DEVELOPMENT & PROGRAMMING ---
       # Python
       cuda.uv # Fast Python package installer
-      (python313.withPackages (
+      (cuda.python313.withPackages (
         ps: with ps; [
           matplotlib
           pandas
