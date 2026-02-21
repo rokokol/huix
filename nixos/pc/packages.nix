@@ -46,10 +46,10 @@
     file
 
     thunar
-    ffmpegthumbnailer
+    cuda.ffmpegthumbnailer
     poppler
     libgsf
-    ffmpeg-full
+    cuda.ffmpeg-full
 
     (pkgs.catppuccin-sddm.override {
       flavor = "mocha";

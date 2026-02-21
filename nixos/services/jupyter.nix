@@ -1,25 +1,20 @@
-{ config, pkgs, ... }:
+{
+  config,
+  pkgs,
+  pythonPackages,
+  ...
+}:
 
 let
   homeDir = config.users.users.rokokol.home;
 
   python-datascience = pkgs.python3.withPackages (
-    ps: with ps; [
+    ps:
+    with ps;
+    [
       ipykernel
-
-      matplotlib
-      pandas
-      seaborn
-      numpy
-      sympy
-      librosa
-      scikit-learn
-
-      transformers
-      torch
-      torchvision
-      torchaudio
     ]
+    ++ pythonPackages
   );
 in
 {

@@ -1,4 +1,4 @@
-{ ... }:
+{ pkgs, ... }:
 
 {
   imports = [
@@ -22,4 +22,18 @@
   ];
 
   system.stateVersion = "25.11";
+  _module.args.pythonPackages = with pkgs.cuda.python3Packages; [
+    matplotlib
+    pandas
+    seaborn
+    numpy
+    sympy
+    librosa
+
+    scikit-learn
+    transformers
+    torch-bin
+    torchvision-bin
+    torchaudio-bin
+  ];
 }

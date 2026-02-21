@@ -58,8 +58,8 @@
         };
       };
 
-      overlay-stable-cuda = final: prev: {
-        stable = import nixpkgs-stable {
+      overlay-cuda = final: prev: {
+        cuda = import nixpkgs {
           inherit system;
           config = configCuda;
         };
@@ -75,9 +75,9 @@
 
           {
             nixpkgs.hostPlatform = system;
-            nixpkgs.config = configCuda;
+            nixpkgs.config = configNoCuda;
             nixpkgs.overlays = [
-              overlay-stable-cuda
+              overlay-cuda
               nix-matlab.overlay
             ];
           }

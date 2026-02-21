@@ -12,18 +12,18 @@
     [
       # --- CLI ---
       nvtopPackages.nvidia
-      fastfetch # System info
+      cuda.fastfetch # System info
       usbutils # lsusb, etc.
       lm_sensors # Hardware sensors
       unzip
       trash-cli # Trash manipulation
       yt-dlp # video download
       gdu
-      appimage-run
+      cuda.appimage-run
 
       # --- DEVELOPMENT & PROGRAMMING ---
       # Python
-      uv # Fast Python package installer
+      cuda.uv # Fast Python package installer
       (python313.withPackages (
         ps: with ps; [
           matplotlib
@@ -56,27 +56,27 @@
 
       # --- SOFTWARE, UI ---
       vial # Mechanical keyboard configuration (QMK/Vial)
-      ayugram-desktop
-      obsidian
+      cuda.ayugram-desktop
+      cuda.obsidian
       gnome-disk-utility
       swayimg
       celluloid
       gthumb
       evince
       file-roller
-      vesktop # Discord client with Vencord
+      cuda.vesktop # Discord client with Vencord
       tor-browser # Privacy browsing
 
       # --- CREATIVITY, HARDWARE & AUDIO ---
       easyeffects # Audio processing (EQ, Noise reduction) - Crucial for mic/guitar
-      solvespace # 3D CAD
-      darktable # RAW editor
+      cuda.solvespace # 3D CAD
+      cuda.darktable # RAW editor
       stable.kdePackages.kdenlive # Video editor
-      gimp2-with-plugins # Shitty image manipulation
-      gimpPlugins.gmic
-      krita # Drawing program
+      cuda.gimp2-with-plugins # Shitty image manipulation
+      cuda.gimpPlugins.gmic
+      cuda.krita # Drawing program
       aseprite # Pixel art
-      obs-studio
+      cuda.obs-studio
     ]
     ++ (with inputs; [
       freesmlauncher.packages.${pkgs.stdenv.hostPlatform.system}.default # Minecraft
