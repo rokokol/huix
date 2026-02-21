@@ -13,6 +13,7 @@
     ./pc/packages.nix
     ./services/docker.nix
     ./services/jupyter.nix
+    ./services/virtualization.nix
     ./services/searxng.nix
     ./services/wl-clip-persist.nix
     ./services/sddm.nix
