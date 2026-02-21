@@ -1,9 +1,9 @@
-{ pkgs, ... }:
+{ pkgs, btopPackage, ... }:
 
 {
   programs.btop = {
     enable = true;
-    package = pkgs.btop;
+    package = btopPackage;
 
     settings = {
       color_theme = "gruvbox_dark";

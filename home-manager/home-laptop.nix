@@ -1,7 +1,4 @@
-{
-  inputs,
-  ...
-}:
+{ pkgs, inputs, ... }:
 
 {
   imports = [
@@ -25,4 +22,6 @@
 
   programs.home-manager.enable = true;
   programs.bash.enable = true;
+
+  _module.args.btopPackage = pkgs.btop;
 }

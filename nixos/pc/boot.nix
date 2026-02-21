@@ -11,7 +11,7 @@
 
     tmp = {
       useTmpfs = true;
-      tmpfsSize = "40G";
+      tmpfsSize = "50G";
     };
   };
 }
