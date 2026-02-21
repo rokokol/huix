@@ -47,7 +47,7 @@
 
       configNoCuda = {
         allowUnfree = true;
-        cudaSupport = false;
+        cuda.acceptLicense = true;
         permittedInsecurePackages = [ ];
       };
 
@@ -78,6 +78,7 @@
             nixpkgs.config = configNoCuda;
             nixpkgs.overlays = [
               overlay-cuda
+              overlay-stable
               nix-matlab.overlay
             ];
           }
