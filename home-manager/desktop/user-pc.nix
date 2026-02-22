@@ -47,7 +47,7 @@
       matlab
       (pkgs.symlinkJoin {
         name = "octave-wrapped";
-        paths = [ pkgs.octaveFull ];
+        paths = [ pkgs.cuda.octaveFull ];
         buildInputs = [ pkgs.makeWrapper ];
         postBuild = ''
           wrapProgram $out/bin/octave --set QT_QPA_PLATFORM xcb
