@@ -13,6 +13,7 @@
   services.udisks2.enable = true;
   services.gvfs.enable = true;
   services.tumbler.enable = true;
+  programs.steam.enable = true;
 
   environment.systemPackages = with pkgs; [
     neovim
