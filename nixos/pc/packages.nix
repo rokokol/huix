@@ -16,7 +16,6 @@
   programs.amnezia-vpn.enable = true;
   services.tor.enable = true;
   services.tor.client.enable = true;
-  programs.thunderbird.enable = true;
 
   # --- Desktop Environment Integrations ---
   services.flatpak.enable = true;
