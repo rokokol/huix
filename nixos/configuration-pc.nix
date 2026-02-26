@@ -20,6 +20,7 @@
     ./services/tablet.nix
     ./services/printing.nix
     ./services/keys.nix
+    ./services/cachix.nix
   ];
 
   system.stateVersion = "25.11";
@@ -32,9 +33,9 @@
     librosa
 
     scikit-learn
-    transformers
-    torch-bin
-    torchvision-bin
-    torchaudio-bin
+    # transformers
+    # torch-bin
+    # torchvision-bin
+    # torchaudio-bin
   ];
 }

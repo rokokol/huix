@@ -42,6 +42,7 @@
         allowUnfree = true;
         cuda.acceptLicense = true;
         cudaSupport = true;
+        config.cudaCapabilities = [ "8.6" ];
         permittedInsecurePackages = [ ];
       };
 
