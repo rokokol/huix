@@ -3,6 +3,7 @@
 {
   imports = [
     inputs.nixvim.homeModules.nixvim
+    ./hyprland/hyprland-pc.nix
     ./programs/mako.nix
     ./programs/rofi.nix
     ./programs/zsh.nix

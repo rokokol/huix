@@ -6,7 +6,6 @@
 
   imports = [
     ./cursor.nix
-    ./hyprland-pc.nix
     ./hypridle.nix
     ./systemd.nix
   ];
