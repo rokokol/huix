@@ -27,5 +27,8 @@
     '';
   };
 
-  imports = [ ./hyprland-packages.nix ];
+  imports = [
+    ./hyprland-packages.nix
+    ./waybar-laptop.nix
+  ];
 }

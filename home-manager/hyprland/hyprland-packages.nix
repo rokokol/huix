@@ -4,6 +4,13 @@
   services.swayosd.enable = true;
   services.playerctld.enable = true;
 
+  imports = [
+    ./cursor.nix
+    ./hyprland-pc.nix
+    ./hypridle.nix
+    ./systemd.nix
+  ];
+
   home.packages = with pkgs; [
     kitty
     swww

@@ -13,9 +13,11 @@ if [ -z "$INPUT" ]; then
   exit 0
 fi
 
-LINK="https://wooordhunt.ru/word/${INPUT,,}"
+PARSED_INPUT=$(echo "${INPUT,,}" | xargs)
+LINK="https://wooordhunt.ru/word/${PARSED_INPUT}"
 HTML=$(curl -s "$LINK")
-TRANSCRIPTION=$(echo "$HTML" | pup '#us_tr_sound > .transcription text{}' | xargs)
+TRANSCRIPTION_US=$(echo "$HTML" | pup '#us_tr_sound > .transcription text{}' | xargs)
+TRANSCRIPTION_UK=$(echo "$HTML" | pup '#uk_tr_sound > .transcription text{}' | xargs)
 MEANINGS_LIST=$(echo "$HTML" | pup '.t_inline_en text{}' | sed 's/, /\n/g' | grep .)
 
 if [ -z "$MEANINGS_LIST" ]; then
@@ -23,7 +25,7 @@ if [ -z "$MEANINGS_LIST" ]; then
   echo "$LINK$MARKER"
   exit 0
 else
-  echo -en "\0message\x1f${TRANSCRIPTION}\n"
+  echo -en "\0message\x1f🇺🇸: ${TRANSCRIPTION_US} // 🇬🇧: ${TRANSCRIPTION_UK}\n"
 fi
 
 while read -r line; do

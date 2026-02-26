@@ -1,7 +1,11 @@
 #!/bin/sh
+export PATH="$PATH":/run/current-system/sw/bin # for systemd service
+HUIX_PATH="${HUIX:-/home/rokokol/huix}"
+DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"
+export DBUS_SESSION_BUS_ADDRESS
 
-cd "$HUIX" || {
-  notify-send -u critical "No dir 💀"
+cd "$HUIX_PATH" || {
+  notify-send -u critical "No dir $HUIX_PATH 💀"
   exit 1
 }
 

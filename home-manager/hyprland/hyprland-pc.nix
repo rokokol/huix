@@ -23,5 +23,8 @@
     '';
   };
 
-  imports = [ ./hyprland-packages.nix ];
+  imports = [
+    ./hyprland-packages.nix
+    ./waybar-pc.nix
+  ];
 }

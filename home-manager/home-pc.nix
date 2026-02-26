@@ -3,10 +3,6 @@
 {
   imports = [
     inputs.nixvim.homeModules.nixvim
-    ./hyprland/cursor.nix
-    ./hyprland/hyprland-pc.nix
-    ./hyprland/hypridle.nix
-    ./hyprland/waybar-pc.nix
     ./programs/mako.nix
     ./programs/rofi.nix
     ./programs/zsh.nix
@@ -14,6 +10,7 @@
     ./programs/starship.nix
     ./programs/kitty.nix
     ./programs/btop.nix
+    ./programs/direnv.nix
     ./programs/nixvim/nixvim.nix
     ./programs/ssh.nix
     ./desktop/user-pc.nix
