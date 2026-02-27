@@ -26,6 +26,8 @@
     swayosd
     swayimg
     evince
+    baobab
+    gnome-disk-utility
     gtk3
     lm_sensors
     pup
