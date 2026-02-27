@@ -20,6 +20,7 @@
       yt-dlp # video download
       gdu
       cuda.appimage-run
+      ncdu
 
       # --- DEVELOPMENT & PROGRAMMING ---
       # Python
