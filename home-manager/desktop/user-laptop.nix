@@ -17,6 +17,7 @@
     octaveFull
     cheese
     fastfetch
+    obs-studio
 
     brightnessctl
   ];
