@@ -116,7 +116,17 @@
     i = info
     Left = prev_file
     Right = next_file
+    h = prev_file
+    l = next_file
     r = rotate_right
     m = flip_horizontal
+
+    Ctrl+с = exec sh -c 'wl-copy < "%"' 
+    с = exec wl-copy < "%"
+    ш = info
+    р = prev_file
+    д = next_file
+    к = rotate_right
+    ь = flip_horizontal
   '';
 }

@@ -1,5 +1,15 @@
 { pkgs, ... }:
 
+let
+  # to avoid transformers build
+  myPython = pkgs.cuda.python3.override {
+    packageOverrides = self: super: {
+      torch = super.torch-bin;
+      torchvision = super.torchvision-bin;
+      torchaudio = super.torchaudio-bin;
+    };
+  };
+in
 {
   imports = [
     ./fonts/fonts.nix
@@ -24,7 +34,7 @@
   ];
 
   system.stateVersion = "25.11";
-  _module.args.pythonPackages = with pkgs.cuda.python3Packages; [
+  _module.args.pythonPackages = with myPython.pkgs; [
     matplotlib
     pandas
     seaborn
@@ -33,9 +43,11 @@
     librosa
 
     scikit-learn
-    # transformers
-    # torch-bin
-    # torchvision-bin
-    # torchaudio-bin
+    transformers
+    torch-bin
+    torchvision-bin
+    torchaudio-bin
+
+    ipywidgets
   ];
 }

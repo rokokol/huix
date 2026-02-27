@@ -25,5 +25,7 @@
     librosa
 
     scikit-learn
+
+    ipywidgets
   ];
 }
