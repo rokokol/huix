@@ -1,4 +1,9 @@
 # huix
+
+<!--toc:start-->
+- [huix](#huix)
+<!--toc:end-->
+
 My NixOS config ☠️☠️
 ![Текущее лого](./logo.jpg)
 
@@ -21,7 +26,7 @@ My NixOS config ☠️☠️
 - [ ] Распределить музыку по плейлистам
 - [x] Перейти на btfrs
 - [x] Попробовать hyprland
-- [ ] Декларативно настроить SearXNG
+- [x] Декларативно настроить SearXNG
 - [ ] Починить в nixvim картинки в телескопе
 
 
