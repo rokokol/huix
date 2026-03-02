@@ -1,5 +1,4 @@
 { pkgs, ... }:
-
 {
   services.swayosd.enable = true;
   services.playerctld.enable = true;
