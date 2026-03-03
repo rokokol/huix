@@ -143,6 +143,26 @@
         action.__raw = "function() vim.lsp.buf.format({ async = true }) end";
         options.desc = "Format Buffer";
       }
+      {
+        mode = "n";
+        key = "<leader>ls";
+        action.__raw = ''
+          function()
+            local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+            local last_non_empty = #lines
+            
+            while last_non_empty > 0 and lines[last_non_empty]:match("^%s*$") do
+              last_non_empty = last_non_empty - 1
+            end
+            
+            vim.api.nvim_buf_set_lines(0, last_non_empty, #lines, false, {""})
+          end
+        '';
+        options = {
+          desc = "Ensure single empty line at EOF";
+          silent = true;
+        };
+      }
 
       # --- Git ---
       {

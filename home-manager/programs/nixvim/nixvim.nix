@@ -28,7 +28,6 @@
       ffmpegthumbnailer # Video previews
       chafa # Image fallback
       poppler-utils # PDF previews
-      texlive.combined.scheme-full
 
       # LSPs and Formatters
       nixd
