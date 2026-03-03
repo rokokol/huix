@@ -16,6 +16,7 @@
         cssls.enable = true;
         marksman.enable = true;
         hyprls.enable = true;
+        texlab.enable = true;
       };
     };
 
