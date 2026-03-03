@@ -21,6 +21,7 @@
       gdu
       cuda.appimage-run
       ncdu
+      texlive.combined.scheme-full
 
       # --- DEVELOPMENT & PROGRAMMING ---
       # Python
@@ -105,6 +106,7 @@
       "file:///home/rokokol/Downloads/"
       "file:///home/rokokol/huix/"
       "file:///home/rokokol/Temp/"
+      "file:///home/rokokol/Projects/"
       "file:///home/rokokol/myWiki/media/"
       "file:///"
     ];
