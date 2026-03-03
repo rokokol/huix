@@ -21,6 +21,7 @@
       gdu
       cuda.appimage-run
       ncdu
+      texlive.combined.scheme-full
 
       # --- DEVELOPMENT & PROGRAMMING ---
       # Python
