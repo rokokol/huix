@@ -55,6 +55,7 @@ in
       Timer = {
         OnCalendar = "hourly";
         Persistent = true;
+        OnBootSec = "10s";
       };
       Install.WantedBy = [ "timers.target" ];
     };
@@ -62,8 +63,8 @@ in
     "swww-collage" = {
       Unit.Description = "Timer for swww wallpaper collage";
       Timer = {
-        OnCalendar = "*:*:0/30";
-        AccuracySec = "1s";
+        OnBootSec = "1s";
+        OnUnitActiveSec = "5min";
       };
       Install.WantedBy = [ "timers.target" ];
     };

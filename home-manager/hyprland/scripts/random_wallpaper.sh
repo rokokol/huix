@@ -13,7 +13,7 @@ WALLPAPER_DIR="$HOME/myWiki/media"
 TEMP_COLLAGE="/tmp/swww_collage.jpg"
 BG_COLOR="#282828" # ImageMagick bg
 SWWW_BG="282828"   # swww bg (without #)
-TRANSITIONS=("fade" "left" "right" "top" "bottom" "wipe" "wave" "grow" "random" "outer")
+TRANSITIONS=("left" "right")
 
 # Check swww
 if ! swww query >/dev/null 2>&1; then
