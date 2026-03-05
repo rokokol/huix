@@ -7,6 +7,7 @@
 
 let
   wallpaperDeps = with pkgs; [
+    bash
     imagemagick
     swww
     libnotify
@@ -41,7 +42,7 @@ in
       };
       Service = {
         Type = "oneshot";
-        ExecStart = "${config.home.homeDirectory}/huix/home-manager/hyprland/scripts/random_wallpaper.sh";
+        ExecStart = "${pkgs.bash}/bin/bash ${config.home.homeDirectory}/huix/home-manager/hyprland/scripts/random_wallpaper.sh";
         Environment = "PATH=${lib.makeBinPath wallpaperDeps}";
       };
     };
