@@ -49,12 +49,13 @@ RANDOM_TRANS=${TRANSITIONS[$RANDOM % ${#TRANSITIONS[@]}]}
 # Collage
 CMD=("magick" "-size" "${RES_W}x${RES_H}" "xc:${BG_COLOR}")
 SEGMENT_WIDTH=$((WORK_W / NUM_PICS))
+readarray -t SHUFFLED_POS < <(seq 0 $((NUM_PICS - 1)) | shuf)
 
 for i in "${!SELECTED_PICS[@]}"; do
   IMG="${SELECTED_PICS[$i]}"
   ANG=$(get_normal 0 12)
 
-  BASE_X=$((i * SEGMENT_WIDTH + SEGMENT_WIDTH / 2))
+  BASE_X=$((SHUFFLED_POS[i] * SEGMENT_WIDTH + SEGMENT_WIDTH / 2))
   REL_X=$((BASE_X - WORK_W / 2))
   SIGMA_X=$((SEGMENT_WIDTH * 2 / 3))
 
