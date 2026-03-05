@@ -21,6 +21,7 @@ let
     libnotify
     coreutils
     bash
+    openssh
   ];
 in
 {
