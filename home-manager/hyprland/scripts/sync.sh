@@ -1,8 +1,8 @@
 #!/bin/sh
-export PATH="$PATH":/run/current-system/sw/bin # for systemd service
-HUIX_PATH="${HUIX:-/home/rokokol/huix}"
+# export PATH="$PATH":/run/current-system/sw/bin # for systemd service
 DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"
 export DBUS_SESSION_BUS_ADDRESS
+HUIX_PATH="${HUIX:-/home/rokokol/huix}"
 
 cd "$HUIX_PATH" || {
   notify-send -u critical "No dir $HUIX_PATH 💀"

@@ -1,38 +1,69 @@
-{ pkgs, ... }:
+{
+  pkgs,
+  config,
+  lib,
+  ...
+}:
 
+let
+  wallpaperDeps = with pkgs; [
+    imagemagick
+    swww
+    libnotify
+    gawk
+    findutils
+    coreutils
+  ];
+
+  syncDeps = with pkgs; [
+    git
+    libnotify
+    coreutils
+    bash
+  ];
+in
 {
   systemd.user.services = {
     "sync-hourly" = {
       Unit.Description = "sync.sh hourly";
       Service = {
         Type = "oneshot";
-        ExecStart = "${pkgs.bash}/bin/bash /home/rokokol/huix/home-manager/hyprland/scripts/sync.sh";
+        ExecStart = "${pkgs.bash}/bin/bash ${config.home.homeDirectory}/huix/home-manager/hyprland/scripts/sync.sh";
+        Environment = "PATH=${lib.makeBinPath syncDeps}";
       };
     };
 
-    "sync-on-logout" = {
+    "swww-collage" = {
       Unit = {
-        Description = "sync.sh on logout";
+        Description = "Generate and set wallpaper collage";
+        After = [ "graphical-session.target" ];
         PartOf = [ "graphical-session.target" ];
       };
       Service = {
         Type = "oneshot";
-        RemainAfterExit = true;
-        ExecStart = "${pkgs.coreutils}/bin/true";
-        ExecStop = "${pkgs.bash}/bin/bash /home/rokokol/huix/home-manager/hyprland/scripts/sync.sh";
-      };
-      Install = {
-        WantedBy = [ "graphical-session.target" ];
+        ExecStart = "${config.home.homeDirectory}/huix/home-manager/hyprland/scripts/random_wallpaper.sh";
+        Environment = "PATH=${lib.makeBinPath wallpaperDeps}";
       };
     };
   };
 
-  systemd.user.timers."sync-hourly" = {
-    Unit.Description = "Таймер для ежечасного запуска sync.sh";
-    Timer = {
-      OnCalendar = "hourly";
-      Persistent = true;
+  systemd.user.timers = {
+    "sync-hourly" = {
+      Unit.Description = "Таймер для ежечасного запуска sync.sh";
+      Timer = {
+        OnCalendar = "hourly";
+        Persistent = true;
+      };
+      Install.WantedBy = [ "timers.target" ];
     };
-    Install.WantedBy = [ "timers.target" ];
+
+    "swww-collage" = {
+      Unit.Description = "Timer for swww wallpaper collage";
+      Timer = {
+        OnCalendar = "*:*:0/30";
+        AccuracySec = "1s";
+      };
+      Install.WantedBy = [ "timers.target" ];
+    };
   };
 }
