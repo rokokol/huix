@@ -23,7 +23,7 @@ if ! git commit -m "sync $(date) from $(hostname)"; then
 fi
 
 if ! git push; then
-  notify-send -u critical "Push Error (#｀ε´#ゞ"
+  notify-send -u critical "Push Error (#｀ε´#ゞ)"
 else
   notify-send -u low "Pushed o(^▽^)o" "$(git log -1 --pretty=%B)"
 fi
