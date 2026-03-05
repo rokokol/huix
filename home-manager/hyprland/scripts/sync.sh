@@ -1,5 +1,4 @@
 #!/bin/sh
-# export PATH="$PATH":/run/current-system/sw/bin # for systemd service
 DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"
 export DBUS_SESSION_BUS_ADDRESS
 HUIX_PATH="${HUIX:-/home/rokokol/huix}"
@@ -20,7 +19,7 @@ NEW_REV=$(git rev-parse HEAD)
 git add .
 if ! git commit -m "sync $(date) from $(hostname)"; then
   notify-send -u low "Nothing to pull (((o(*ﾟ▽ﾟ*)o)))"
-  exit 1
+  exit 0
 fi
 
 if ! git push; then
