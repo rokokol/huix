@@ -19,14 +19,17 @@ TRANSITIONS=("fade" "left" "right" "top" "bottom" "wipe" "wave" "grow" "random" 
 if ! swww query >/dev/null 2>&1; then
   swww-daemon &
   sleep 1
+  notify-send -u low "Starting swww... (★^O^★)"
 fi
 
 RES_W=1920
 RES_H=1080
 WORK_W=1200
 
+IMAGES_NUM=6
+
 while true; do
-  NUM_PICS=$((RANDOM % 4 + 1))
+  NUM_PICS=$((RANDOM % IMAGES_NUM + 1))
 
   # Do not touch subdirs if nixos-pc
   FIND_OPTS=()
@@ -38,7 +41,7 @@ while true; do
   mapfile -d $'\0' SELECTED_PICS < <(find "$WALLPAPER_DIR" "${FIND_OPTS[@]}" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \) -print0 | shuf -z -n "$NUM_PICS")
 
   if [ ${#SELECTED_PICS[@]} -eq 0 ]; then
-    echo "Cannot find images (*≧m≦*)"
+    notify-send -u critical "Cannot find images (*≧m≦*)"
     sleep 30
     continue
   fi
@@ -57,13 +60,13 @@ while true; do
     REL_X=$((BASE_X - WORK_W / 2))
     SIGMA_X=$((SEGMENT_WIDTH * 2 / 3))
 
-    JITTER_X=$(($(get_normal 0 $SIGMA_X) % (SEGMENT_WIDTH / 2) - (SEGMENT_WIDTH / 4)))
+    JITTER_X=$(($(get_normal 0 $SIGMA_X) % (SEGMENT_WIDTH / 2)))
     OFFSET_X=$((REL_X + JITTER_X))
 
     MAX_Y=$((RES_H / 2 - 350))
     [ "$MAX_Y" -lt 50 ] && MAX_Y=50
     SIGMA_Y=$((MAX_Y / 3))
-    OFFSET_Y=$(($(get_normal 0 $SIGMA_Y) % (MAX_Y * 2) - MAX_Y))
+    OFFSET_Y=$(($(get_normal 0 $SIGMA_Y) % (MAX_Y * 2)))
 
     # Cords for ImageMagick
     if [ "$OFFSET_X" -ge 0 ]; then OFFSET_X="+${OFFSET_X}"; fi
@@ -83,5 +86,5 @@ while true; do
 
   swww img "$TEMP_COLLAGE" --resize fit --fill-color "$SWWW_BG" --transition-type "$RANDOM_TRANS" --transition-step 90
 
-  sleep 3
+  sleep 30
 done
