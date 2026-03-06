@@ -54,7 +54,6 @@ in
       Unit.Description = "Таймер для ежечасного запуска sync.sh";
       Timer = {
         OnCalendar = "hourly";
-        Persistent = true;
         OnActiveSec = "10s";
       };
       Install.WantedBy = [ "timers.target" ];

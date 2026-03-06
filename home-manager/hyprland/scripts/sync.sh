@@ -8,17 +8,6 @@ cd "$HUIX_PATH" || {
   exit 1
 }
 
-# Wait for network
-for i in {1..3}; do
-  if ping -c 1 github.com &>/dev/null; then
-    break
-  fi
-  dots=$(printf '%.0s.' $(seq 1 "$i"))
-
-  notify-send -u normal "No Internet$dots (T＿T)"
-  sleep 20
-done
-
 OLD_REV=$(git rev-parse HEAD)
 if ! git pull; then
   notify-send -u critical "Sync Error (#｀ε´#ゞ"
