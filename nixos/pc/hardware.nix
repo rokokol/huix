@@ -10,7 +10,7 @@
   # Deepcool hardware support
   services.hardware.deepcool-digital-linux.enable = true;
 
-  # Enable touchpad support
+  # Enable touchpad support; turn off for graphical tablet
   # services.xserver.libinput.enable = true;
 
   services.udev.extraRules = ''
@@ -21,4 +21,3 @@
     ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="0d8c", ATTR{idProduct}=="0268", ATTR{power/control}="on"
   '';
 }
-

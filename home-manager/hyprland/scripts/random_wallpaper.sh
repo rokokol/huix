@@ -19,7 +19,7 @@ TRANSITIONS=("left" "right")
 if ! swww query >/dev/null 2>&1; then
   swww-daemon &
   sleep 1
-  notify-send -u low "Starting swww... (★^O^★)"
+  notify-send -u normal "Starting swww... (★^O^★)"
 fi
 
 RES_W=1920

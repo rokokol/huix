@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"
 export DBUS_SESSION_BUS_ADDRESS
 HUIX_PATH="${HUIX:-/home/rokokol/huix}"
@@ -7,6 +7,17 @@ cd "$HUIX_PATH" || {
   notify-send -u critical "No dir $HUIX_PATH 💀"
   exit 1
 }
+
+# Wait for network
+for i in {1..3}; do
+  if ping -c 1 github.com &>/dev/null; then
+    break
+  fi
+  dots=$(printf '%.0s.' $(seq 1 "$i"))
+
+  notify-send -u normal "No Internet$dots (T＿T)"
+  sleep 20
+done
 
 OLD_REV=$(git rev-parse HEAD)
 if ! git pull; then
@@ -23,7 +34,7 @@ if ! git commit -m "sync $(date) from $(hostname)"; then
 fi
 
 if ! git push; then
-  notify-send -u critical "Push Error (#｀ε´#ゞ)"
+  notify-send -u critical "Push Error (*≧m≦*)"
 else
   notify-send -u low "Pushed o(^▽^)o" "$(git log -1 --pretty=%B)"
 fi
