@@ -17,7 +17,6 @@
         hyprls.enable = true;
         texlab.enable = true;
         clangd.enable = true;
-        matlab_ls.enable = true;
       };
     };
 
