@@ -23,9 +23,8 @@
             "${pkgs.matlab-language-server}/bin/matlab-language-server"
             "--stdio"
           ];
-          filetypes = [ "m" ];
           settings = {
-            matlab = {
+            MATLAB = {
               installPath = "/home/rokokol/MATLAB2025a";
 
               telemetry = false;
