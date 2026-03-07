@@ -24,6 +24,13 @@
             "--stdio"
           ];
           filetypes = [ "m" ];
+          settings = {
+            matlab = {
+              installPath = "/home/rokokol/MATLAB2025a";
+
+              telemetry = false;
+            };
+          };
         };
       };
     };

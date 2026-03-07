@@ -121,6 +121,7 @@
           "hyprlang"
           "json"
           "arduino"
+          "matlab"
         ];
       };
     };
