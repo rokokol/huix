@@ -1,4 +1,4 @@
-{ ... }:
+{ pkgs, ... }:
 
 {
   programs.nixvim.plugins = {
@@ -17,7 +17,14 @@
         hyprls.enable = true;
         texlab.enable = true;
         clangd.enable = true;
-        matlab_ls.enable = true;
+        matlab_ls = {
+          enable = true;
+          cmd = [
+            "${pkgs.matlab-language-server}/bin/matlab-language-server"
+            "--stdio"
+          ];
+          filetypes = [ "m" ];
+        };
       };
     };
 

@@ -44,6 +44,7 @@
       nodejs
       lua-language-server
       bash-language-server
+      matlab-language-server
     ];
 
     extraPlugins = with pkgs.vimPlugins; [
