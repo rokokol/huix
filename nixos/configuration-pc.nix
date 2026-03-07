@@ -32,6 +32,7 @@ in
     ./services/keys.nix
     ./services/cachix.nix
     ./services/arduino.nix
+    ./services/nix-ld.nix
   ];
 
   system.stateVersion = "25.11";
