@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ ... }:
 
 {
   programs.nixvim.plugins = {
@@ -17,16 +17,7 @@
         hyprls.enable = true;
         texlab.enable = true;
         clangd.enable = true;
-        matlab_ls = {
-          enable = true;
-          settings = {
-            MATLAB = {
-              installPath = "/home/rokokol/MATLAB2025a";
-
-              telemetry = false;
-            };
-          };
-        };
+        matlab_ls.enable = true;
       };
     };
 

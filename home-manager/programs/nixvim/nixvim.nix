@@ -45,6 +45,7 @@
       lua-language-server
       bash-language-server
       matlab-language-server
+      matlab
     ];
 
     extraPlugins = with pkgs.vimPlugins; [
