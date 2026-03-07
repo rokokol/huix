@@ -8,5 +8,6 @@
     stdenv.cc.cc
     zlib
     glib
+    pam
   ];
 }
