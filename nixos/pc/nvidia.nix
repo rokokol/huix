@@ -19,4 +19,11 @@
     # Stable kernel
     package = pkgs.stable.linuxPackages_latest.nvidiaPackages.stable;
   };
+
+  users.users.rokokol = {
+    extraGroups = [
+      "video"
+      "render"
+    ];
+  };
 }

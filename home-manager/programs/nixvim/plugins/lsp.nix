@@ -16,17 +16,7 @@
         marksman.enable = true;
         hyprls.enable = true;
         texlab.enable = true;
-        clangd = {
-          enable = true;
-          cmd = [
-            "clangd"
-            "--background-index"
-            "--clang-tidy"
-            "--header-insertion=never"
-            # Разрешаем clangd опрашивать любые компиляторы, включая те, что скачал PlatformIO
-            "--query-driver=**"
-          ];
-        };
+        clangd.enable = true;
       };
     };
 

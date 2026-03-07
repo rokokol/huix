@@ -31,6 +31,7 @@ in
     ./services/printing.nix
     ./services/keys.nix
     ./services/cachix.nix
+    ./services/arduino.nix
   ];
 
   system.stateVersion = "25.11";

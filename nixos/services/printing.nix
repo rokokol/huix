@@ -8,4 +8,11 @@
       gutenprint
     ];
   };
+
+  users.users.rokokol = {
+    extraGroups = [
+      "lp"
+      "scanner"
+    ];
+  };
 }

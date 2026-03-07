@@ -30,12 +30,7 @@
       "video"
       "render"
       "audio"
-      "docker"
       "input"
-      "lp"
-      "scanner"
-      "libvirtd"
-      "dialout"
     ];
   };
 
