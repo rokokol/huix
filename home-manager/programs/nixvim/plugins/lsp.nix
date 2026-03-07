@@ -19,10 +19,6 @@
         clangd.enable = true;
         matlab_ls = {
           enable = true;
-          cmd = [
-            "${pkgs.matlab-language-server}/bin/matlab-language-server"
-            "--stdio"
-          ];
           settings = {
             MATLAB = {
               installPath = "/home/rokokol/MATLAB2025a";
