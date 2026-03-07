@@ -9,7 +9,6 @@
       servers = {
         nixd.enable = true;
         pyright.enable = true;
-        clangd.enable = true;
         lua_ls.enable = true;
         bashls.enable = true;
         html.enable = true;
@@ -17,6 +16,17 @@
         marksman.enable = true;
         hyprls.enable = true;
         texlab.enable = true;
+        clangd = {
+          enable = true;
+          cmd = [
+            "clangd"
+            "--background-index"
+            "--clang-tidy"
+            "--header-insertion=never"
+            # Разрешаем clangd опрашивать любые компиляторы, включая те, что скачал PlatformIO
+            "--query-driver=**"
+          ];
+        };
       };
     };
 
