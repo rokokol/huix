@@ -120,6 +120,7 @@
           "html"
           "hyprlang"
           "json"
+          "arduino"
         ];
       };
     };

@@ -44,6 +44,7 @@
       nodejs
       lua-language-server
       bash-language-server
+      platformio
     ];
 
     extraPlugins = with pkgs.vimPlugins; [

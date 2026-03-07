@@ -35,6 +35,7 @@
       "lp"
       "scanner"
       "libvirtd"
+      "dialout"
     ];
   };
 

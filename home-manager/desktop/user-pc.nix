@@ -44,6 +44,7 @@
       eigen
       pkg-config
       llvmPackages.openmp
+      platformio
 
       # MATLAB & Octave
       matlab
