@@ -36,7 +36,7 @@ if [ "$(hostname)" != "nixos-pc" ]; then
 fi
 
 # Only static images
-mapfile -d $'\0' SELECTED_PICS < <(find "$WALLPAPER_DIR" "${FIND_OPTS[@]}" -type f \( -iname "*.jpg" -o -iname "*.JPG" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \) -print0 | shuf -z -n "$NUM_PICS")
+mapfile -d $'\0' SELECTED_PICS < <(find "$WALLPAPER_DIR" "${FIND_OPTS[@]}" -type f \( -iname "*.jpg" -o -iname "*.JPG" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" -o -iname "*.ico" \) -print0 | shuf -z -n "$NUM_PICS")
 
 if [ ${#SELECTED_PICS[@]} -eq 0 ]; then
   notify-send -u critical "Cannot find images (*≧m≦*)"
