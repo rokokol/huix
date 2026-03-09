@@ -73,7 +73,7 @@
       easyeffects # Audio processing (EQ, Noise reduction) - Crucial for mic/guitar
       cuda.solvespace # 3D CAD
       cuda.darktable # RAW editor
-      stable.kdePackages.kdenlive # Video editor
+      cuda.kdePackages.kdenlive # Video editor
       cuda.gimp2-with-plugins # Shitty image manipulation
       cuda.gimpPlugins.gmic
       cuda.krita # Drawing program
