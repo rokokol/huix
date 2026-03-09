@@ -2,7 +2,7 @@
 
 let
   # to avoid transformers build
-  myPython = pkgs.cuda.python3.override {
+  myPython = pkgs.cuda.python312.override {
     packageOverrides = self: super: {
       torch = super.torch-bin;
       torchvision = super.torchvision-bin;
