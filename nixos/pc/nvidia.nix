@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, ... }:
 
 {
   # OpenGL on (Hardware Graphics)
@@ -17,7 +17,7 @@
     nvidiaSettings = true;
 
     # Stable kernel
-    package = config.boot.kernelPackages.nvidiaPackages.beta;
+    package = config.boot.kernelPackages.nvidiaPackages.latest;
   };
 
   users.users.rokokol = {
