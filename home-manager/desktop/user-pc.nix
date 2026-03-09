@@ -49,7 +49,7 @@
       matlab
       (pkgs.symlinkJoin {
         name = "octave-wrapped";
-        paths = [ pkgs.cuda.octaveFull ];
+        paths = [ pkgs.octaveFull ];
         buildInputs = [ pkgs.makeWrapper ];
         postBuild = ''
           wrapProgram $out/bin/octave --set QT_QPA_PLATFORM xcb
@@ -71,12 +71,12 @@
 
       # --- CREATIVITY, HARDWARE & AUDIO ---
       easyeffects # Audio processing (EQ, Noise reduction) - Crucial for mic/guitar
-      cuda.solvespace # 3D CAD
+      solvespace # 3D CAD
       cuda.darktable # RAW editor
       cuda.kdePackages.kdenlive # Video editor
       cuda.gimp2-with-plugins # Shitty image manipulation
       cuda.gimpPlugins.gmic
-      cuda.krita # Drawing program
+      krita # Drawing program
       aseprite # Pixel art
       cuda.obs-studio
     ]
