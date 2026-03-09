@@ -7,7 +7,7 @@
       efi.canTouchEfiVariables = true;
     };
 
-    kernelPackages = pkgs.stable.linuxPackages;
+    kernelPackages = pkgs.linuxPackages;
     tmp = {
       useTmpfs = true;
       tmpfsSize = "50G";
