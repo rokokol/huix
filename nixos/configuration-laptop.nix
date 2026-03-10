@@ -13,6 +13,7 @@
     ./services/sddm.nix
     ./services/jupyter.nix
     ./services/keys.nix
+    ./services/amnezia-vpn.nix
   ];
 
   system.stateVersion = "25.11";

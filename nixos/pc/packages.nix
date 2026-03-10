@@ -13,7 +13,6 @@
 
   # --- Internet & Privacy ---
   programs.firefox.enable = true;
-  programs.amnezia-vpn.enable = true;
   services.tor.enable = true;
   services.tor.client.enable = true;
 

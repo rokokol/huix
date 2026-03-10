@@ -6,7 +6,6 @@
   programs.hyprland.enable = true;
   security.polkit.enable = true;
   programs.firefox.enable = true;
-  programs.amnezia-vpn.enable = true;
   hardware.bluetooth.enable = true;
   hardware.bluetooth.powerOnBoot = true;
   services.blueman.enable = true;

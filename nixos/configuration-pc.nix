@@ -33,6 +33,7 @@ in
     ./services/cachix.nix
     ./services/arduino.nix
     ./services/nix-ld.nix
+    ./services/amnezia-vpn.nix
   ];
 
   system.stateVersion = "25.11";
