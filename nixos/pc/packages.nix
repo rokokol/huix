@@ -50,11 +50,6 @@
     poppler
     libgsf
     cuda.ffmpeg-full
-
-    (pkgs.catppuccin-sddm.override {
-      flavor = "mocha";
-      accent = "maroon";
-    })
   ];
 
   # Exclude basic X11 terminal

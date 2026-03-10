@@ -9,7 +9,7 @@
 
     settings = {
       Theme = {
-        CursorTheme = "breeze_cursors";
+        CursorTheme = "catppuccin-mocha-maroon-cursors";
         CursorSize = 24;
       };
     };
@@ -21,6 +21,10 @@
   };
 
   environment.systemPackages = with pkgs; [
-    kdePackages.breeze
+    catppuccin-cursors.mochaMaroon
+    (pkgs.catppuccin-sddm.override {
+      flavor = "mocha";
+      accent = "maroon";
+    })
   ];
 }

@@ -37,10 +37,6 @@
     ffmpeg-full
     trash-cli
 
-    (pkgs.catppuccin-sddm.override {
-      flavor = "mocha";
-      accent = "maroon";
-    })
     (tesseract5.override {
       enableLanguages = [
         "rus"
