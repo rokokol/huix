@@ -14,7 +14,6 @@
   # --- Internet & Privacy ---
   programs.firefox.enable = true;
   programs.amnezia-vpn.enable = true;
-  programs.amnezia-vpn.package = pkgs.stable.amnezia-vpn;
   services.tor.enable = true;
   services.tor.client.enable = true;
 
