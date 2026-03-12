@@ -68,7 +68,7 @@
       file-roller
       cuda.vesktop # Discord client with Vencord
       tor-browser # Privacy browsing
-      antigravity
+      antigravity-fhs
 
       # --- CREATIVITY, HARDWARE & AUDIO ---
       easyeffects # Audio processing (EQ, Noise reduction) - Crucial for mic/guitar
