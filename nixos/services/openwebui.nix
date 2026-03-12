@@ -1,18 +1,17 @@
-{ ... }:
+{ pkgs, ... }:
 
 {
   services.open-webui = {
     enable = true;
-    host = "127.0.0.1"; # Слушать только локалхост (безопасно)
-    port = 8080;        # Порт по умолчанию, можно изменить
-    
-    # Переменные окружения для настройки Open WebUI
+    host = "127.0.0.1";
+    port = 8080;
+
+    package = pkgs.open-webui;
+
     environment = {
-      # Указываем, где искать API Ollama (по умолчанию 11434)
-      OLLAMA_API_BASE_URL = "http://127.0.0.1:11434"; 
-      
-      # Если вы единственный пользователь в домашней сети, можно отключить авторизацию:
-      # WEBUI_AUTH = "False"; 
+      OLLAMA_API_BASE_URL = "http://127.0.0.1:11434";
+
+      WEBUI_AUTH = "False";
     };
-  }
+  };
 }
