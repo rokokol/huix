@@ -24,6 +24,10 @@
 
       search = {
         autocomplete = "duckduckgo";
+        formats = [
+          "html"
+          "json"
+        ];
         theme_args = {
           simple_style = "light";
         };
