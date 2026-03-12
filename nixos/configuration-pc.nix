@@ -34,6 +34,7 @@ in
     ./services/arduino.nix
     ./services/nix-ld.nix
     ./services/amnezia-vpn.nix
+    ./services/ollama.nix
   ];
 
   system.stateVersion = "25.11";
