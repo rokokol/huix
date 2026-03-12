@@ -109,6 +109,7 @@
       "file:///home/rokokol/Temp/"
       "file:///home/rokokol/Projects/"
       "file:///home/rokokol/myWiki/media/"
+      "file:///home/rokokol/govno/"
       "file:///"
     ];
   };

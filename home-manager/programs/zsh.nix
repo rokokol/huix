@@ -7,7 +7,7 @@
     v = "nvim";
     conf = "cd ~/huix/home-manager/ && nvim home.nix";
     syssync = "bash ~/huix/home-manager/hyprland/scripts/sync.sh";
-    download-music = "nix run github:nixos/nixpkgs/nixos-unstable#yt-dlp -- --cookies-from-browser firefox mp3 --audio-quality 0 --embed-metadata --embed-thumbnail -o '%(title)s.%(ext)s'";
+    download-music = "nix run github:nixos/nixpkgs/nixos-unstable#yt-dlp -- --cookies-from-browser firefox -x --audio-format mp3 --audio-quality 0 --embed-metadata --embed-thumbnail -o '%(title)s.%(ext)s'";
 
     ".." = "cd ..";
     "..." = "cd ../..";
