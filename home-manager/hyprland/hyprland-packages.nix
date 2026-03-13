@@ -19,7 +19,6 @@
     hyprpolkitagent
     hyprpicker
     libnotify
-    glib
     pavucontrol
     cliphist
     grim
