@@ -44,27 +44,26 @@
     gtk-engine-murrine
     gnome-themes-extra
     gsettings-desktop-schemas
-    gruvbox-gtk-theme
   ];
 
   gtk = {
-    # theme = {
-    #   name = "Gruvbox-Light";
-    #   package = pkgs.gruvbox-gtk-theme;
-    # };
-    #
+    theme = {
+      name = "Gruvbox-Light";
+      package = pkgs.gruvbox-gtk-theme;
+    };
+
     iconTheme = {
       name = "rose-pine-dawn";
       package = pkgs.rose-pine-icon-theme;
     };
-    #
-    # gtk3.extraConfig = {
-    #   gtk-application-prefer-dark-theme = 0;
-    # };
-    #
-    # gtk4.extraConfig = {
-    #   gtk-application-prefer-dark-theme = 0;
-    # };
+
+    gtk3.extraConfig = {
+      gtk-application-prefer-dark-theme = 0;
+    };
+
+    gtk4.extraConfig = {
+      gtk-application-prefer-dark-theme = 0;
+    };
   };
 
   xdg.mimeApps = {
