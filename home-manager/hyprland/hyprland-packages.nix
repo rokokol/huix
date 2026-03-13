@@ -47,6 +47,8 @@
   ];
 
   gtk = {
+    enable = true;
+
     theme = {
       name = "Gruvbox-Light";
       package = pkgs.gruvbox-gtk-theme;
