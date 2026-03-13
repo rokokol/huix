@@ -3,6 +3,8 @@
   services.swayosd.enable = true;
   services.playerctld.enable = true;
 
+  dconf.enable = true;
+
   imports = [
     ./cursor.nix
     ./hypridle.nix
