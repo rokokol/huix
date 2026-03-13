@@ -44,6 +44,7 @@
     gtk-engine-murrine
     gnome-themes-extra
     gsettings-desktop-schemas
+    gruvbox-gtk-theme
   ];
 
   gtk = {
