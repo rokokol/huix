@@ -1,4 +1,4 @@
-{ pkgs, lib, ... }:
+{ pkgs, ... }:
 {
   services.swayosd.enable = true;
   services.playerctld.enable = true;
@@ -47,39 +47,23 @@
   ];
 
   gtk = {
-    theme = {
-      name = "Gruvbox-Light";
-      package = pkgs.gruvbox-gtk-theme;
-    };
-
+    # theme = {
+    #   name = "Gruvbox-Light";
+    #   package = pkgs.gruvbox-gtk-theme;
+    # };
+    #
     iconTheme = {
       name = "rose-pine-dawn";
       package = pkgs.rose-pine-icon-theme;
     };
-
-    gtk3.extraConfig = {
-      gtk-application-prefer-dark-theme = 0;
-    };
-
-    gtk4.extraConfig = {
-      gtk-application-prefer-dark-theme = 0;
-    };
-  };
-
-  specialisation.dark.configuration = {
-    gtk = {
-      # Используем mkForce для разрешения конфликта
-      theme.name = lib.mkForce "Gruvbox-Dark";
-
-      iconTheme.name = lib.mkForce "rose-pine-moon"; # Если иконки тоже меняются
-
-      gtk3.extraConfig = {
-        gtk-application-prefer-dark-theme = lib.mkForce 1;
-      };
-      gtk4.extraConfig = {
-        gtk-application-prefer-dark-theme = lib.mkForce 1;
-      };
-    };
+    #
+    # gtk3.extraConfig = {
+    #   gtk-application-prefer-dark-theme = 0;
+    # };
+    #
+    # gtk4.extraConfig = {
+    #   gtk-application-prefer-dark-theme = 0;
+    # };
   };
 
   xdg.mimeApps = {
