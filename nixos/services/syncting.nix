@@ -4,6 +4,7 @@
   services.syncthing = {
     enable = true;
     user = "rokokol";
+    guiAddress = "127.0.0.1:8384";
     dataDir = "/home/rokokol/Documents";
     configDir = "/home/rokokol/.config/syncthing";
 
