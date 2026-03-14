@@ -20,13 +20,11 @@ git add .
 if ! git commit -m "sync $(date) from $(hostname)"; then
   notify-send -u low "Nothing to commit (((o(*ﾟ▽ﾟ*)o)))"
   if [ "$(git rev-list @\{u\}..HEAD | wc -l)" -gt 0 ]; then
-    notify-send -u low "Pushed ⊂(‘ω’⊂ )))Σ≡=─༄༅༄༅༄༅༄༅༄༅" "$(git log -1 --pretty=%B)"
+    if ! git push; then
+      notify-send -u critical "Push Error (*≧m≦*)"
+    else
+      notify-send -u low "Pushed o(^▽^)o" "$(git log -1 --pretty=%B)"
+    fi
   fi
   exit 0
-fi
-
-if ! git push; then
-  notify-send -u critical "Push Error (*≧m≦*)"
-else
-  notify-send -u low "Pushed o(^▽^)o" "$(git log -1 --pretty=%B)"
 fi
