@@ -24,7 +24,7 @@ if ! git commit -m "sync $(date) from $(hostname)"; then
   fi
   exit 0
 fi
-
+exit 0
 if ! git push; then
   notify-send -u critical "Push Error (*≧m≦*)"
 else
