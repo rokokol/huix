@@ -23,6 +23,22 @@
     brightnessctl
   ];
 
+  xdg.userDirs = {
+    enable = true;
+    createDirectories = true;
+
+    music = "/home/rokokol/Music";
+    documents = "/home/rokokol/Documents";
+    pictures = "/home/rokokol/Pictures";
+    videos = "/home/rokokol/Videos";
+
+    download = "/home/rokokol/Downloads";
+
+    desktop = null;
+    templates = null;
+    publicShare = null;
+  };
+
   gtk = {
     enable = true;
     gtk3.bookmarks = [
