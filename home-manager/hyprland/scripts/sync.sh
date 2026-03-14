@@ -19,6 +19,9 @@ NEW_REV=$(git rev-parse HEAD)
 git add .
 if ! git commit -m "sync $(date) from $(hostname)"; then
   notify-send -u low "Nothing to pull (((o(*ﾟ▽ﾟ*)o)))"
+  if git push; then
+    notify-send -u low "Pushed o(^▽^)o" "$(git log -1 --pretty=%B)"
+  fi
   exit 0
 fi
 
