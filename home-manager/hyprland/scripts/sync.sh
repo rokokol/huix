@@ -30,3 +30,4 @@ if ! git push; then
 else
   notify-send -u low "Pushed o(^▽^)o" "$(git log -1 --pretty=%B)"
 fi
+
