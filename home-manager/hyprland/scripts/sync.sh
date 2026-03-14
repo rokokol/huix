@@ -12,14 +12,14 @@ OLD_REV=$(git rev-parse HEAD)
 if ! git pull; then
   notify-send -u critical "Sync Error (#｀ε´#ゞ"
 else
+  NEW_REV=$(git rev-parse HEAD)
   notify-send -u low "Synchronized （´ω｀♡%）" "$(git log "$OLD_REV..$NEW_REV" --oneline)"
 fi
-NEW_REV=$(git rev-parse HEAD)
 
 git add .
 if ! git commit -m "sync $(date) from $(hostname)"; then
-  notify-send -u low "Nothing to pull (((o(*ﾟ▽ﾟ*)o)))"
-  if git push; then
+  notify-send -u low "Nothing to commit (((o(*ﾟ▽ﾟ*)o)))"
+  if [ "$(git rev-list @\{u\}..HEAD | wc -l)" -gt 0 ]; then
     notify-send -u low "Pushed o(^▽^)o" "$(git log -1 --pretty=%B)"
   fi
   exit 0
