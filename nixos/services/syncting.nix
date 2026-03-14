@@ -3,9 +3,9 @@
 {
   services.syncthing = {
     enable = true;
-    user = "rokoko";
-    dataDir = "/home/rokoko/Documents";
-    configDir = "/home/rokoko/.config/syncthing";
+    user = "rokokol";
+    dataDir = "/home/rokokol/Documents";
+    configDir = "/home/rokokol/.config/syncthing";
 
     overrideDevices = true;
     overrideFolders = true;
