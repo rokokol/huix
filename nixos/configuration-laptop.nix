@@ -14,6 +14,7 @@
     ./services/jupyter.nix
     ./services/keys.nix
     ./services/amnezia-vpn.nix
+    ./services/syncting.nix
   ];
 
   system.stateVersion = "25.11";

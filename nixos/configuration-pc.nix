@@ -36,6 +36,8 @@ in
     ./services/amnezia-vpn.nix
     ./services/ollama.nix
     ./services/openwebui.nix
+    ./services/syncting.nix
+
   ];
 
   system.stateVersion = "25.11";
