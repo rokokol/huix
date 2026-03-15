@@ -30,9 +30,9 @@
 
       scikit-learn
       transformers
-      (torch-bin.override { cudaSupport = false; })
-      (torchvision-bin.override { cudaSupport = false; })
-      (torchaudio-bin.override { cudaSupport = false; })
+      torch
+      torchvision
+      torchaudio
 
       ipywidgets
     ];
