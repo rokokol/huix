@@ -20,7 +20,7 @@
 
   system.stateVersion = "25.11";
   services.jupyter = {
-    pythonPackages = with pkgs; [
+    pythonPackages = with pkgs.python3Packages; [
       matplotlib
       pandas
       seaborn
