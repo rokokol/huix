@@ -15,6 +15,7 @@
     ./services/keys.nix
     ./services/amnezia-vpn.nix
     ./services/syncting.nix
+    ./services/ollama.nix
   ];
 
   system.stateVersion = "25.11";
