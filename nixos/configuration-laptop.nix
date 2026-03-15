@@ -18,16 +18,23 @@
   ];
 
   system.stateVersion = "25.11";
-  _module.args.pythonPackages = with pkgs.python3Packages; [
-    matplotlib
-    pandas
-    seaborn
-    numpy
-    sympy
-    librosa
+  services.jupyter = {
+    pythonPackages = with pkgs; [
+      matplotlib
+      pandas
+      seaborn
+      numpy
+      sympy
+      librosa
 
-    scikit-learn
+      scikit-learn
+      transformers
+      torch-bin
+      torchvision-bin
+      torchaudio-bin
 
-    ipywidgets
-  ];
+      ipywidgets
+    ];
+  };
+  services.ollama.package = pkgs.ollama-cpu;
 }

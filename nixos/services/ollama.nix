@@ -1,8 +1,17 @@
-{ pkgs, ... }:
+{
+  lib,
+  pkgs,
+  ...
+}:
 
 {
-  services.ollama = {
-    enable = true;
-    package = pkgs.ollama-cuda;
+  options.services.ollama = {
+  };
+
+  config = {
+    services.ollama = {
+      enable = true;
+      package = lib.mkDefault pkgs.ollama;
+    };
   };
 }
