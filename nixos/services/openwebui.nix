@@ -19,15 +19,47 @@
     group = "open-webui";
   };
 
-  # 2. Добавляем пользователя rokokol в группу open-webui
   users.users.rokokol.extraGroups = [ "open-webui" ];
 
-  # 3. Переопределяем параметры изоляции systemd-сервиса
   systemd.services.open-webui.serviceConfig = {
-    DynamicUser = lib.mkForce false; # Отключаем изоляцию в /var/lib/private
-    User = "open-webui";
-    Group = "open-webui";
-    StateDirectoryMode = "0770"; # Даем полные права владельцу и группе
-    UMask = "0007"; # Новые файлы будут создаваться с правами группы (rw-)
+    DynamicUser = lib.mkForce false;
+    User = lib.mkForce "open-webui";
+    Group = lib.mkForce "open-webui";
+    StateDirectoryMode = lib.mkForce "0770";
+    UMask = lib.mkForce "0007";
+  };
+
+  systemd.services.open-webui-backup = {
+    description = "Safe backup of Open WebUI state for Syncthing";
+    path = with pkgs; [
+      rsync
+      coreutils
+    ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "rsync -a --delete /var/lib/private/open-webui/ /home/rokokol/Sync/open-webui-backup/";
+      ExecStartPost = "chown -R rokokol:users /home/rokokol/Sync/open-webui-backup/";
+    };
+  };
+
+  systemd.timers.open-webui-backup = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnBootSec = "5m";
+      OnUnitActiveSec = "1h";
+      Persistent = true;
+    };
+  };
+
+  systemd.services.open-webui-restore = {
+    description = "Restore Open WebUI state from Syncthing before start";
+    before = [ "open-webui.service" ];
+    wantedBy = [ "open-webui.service" ];
+
+    path = with pkgs; [ rsync ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "rsync -a --update /home/rokokol/Sync/open-webui-backup/ /var/lib/private/open-webui/";
+    };
   };
 }
