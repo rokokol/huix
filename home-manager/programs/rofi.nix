@@ -6,19 +6,23 @@
 
     plugins = with pkgs; [
       rofi-calc
-      # rofi-emoji
     ];
 
     font = "Doki 12";
 
     extraConfig = {
-      modi = "drun,calc";
+      modi = "drun,calc,top:rofi-top,mpd:rofi-mpd,power:rofi-power-menu";
+
       show-icons = true;
       display-drun = "👀";
+      display-calc = "🧮";
+      display-top = "📊";
+      display-mpd = "🎼";
+      display-power = "⚡";
+
       display-emoji = "💀";
       display-math = "∰";
       display-chars = "¥";
-      display-calc = "🧮";
       display-clip = "📋";
       display-kaomoji = "(,,#ﾟДﾟ)";
       display-dictionary = "🤓";
@@ -46,12 +50,10 @@
         "window" = {
           location = mkLiteral "center";
           width = mkLiteral "700px";
-
           border = mkLiteral "4px";
           border-color = doki-pink;
           border-radius = mkLiteral "15px";
           dynamic = true;
-
           background-color = paper-bg;
         };
 
@@ -60,7 +62,6 @@
           text-color = doki-pink;
           border = mkLiteral "0px 0px 2px 0px";
           border-color = doki-pink;
-
           margin = mkLiteral "20px 20px 10px 20px";
           padding = mkLiteral "10px";
           border-radius = mkLiteral "10px";
@@ -134,5 +135,8 @@
   home.packages = with pkgs; [
     rofimoji
     wl-clipboard
+    rofi-power-menu
+    rofi-top
+    rofi-mpd
   ];
 }

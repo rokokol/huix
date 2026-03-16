@@ -8,8 +8,7 @@ in
 {
   programs.ssh = {
     startAgent = true;
-    # askPassword = "${askpass}";
-    askPassword = "${pkgs.rofi-pass-wayland}";
+    askPassword = "${askpass}";
     enableAskPassword = true;
   };
 
