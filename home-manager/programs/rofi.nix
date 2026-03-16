@@ -11,14 +11,14 @@
     font = "Doki 12";
 
     extraConfig = {
-      modi = "drun,calc,mpd:rofi-mpd,power:rofi-power-menu";
+      modi = "drun,calc,power:rofi-power-menu";
 
       show-icons = true;
       display-drun = "👀";
       display-calc = "🧮";
       display-top = "📊";
       display-mpd = "🎼";
-      display-power = "⚡";
+      display-power-menu = "⚡";
 
       display-emoji = "💀";
       display-math = "∰";
@@ -136,6 +136,5 @@
     rofimoji
     wl-clipboard
     rofi-power-menu
-    rofi-mpd
   ];
 }

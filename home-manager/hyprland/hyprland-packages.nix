@@ -33,6 +33,7 @@
     lm_sensors
     pup
     jq
+    rofimoji
     (tesseract5.override {
       enableLanguages = [
         "rus"
