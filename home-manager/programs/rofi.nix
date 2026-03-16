@@ -18,7 +18,7 @@
       display-calc = "🧮";
       display-top = "📊";
       display-mpd = "🎼";
-      display-Power-menu = "⚡";
+      display-power = "⚡";
 
       display-emoji = "💀";
       display-math = "∰";
