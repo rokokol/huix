@@ -11,7 +11,7 @@
     font = "Doki 12";
 
     extraConfig = {
-      modi = "drun,calc,power:rofi-power-menu";
+      modi = "drun,calc";
 
       show-icons = true;
       display-drun = "👀";
@@ -135,6 +135,5 @@
   home.packages = with pkgs; [
     rofimoji
     wl-clipboard
-    rofi-power-menu
   ];
 }
