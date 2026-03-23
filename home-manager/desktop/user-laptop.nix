@@ -21,6 +21,7 @@
     texlive.combined.scheme-full
 
     brightnessctl
+    usbutils
   ];
 
   xdg.userDirs = {
