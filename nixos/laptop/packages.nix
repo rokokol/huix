@@ -13,6 +13,7 @@
   services.gvfs.enable = true;
   services.tumbler.enable = true;
   programs.steam.enable = true;
+  powerManagement.powertop.enable = true;
 
   environment.systemPackages = with pkgs; [
     neovim
