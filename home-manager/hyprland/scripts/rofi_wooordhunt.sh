@@ -15,7 +15,7 @@ fi
 
 PARSED_INPUT=$(echo "${INPUT,,}" | xargs)
 LINK="https://wooordhunt.ru/word/${PARSED_INPUT}"
-HTML=$(curl -s "$LINK")
+HTML=$(curl -s --max-time 5 "$LINK")
 TRANSCRIPTION_US=$(echo "$HTML" | pup '#us_tr_sound > .transcription text{}' | xargs)
 TRANSCRIPTION_UK=$(echo "$HTML" | pup '#uk_tr_sound > .transcription text{}' | xargs)
 MEANINGS_LIST=$(echo "$HTML" | pup '.t_inline_en text{}' | sed 's/, /\n/g' | grep .)
