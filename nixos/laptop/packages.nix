@@ -36,6 +36,7 @@
     libgsf
     ffmpeg-full
     trash-cli
+    powertop
 
     (tesseract5.override {
       enableLanguages = [
