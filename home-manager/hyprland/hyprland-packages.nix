@@ -29,6 +29,7 @@
     evince
     baobab
     gnome-disk-utility
+    gnome-text-editor
     gtk3
     lm_sensors
     pup
