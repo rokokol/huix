@@ -110,6 +110,11 @@
       "application/x-cbz" = "org.gnome.Evince.desktop";
       "application/x-cbr" = "org.gnome.Evince.desktop";
       "application/epub+zip" = "org.gnome.Evince.desktop";
+
+      "text/markdown" = "org.gnome.TextEditor.desktop";
+      "text/plain" = "org.gnome.TextEditor.desktop";
+      "text/x-markdown" = "org.gnome.TextEditor.desktop";
+      "application/x-zerosize" = "org.gnome.TextEditor.desktop";
     };
   };
 
