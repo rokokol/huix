@@ -8,6 +8,15 @@
 - `keymaps.nix` — все пользовательские бинды.
 - `plugins/` — конфиги плагинов по категориям (LSP, UI, CMP и т.д.).
 
+## Плагины
+- `plugins/default.nix` — единая точка импорта всех модулей плагинов.
+- `plugins/alpha.nix` — стартовый экран.
+- `plugins/cmp.nix` — автодополнение.
+- `plugins/editor.nix` — базовые редакторские плагины и which-key.
+- `plugins/lsp.nix` — LSP, диагностика, форматирование.
+- `plugins/ui.nix` — внешний вид (статус‑линия, темы и т.п.).
+- `plugins/etc.nix` — прочие плагины, не попавшие в категории выше.
+
 ## Как вносить изменения
 - Настройки ядра: `home-manager/programs/nixvim/settings.nix`.
 - Бинды: `home-manager/programs/nixvim/keymaps.nix`.

@@ -12,6 +12,15 @@
 - `cursor.nix` — настройки курсора.
 - `scripts/` — вспомогательные скрипты (обои, rofi, синхронизация и т.д.).
 
+## Скрипты
+- `scripts/colorpicker.sh` — пипетка: копирует цвет и показывает HEX/RGB.
+- `scripts/pin-screen.sh` — закрепляет участок экрана как «плавающее» окно‑картинку.
+- `scripts/random_wallpaper.sh` — собирает коллаж и ставит случайные обои через swww.
+- `scripts/rofi-clipboard.sh` — буфер обмена с превью картинок в rofi.
+- `scripts/rofi_wooordhunt.sh` — быстрый перевод/значения слов через woooordhunt.
+- `scripts/sync.sh` — git pull/commit/push репозитория с уведомлениями.
+- `scripts/toggle_theme.sh` — переключатель светлой/тёмной темы GTK.
+
 ## Как вносить изменения
 - Бинды и правила: `home-manager/hyprland/hyprland.conf`.
 - Пакеты/зависимости: `home-manager/hyprland/hyprland-packages.nix`.
