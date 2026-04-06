@@ -28,6 +28,7 @@
     pup
     jq
     translate-shell
+    ripgrep
 
     thunar
     tumbler

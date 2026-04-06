@@ -29,7 +29,7 @@ in
     ./services/sddm.nix
     ./services/tablet.nix
     ./services/printing.nix
-    ./services/keys.nix
+    ./services/ssh-askpass.nix
     ./services/cachix.nix
     ./services/arduino.nix
     ./services/nix-ld.nix

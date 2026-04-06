@@ -36,4 +36,4 @@
 ## Configuration & Safety Notes
 - Before rebuilds, refresh hardware config as needed:
   `sudo nixos-generate-config --show-hardware-config > hardware-configuration.nix`
-- `nixos/services/keys.nix` хранит настройки менеджера паролей; не путать с секретами.
+- `nixos/services/ssh-askpass.nix` содержит настройку SSH askpass через rofi.

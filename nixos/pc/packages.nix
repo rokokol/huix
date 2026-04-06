@@ -42,6 +42,7 @@
     jq
     translate-shell
     file
+    ripgrep
 
     thunar
     cuda.ffmpegthumbnailer
