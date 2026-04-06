@@ -145,6 +145,6 @@ nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHW
 - [x] Перейти на btfrs
 - [x] Попробовать hyprland
 - [x] Декларативно настроить SearXNG
-- [ ] Починить в nixvim картинки в телескопе
+- [x] Починить в nixvim картинки в телескопе
 - [ ] Вынести секреты в что-то типа soapsnix
 
