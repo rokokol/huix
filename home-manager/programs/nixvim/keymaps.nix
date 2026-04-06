@@ -88,7 +88,7 @@
       {
         mode = "n";
         key = "<leader>fi";
-        action.__raw = ''function() require('telescope.builtin').find_files({ prompt_title = "Find Images", find_command = { "fd", "--type", "f", "--regex", ".*\\.(png|jpg|jpeg|webp|gif|avif|svg)$", "." }, previewer = _G.HuixTelescopeFilePreviewer() }) end'';
+        action.__raw = ''function() require('telescope.builtin').find_files({ prompt_title = "Find Images", find_command = { "fd", "--type", "f", "--regex", ".*\\.(png|jpg|jpeg|webp|gif|avif|svg)$" }, previewer = _G.HuixTelescopeFilePreviewer() }) end'';
         options.desc = "Find Images";
       }
 

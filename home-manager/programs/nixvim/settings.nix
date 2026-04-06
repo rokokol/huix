@@ -72,83 +72,112 @@
         local previewers = require("telescope.previewers")
         local from_entry = require("telescope.from_entry")
 
-        return previewers.new_termopen_previewer({
-          get_command = function(entry, status)
-            local filepath = from_entry.path(entry, true, false)
+        local function get_term_command(entry, status)
+          local filepath = from_entry.path(entry, true, false)
 
-            if filepath == nil or filepath == "" then
-              return nil
-            end
+          if filepath == nil or filepath == "" then
+            return nil
+          end
 
-            filepath = vim.fn.expand(filepath)
+          filepath = vim.fn.expand(filepath)
 
-            if vim.fn.isdirectory(filepath) == 1 then
-              return { "ls", "-la", filepath }
-            end
+          local extension = filepath:match("^.+%.([^.]+)$")
+          extension = extension and extension:lower() or ""
 
-            local extension = filepath:match("^.+%.([^.]+)$")
-            extension = extension and extension:lower() or ""
+          local image_extensions = {
+            png = true,
+            jpg = true,
+            jpeg = true,
+            webp = true,
+            gif = true,
+            avif = true,
+            svg = true,
+          }
 
-            local image_extensions = {
-              png = true,
-              jpg = true,
-              jpeg = true,
-              webp = true,
-              gif = true,
-              avif = true,
-              svg = true,
+          local width = 80
+          local height = 40
+          local preview_winid = status.layout.preview and status.layout.preview.winid
+
+          if preview_winid and vim.api.nvim_win_is_valid(preview_winid) then
+            width = math.max(vim.api.nvim_win_get_width(preview_winid) - 2, 20)
+            height = math.max(vim.api.nvim_win_get_height(preview_winid) - 2, 10)
+          end
+
+          if image_extensions[extension] then
+            return {
+              "chafa",
+              "--animate=off",
+              "--center=on",
+              "--clear",
+              "--size",
+              string.format("%dx%d", width, height),
+              filepath,
             }
+          end
 
-            local width = 80
-            local height = 40
-            local preview_winid = status.layout.preview and status.layout.preview.winid
+          if extension == "pdf" then
+            return {
+              "bash",
+              "-lc",
+              [[
+                tmp="$(mktemp -u)"
+                pdftoppm -png -singlefile -- "$1" "$tmp" >/dev/null 2>&1 && \
+                  chafa --animate=off --center=on --clear --size "$2x$3" "$tmp.png"
+                rm -f "$tmp.png"
+              ]],
+              "telescope-preview",
+              filepath,
+              tostring(width),
+              tostring(height),
+            }
+          end
 
-            if preview_winid and vim.api.nvim_win_is_valid(preview_winid) then
-              width = math.max(vim.api.nvim_win_get_width(preview_winid) - 2, 20)
-              height = math.max(vim.api.nvim_win_get_height(preview_winid) - 2, 10)
+          return nil
+        end
+
+        return previewers.new({
+          setup = function()
+            return {
+              active = nil,
+              buffer = previewers.vim_buffer_cat.new({}),
+              term = previewers.new_termopen_previewer({
+                get_command = function(entry, status)
+                  return get_term_command(entry, status)
+                end,
+              }),
+            }
+          end,
+          preview_fn = function(self, entry, status)
+            local filepath = from_entry.path(entry, true, false)
+            local delegate = self.state.buffer
+
+            if filepath and filepath ~= "" and get_term_command(entry, status) ~= nil then
+              delegate = self.state.term
             end
 
-            if image_extensions[extension] then
-              return {
-                "chafa",
-                "--animate=off",
-                "--center=on",
-                "--clear",
-                "--size",
-                string.format("%dx%d", width, height),
-                filepath,
-              }
+            self.state.active = delegate
+            return delegate:preview(entry, status)
+          end,
+          teardown = function(self)
+            if self.state then
+              self.state.buffer:teardown()
+              self.state.term:teardown()
             end
-
-            if extension == "pdf" then
-              return {
-                "bash",
-                "-lc",
-                [[
-                  tmp="$(mktemp -u)"
-                  pdftoppm -png -singlefile -- "$1" "$tmp" >/dev/null 2>&1 && \
-                    chafa --animate=off --center=on --clear --size "$2x$3" "$tmp.png"
-                  rm -f "$tmp.png"
-                ]],
-                "telescope-preview",
-                filepath,
-                tostring(width),
-                tostring(height),
-              }
+          end,
+          send_input = function(self, input)
+            if self.state and self.state.active then
+              self.state.active:send_input(input)
             end
-
-            if vim.fn.executable("bat") == 1 then
-              return {
-                "bat",
-                "--style=plain",
-                "--color=always",
-                "--paging=always",
-                "--",
-                filepath,
-              }
+          end,
+          scroll_fn = function(self, direction)
+            if self.state and self.state.active then
+              self.state.active:scroll_fn(direction)
             end
-
-            return { "cat", "--", filepath }
+          end,
+          scroll_horizontal_fn = function(self, direction)
+            if self.state and self.state.active then
+              self.state.active:scroll_horizontal_fn(direction)
+            end
           end,
         })
       end
