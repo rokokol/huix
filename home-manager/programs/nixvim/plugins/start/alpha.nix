@@ -100,7 +100,7 @@
             type = "button";
             val = "  Restore Session";
             on_press = {
-              __raw = "function() require('persistence').load().load({ last = true }) end";
+              __raw = "function() require('persistence').load({ last = true }) end";
             };
             opts = {
               position = "center";
@@ -114,7 +114,34 @@
               keymap = [
                 "n"
                 "s"
-                "<cmd>lua require('persistence').load()<CR>"
+                "<cmd>lua require('persistence').load({ last = true })<CR>"
+                {
+                  noremap = true;
+                  silent = true;
+                  nowait = true;
+                }
+              ];
+            };
+          }
+          # Button: Projects
+          {
+            type = "button";
+            val = "  Projects";
+            on_press = {
+              __raw = "function() vim.cmd('Telescope projects') end";
+            };
+            opts = {
+              position = "center";
+              shortcut = "p";
+              cursor = 3;
+              width = 40;
+              align_shortcut = "right";
+              hl = "Type";
+              hl_shortcut = "WarningMsg";
+              keymap = [
+                "n"
+                "p"
+                "<cmd>Telescope projects<CR>"
                 {
                   noremap = true;
                   silent = true;

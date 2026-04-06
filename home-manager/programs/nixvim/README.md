@@ -14,7 +14,7 @@
 - `plugins/editor/` — редакторские плагины (`neo-tree`, `telescope`, `treesitter`, `which-key`, `toggleterm`, `mini`)
 - `plugins/git/` — git-плагины (`gitsigns`, `lazygit`)
 - `plugins/lsp/` — LSP, диагностика и форматирование
-- `plugins/start/` — стартовые плагины и логика старта (`alpha`, `persistence`)
+- `plugins/start/` — стартовые плагины и логика старта (`alpha`, `persistence`, `project-nvim`)
 - `plugins/ui/` — UI и работа с изображениями (`bufferline`, `lualine`, `web-devicons`, `image`)
 
 ## Как вносить изменения

@@ -75,6 +75,12 @@
       }
       {
         mode = "n";
+        key = "<leader>fp";
+        action = ":Telescope projects<CR>";
+        options.desc = "Projects";
+      }
+      {
+        mode = "n";
         key = "<leader>fa";
         action.__raw = ''function() require('telescope.builtin').find_files({ cwd = "/home/rokokol/huix/", prompt_title = "Nix Config", previewer = _G.HuixTelescopeFilePreviewer() }) end'';
         options.desc = "Find Nix Config";
