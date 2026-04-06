@@ -39,7 +39,7 @@
       {
         mode = "n";
         key = "<leader>ff";
-        action = ":Telescope find_files<CR>";
+        action.__raw = ''function() require('telescope.builtin').find_files({ previewer = _G.HuixTelescopeFilePreviewer() }) end'';
         options.desc = "Find Files";
       }
       {
@@ -76,7 +76,7 @@
       {
         mode = "n";
         key = "<leader>fa";
-        action.__raw = ''function() require('telescope.builtin').find_files({ cwd = "/home/rokokol/huix/", prompt_title = "Nix Config" }) end'';
+        action.__raw = ''function() require('telescope.builtin').find_files({ cwd = "/home/rokokol/huix/", prompt_title = "Nix Config", previewer = _G.HuixTelescopeFilePreviewer() }) end'';
         options.desc = "Find Nix Config";
       }
       {
@@ -88,7 +88,7 @@
       {
         mode = "n";
         key = "<leader>fi";
-        action.__raw = ''function() require('telescope.builtin').find_files({ prompt_title = "Find Images", find_command = { "fd", "--type", "f", "--regex", ".*\\.(png|jpg|jpeg|webp|gif|avif|svg)$", "." } }) end'';
+        action.__raw = ''function() require('telescope.builtin').find_files({ prompt_title = "Find Images", find_command = { "fd", "--type", "f", "--regex", ".*\\.(png|jpg|jpeg|webp|gif|avif|svg)$", "." }, previewer = _G.HuixTelescopeFilePreviewer() }) end'';
         options.desc = "Find Images";
       }
 
