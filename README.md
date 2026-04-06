@@ -115,6 +115,12 @@ nix flake update
 sudo nixos-generate-config --show-hardware-config > hardware-configuration.nix
 ```
 
+Каким-то образом это качает MATLAB:
+```sh
+nix run gitlab:doronbehar/nix-matlab#matlab-shell
+nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHWORKS_R2025A/install
+```
+
 ---
 
 ![Текущее лого](./logo.jpg)
@@ -141,9 +147,3 @@ sudo nixos-generate-config --show-hardware-config > hardware-configuration.nix
 - [x] Декларативно настроить SearXNG
 - [ ] Починить в nixvim картинки в телескопе
 
-
-Каким-то образом это качает MATLAB:
-```sh
-nix run gitlab:doronbehar/nix-matlab#matlab-shell
-nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHWORKS_R2025A/install
-```
