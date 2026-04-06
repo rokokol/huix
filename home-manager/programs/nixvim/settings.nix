@@ -105,13 +105,18 @@
 
           if image_extensions[extension] then
             return {
-              "chafa",
-              "--animate=off",
-              "--center=on",
-              "--clear",
-              "--size",
-              string.format("%dx%d", width, height),
+              "bash",
+              "-lc",
+              [[
+                tmp="$(mktemp -u)"
+                magick "$1[0]" -auto-orient "$tmp.png" >/dev/null 2>&1 && \
+                  chafa --animate=off --center=on --clear --size "$2x$3" "$tmp.png"
+                rm -f "$tmp.png"
+              ]],
+              "telescope-preview",
               filepath,
+              tostring(width),
+              tostring(height),
             }
           end
 

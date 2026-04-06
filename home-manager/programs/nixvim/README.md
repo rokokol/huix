@@ -10,12 +10,11 @@
 
 ## Плагины
 - `plugins/default.nix` — единая точка импорта всех модулей плагинов.
-- `plugins/alpha.nix` — стартовый экран.
-- `plugins/cmp.nix` — автодополнение.
 - `plugins/completion/` — completion-плагины (`cmp`, `luasnip`).
 - `plugins/editor/` — редакторские плагины (`neo-tree`, `telescope`, `treesitter`, `which-key`, `toggleterm`, `mini`, `persistence`).
 - `plugins/git/` — git-плагины (`gitsigns`, `lazygit`).
 - `plugins/lsp/` — LSP, диагностика и форматирование.
+- `plugins/start/` — стартовые плагины (`alpha`).
 - `plugins/ui/` — UI и работа с изображениями (`bufferline`, `lualine`, `web-devicons`, `image`).
 
 ## Как вносить изменения

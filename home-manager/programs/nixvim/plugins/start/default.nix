@@ -2,7 +2,6 @@
 
 {
   imports = [
-    ./cmp.nix
-    ./luasnip.nix
+    ./alpha.nix
   ];
 }

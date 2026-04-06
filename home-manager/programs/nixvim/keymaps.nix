@@ -87,9 +87,9 @@
       }
       {
         mode = "n";
-        key = "<leader>fi";
-        action.__raw = ''function() require('telescope.builtin').find_files({ prompt_title = "Find Images", find_command = { "fd", "--type", "f", "--regex", ".*\\.(png|jpg|jpeg|webp|gif|avif|svg)$" }, previewer = _G.HuixTelescopeFilePreviewer() }) end'';
-        options.desc = "Find Images";
+        key = "<leader>fm";
+        action.__raw = ''function() require('telescope.builtin').find_files({ prompt_title = "Find Media", find_command = { "fd", "--type", "f", "--regex", ".*\\.(png|jpg|jpeg|webp|gif|avif|svg|pdf|md|markdown|txt|org|rst|tex|typst|json|yaml|yml|toml)$" }, previewer = _G.HuixTelescopeFilePreviewer() }) end'';
+        options.desc = "Find Media";
       }
 
       # --- LSP ---

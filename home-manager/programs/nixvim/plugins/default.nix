@@ -2,7 +2,7 @@
 
 {
   imports = [
-    ./alpha.nix
+    ./start/default.nix
     ./completion/default.nix
     ./editor/default.nix
     ./git/default.nix
