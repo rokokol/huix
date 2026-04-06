@@ -87,9 +87,9 @@
       }
       {
         mode = "n";
-        key = "<leader>fm";
+        key = "<leader>fi";
         action = ":Telescope media_files<CR>";
-        options.desc = "Find Media";
+        options.desc = "Find Images";
       }
 
       # --- LSP ---
