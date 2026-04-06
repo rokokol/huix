@@ -187,20 +187,6 @@
         })
       end
 
-      _G.HuixOpenProjects = _G.HuixOpenProjects or function()
-        local project = require("project")
-        local recents = project.get_recent_projects() or {}
-
-        if #recents == 0 then
-          local cwd = vim.loop.cwd()
-          if cwd and cwd ~= "" then
-            vim.cmd("silent! ProjectAdd " .. vim.fn.fnameescape(cwd))
-          end
-        end
-
-        vim.cmd("Telescope projects")
-      end
-
       -- LazyGit Close Fix for Terminal
       vim.api.nvim_create_autocmd("TermOpen", {
         pattern = "term://*",
