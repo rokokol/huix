@@ -4,3 +4,8 @@ result-*
 
 # Ignore automatically generated direnv output
 .direnv
+
+# Codex CLI temporary files
+.codex/
+.codex-cache/
+.codex-tmp/
