@@ -39,7 +39,7 @@
       {
         mode = "n";
         key = "<leader>ff";
-        action.__raw = ''function() require('telescope.builtin').find_files({ previewer = _G.HuixTelescopeFilePreviewer() }) end'';
+        action.__raw = "function() require('telescope.builtin').find_files({ previewer = _G.HuixTelescopeFilePreviewer() }) end";
         options.desc = "Find Files";
       }
       {
@@ -88,7 +88,7 @@
       {
         mode = "n";
         key = "<leader>fm";
-        action.__raw = ''function() require('telescope.builtin').find_files({ prompt_title = "Find Media", find_command = { "fd", "--type", "f", "--regex", ".*\\.(png|jpg|jpeg|webp|gif|avif|svg|pdf|md|markdown|txt|org|rst|tex|typst|json|yaml|yml|toml)$" }, previewer = _G.HuixTelescopeFilePreviewer() }) end'';
+        action.__raw = ''function() require('telescope.builtin').find_files({ prompt_title = "Find Media", find_command = { "fd", "--type", "f", "--regex", ".*\\.(png|jpg|jpeg|JPG|CR2|webp|gif|svg|pdf|avif)$" }, previewer = _G.HuixTelescopeFilePreviewer() }) end'';
         options.desc = "Find Media";
       }
 

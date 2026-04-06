@@ -9,7 +9,7 @@
 - `plugins/` — конфиги плагинов по категориям (LSP, UI, CMP и т.д.).
 
 ## Плагины
-- `plugins/default.nix` — единая точка импорта всех модулей плагинов.
+- `plugins/default.nix` — единая точка импорта всех модулей плагинов; в корне `plugins/` больше не лежат отдельные конфиги плагинов.
 - `plugins/completion/` — completion-плагины (`cmp`, `luasnip`).
 - `plugins/editor/` — редакторские плагины (`neo-tree`, `telescope`, `treesitter`, `which-key`, `toggleterm`, `mini`, `persistence`).
 - `plugins/git/` — git-плагины (`gitsigns`, `lazygit`).
