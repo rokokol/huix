@@ -40,7 +40,7 @@ in
       command = "jupyter-lab";
       notebookDir = "${homeDir}/Notebooks";
       password = "argon2:$argon2id$v=19$m=10240,t=10,p=8$QQIsyCtNwAb7GSPc4f/fsQ$dJMkGhSyoVxKje2lMomM8mD0Y62GROuZOF1IzZwbZwo";
-      ip = "0.0.0.0";
+      ip = "127.0.0.1";
       port = 8888;
 
       notebookConfig = ''
@@ -77,7 +77,6 @@ in
       ghostscript
     ];
 
-    networking.firewall.allowedTCPPorts = [ 8888 ];
     systemd.tmpfiles.rules = [
       "d ${homeDir}/Notebooks 0755 rokokol users -"
     ];
