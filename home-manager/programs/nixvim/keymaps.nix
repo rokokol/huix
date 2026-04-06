@@ -88,7 +88,7 @@
       {
         mode = "n";
         key = "<leader>fi";
-        action = ":Telescope media_files<CR>";
+        action.__raw = ''function() require('telescope.builtin').find_files({ prompt_title = "Find Images", find_command = { "fd", "--type", "f", "--regex", ".*\\.(png|jpg|jpeg|webp|gif|avif|svg)$", "." } }) end'';
         options.desc = "Find Images";
       }
 

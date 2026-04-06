@@ -4,7 +4,6 @@
   programs.nixvim = {
     dependencies = {
       chafa.enable = true;
-      ffmpegthumbnailer.enable = true;
       poppler-utils.enable = true;
     };
 
@@ -19,94 +18,91 @@
             preview_height = 0.5;
           };
         };
-        preview.mime_hook.__raw = ''
-          function(filepath, bufnr, opts)
-            local preview_utils = require("telescope.previewers.utils")
-            local image_extensions = {
-              png = true,
-              jpg = true,
-              jpeg = true,
-              webp = true,
-              gif = true,
-              avif = true,
-              svg = true,
-            }
+        file_previewer.__raw = ''
+          require("telescope.previewers").new_termopen_previewer({
+            get_command = function(entry, status)
+              local from_entry = require("telescope.from_entry")
+              local filepath = from_entry.path(entry, true, false)
 
-            local extension = filepath:match("^.+%.([^.]+)$")
-            extension = extension and extension:lower() or nil
+              if filepath == nil or filepath == "" then
+                return nil
+              end
 
-            local function render_with_chafa(target)
+              filepath = vim.fn.expand(filepath)
+
+              if vim.fn.isdirectory(filepath) == 1 then
+                return { "ls", "-la", filepath }
+              end
+
+              local extension = filepath:match("^.+%.([^.]+)$")
+              extension = extension and extension:lower() or ""
+
+              local image_extensions = {
+                png = true,
+                jpg = true,
+                jpeg = true,
+                webp = true,
+                gif = true,
+                avif = true,
+                svg = true,
+              }
+
               local width = 80
               local height = 40
+              local preview_winid = status.layout.preview and status.layout.preview.winid
 
-              if opts.winid and vim.api.nvim_win_is_valid(opts.winid) then
-                width = math.max(vim.api.nvim_win_get_width(opts.winid) - 2, 20)
-                height = math.max(vim.api.nvim_win_get_height(opts.winid) - 2, 10)
+              if preview_winid and vim.api.nvim_win_is_valid(preview_winid) then
+                width = math.max(vim.api.nvim_win_get_width(preview_winid) - 2, 20)
+                height = math.max(vim.api.nvim_win_get_height(preview_winid) - 2, 10)
               end
 
-              local output = vim.fn.systemlist({
-                "chafa",
-                "--animate=off",
-                "--center=on",
-                "--clear",
-                "--size",
-                string.format("%dx%d", width, height),
-                target,
-              })
-
-              if vim.v.shell_error ~= 0 then
-                return false
+              if image_extensions[extension] then
+                return {
+                  "chafa",
+                  "--animate=off",
+                  "--center=on",
+                  "--clear",
+                  "--size",
+                  string.format("%dx%d", width, height),
+                  filepath,
+                }
               end
 
-              vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, output)
-              vim.bo[bufnr].modifiable = false
-              vim.bo[bufnr].filetype = "text"
-              return true
-            end
-
-            if extension and image_extensions[extension] then
-              if not render_with_chafa(filepath) then
-                preview_utils.set_preview_message(bufnr, opts.winid, "Image preview failed", opts.preview.msg_bg_fillchar)
-              end
-              return
-            end
-
-            if extension == "pdf" then
-              local tmp_prefix = vim.fn.tempname()
-              vim.fn.system({ "pdftoppm", "-png", "-singlefile", filepath, tmp_prefix })
-              local png_preview = tmp_prefix .. ".png"
-
-              if vim.v.shell_error == 0 and vim.fn.filereadable(png_preview) == 1 and render_with_chafa(png_preview) then
-                return
+              if extension == "pdf" then
+                return {
+                  "bash",
+                  "-lc",
+                  [=[
+                    tmp="$(mktemp -u)"
+                    pdftoppm -png -singlefile -- "$1" "$tmp" >/dev/null 2>&1 && \
+                      chafa --animate=off --center=on --clear --size "$2x$3" "$tmp.png"
+                    rm -f "$tmp.png"
+                  ]=],
+                  "telescope-preview",
+                  filepath,
+                  tostring(width),
+                  tostring(height),
+                }
               end
 
-              preview_utils.set_preview_message(bufnr, opts.winid, "PDF preview failed", opts.preview.msg_bg_fillchar)
-              return
-            end
+              if vim.fn.executable("bat") == 1 then
+                return {
+                  "bat",
+                  "--style=plain",
+                  "--color=always",
+                  "--paging=always",
+                  "--",
+                  filepath,
+                }
+              end
 
-            preview_utils.set_preview_message(bufnr, opts.winid, "Binary cannot be previewed", opts.preview.msg_bg_fillchar)
-          end
+              return { "cat", "--", filepath }
+            end,
+          })
         '';
       };
 
-      extensions = {
-        fzf-native.enable = true;
-        media-files = {
-          enable = true;
-          settings = {
-            filetypes = [
-              "png"
-              "jpg"
-              "jpeg"
-              "webp"
-              "gif"
-              "avif"
-              "svg"
-            ];
-            find_cmd = "fd";
-          };
-        };
-      };
+      extensions.fzf-native.enable = true;
     };
   };
 }

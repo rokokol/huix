@@ -25,6 +25,7 @@
       gnumake
       unzip
       imagemagick # image.nvim processor
+      bat
 
       # LSPs and Formatters
       nixd
