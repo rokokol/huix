@@ -8,8 +8,8 @@
     dataDir = "/home/rokokol/Documents";
     configDir = "/home/rokokol/.config/syncthing";
 
-    overrideDevices = true;
-    overrideFolders = true;
+    overrideDevices = false;
+    overrideFolders = false;
   };
 
   # TCP 22000 - data, UDP 21027 - local
