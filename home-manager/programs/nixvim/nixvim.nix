@@ -25,6 +25,7 @@
       gnumake
       unzip
       imagemagick # image.nvim processor
+      ffmpegthumbnailer # video thumbnails for Telescope preview
       bat
 
       # LSPs and Formatters

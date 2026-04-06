@@ -94,6 +94,28 @@
             svg = true,
           }
 
+          local video_extensions = {
+            mp4 = true,
+            webm = true,
+            mkv = true,
+            mov = true,
+            avi = true,
+            m4v = true,
+            mpg = true,
+            mpeg = true,
+          }
+
+          local audio_extensions = {
+            mp3 = true,
+            flac = true,
+            wav = true,
+            ogg = true,
+            opus = true,
+            m4a = true,
+            aac = true,
+            wma = true,
+          }
+
           local width = 80
           local height = 40
           local preview_winid = status.layout.preview and status.layout.preview.winid
@@ -134,6 +156,39 @@
               filepath,
               tostring(width),
               tostring(height),
+            }
+          end
+
+          if video_extensions[extension] then
+            return {
+              "bash",
+              "-lc",
+              [[
+                tmp="$(mktemp -u)"
+                ffmpegthumbnailer -i "$1" -o "$tmp.png" -s 0 -q 8 >/dev/null 2>&1 && \
+                  chafa --animate=off --center=on --clear --size "$2x$3" "$tmp.png"
+                rm -f "$tmp.png"
+              ]],
+              "telescope-preview",
+              filepath,
+              tostring(width),
+              tostring(height),
+            }
+          end
+
+          if audio_extensions[extension] then
+            return {
+              "bash",
+              "-lc",
+              [[
+                printf 'Audio file\n\n'
+                printf 'Name: %s\n' "$(basename "$1")"
+                printf 'Type: %s\n' "$2"
+                printf '\nPreview is not available for audio yet.\n'
+              ]],
+              "telescope-preview",
+              filepath,
+              extension,
             }
           end
 
