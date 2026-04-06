@@ -1,12 +1,12 @@
 # huix
 
-Мой репозиторий с конфигурацией NixOS и Home Manager для ПК и ноутбука.
+Мой репозиторий с конфигурацией NixOS и Home Manager для ПК и ноутбука
 
 ## Что внутри
-- `flake.nix` / `flake.lock`: входная точка и закреплённые зависимости.
-- `nixos/`: системные модули NixOS, включая хост‑конфиги и сервисы.
-- `home-manager/`: пользовательские конфиги (Hyprland, nixvim, оболочка и пр.).
-- `logo.jpg`, `wallpaper_*.png`: локальные ассеты.
+- `flake.nix` / `flake.lock`: входная точка и закреплённые зависимости
+- `nixos/`: системные модули NixOS, включая хост‑конфиги и сервисы
+- `home-manager/`: пользовательские конфиги (Hyprland, nixvim, оболочка и пр.)
+- `logo.jpg`, `wallpaper_*.png`: локальные ассеты
 
 ## Быстрый старт
 Сборка и применение:
@@ -23,10 +23,10 @@ nix flake update
 ```
 
 ## Структура конфигов
-- `nixos/configuration-pc.nix`, `nixos/configuration-laptop.nix` — верхнеуровневые хост‑конфиги.
-- `nixos/pc/` и `nixos/laptop/` — хост‑специфичные модули.
-- `nixos/services/` — сервисы (searxng, docker, jupyter и т.д.).
-- `home-manager/home-*.nix` — пользовательские entrypoints.
+- `nixos/configuration-pc.nix`, `nixos/configuration-laptop.nix` — верхнеуровневые хост‑конфиги
+- `nixos/pc/` и `nixos/laptop/` — хост‑специфичные модули
+- `nixos/services/` — сервисы (searxng, docker, jupyter и т.д.)
+- `home-manager/home-*.nix` — пользовательские entrypoints
 
 ## Дерево проекта
 ```
@@ -146,4 +146,5 @@ nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHW
 - [x] Попробовать hyprland
 - [x] Декларативно настроить SearXNG
 - [ ] Починить в nixvim картинки в телескопе
+- [ ] Вынести секреты в что-то типа soapsnix
 
