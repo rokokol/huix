@@ -76,7 +76,7 @@
       {
         mode = "n";
         key = "<leader>fp";
-        action = ":Telescope projects<CR>";
+        action = "<cmd>lua _G.HuixOpenProjects()<CR>";
         options.desc = "Projects";
       }
       {

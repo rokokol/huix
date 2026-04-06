@@ -128,7 +128,7 @@
             type = "button";
             val = "  Projects";
             on_press = {
-              __raw = "function() vim.cmd('Telescope projects') end";
+              __raw = "function() _G.HuixOpenProjects() end";
             };
             opts = {
               position = "center";
@@ -141,7 +141,7 @@
               keymap = [
                 "n"
                 "p"
-                "<cmd>Telescope projects<CR>"
+                "<cmd>lua _G.HuixOpenProjects()<CR>"
                 {
                   noremap = true;
                   silent = true;
