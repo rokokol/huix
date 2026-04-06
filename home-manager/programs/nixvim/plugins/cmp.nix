@@ -60,7 +60,5 @@
         };
       };
     };
-
-    luasnip.enable = true;
   };
 }

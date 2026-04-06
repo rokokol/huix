@@ -24,10 +24,7 @@
       gcc
       gnumake
       unzip
-      imagemagick
-      ffmpegthumbnailer # Video previews
-      chafa # Image fallback
-      poppler-utils # PDF previews
+      imagemagick # image.nvim processor
 
       # LSPs and Formatters
       nixd

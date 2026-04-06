@@ -12,10 +12,11 @@
 - `plugins/default.nix` — единая точка импорта всех модулей плагинов.
 - `plugins/alpha.nix` — стартовый экран.
 - `plugins/cmp.nix` — автодополнение.
-- `plugins/editor.nix` — базовые редакторские плагины и which-key.
-- `plugins/lsp.nix` — LSP, диагностика, форматирование.
-- `plugins/ui.nix` — внешний вид (статус‑линия, темы и т.п.).
-- `plugins/etc.nix` — прочие плагины, не попавшие в категории выше.
+- `plugins/completion/` — completion-плагины (`cmp`, `luasnip`).
+- `plugins/editor/` — редакторские плагины (`neo-tree`, `telescope`, `treesitter`, `which-key`, `toggleterm`, `mini`, `persistence`).
+- `plugins/git/` — git-плагины (`gitsigns`, `lazygit`).
+- `plugins/lsp/` — LSP, диагностика и форматирование.
+- `plugins/ui/` — UI и работа с изображениями (`bufferline`, `lualine`, `web-devicons`, `image`).
 
 ## Как вносить изменения
 - Настройки ядра: `home-manager/programs/nixvim/settings.nix`.
@@ -24,4 +25,4 @@
 
 ## Применение
 Nixvim подключён через Home Manager (`home-manager/home-*.nix`).
-После правок — `rebuild`.
+После правок — `sudo nixos-rebuild switch --flake .#nixos-pc` или `sudo nixos-rebuild switch --flake .#nixos-laptop`.

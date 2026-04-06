@@ -85,6 +85,12 @@
         action = ":Telescope current_buffer_fuzzy_find<CR>";
         options.desc = "Find inside file";
       }
+      {
+        mode = "n";
+        key = "<leader>fm";
+        action = ":Telescope media_files<CR>";
+        options.desc = "Find Media";
+      }
 
       # --- LSP ---
       {

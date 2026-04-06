@@ -3,10 +3,10 @@
 {
   imports = [
     ./alpha.nix
-    ./cmp.nix
-    ./editor.nix
-    ./lsp.nix
-    ./ui.nix
-    ./etc.nix
+    ./completion/default.nix
+    ./editor/default.nix
+    ./git/default.nix
+    ./lsp/default.nix
+    ./ui/default.nix
   ];
 }
