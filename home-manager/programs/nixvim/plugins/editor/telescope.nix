@@ -22,5 +22,23 @@
 
       extensions.fzf-native.enable = true;
     };
+
+    extraConfigLua = ''
+      local telescope_actions = require("telescope.actions")
+      require("telescope").setup({
+        defaults = {
+          mappings = {
+            i = {
+              ["<C-k>"] = telescope_actions.preview_scrolling_up,
+              ["<C-j>"] = telescope_actions.preview_scrolling_down,
+            },
+            n = {
+              ["K"] = telescope_actions.preview_scrolling_up,
+              ["J"] = telescope_actions.preview_scrolling_down,
+            },
+          },
+        },
+      })
+    '';
   };
 }
