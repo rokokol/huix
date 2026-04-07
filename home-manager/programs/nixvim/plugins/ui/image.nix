@@ -10,7 +10,7 @@
       editor_only_render_when_focused = true;
       window_overlap_clear_enabled = true;
       max_width_window_percentage = 100;
-      max_height_window_percentage = 50;
+      max_height_window_percentage = 100;
       integrations = {
         markdown.enabled = true;
         typst.enabled = true;
@@ -81,6 +81,23 @@
       image:render()
     end
 
+    _G.HuixImagePan = _G.HuixImagePan or function(delta_y)
+      local image = huix_get_current_hijacked_image()
+
+      if not image then
+        return
+      end
+
+      local current_x = image.geometry.x or 0
+      local current_y = image.geometry.y or 1
+      local rendered_height = (image.rendered_geometry and image.rendered_geometry.height) or image.geometry.height or 1
+      local min_y = math.min(1, 2 - rendered_height)
+      local max_y = 1
+      local next_y = math.max(min_y, math.min(max_y, current_y + delta_y))
+
+      image:move(current_x, next_y)
+    end
+
     vim.api.nvim_create_autocmd("FileType", {
       pattern = "image_nvim",
       callback = function(event)
@@ -100,6 +117,22 @@
 
         vim.keymap.set("n", "0", function()
           _G.HuixImageZoomReset()
+        end, opts)
+
+        vim.keymap.set("n", "j", function()
+          _G.HuixImagePan(-3)
+        end, opts)
+
+        vim.keymap.set("n", "k", function()
+          _G.HuixImagePan(3)
+        end, opts)
+
+        vim.keymap.set("n", "<Down>", function()
+          _G.HuixImagePan(-3)
+        end, opts)
+
+        vim.keymap.set("n", "<Up>", function()
+          _G.HuixImagePan(3)
         end, opts)
       end,
     })
