@@ -19,6 +19,7 @@
     fastfetch
     obs-studio
     texlive.combined.scheme-full
+    codex
 
     brightnessctl
     usbutils
