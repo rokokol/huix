@@ -6,7 +6,7 @@
       enable = true;
       enableTelescope = true;
       settings = {
-        manual_mode = false;
+        manual_mode = true;
         patterns = [
           ".git"
           "flake.nix"

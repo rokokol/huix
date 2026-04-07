@@ -20,14 +20,8 @@
 ### Telescope
 - Telescope helper'ы вынесены в `home-manager/programs/nixvim/plugins/editor/telescope-helpers.nix`
 - В `ff`, `fa`, `fg` и поиске файлов внутри `projects` скрытые файлы переключаются через `<C-h>`
+- В превью можно перемещаться с помощью `<M-h/j/k/l>`
 - Media preview в Telescope определяется по MIME через `file`, а не по расширению
-- Прокрутка preview унифицирована в обоих режимах на `<M-h>`, `<M-j>`, `<M-k>`, `<M-l>`
-
-### Images
-- Открытие image-файлов hijack'ается через `image.nvim` с kitty backend
-- По умолчанию изображение открывается на всю доступную высоту окна
-- Zoom в image-buffer: `+` / `=` увеличить, `-` уменьшить, `0` сбросить
-- Перемещение по увеличенному изображению: `j` / `k` или `↑` / `↓`
 
 ## Как вносить изменения
 - Настройки ядра: `home-manager/programs/nixvim/settings.nix`
