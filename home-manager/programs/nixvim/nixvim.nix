@@ -25,6 +25,7 @@
       gnumake
       unzip
       imagemagick # image.nvim processor
+      file # mime detection for Telescope media search
       ffmpeg # audio waveform preview
       ffmpegthumbnailer # video thumbnails for Telescope preview
       bat

@@ -94,7 +94,16 @@
       {
         mode = "n";
         key = "<leader>fm";
-        action.__raw = ''function() require('telescope.builtin').find_files({ prompt_title = "Find Media", find_command = { "fd", "--type", "f", "--regex", ".*\\.(png|jpg|jpeg|JPG|CR2|webp|gif|svg|pdf|avif|mp4|webm|mkv|mov|avi|m4v|mpg|mpeg|mp3|flac|wav|ogg|opus|m4a|aac|wma)$" }, previewer = _G.HuixTelescopeFilePreviewer() }) end'';
+        action.__raw = ''function() require('telescope.builtin').find_files({ prompt_title = "Find Media", find_command = { "bash", "-lc", [[
+          while IFS= read -r -d $'\0' path; do
+            mime=$(file --mime-type -b -- "$path" 2>/dev/null)
+            case "$mime" in
+              image/*|video/*|audio/*|application/pdf)
+                printf '%s\n' "$path"
+                ;;
+            esac
+          done < <(fd --type f -0)
+        ]] }, previewer = _G.HuixTelescopeFilePreviewer() }) end'';
         options.desc = "Find Media";
       }
 
