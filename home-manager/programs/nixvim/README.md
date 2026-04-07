@@ -17,6 +17,11 @@
 - `plugins/start/` — стартовые плагины и логика старта (`alpha`, `persistence`, `project-nvim`)
 - `plugins/ui/` — UI и работа с изображениями (`bufferline`, `lualine`, `web-devicons`, `image`)
 
+### Telescope
+- Telescope helper'ы вынесены в `home-manager/programs/nixvim/plugins/editor/telescope-helpers.nix`
+- В `ff`, `fa`, `fg` и поиске файлов внутри `projects` скрытые файлы переключаются через `<C-h>`
+- Media preview в Telescope определяется по MIME через `file`, а не по расширению
+
 ## Как вносить изменения
 - Настройки ядра: `home-manager/programs/nixvim/settings.nix`
 - Бинды: `home-manager/programs/nixvim/keymaps.nix`

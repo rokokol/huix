@@ -96,11 +96,32 @@ nix flake update
 │       ├── btop*.nix
 │       ├── git.nix
 │       ├── nixvim
+│       │   ├── README.md
 │       │   ├── nixvim.nix
 │       │   ├── settings.nix
 │       │   ├── keymaps.nix
 │       │   └── plugins
-│       │       └── *.nix
+│       │       ├── default.nix
+│       │       ├── completion
+│       │       │   ├── default.nix
+│       │       │   └── *.nix
+│       │       ├── editor
+│       │       │   ├── default.nix
+│       │       │   ├── telescope.nix
+│       │       │   ├── telescope-helpers.nix
+│       │       │   └── *.nix
+│       │       ├── git
+│       │       │   ├── default.nix
+│       │       │   └── *.nix
+│       │       ├── lsp
+│       │       │   ├── default.nix
+│       │       │   └── *.nix
+│       │       ├── start
+│       │       │   ├── default.nix
+│       │       │   └── *.nix
+│       │       └── ui
+│       │           ├── default.nix
+│       │           └── *.nix
 │       └── neovim.nix
 ├── AGENTS.md
 ├── README.md
@@ -147,4 +168,3 @@ nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHW
 - [x] Декларативно настроить SearXNG
 - [x] Починить в nixvim картинки в телескопе
 - [ ] Вынести секреты в что-то типа soapsnix
-

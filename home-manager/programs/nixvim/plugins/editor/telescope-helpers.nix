@@ -221,7 +221,9 @@
 
       opts = opts or {}
 
-      return open_toggleable_picker(_G.HuixTelescopeFindFiles, opts, {
+      return open_toggleable_picker(function(picker_opts)
+        return builtin.find_files(picker_opts)
+      end, opts, {
         hidden = opts.hidden == true,
         previewer = _G.HuixTelescopeFilePreviewer(),
       })
