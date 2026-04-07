@@ -45,7 +45,7 @@
       {
         mode = "n";
         key = "<leader>fg";
-        action = ":Telescope live_grep<CR>";
+        action.__raw = "function() _G.HuixTelescopeLiveGrep() end";
         options.desc = "Live Grep";
       }
       {
@@ -82,7 +82,7 @@
       {
         mode = "n";
         key = "<leader>fa";
-        action.__raw = ''function() require('telescope.builtin').find_files({ cwd = "/home/rokokol/huix/", prompt_title = "Nix Config", previewer = _G.HuixTelescopeFilePreviewer() }) end'';
+        action.__raw = ''function() _G.HuixTelescopeFindFiles({ cwd = "/home/rokokol/huix/", prompt_title = "Nix Config" }) end'';
         options.desc = "Find Nix Config";
       }
       {
@@ -102,7 +102,7 @@
                 printf '%s\n' "$path"
                 ;;
             esac
-          done < <(fd --type f -0)
+          done < <(fd --type f -0 --strip-cwd-prefix)
         ]] }, previewer = _G.HuixTelescopeFilePreviewer() }) end'';
         options.desc = "Find Media";
       }

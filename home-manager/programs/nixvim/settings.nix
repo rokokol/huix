@@ -282,6 +282,72 @@
         builtin.find_files(picker_opts)
       end
 
+      _G.HuixTelescopeLiveGrep = _G.HuixTelescopeLiveGrep or function(opts)
+        local builtin = require("telescope.builtin")
+        local actions = require("telescope.actions")
+        local action_state = require("telescope.actions.state")
+
+        opts = opts or {}
+
+        local hidden = opts.hidden == true
+        local picker_opts = vim.tbl_extend("force", {
+          additional_args = function()
+            local args = {}
+
+            if hidden then
+              table.insert(args, "--hidden")
+            end
+
+            return args
+          end,
+          attach_mappings = function(prompt_bufnr, map)
+            local toggle_hidden = function()
+              local prompt = action_state.get_current_line()
+              actions.close(prompt_bufnr)
+
+              local next_opts = vim.tbl_extend("force", opts, {
+                default_text = prompt,
+                hidden = not hidden,
+              })
+
+              _G.HuixTelescopeLiveGrep(next_opts)
+            end
+
+            map("i", "<C-h>", toggle_hidden)
+            map("n", "<C-h>", toggle_hidden)
+
+            return true
+          end,
+        }, opts)
+
+        builtin.live_grep(picker_opts)
+      end
+
+      local ok_project_actions, project_actions = pcall(require, "telescope._extensions.projects.actions")
+      local ok_project_config, project_config = pcall(require, "project.config")
+
+      if ok_project_actions and ok_project_config then
+        local function open_project_files(prompt_bufnr)
+          local project_path, cd_successful = project_actions.change_working_directory(prompt_bufnr)
+
+          if not cd_successful then
+            return
+          end
+
+          _G.HuixTelescopeFindFiles({
+            cwd = project_path,
+            cwd_to_path = true,
+            hidden = project_config.options.show_hidden,
+            hide_parent_dir = true,
+            mode = "insert",
+            path = project_path,
+          })
+        end
+
+        project_actions.find_project_files = open_project_files
+        project_actions.browse_project_files = open_project_files
+      end
+
       -- LazyGit Close Fix for Terminal
       vim.api.nvim_create_autocmd("TermOpen", {
         pattern = "term://*",
