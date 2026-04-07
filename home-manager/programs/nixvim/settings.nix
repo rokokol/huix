@@ -72,6 +72,30 @@
         local previewers = require("telescope.previewers")
         local from_entry = require("telescope.from_entry")
 
+        local mime_cache = {}
+
+        local function get_mime_type(filepath)
+          if filepath == nil or filepath == "" then
+            return nil
+          end
+
+          if mime_cache[filepath] ~= nil then
+            return mime_cache[filepath]
+          end
+
+          local mime = vim.fn.system({ "file", "--mime-type", "-b", "--", filepath })
+
+          if vim.v.shell_error ~= 0 then
+            mime_cache[filepath] = false
+            return nil
+          end
+
+          mime = vim.trim(mime)
+          mime_cache[filepath] = mime ~= "" and mime or false
+
+          return mime_cache[filepath] or nil
+        end
+
         local function get_term_command(entry, status)
           local filepath = from_entry.path(entry, true, false)
 
@@ -81,40 +105,11 @@
 
           filepath = vim.fn.expand(filepath)
 
-          local extension = filepath:match("^.+%.([^.]+)$")
-          extension = extension and extension:lower() or ""
-
-          local image_extensions = {
-            png = true,
-            jpg = true,
-            jpeg = true,
-            webp = true,
-            gif = true,
-            avif = true,
-            svg = true,
-          }
-
-          local video_extensions = {
-            mp4 = true,
-            webm = true,
-            mkv = true,
-            mov = true,
-            avi = true,
-            m4v = true,
-            mpg = true,
-            mpeg = true,
-          }
-
-          local audio_extensions = {
-            mp3 = true,
-            flac = true,
-            wav = true,
-            ogg = true,
-            opus = true,
-            m4a = true,
-            aac = true,
-            wma = true,
-          }
+          local mime = get_mime_type(filepath)
+          local is_image = mime and mime:match("^image/") ~= nil
+          local is_video = mime and mime:match("^video/") ~= nil
+          local is_audio = mime and mime:match("^audio/") ~= nil
+          local is_pdf = mime == "application/pdf"
 
           local width = 80
           local height = 40
@@ -125,7 +120,7 @@
             height = math.max(vim.api.nvim_win_get_height(preview_winid) - 2, 10)
           end
 
-          if image_extensions[extension] then
+          if is_image then
             return {
               "bash",
               "-lc",
@@ -142,7 +137,7 @@
             }
           end
 
-          if extension == "pdf" then
+          if is_pdf then
             return {
               "bash",
               "-lc",
@@ -159,7 +154,7 @@
             }
           end
 
-          if video_extensions[extension] then
+          if is_video then
             return {
               "bash",
               "-lc",
@@ -176,7 +171,7 @@
             }
           end
 
-          if audio_extensions[extension] then
+          if is_audio then
             return {
               "bash",
               "-lc",
@@ -199,7 +194,7 @@
               filepath,
               tostring(width),
               tostring(height),
-              extension,
+              mime,
             }
           end
 

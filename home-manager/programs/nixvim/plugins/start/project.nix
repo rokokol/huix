@@ -15,7 +15,7 @@
           "pyproject.toml"
           "Makefile"
         ];
-        show_hidden = true;
+        show_hidden = false;
         silent_chdir = true;
         scope_chdir = "global";
       };
