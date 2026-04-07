@@ -39,7 +39,7 @@
       {
         mode = "n";
         key = "<leader>ff";
-        action.__raw = "function() require('telescope.builtin').find_files({ previewer = _G.HuixTelescopeFilePreviewer() }) end";
+        action.__raw = "function() _G.HuixTelescopeFindFiles() end";
         options.desc = "Find Files";
       }
       {

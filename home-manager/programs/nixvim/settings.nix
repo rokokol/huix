@@ -248,6 +248,40 @@
         })
       end
 
+      _G.HuixTelescopeFindFiles = _G.HuixTelescopeFindFiles or function(opts)
+        local builtin = require("telescope.builtin")
+        local actions = require("telescope.actions")
+        local action_state = require("telescope.actions.state")
+
+        opts = opts or {}
+
+        local hidden = opts.hidden == true
+        local picker_opts = vim.tbl_extend("force", {
+          hidden = hidden,
+          previewer = _G.HuixTelescopeFilePreviewer(),
+          attach_mappings = function(prompt_bufnr, map)
+            local toggle_hidden = function()
+              local prompt = action_state.get_current_line()
+              actions.close(prompt_bufnr)
+
+              local next_opts = vim.tbl_extend("force", opts, {
+                default_text = prompt,
+                hidden = not hidden,
+              })
+
+              _G.HuixTelescopeFindFiles(next_opts)
+            end
+
+            map("i", "<C-h>", toggle_hidden)
+            map("n", "<C-h>", toggle_hidden)
+
+            return true
+          end,
+        }, opts)
+
+        builtin.find_files(picker_opts)
+      end
+
       -- LazyGit Close Fix for Terminal
       vim.api.nvim_create_autocmd("TermOpen", {
         pattern = "term://*",
