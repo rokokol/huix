@@ -181,13 +181,24 @@
               "bash",
               "-lc",
               [[
-                printf 'Audio file\n\n'
-                printf 'Name: %s\n' "$(basename "$1")"
-                printf 'Type: %s\n' "$2"
-                printf '\nPreview is not available for audio yet.\n'
+                tmp="$(mktemp -u)"
+                ffmpeg -v error -i "$1" \
+                  -filter_complex "showwavespic=s=$2x$3:colors=white" \
+                  -frames:v 1 "$tmp.png" >/dev/null 2>&1 && \
+                  chafa --animate=off --center=on --clear --size "$2x$3" "$tmp.png"
+                status=$?
+                if [ "$status" -ne 0 ]; then
+                  printf 'Audio file\n\n'
+                  printf 'Name: %s\n' "$(basename "$1")"
+                  printf 'Type: %s\n' "$4"
+                  printf '\nWaveform preview failed.\n'
+                fi
+                rm -f "$tmp.png"
               ]],
               "telescope-preview",
               filepath,
+              tostring(width),
+              tostring(height),
               extension,
             }
           end
