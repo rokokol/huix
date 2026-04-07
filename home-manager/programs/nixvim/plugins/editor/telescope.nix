@@ -29,12 +29,16 @@
         defaults = {
           mappings = {
             i = {
-              ["<C-k>"] = telescope_actions.preview_scrolling_up,
-              ["<C-j>"] = telescope_actions.preview_scrolling_down,
+              ["<M-k>"] = telescope_actions.preview_scrolling_up,
+              ["<M-j>"] = telescope_actions.preview_scrolling_down,
+              ["<M-h>"] = telescope_actions.preview_scrolling_left,
+              ["<M-l>"] = telescope_actions.preview_scrolling_right,
             },
             n = {
-              ["K"] = telescope_actions.preview_scrolling_up,
-              ["J"] = telescope_actions.preview_scrolling_down,
+              ["<M-k>"] = telescope_actions.preview_scrolling_up,
+              ["<M-j>"] = telescope_actions.preview_scrolling_down,
+              ["<M-h>"] = telescope_actions.preview_scrolling_left,
+              ["<M-l>"] = telescope_actions.preview_scrolling_right,
             },
           },
         },

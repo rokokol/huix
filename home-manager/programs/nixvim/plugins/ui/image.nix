@@ -52,6 +52,10 @@
         return
       end
 
+      image.ignore_global_max_size = true
+      image.max_width_window_percentage = nil
+      image.max_height_window_percentage = nil
+
       local base_width = image.geometry.width or (image.rendered_geometry and image.rendered_geometry.width) or 1
       local base_height = image.geometry.height or (image.rendered_geometry and image.rendered_geometry.height) or 1
 
@@ -68,6 +72,9 @@
         return
       end
 
+      image.ignore_global_max_size = false
+      image.max_width_window_percentage = nil
+      image.max_height_window_percentage = nil
       image.geometry.width = nil
       image.geometry.height = nil
       image:clear()
