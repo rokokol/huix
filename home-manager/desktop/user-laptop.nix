@@ -28,6 +28,7 @@
   xdg.userDirs = {
     enable = true;
     createDirectories = true;
+    setSessionVariables = true;
 
     music = "/home/rokokol/Music";
     documents = "/home/rokokol/Documents";

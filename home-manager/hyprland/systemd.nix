@@ -9,7 +9,7 @@ let
   wallpaperDeps = with pkgs; [
     bash
     imagemagick
-    swww
+    awww
     libnotify
     gawk
     findutils
@@ -35,7 +35,7 @@ in
       };
     };
 
-    "swww-collage" = {
+    "awww-collage" = {
       Unit = {
         Description = "Generate and set wallpaper collage";
         After = [ "graphical-session.target" ];
@@ -59,8 +59,8 @@ in
       Install.WantedBy = [ "timers.target" ];
     };
 
-    "swww-collage" = {
-      Unit.Description = "Timer for swww wallpaper collage";
+    "awww-collage" = {
+      Unit.Description = "Timer for awww wallpaper collage";
       Timer = {
         OnActiveSec = "10s";
         OnUnitActiveSec = "5min";

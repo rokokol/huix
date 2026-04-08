@@ -15,7 +15,7 @@
 ## Скрипты
 - `scripts/colorpicker.sh` — пипетка: копирует цвет и показывает HEX/RGB
 - `scripts/pin-screen.sh` — закрепляет участок экрана как «плавающее» окно‑картинку
-- `scripts/random_wallpaper.sh` — собирает коллаж и ставит случайные обои через swww
+- `scripts/random_wallpaper.sh` — собирает коллаж и ставит случайные обои через awww
 - `scripts/rofi-clipboard.sh` — буфер обмена с превью картинок в rofi
 - `scripts/rofi_wooordhunt.sh` — быстрый перевод/значения слов через woooordhunt
 - `scripts/sync.sh` — git pull/commit/push репозитория с уведомлениями

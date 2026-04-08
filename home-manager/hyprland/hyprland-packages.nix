@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, config, ... }:
 {
   services.swayosd.enable = true;
   services.playerctld.enable = true;
@@ -13,7 +13,7 @@
 
   home.packages = with pkgs; [
     kitty
-    swww
+    awww
     hypridle
     hyprlock
     hyprpolkitagent
@@ -51,6 +51,7 @@
 
   gtk = {
     enable = true;
+    gtk4.theme = config.gtk.theme;
 
     theme = {
       name = "Gruvbox-Light";
