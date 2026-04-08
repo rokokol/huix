@@ -15,11 +15,11 @@ BG_COLOR="#282828" # ImageMagick bg
 AWWW_BG="282828"   # awww bg (without #)
 TRANSITIONS=("left" "right")
 
-# Check awww
-if ! awww query >/dev/null 2>&1; then
-  awww-daemon &
+# Check swww
+if ! swww query >/dev/null 2>&1; then
+  swww-daemon &
   sleep 1
-  notify-send -u normal "Starting awww... (★^O^★)"
+  notify-send -u normal "Starting swww... (★^O^★)"
 fi
 
 RES_W=1920
@@ -83,4 +83,4 @@ done
 CMD+=("$TEMP_COLLAGE")
 "${CMD[@]}"
 
-awww img "$TEMP_COLLAGE" --resize fit --fill-color "$AWWW_BG" --transition-type "$RANDOM_TRANS" --transition-step 90
+swww img "$TEMP_COLLAGE" --resize fit --fill-color "$AWWW_BG" --transition-type "$RANDOM_TRANS" --transition-step 90
