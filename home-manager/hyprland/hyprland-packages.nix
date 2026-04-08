@@ -72,6 +72,11 @@
     };
   };
 
+  qt = {
+    enable = true;
+    platformTheme.name = "gtk3";
+  };
+
   xdg.mimeApps = {
     enable = true;
     defaultApplications = {

@@ -7,22 +7,27 @@
   home.file.".face".source = ../../logo.jpg;
 
   home.packages = with pkgs; [
-    # programs
+    # --- Utilities ---
+    brightnessctl
+    codex
+    fastfetch
+    texlive.combined.scheme-full
+    usbutils
+
+    # --- Communication & web ---
     ayugram-desktop
     obsidian
-    gnome-disk-utility
-    celluloid
-    gthumb
-    file-roller
-    octaveFull
-    cheese
-    fastfetch
-    obs-studio
-    texlive.combined.scheme-full
-    codex
 
-    brightnessctl
-    usbutils
+    # --- Desktop & media ---
+    celluloid
+    cheese
+    file-roller
+    gnome-disk-utility
+    gthumb
+
+    # --- Creative & study ---
+    obs-studio
+    octaveFull
   ];
 
   xdg.userDirs = {

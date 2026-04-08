@@ -16,29 +16,32 @@
   powerManagement.powertop.enable = true;
 
   environment.systemPackages = with pkgs; [
-    neovim
-    wget
+    # --- CLI & development ---
     git
     gh
+    imagemagick
+    jq
+    killall
     lazygit
+    neovim
+    pup
+    ripgrep
+    translate-shell
+    wget
     wl-clipboard
     wl-clip-persist
-    imagemagick
-    killall
-    pup
-    jq
-    translate-shell
-    ripgrep
 
-    thunar
-    tumbler
-    ffmpegthumbnailer
-    poppler
-    libgsf
+    # --- File management & previews ---
     ffmpeg-full
+    ffmpegthumbnailer
+    libgsf
+    poppler
+    thunar
     trash-cli
-    powertop
+    tumbler
 
+    # --- Power & OCR ---
+    powertop
     (tesseract5.override {
       enableLanguages = [
         "rus"

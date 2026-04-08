@@ -10,40 +10,39 @@
   home.packages =
     with pkgs;
     [
-      # --- CLI ---
-      nvtopPackages.nvidia
-      cuda.fastfetch # System info
-      usbutils # lsusb, etc.
-      lm_sensors # Hardware sensors
-      unzip
-      trash-cli # Trash manipulation
-      yt-dlp # video download
-      gdu
+      # --- CLI & system tools ---
       cuda.appimage-run
+      cuda.fastfetch # System info
+      gdu
+      lm_sensors # Hardware sensors
       ncdu
-      texlive.combined.scheme-full
+      nvtopPackages.nvidia
+      trash-cli # Trash manipulation
+      unzip
+      usbutils # lsusb, etc.
+      yt-dlp # video download
 
-      # --- DEVELOPMENT & PROGRAMMING ---
+      # --- Development ---
+      # C++
+      cmake
+      eigen
+      gcc
+      llvmPackages.openmp
+      openmpi
+      pkg-config
+
       # Python
       cuda.uv # Fast Python package installer
       (cuda.python313.withPackages (
         ps: with ps; [
           matplotlib
+          numpy
           pandas
           scipy
           seaborn
-          numpy
           sympy
         ]
       ))
-
-      # C++
-      gcc
-      cmake
-      openmpi
-      eigen
-      pkg-config
-      llvmPackages.openmp
 
       # MATLAB & Octave
       matlab
@@ -55,32 +54,35 @@
           wrapProgram $out/bin/octave --set QT_QPA_PLATFORM xcb
         '';
       })
+      texlive.combined.scheme-full
 
-      # --- SOFTWARE, UI ---
-      vial # Mechanical keyboard configuration (QMK/Vial)
+      # --- Communication & web ---
       cuda.ayugram-desktop
       cuda.obsidian
-      gnome-disk-utility
-      swayimg
-      celluloid
-      gthumb
-      evince
-      file-roller
       cuda.vesktop # Discord client with Vencord
       tor-browser # Privacy browsing
-      antigravity-fhs
-      codex
 
-      # --- CREATIVITY, HARDWARE & AUDIO ---
-      easyeffects # Audio processing (EQ, Noise reduction) - Crucial for mic/guitar
-      solvespace # 3D CAD
+      # --- Desktop & media ---
+      antigravity-fhs
+      celluloid
+      codex
+      evince
+      file-roller
+      gnome-disk-utility
+      gthumb
+      swayimg
+      vial # Mechanical keyboard configuration (QMK/Vial)
+
+      # --- Creative & audio ---
+      aseprite # Pixel art
       cuda.darktable # RAW editor
-      cuda.kdePackages.kdenlive # Video editor
       cuda.gimp2-with-plugins # Shitty image manipulation
       cuda.gimpPlugins.gmic
-      krita # Drawing program
-      aseprite # Pixel art
+      cuda.kdePackages.kdenlive # Video editor
       cuda.obs-studio
+      easyeffects # Audio processing (EQ, Noise reduction) - Crucial for mic/guitar
+      krita # Drawing program
+      solvespace # 3D CAD
     ]
     ++ (with inputs; [
       freesmlauncher.packages.${pkgs.stdenv.hostPlatform.system}.default # Minecraft
