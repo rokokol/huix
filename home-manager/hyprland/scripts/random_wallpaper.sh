@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 get_normal() {
   awk -v seed="$RANDOM" -v m="$1" -v s="$2" 'BEGIN {
         srand(seed);
@@ -11,15 +13,18 @@ get_normal() {
 
 WALLPAPER_DIR="$HOME/myWiki/media"
 TEMP_COLLAGE="/tmp/awww_collage.jpg"
+CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/awww"
 BG_COLOR="#282828" # ImageMagick bg
 AWWW_BG="282828"   # awww bg (without #)
 TRANSITIONS=("left" "right")
 
-# Check swww
-if ! swww query >/dev/null 2>&1; then
-  swww-daemon &
+mkdir -p "$CACHE_DIR"
+
+# Check awww
+if ! awww query >/dev/null 2>&1; then
+  awww-daemon -q >/dev/null 2>&1 &
   sleep 1
-  notify-send -u normal "Starting swww... (★^O^★)"
+  notify-send -u normal "Starting awww... (★^O^★)"
 fi
 
 RES_W=1920
@@ -83,4 +88,4 @@ done
 CMD+=("$TEMP_COLLAGE")
 "${CMD[@]}"
 
-swww img "$TEMP_COLLAGE" --resize fit --fill-color "$AWWW_BG" --transition-type "$RANDOM_TRANS" --transition-step 90
+awww img "$TEMP_COLLAGE" --resize fit --fill-color "$AWWW_BG" --transition-type "$RANDOM_TRANS" --transition-step 90
