@@ -22,7 +22,6 @@
       llvmPackages.openmp
       openmpi
       pkg-config
-      node
 
       # Python
       cuda.uv
@@ -47,6 +46,9 @@
           wrapProgram $out/bin/octave --set QT_QPA_PLATFORM xcb
         '';
       })
+
+      # Web
+      nodejs
 
       # --- Communication & web ---
       cuda.ayugram-desktop
