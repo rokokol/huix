@@ -1,34 +1,15 @@
-{ pkgs, ... }:
+{ ... }:
 
 {
+  imports = [
+    ./common-packages.nix
+    ./laptop-packages.nix
+  ];
+
   home.username = "rokokol";
   home.homeDirectory = "/home/rokokol";
   home.stateVersion = "25.11";
   home.file.".face".source = ../../logo.jpg;
-
-  home.packages = with pkgs; [
-    # --- Utilities ---
-    brightnessctl
-    codex
-    fastfetch
-    texlive.combined.scheme-full
-    usbutils
-
-    # --- Communication & web ---
-    ayugram-desktop
-    obsidian
-
-    # --- Desktop & media ---
-    celluloid
-    cheese
-    file-roller
-    gnome-disk-utility
-    gthumb
-
-    # --- Creative & study ---
-    obs-studio
-    octaveFull
-  ];
 
   xdg.userDirs = {
     enable = true;

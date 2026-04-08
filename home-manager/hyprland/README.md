@@ -5,7 +5,7 @@
 ## Что внутри
 - `hyprland.conf` — основной конфиг Hyprland (бинды, правила, переменные)
 - `hyprland-*.nix` — хост‑специфичные настройки (PC/ноут)
-- `hyprland-packages.nix` — набор пакетов и интеграций, нужных Hyprland и DE в целом
+- `hyprland-packages.nix` — пакеты и интеграции, нужные именно Hyprland-сессии
 - `hypridle.nix` — idle‑поведение и таймауты
 - `waybar-*.nix` — конфиги Waybar для разных хостов
 - `systemd.nix` — связанные systemd юниты

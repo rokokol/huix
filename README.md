@@ -5,7 +5,7 @@
 ## Что внутри
 - `flake.nix` / `flake.lock`: входная точка и закреплённые зависимости
 - `nixos/`: системные модули NixOS, включая хост‑конфиги и сервисы
-- `home-manager/`: пользовательские конфиги (Hyprland, nixvim, оболочка и пр.)
+- `home-manager/`: пользовательские конфиги (desktop, Hyprland, nixvim, оболочка и пр.)
 - `logo.jpg`, `wallpaper_*.png`: локальные ассеты
 
 ## Быстрый старт
@@ -24,9 +24,11 @@ nix flake update
 
 ## Структура конфигов
 - `nixos/configuration-pc.nix`, `nixos/configuration-laptop.nix` — верхнеуровневые хост‑конфиги
-- `nixos/pc/` и `nixos/laptop/` — хост‑специфичные модули
-- `nixos/services/` — сервисы (searxng, docker, jupyter и т.д.)
+- `nixos/pc/` и `nixos/laptop/` — хост‑специфичные системные модули
+- `nixos/services/` — переиспользуемые системные сервисы
 - `home-manager/home-*.nix` — пользовательские entrypoints
+- `home-manager/desktop/` — общий desktop-слой, тема и хост‑специфичные desktop-пакеты
+- `home-manager/hyprland/` — только Hyprland/session-слой и связанные скрипты
 
 ## Дерево проекта
 ```
@@ -77,11 +79,16 @@ nix flake update
 │   ├── home-laptop.nix
 │   ├── desktop
 │   │   ├── dconf.nix
+│   │   ├── common-packages.nix
+│   │   ├── pc-packages.nix
+│   │   ├── laptop-packages.nix
 │   │   ├── user-pc.nix
 │   │   └── user-laptop.nix
 │   ├── hyprland
 │   │   ├── hyprland.conf
+│   │   ├── README.md
 │   │   ├── hypridle.nix
+│   │   ├── hyprland-packages.nix
 │   │   ├── hyprland-*.nix
 │   │   ├── waybar-*.nix
 │   │   ├── systemd.nix
@@ -131,6 +138,11 @@ nix flake update
 ```
 
 ## Примечания
+Сейчас пакетная структура в Home Manager разделена по ролям:
+- `home-manager/hyprland/hyprland-packages.nix` — только пакеты и интеграции, которые реально нужны Hyprland-конфигам и скриптам
+- `home-manager/desktop/common-packages.nix` — общий desktop-слой для PC и laptop
+- `home-manager/desktop/pc-packages.nix` / `home-manager/desktop/laptop-packages.nix` — хост‑специфичные desktop-пакеты
+
 Перед сборкой архижелательно обновлять `hardware-configuration.nix`:
 ```sh
 sudo nixos-generate-config --show-hardware-config > hardware-configuration.nix

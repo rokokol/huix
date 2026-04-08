@@ -1,31 +1,25 @@
 { pkgs, ... }:
 
 {
-  # ============================================================================
-  #  PROGRAMS & SERVICES CONFIGURATION
-  # ============================================================================
-
-  # --- Core & Shell ---
+  # --- Core desktop session ---
   programs.hyprland.enable = true;
   programs.zsh.enable = true;
+
+  # --- File management & thumbnails ---
   services.gvfs.enable = true;
   services.tumbler.enable = true;
 
-  # --- Internet & Privacy ---
+  # --- Browser & privacy ---
   programs.firefox.enable = true;
   services.tor.enable = true;
   services.tor.client.enable = true;
 
-  # --- Desktop Environment Integrations ---
-  services.flatpak.enable = true;
+  # --- Desktop app integration ---
   programs.appimage.enable = true;
+  services.flatpak.enable = true;
 
   # --- Gaming ---
   programs.steam.enable = true;
-
-  # ============================================================================
-  #  SYSTEM PACKAGES
-  # ============================================================================
 
   environment.systemPackages = with pkgs; [
     # --- CLI & development ---
@@ -44,7 +38,7 @@
     wl-clipboard
     wl-clip-persist
 
-    # --- File management & previews ---
+    # --- Files, previews & desktop helpers ---
     cuda.ffmpeg-full
     cuda.ffmpegthumbnailer
     libgsf

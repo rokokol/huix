@@ -1,19 +1,29 @@
 { pkgs, ... }:
 
 {
+  # --- Core desktop session ---
   programs.zsh.enable = true;
-  nixpkgs.config.allowUnfree = true;
   programs.hyprland.enable = true;
-  security.polkit.enable = true;
   programs.firefox.enable = true;
+
+  # --- Permissions & removable devices ---
+  security.polkit.enable = true;
+  services.udisks2.enable = true;
+
+  # --- Bluetooth ---
   hardware.bluetooth.enable = true;
   hardware.bluetooth.powerOnBoot = true;
   services.blueman.enable = true;
-  services.udisks2.enable = true;
+
+  # --- File management & thumbnails ---
   services.gvfs.enable = true;
   services.tumbler.enable = true;
+
+  # --- Gaming & power ---
   programs.steam.enable = true;
   powerManagement.powertop.enable = true;
+
+  nixpkgs.config.allowUnfree = true;
 
   environment.systemPackages = with pkgs; [
     # --- CLI & development ---
@@ -31,7 +41,7 @@
     wl-clipboard
     wl-clip-persist
 
-    # --- File management & previews ---
+    # --- Files, previews & desktop helpers ---
     ffmpeg-full
     ffmpegthumbnailer
     libgsf
