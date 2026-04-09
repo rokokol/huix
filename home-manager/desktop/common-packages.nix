@@ -15,6 +15,7 @@
     gthumb
     texlive.combined.scheme-full
     usbutils
+    v2rayn
 
     # --- Theming & toolkit integration ---
     gnome-themes-extra
