@@ -13,6 +13,7 @@
   programs.firefox.enable = true;
   services.tor.enable = true;
   services.tor.client.enable = true;
+  programs.chromium.enable = true;
 
   # --- Desktop app integration ---
   programs.appimage.enable = true;
