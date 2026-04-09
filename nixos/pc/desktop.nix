@@ -29,28 +29,4 @@
       ];
     };
   };
-  # xdg.portal = {
-  #   enable = true;
-  #   xdgOpenUsePortal = true;
-  #   extraPortals = with pkgs; [
-  #     xdg-desktop-portal-hyprland
-  #     xdg-desktop-portal-gtk
-  #   ];
-  #
-  #   config = {
-  #     hyprland = {
-  #       "org.freedesktop.impl.portal.OpenURI" = [ "gtk" ];
-  #       "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
-  #
-  #       default = [
-  #         "hyprland"
-  #         "gtk"
-  #       ];
-  #     };
-  #
-  #     common = {
-  #       default = [ "gtk" ];
-  #     };
-  #   };
-  # };
 }
