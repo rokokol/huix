@@ -12,6 +12,7 @@ let
 in
 {
   imports = [
+    ./desktop/portals.nix
     ./fonts/fonts.nix
     ./pc/hardware-configuration.nix
     ./pc/boot.nix

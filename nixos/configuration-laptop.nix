@@ -2,6 +2,7 @@
 
 {
   imports = [
+    ./desktop/portals.nix
     ./fonts/fonts.nix
     ./laptop/hardware-configuration.nix
     ./laptop/boot.nix
