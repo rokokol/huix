@@ -62,6 +62,8 @@
       "x-scheme-handler/https" = "firefox.desktop";
       "x-scheme-handler/about" = "firefox.desktop";
       "x-scheme-handler/unknown" = "firefox.desktop";
+      "inode/directory" = "thunar.desktop";
+      "application/x-directory" = "thunar.desktop";
 
       "image/jpeg" = "swayimg.desktop";
       "image/png" = "swayimg.desktop";
