@@ -37,6 +37,7 @@ in
     ./services/ollama.nix
     # ./services/openwebui.nix
     ./services/syncting.nix
+    ./services/tor.nix
   ];
 
   system.stateVersion = "25.11";

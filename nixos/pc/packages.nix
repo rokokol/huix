@@ -11,8 +11,6 @@
 
   # --- Browser & privacy ---
   programs.firefox.enable = true;
-  services.tor.enable = true;
-  services.tor.client.enable = true;
 
   # --- Desktop app integration ---
   programs.appimage.enable = true;
