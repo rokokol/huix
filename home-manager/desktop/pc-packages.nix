@@ -57,7 +57,6 @@
       tor-browser
 
       # --- Desktop apps ---
-      antigravity-fhs
       vial
 
       # --- Creative & audio ---

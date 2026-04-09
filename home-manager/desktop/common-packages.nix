@@ -8,6 +8,7 @@
     baobab
     celluloid
     codex
+    gemini-cli
     evince
     file-roller
     gnome-disk-utility
@@ -15,7 +16,6 @@
     gthumb
     texlive.combined.scheme-full
     usbutils
-    v2rayn
 
     # --- Theming & toolkit integration ---
     gnome-themes-extra
