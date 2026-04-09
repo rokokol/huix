@@ -11,9 +11,7 @@
   # Portals (apps & system interaction)
   xdg.portal = {
     enable = true;
-    xdgOpenUsePortal = true;
     extraPortals = with pkgs; [
-      xdg-desktop-portal-gnome
       xdg-desktop-portal-hyprland
       xdg-desktop-portal-gtk
     ];
@@ -22,11 +20,9 @@
       # Use GTK portal for chooser/open dialogs, keep Hyprland portal available
       # for compositor-specific interfaces like screencasting.
       "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
-      "org.freedesktop.impl.portal.OpenURI" = [ "gnome" ];
 
       default = [
         "hyprland"
-        "gnome"
         "gtk"
       ];
     };
