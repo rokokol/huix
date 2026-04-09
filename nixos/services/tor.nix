@@ -6,7 +6,7 @@
     client.enable = true;
     settings = {
       UseBridges = true;
-      ClientTransportPlugin = "webtunnel exec ${pkgs.webtunnel}/bin/webtunnel";
+      ClientTransportPlugin = "webtunnel exec ${pkgs.webtunnel}/bin/client";
       Bridge = [
         "webtunnel [2001:db8:ff84:4f48:f49f:f168:e6b3:ba74]:443 1A5283F498F3F30FBC36C4D0FA16C34F9E34FEBE url=https://goodwearevday.site/6ac2ad9c5821c1612524189d9d125043cbdee45c ver=0.0.3"
         "webtunnel [2001:db8:8e83:d0ca:d4a8:3fb6:c859:c9fd]:443 5739A92BBDBFFF14CC9DB57D760C5EE7AD4DED71 url=https://wtb006.unshakled.net/ ver=0.0.3"
