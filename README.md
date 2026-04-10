@@ -43,18 +43,18 @@ nix flake update
 │   │   └── portals.nix
 │   ├── pc
 │   │   ├── boot.nix
-│   │   ├── desktop.nix
 │   │   ├── hardware.nix
 │   │   ├── hardware-configuration.nix
+│   │   ├── keyboard.nix
 │   │   ├── nvidia.nix
 │   │   ├── packages.nix
 │   │   ├── sound.nix
 │   │   └── system.nix
 │   ├── laptop
 │   │   ├── boot.nix
-│   │   ├── desktop.nix
 │   │   ├── hardware.nix
 │   │   ├── hardware-configuration.nix
+│   │   ├── keyboard.nix
 │   │   ├── packages.nix
 │   │   └── system.nix
 │   ├── services

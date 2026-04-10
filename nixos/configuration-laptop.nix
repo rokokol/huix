@@ -6,7 +6,7 @@
     ./fonts/fonts.nix
     ./laptop/hardware-configuration.nix
     ./laptop/boot.nix
-    ./laptop/desktop.nix
+    ./laptop/keyboard.nix
     ./laptop/hardware.nix
     ./laptop/packages.nix
     ./laptop/system.nix

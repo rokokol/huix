@@ -20,7 +20,7 @@ in
     ./pc/system.nix
     ./pc/hardware.nix
     ./pc/sound.nix
-    ./pc/desktop.nix
+    ./pc/keyboard.nix
     ./pc/packages.nix
     ./services/docker.nix
     ./services/jupyter.nix
