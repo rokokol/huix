@@ -24,6 +24,7 @@ nix flake update
 
 ## Структура конфигов
 - `nixos/configuration-pc.nix`, `nixos/configuration-laptop.nix` — верхнеуровневые хост‑конфиги
+- `nixos/desktop/` — общие desktop-модули для всех хостов
 - `nixos/pc/` и `nixos/laptop/` — хост‑специфичные системные модули
 - `nixos/services/` — переиспользуемые системные сервисы
 - `home-manager/home-*.nix` — пользовательские entrypoints
@@ -38,6 +39,8 @@ nix flake update
 ├── nixos
 │   ├── configuration-pc.nix
 │   ├── configuration-laptop.nix
+│   ├── desktop
+│   │   └── portals.nix
 │   ├── pc
 │   │   ├── boot.nix
 │   │   ├── desktop.nix
