@@ -20,6 +20,7 @@
     # Stable kernel
     package = config.boot.kernelPackages.nvidiaPackages.latest;
   };
+  hardware.nvidia-container-toolkit.enable = true;
 
   users.users.rokokol = {
     extraGroups = [
