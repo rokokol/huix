@@ -11,6 +11,7 @@
   - `home-pc.nix` / `home-laptop.nix` are user entrypoints.
   - `hyprland/` contains configs and scripts.
   - `programs/` contains per-app modules (zsh, kitty, nixvim, etc.).
+  - All Home Manager settings live under `home-manager/`; do not look for HM options in `nixos/`.
 - `logo.jpg`, `wallpaper_*.png`: repo assets used in README/desktop.
 
 ## Build, Test, and Development Commands
