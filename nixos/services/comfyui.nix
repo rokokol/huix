@@ -16,5 +16,7 @@
     user = rokokolName;
     group = "users";
     createUser = false;
+    openFirewall = false;
+    # extraArgs = [ "--lowvram" ];
   };
 }

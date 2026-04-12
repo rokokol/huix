@@ -65,7 +65,6 @@
 
       configNoCuda = {
         allowUnfree = true;
-        cuda.acceptLicense = true;
         permittedInsecurePackages = [ ];
       };
 
