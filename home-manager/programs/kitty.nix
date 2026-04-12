@@ -31,7 +31,7 @@
       enable_audio_bell = true;
       cursor_trail = 50;
       cursor_trail_decay = "0.1 0.35";
-      cursor_trail_start_threshold = 0;
+      cursor_trail_start_threshold = 1;
     };
   };
 }
