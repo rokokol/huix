@@ -24,19 +24,7 @@
 
       # Python
       uv
-      (cuda.python313.withPackages (
-        ps: with ps; [
-          matplotlib
-          numpy
-          pandas
-          scipy
-          seaborn
-          sympy
-          torch-bin
-          torchvision-bin
-          torchaudio-bin
-        ]
-      ))
+      python313
 
       # MATLAB & Octave
       matlab
@@ -62,15 +50,15 @@
       vial
 
       # --- Creative & audio ---
-      aseprite
-      cuda.darktable
-      cuda.gimp2-with-plugins
-      cuda.gimpPlugins.gmic
-      cuda.kdePackages.kdenlive
-      cuda.obs-studio
-      easyeffects
-      krita
-      solvespace
+      # aseprite
+      # cuda.darktable
+      # gimp2-with-plugins
+      # gimpPlugins.gmic
+      # kdePackages.kdenlive
+      # cuda.obs-studio
+      # easyeffects
+      # krita
+      # solvespace
     ]
     ++ (with inputs; [
       freesmlauncher.packages.${pkgs.stdenv.hostPlatform.system}.default

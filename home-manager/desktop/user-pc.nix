@@ -18,8 +18,6 @@ in
     ./pc-packages.nix
   ];
 
-  # home.username = rokokolName;
-  # home.homeDirectory = homeDir;
   home.stateVersion = "25.11";
   home.file.".face".source = ../../logo.jpg;
 

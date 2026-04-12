@@ -24,6 +24,7 @@
     curl
     file
     git
+    python3Packages.huggingface-hub
     gh
     imagemagick
     jq
