@@ -5,7 +5,6 @@
     ./desktop/portals.nix
     ./fonts/fonts.nix
     ./laptop/hardware-configuration.nix
-    ./laptop/btop.nix
     ./laptop/boot.nix
     ./laptop/keyboard.nix
     ./laptop/hardware.nix
