@@ -1,4 +1,8 @@
-{ pkgs, inputs, ... }:
+{
+  pkgs,
+  inputs,
+  ...
+}:
 
 {
   home.packages =
@@ -45,7 +49,6 @@
       obsidian
       vesktop
       tor-browser
-      meshtasticd
 
       # --- Desktop apps ---
       vial
