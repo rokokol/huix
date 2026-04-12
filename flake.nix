@@ -127,7 +127,6 @@
             nixpkgs.overlays = [
               overlay-stable
               nix-matlab.overlay
-
             ];
           }
 

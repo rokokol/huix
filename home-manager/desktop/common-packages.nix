@@ -18,6 +18,7 @@
     usbutils
     yt-dlp
     hollywood
+    matlab
 
     # --- Theming & toolkit integration ---
     gnome-themes-extra

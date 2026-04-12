@@ -30,17 +30,6 @@
       uv
       python313
 
-      # MATLAB & Octave
-      matlab
-      (pkgs.symlinkJoin {
-        name = "octave-wrapped";
-        paths = [ pkgs.octaveFull ];
-        buildInputs = [ pkgs.makeWrapper ];
-        postBuild = ''
-          wrapProgram $out/bin/octave --set QT_QPA_PLATFORM xcb
-        '';
-      })
-
       # Web
       nodejs
 

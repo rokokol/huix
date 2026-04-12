@@ -57,6 +57,10 @@ in
     "D ${tempDir} 0777 - - -"
   ];
 
+  home.file.".config/matlab/nix.sh".text = ''
+    INSTALL_DIR=$HOME/MATLAB2025a/ 
+  '';
+
   # Files
   home.file.".octaverc".text = ''
     PS1('>> ');
