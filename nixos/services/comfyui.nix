@@ -17,6 +17,6 @@
     group = "users";
     createUser = false;
     openFirewall = false;
-    # extraArgs = [ "--lowvram" ];
+    extraArgs = [ "--lowvram" ];
   };
 }
