@@ -11,6 +11,7 @@
     dosfstools
     exfatprogs
     ffmpegthumbnailer
+    file-roller
     libgsf
     ntfs3g
     p7zip

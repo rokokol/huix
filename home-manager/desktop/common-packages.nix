@@ -57,6 +57,10 @@
     platformTheme.name = "gtk3";
   };
 
+  home.sessionVariables = {
+    THUNARX_DIRS = "/run/current-system/sw/lib/thunarx-3";
+  };
+
   xdg.configFile."Thunar/uca.xml".text = ''
     <?xml version="1.0" encoding="UTF-8"?>
     <actions>
