@@ -50,15 +50,15 @@
       vial
 
       # --- Creative & audio ---
-      # aseprite
-      # cuda.darktable
-      # gimp2-with-plugins
-      # gimpPlugins.gmic
-      # kdePackages.kdenlive
-      # cuda.obs-studio
-      # easyeffects
-      # krita
-      # solvespace
+      aseprite
+      cuda.darktable
+      gimp2-with-plugins
+      gimpPlugins.gmic
+      kdePackages.kdenlive
+      cuda.obs-studio
+      easyeffects
+      krita
+      solvespace
     ]
     ++ (with inputs; [
       freesmlauncher.packages.${pkgs.stdenv.hostPlatform.system}.default

@@ -36,9 +36,9 @@
     wget
     wl-clipboard
     wl-clip-persist
+    cuda.ffmpeg-headless
 
     # --- Files, previews & desktop helpers ---
-    cuda.ffmpeg-full
     ffmpegthumbnailer
     libgsf
     poppler
