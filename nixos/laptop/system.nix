@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, rokokolName, ... }:
 
 {
   networking.hostName = "nixos-laptop";
@@ -20,9 +20,10 @@
   };
 
   # User Configuration
-  users.users.rokokol = {
+  users.users.${rokokolName} = {
     isNormalUser = true;
-    description = "rokokol";
+    description = rokokolName;
+    home = "/home/${rokokolName}";
     shell = pkgs.zsh;
     extraGroups = [
       "networkmanager"

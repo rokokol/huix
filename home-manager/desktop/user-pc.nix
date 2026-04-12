@@ -1,14 +1,16 @@
 {
-  config,
+  govnoDir,
+  huixDir,
   pkgs,
+  rokokolName,
   ...
 }:
 
 let
-  homeDir = config.home.homeDirectory;
-  huixDir = "${homeDir}/huix";
-  mediaDir = "${homeDir}/myWiki/media";
-  sharedDataDir = "${homeDir}/govno";
+  homeDir = "/home/${rokokolName}";
+  downloadsDir = "${homeDir}/Downloads";
+  projectsDir = "${homeDir}/Projects";
+  tempDir = "${homeDir}/Temp";
 in
 {
   imports = [
@@ -16,8 +18,8 @@ in
     ./pc-packages.nix
   ];
 
-  home.username = "rokokol";
-  home.homeDirectory = "/home/rokokol";
+  # home.username = rokokolName;
+  # home.homeDirectory = homeDir;
   home.stateVersion = "25.11";
   home.file.".face".source = ../../logo.jpg;
 
@@ -26,12 +28,12 @@ in
     createDirectories = true;
     setSessionVariables = true;
 
-    music = "${sharedDataDir}/Music";
-    documents = "${sharedDataDir}/Documents";
-    pictures = "${sharedDataDir}/Pictures";
-    videos = "${sharedDataDir}/Videos";
+    music = "${govnoDir}/Music";
+    documents = "${govnoDir}/Documents";
+    pictures = "${govnoDir}/Pictures";
+    videos = "${govnoDir}/Videos";
 
-    download = "${homeDir}/Downloads";
+    download = downloadsDir;
 
     desktop = null;
     templates = null;
@@ -41,21 +43,21 @@ in
   gtk = {
     enable = true;
     gtk3.bookmarks = [
-      "file://${homeDir}/Downloads/"
+      "file://${downloadsDir}/"
       "file://${huixDir}/"
-      "file://${homeDir}/Temp/"
-      "file://${homeDir}/Projects/"
-      "file://${mediaDir}/"
-      "file://${sharedDataDir}/"
+      "file://${tempDir}/"
+      "file://${projectsDir}/"
+      "file://${homeDir}/myWiki/media/"
+      "file://${govnoDir}/"
       "file:///"
     ];
   };
 
   # Directories
   systemd.user.tmpfiles.rules = [
-    "d %h/Projects 0755 - - -"
-    "d %h/govno/Pictures/Screenshots 0700 - - 30d"
-    "D %h/Temp 0777 - - -"
+    "d ${projectsDir} 0755 - - -"
+    "d ${govnoDir}/Pictures/Screenshots 0700 - - 30d"
+    "D ${tempDir} 0777 - - -"
   ];
 
   # Files

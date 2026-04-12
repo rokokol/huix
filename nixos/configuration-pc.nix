@@ -17,12 +17,11 @@ in
     ./pc/hardware-configuration.nix
     ./pc/boot.nix
     ./pc/nvidia.nix
-    ./pc/comfyui.nix
-    ./pc/system.nix
     ./pc/hardware.nix
     ./pc/sound.nix
     ./pc/keyboard.nix
     ./pc/packages.nix
+    ./pc/system.nix
     ./services/docker.nix
     ./services/jupyter.nix
     ./services/virtualization.nix
@@ -38,6 +37,7 @@ in
     ./services/amnezia-vpn.nix
     ./services/ollama.nix
     # ./services/openwebui.nix
+    # ./services/comfyui.nix
     ./services/syncting.nix
     ./services/tor.nix
   ];

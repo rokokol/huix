@@ -1,11 +1,12 @@
 {
+  huixDir,
   pkgs,
-  config,
   lib,
   ...
 }:
 
 let
+  scriptsDir = ./scripts;
   wallpaperDeps = with pkgs; [
     bash
     imagemagick
@@ -30,8 +31,8 @@ in
       Unit.Description = "sync.sh hourly";
       Service = {
         Type = "oneshot";
-        ExecStart = "${pkgs.bash}/bin/bash ${./scripts/sync.sh}";
-        Environment = "PATH=${lib.makeBinPath syncDeps}";
+        ExecStart = "${pkgs.bash}/bin/bash ${scriptsDir}/sync.sh";
+        Environment = "PATH=${lib.makeBinPath syncDeps} HUIX=${huixDir}";
       };
     };
 
@@ -43,7 +44,7 @@ in
       };
       Service = {
         Type = "oneshot";
-        ExecStart = "${pkgs.bash}/bin/bash ${./scripts/random_wallpaper.sh}";
+        ExecStart = "${pkgs.bash}/bin/bash ${scriptsDir}/random_wallpaper.sh";
         Environment = "PATH=${lib.makeBinPath wallpaperDeps}";
       };
     };

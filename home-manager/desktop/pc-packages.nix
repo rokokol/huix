@@ -32,6 +32,9 @@
           scipy
           seaborn
           sympy
+          torch-bin
+          torchvision-bin
+          torchaudio-bin
         ]
       ))
 

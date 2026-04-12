@@ -1,4 +1,4 @@
-{ ... }:
+{ rokokolName, ... }:
 
 {
   virtualisation.docker = {
@@ -18,7 +18,7 @@
     };
   };
 
-  users.users.rokokol = {
+  users.users.${rokokolName} = {
     extraGroups = [
       "docker"
     ];

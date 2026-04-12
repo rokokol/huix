@@ -1,9 +1,7 @@
-{ pkgs, ... }:
+{ ... }:
 let
-  sharedConfig = pkgs.substituteAll {
-    src = ./hyprland.conf;
-    scriptsDir = ./scripts;
-  };
+  scriptsDir = ./scripts;
+  sharedConfig = builtins.replaceStrings [ "@scriptsDir@" ] [ (toString scriptsDir) ] (builtins.readFile ./hyprland.conf);
 in
 {
   wayland.windowManager.hyprland = {
@@ -28,9 +26,7 @@ in
       };
     };
 
-    extraConfig = ''
-      source = ${sharedConfig}
-    '';
+    extraConfig = sharedConfig;
   };
 
   imports = [

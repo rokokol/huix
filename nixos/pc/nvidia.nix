@@ -1,4 +1,4 @@
-{ config, ... }:
+{ config, rokokolName, ... }:
 
 {
   # OpenGL on (Hardware Graphics)
@@ -22,7 +22,7 @@
   };
   hardware.nvidia-container-toolkit.enable = true;
 
-  users.users.rokokol = {
+  users.users.${rokokolName} = {
     extraGroups = [
       "video"
       "render"

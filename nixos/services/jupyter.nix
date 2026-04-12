@@ -2,12 +2,12 @@
   config,
   pkgs,
   lib,
+  rokokolName,
   ...
 }:
 
 let
-  homeDir = config.users.users.rokokol.home;
-
+  homeDir = "/home/${rokokolName}";
   python-datascience = config.services.jupyter.pythonInterpreter.withPackages (
     ps:
     with ps;
@@ -35,7 +35,7 @@ in
   config = {
     services.jupyter = {
       enable = true;
-      user = "rokokol";
+      user = rokokolName;
       group = "users";
       command = "jupyter-lab";
       notebookDir = "${homeDir}/Notebooks";
@@ -78,7 +78,7 @@ in
     ];
 
     systemd.tmpfiles.rules = [
-      "d ${homeDir}/Notebooks 0755 rokokol users -"
+      "d ${homeDir}/Notebooks 0755 ${rokokolName} users -"
     ];
   };
 }

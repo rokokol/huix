@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, rokokolName, ... }:
 
 {
 
@@ -10,7 +10,7 @@
     platformio
   ];
 
-  users.users.rokokol = {
+  users.users.${rokokolName} = {
     extraGroups = [
       "dialout"
       "input"

@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, rokokolName, ... }:
 
 {
   programs.system-config-printer.enable = true;
@@ -9,7 +9,7 @@
     ];
   };
 
-  users.users.rokokol = {
+  users.users.${rokokolName} = {
     extraGroups = [
       "lp"
       "scanner"

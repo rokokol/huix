@@ -1,9 +1,9 @@
-{ pkgs, ... }:
+{ pkgs, rokokolName, ... }:
 
 {
   programs.git = {
     enable = true;
-    settings.user.Name = "rokokol";
+    settings.user.Name = rokokolName;
     settings.user.Email = "mailofilyusha@gmail.com";
     settings.core.editor = "nvim";
   };
@@ -17,4 +17,3 @@
     };
   };
 }
-

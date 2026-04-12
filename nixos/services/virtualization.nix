@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, rokokolName, ... }:
 
 {
   boot = {
@@ -18,7 +18,7 @@
   virtualisation.libvirtd.enable = true;
   programs.virt-manager.enable = true;
 
-  users.users.rokokol = {
+  users.users.${rokokolName} = {
     extraGroups = [
       "libvirtd"
     ];

@@ -1,4 +1,10 @@
-{ pkgs, lib, ... }:
+{
+  govnoDir,
+  pkgs,
+  lib,
+  rokokolName,
+  ...
+}:
 
 {
   networking.hostName = "nixos-pc";
@@ -20,9 +26,10 @@
   };
 
   # User Configuration
-  users.users.rokokol = {
+  users.users.${rokokolName} = {
     isNormalUser = true;
     description = "sigma pro";
+    home = "/home/${rokokolName}";
     shell = pkgs.zsh;
     extraGroups = [
       "networkmanager"
@@ -51,7 +58,7 @@
     };
   };
 
-  fileSystems."/home/rokokol/govno" = {
+  fileSystems."${govnoDir}" = {
     device = lib.mkForce "/dev/disk/by-label/govno";
     fsType = "ntfs3";
     options = [

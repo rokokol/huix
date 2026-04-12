@@ -1,9 +1,10 @@
-{ config, ... }:
+{ huixDir, rokokolName, ... }:
 
 let
-  homeDir = config.home.homeDirectory;
-  huixDir = "${homeDir}/huix";
-  mediaDir = "${homeDir}/myWiki/media";
+  homeDir = "/home/${rokokolName}";
+  downloadsDir = "${homeDir}/Downloads";
+  projectsDir = "${homeDir}/Projects";
+  tempDir = "${homeDir}/Temp";
 in
 {
   imports = [
@@ -11,8 +12,8 @@ in
     ./laptop-packages.nix
   ];
 
-  home.username = "rokokol";
-  home.homeDirectory = "/home/rokokol";
+  # home.username = rokokolName;
+  # home.homeDirectory = homeDir;
   home.stateVersion = "25.11";
   home.file.".face".source = ../../logo.jpg;
 
@@ -26,7 +27,7 @@ in
     pictures = "${homeDir}/Pictures";
     videos = "${homeDir}/Videos";
 
-    download = "${homeDir}/Downloads";
+    download = downloadsDir;
 
     desktop = null;
     templates = null;
@@ -36,11 +37,11 @@ in
   gtk = {
     enable = true;
     gtk3.bookmarks = [
-      "file://${homeDir}/Downloads/"
+      "file://${downloadsDir}/"
       "file://${huixDir}/"
-      "file://${homeDir}/Temp/"
-      "file://${homeDir}/Projects/"
-      "file://${mediaDir}/"
+      "file://${tempDir}/"
+      "file://${projectsDir}/"
+      "file://${homeDir}/myWiki/media/"
       "file:///"
     ];
   };
@@ -54,8 +55,8 @@ in
 
   # Directories
   systemd.user.tmpfiles.rules = [
-    "d %h/Projects 0755 - - -"
-    "D %h/Temp 0777 - - -"
+    "d ${projectsDir} 0755 - - -"
+    "D ${tempDir} 0777 - - -"
   ];
 
   # Files

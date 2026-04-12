@@ -1,12 +1,8 @@
 {
-  config,
   inputs,
+  rokokolName,
   ...
 }:
-
-let
-  homeDir = config.users.users.rokokol.home;
-in
 {
   imports = [ inputs.comfyui-nix.nixosModules.default ];
 
@@ -16,8 +12,8 @@ in
     enableManager = true;
     port = 8188;
     listenAddress = "127.0.0.1";
-    dataDir = "${homeDir}/comfyui-data";
-    user = "rokokol";
+    dataDir = "/home/${rokokolName}/comfyui-data";
+    user = rokokolName;
     group = "users";
     createUser = false;
   };

@@ -41,6 +41,19 @@
 
     let
       system = "x86_64-linux";
+      rokokolName = "rokokol";
+      huixDir = "/home/${rokokolName}/huix";
+      govnoDir = "/home/${rokokolName}/govno";
+
+      commonArgs = {
+        inherit
+          govnoDir
+          huixDir
+          inputs
+          rokokolName
+          system
+          ;
+      };
 
       configCuda = {
         allowUnfree = true;
@@ -72,9 +85,7 @@
     in
     {
       nixosConfigurations.nixos-pc = nixpkgs.lib.nixosSystem {
-        specialArgs = {
-          inherit inputs system;
-        };
+        specialArgs = commonArgs;
         modules = [
           ./nixos/configuration-pc.nix
 
@@ -95,18 +106,16 @@
               useUserPackages = true;
               backupFileExtension = "bak";
 
-              extraSpecialArgs = { inherit inputs; };
+              extraSpecialArgs = commonArgs;
 
-              users.rokokol = import ./home-manager/home-pc.nix;
+              users.${rokokolName} = import ./home-manager/home-pc.nix;
             };
           }
         ];
       };
 
       nixosConfigurations.nixos-laptop = nixpkgs.lib.nixosSystem {
-        specialArgs = {
-          inherit inputs system;
-        };
+        specialArgs = commonArgs;
         modules = [
           ./nixos/configuration-laptop.nix
 
@@ -125,9 +134,9 @@
               useUserPackages = true;
               backupFileExtension = "bak";
 
-              extraSpecialArgs = { inherit inputs; };
+              extraSpecialArgs = commonArgs;
 
-              users.rokokol = import ./home-manager/home-laptop.nix;
+              users.${rokokolName} = import ./home-manager/home-laptop.nix;
             };
           }
         ];
