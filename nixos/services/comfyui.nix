@@ -1,5 +1,4 @@
 {
-  govnoDir,
   inputs,
   rokokolName,
   ...
@@ -13,7 +12,7 @@
     enableManager = true;
     port = 8188;
     listenAddress = "127.0.0.1";
-    dataDir = "${govnoDir}/ComfyUI";
+    dataDir = "/home/${rokokolName}/comfyui-data";
     user = rokokolName;
     group = "users";
     createUser = false;
