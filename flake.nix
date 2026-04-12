@@ -6,10 +6,7 @@
     nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-25.11";
     nixvim.url = "github:nix-community/nixvim";
 
-    comfyui-nix = {
-      url = "https://flakehub.com/f/utensils/comfyui/0.18.2";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    comfyui-nix.url = "https://flakehub.com/f/utensils/comfyui/0.18.2";
 
     home-manager = {
       url = "github:nix-community/home-manager";
