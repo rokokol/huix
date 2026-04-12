@@ -126,6 +126,8 @@
             nixpkgs.config = configNoCuda;
             nixpkgs.overlays = [
               overlay-stable
+              nix-matlab.overlay
+
             ];
           }
 
