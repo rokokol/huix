@@ -22,6 +22,7 @@ in
     ./pc/keyboard.nix
     ./pc/packages.nix
     ./pc/system.nix
+    ./services/file-manager.nix
     ./services/docker.nix
     ./services/jupyter.nix
     ./services/virtualization.nix

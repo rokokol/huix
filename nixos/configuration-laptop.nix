@@ -10,6 +10,7 @@
     ./laptop/hardware.nix
     ./laptop/packages.nix
     ./laptop/system.nix
+    ./services/file-manager.nix
     ./services/wl-clip-persist.nix
     ./services/sddm.nix
     ./services/jupyter.nix

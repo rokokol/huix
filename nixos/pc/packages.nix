@@ -5,10 +5,6 @@
   programs.hyprland.enable = true;
   programs.zsh.enable = true;
 
-  # --- File management & thumbnails ---
-  services.gvfs.enable = true;
-  services.tumbler.enable = true;
-
   # --- Browser & privacy ---
   programs.firefox.enable = true;
 
@@ -37,12 +33,6 @@
     wl-clipboard
     wl-clip-persist
     cuda.ffmpeg-headless
-
-    # --- Files, previews & desktop helpers ---
-    ffmpegthumbnailer
-    libgsf
-    poppler
-    thunar
   ];
 
   # Exclude basic X11 terminal

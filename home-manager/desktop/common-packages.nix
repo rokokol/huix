@@ -57,6 +57,24 @@
     platformTheme.name = "gtk3";
   };
 
+  xdg.configFile."Thunar/uca.xml".text = ''
+    <?xml version="1.0" encoding="UTF-8"?>
+    <actions>
+    <action>
+    	<icon>utilities-terminal</icon>
+    	<name>Open Terminal Here</name>
+    	<submenu></submenu>
+    	<unique-id>1770663018404627-1</unique-id>
+    	<command>kitty --working-directory %f</command>
+    	<description>Declarative Thunar action for opening kitty in the selected directory.</description>
+    	<range></range>
+    	<patterns>*</patterns>
+    	<startup-notify/>
+    	<directories/>
+    </action>
+    </actions>
+  '';
+
   xdg.mimeApps = {
     enable = true;
     defaultApplications = {
@@ -98,6 +116,15 @@
       "application/x-cbz" = "org.gnome.Evince.desktop";
       "application/x-cbr" = "org.gnome.Evince.desktop";
       "application/epub+zip" = "org.gnome.Evince.desktop";
+
+      "application/zip" = "org.gnome.FileRoller.desktop";
+      "application/x-7z-compressed" = "org.gnome.FileRoller.desktop";
+      "application/x-bzip2" = "org.gnome.FileRoller.desktop";
+      "application/x-gzip" = "org.gnome.FileRoller.desktop";
+      "application/x-rar" = "org.gnome.FileRoller.desktop";
+      "application/x-tar" = "org.gnome.FileRoller.desktop";
+      "application/x-xz" = "org.gnome.FileRoller.desktop";
+      "application/vnd.rar" = "org.gnome.FileRoller.desktop";
 
       "text/markdown" = "org.gnome.TextEditor.desktop";
       "text/plain" = "org.gnome.TextEditor.desktop";
