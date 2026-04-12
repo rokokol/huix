@@ -45,6 +45,7 @@
       obsidian
       vesktop
       tor-browser
+      meshtasticd
 
       # --- Desktop apps ---
       vial

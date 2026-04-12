@@ -36,6 +36,7 @@
       nixpkgs-stable,
       home-manager,
       nix-matlab,
+      comfyui-nix,
       ...
     }@inputs:
 
@@ -95,6 +96,7 @@
               overlay-cuda
               overlay-stable
               nix-matlab.overlay
+              comfyui-nix.overlays.default
             ];
           }
 
