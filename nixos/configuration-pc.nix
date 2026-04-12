@@ -37,7 +37,7 @@ in
     ./services/amnezia-vpn.nix
     ./services/ollama.nix
     ./services/openwebui.nix
-
+    # ./services/comfyui.nix
     ./services/syncting.nix
     ./services/tor.nix
   ];

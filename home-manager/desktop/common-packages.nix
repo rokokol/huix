@@ -17,6 +17,7 @@
     texlive.combined.scheme-full
     usbutils
     yt-dlp
+    hollywood
 
     # --- Theming & toolkit integration ---
     gnome-themes-extra
