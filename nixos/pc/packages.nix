@@ -38,7 +38,7 @@
 
     # --- Files, previews & desktop helpers ---
     cuda.ffmpeg-full
-    cuda.ffmpegthumbnailer
+    ffmpegthumbnailer
     libgsf
     poppler
     thunar

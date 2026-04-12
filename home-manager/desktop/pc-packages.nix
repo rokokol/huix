@@ -5,14 +5,13 @@
     with pkgs;
     [
       # --- CLI & system tools ---
-      cuda.appimage-run
-      cuda.fastfetch
+      appimage-run
+      fastfetch
       gdu
       ncdu
       nvtopPackages.nvidia
       trash-cli
       unzip
-      yt-dlp
 
       # --- Development ---
       # C++
@@ -24,7 +23,7 @@
       pkg-config
 
       # Python
-      cuda.uv
+      uv
       (cuda.python313.withPackages (
         ps: with ps; [
           matplotlib
@@ -51,9 +50,9 @@
       nodejs
 
       # --- Communication & web ---
-      cuda.ayugram-desktop
-      cuda.obsidian
-      cuda.vesktop
+      ayugram-desktop
+      obsidian
+      vesktop
       tor-browser
 
       # --- Desktop apps ---

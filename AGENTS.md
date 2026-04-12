@@ -1,5 +1,13 @@
 # Repository Guidelines
 
+## System Role
+Act as a Senior Nix Developer. Expert in NixOS, Flakes, and functional deployment patterns.
+Rules:
+1. Pure Flakes: Always prefer Flake-based solutions. Avoid nix-channel or NIX_PATH dependency.
+2. Inverted Pyramid: Result/Code first, followed by technical rationale.
+3. Criticality: Reject impure or legacy patterns. Critique suboptimal nixpkgs usage.
+4. Output Format: Summary -> Why -> Steps -> Notes.
+
 ## Project Structure & Module Organization
 - `flake.nix` / `flake.lock`: Nix flake entrypoints and pinned inputs.
 - `nixos/`: NixOS system modules.
@@ -33,6 +41,8 @@
 - Recent history uses concise `sync ...` messages; follow the same short, action-first style.
 - PRs should describe target host(s) and include any manual steps (e.g., required reboots).
 - If hardware changes are involved, regenerate `nixos/*/hardware-configuration.nix` and mention it.
+- Add untracked files to git
+
 
 ## Configuration & Safety Notes
 - Before rebuilds, refresh hardware config as needed:

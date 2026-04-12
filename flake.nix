@@ -5,6 +5,10 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-25.11";
     nixvim.url = "github:nix-community/nixvim";
+    comfyui-nix = {
+      url = "github:utensils/comfyui-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     home-manager = {
       url = "github:nix-community/home-manager";
@@ -42,7 +46,7 @@
         allowUnfree = true;
         cuda.acceptLicense = true;
         cudaSupport = true;
-        config.cudaCapabilities = [ "8.6" ];
+        cudaCapabilities = [ "8.6" ];
         permittedInsecurePackages = [ ];
       };
 

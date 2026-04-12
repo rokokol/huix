@@ -17,6 +17,7 @@ in
     ./pc/hardware-configuration.nix
     ./pc/boot.nix
     ./pc/nvidia.nix
+    ./pc/comfyui.nix
     ./pc/system.nix
     ./pc/hardware.nix
     ./pc/sound.nix

@@ -1,5 +1,15 @@
-{ pkgs, ... }:
+{
+  config,
+  pkgs,
+  ...
+}:
 
+let
+  homeDir = config.home.homeDirectory;
+  huixDir = "${homeDir}/huix";
+  mediaDir = "${homeDir}/myWiki/media";
+  sharedDataDir = "${homeDir}/govno";
+in
 {
   imports = [
     ./common-packages.nix
@@ -16,12 +26,12 @@
     createDirectories = true;
     setSessionVariables = true;
 
-    music = "/home/rokokol/govno/Music";
-    documents = "/home/rokokol/govno/Documents";
-    pictures = "/home/rokokol/govno/Pictures";
-    videos = "/home/rokokol/govno/Videos";
+    music = "${sharedDataDir}/Music";
+    documents = "${sharedDataDir}/Documents";
+    pictures = "${sharedDataDir}/Pictures";
+    videos = "${sharedDataDir}/Videos";
 
-    download = "/home/rokokol/Downloads";
+    download = "${homeDir}/Downloads";
 
     desktop = null;
     templates = null;
@@ -31,12 +41,12 @@
   gtk = {
     enable = true;
     gtk3.bookmarks = [
-      "file:///home/rokokol/Downloads/"
-      "file:///home/rokokol/huix/"
-      "file:///home/rokokol/Temp/"
-      "file:///home/rokokol/Projects/"
-      "file:///home/rokokol/myWiki/media/"
-      "file:///home/rokokol/govno/"
+      "file://${homeDir}/Downloads/"
+      "file://${huixDir}/"
+      "file://${homeDir}/Temp/"
+      "file://${homeDir}/Projects/"
+      "file://${mediaDir}/"
+      "file://${sharedDataDir}/"
       "file:///"
     ];
   };
@@ -61,11 +71,10 @@
 
   # Global session variables
   home.sessionVariables = {
-    NIXPKGS_ALLOW_UNFREE = "1";
     EDITOR = "nvim";
     TERMINAL = "kitty";
     BROWSER = "firefox";
-    HUIX = "$HOME/huix";
+    HUIX = huixDir;
   };
 
   xdg.dataFile = {

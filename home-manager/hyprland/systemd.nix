@@ -30,7 +30,7 @@ in
       Unit.Description = "sync.sh hourly";
       Service = {
         Type = "oneshot";
-        ExecStart = "${pkgs.bash}/bin/bash ${config.home.homeDirectory}/huix/home-manager/hyprland/scripts/sync.sh";
+        ExecStart = "${pkgs.bash}/bin/bash ${./scripts/sync.sh}";
         Environment = "PATH=${lib.makeBinPath syncDeps}";
       };
     };
@@ -43,7 +43,7 @@ in
       };
       Service = {
         Type = "oneshot";
-        ExecStart = "${pkgs.bash}/bin/bash ${config.home.homeDirectory}/huix/home-manager/hyprland/scripts/random_wallpaper.sh";
+        ExecStart = "${pkgs.bash}/bin/bash ${./scripts/random_wallpaper.sh}";
         Environment = "PATH=${lib.makeBinPath wallpaperDeps}";
       };
     };

@@ -16,6 +16,7 @@
     gthumb
     texlive.combined.scheme-full
     usbutils
+    yt-dlp
 
     # --- Theming & toolkit integration ---
     gnome-themes-extra

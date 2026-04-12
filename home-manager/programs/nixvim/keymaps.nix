@@ -82,7 +82,7 @@
       {
         mode = "n";
         key = "<leader>fa";
-        action.__raw = ''function() _G.HuixTelescopeFindFiles({ cwd = "/home/rokokol/huix/", prompt_title = "Nix Config" }) end'';
+        action.__raw = ''function() _G.HuixTelescopeFindFiles({ cwd = os.getenv("HUIX") or vim.fn.expand("~/huix/"), prompt_title = "Nix Config" }) end'';
         options.desc = "Find Nix Config";
       }
       {

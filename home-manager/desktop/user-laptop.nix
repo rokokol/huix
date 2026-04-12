@@ -1,5 +1,10 @@
-{ ... }:
+{ config, ... }:
 
+let
+  homeDir = config.home.homeDirectory;
+  huixDir = "${homeDir}/huix";
+  mediaDir = "${homeDir}/myWiki/media";
+in
 {
   imports = [
     ./common-packages.nix
@@ -16,12 +21,12 @@
     createDirectories = true;
     setSessionVariables = true;
 
-    music = "/home/rokokol/Music";
-    documents = "/home/rokokol/Documents";
-    pictures = "/home/rokokol/Pictures";
-    videos = "/home/rokokol/Videos";
+    music = "${homeDir}/Music";
+    documents = "${homeDir}/Documents";
+    pictures = "${homeDir}/Pictures";
+    videos = "${homeDir}/Videos";
 
-    download = "/home/rokokol/Downloads";
+    download = "${homeDir}/Downloads";
 
     desktop = null;
     templates = null;
@@ -31,21 +36,20 @@
   gtk = {
     enable = true;
     gtk3.bookmarks = [
-      "file:///home/rokokol/Downloads/"
-      "file:///home/rokokol/huix/"
-      "file:///home/rokokol/Temp/"
-      "file:///home/rokokol/Projects/"
-      "file:///home/rokokol/myWiki/media/"
+      "file://${homeDir}/Downloads/"
+      "file://${huixDir}/"
+      "file://${homeDir}/Temp/"
+      "file://${homeDir}/Projects/"
+      "file://${mediaDir}/"
       "file:///"
     ];
   };
 
   home.sessionVariables = {
-    NIXPKGS_ALLOW_UNFREE = "1";
     EDITOR = "nvim";
     TERMINAL = "kitty";
     BROWSER = "firefox";
-    HUIX = "$HOME/huix";
+    HUIX = huixDir;
   };
 
   # Directories

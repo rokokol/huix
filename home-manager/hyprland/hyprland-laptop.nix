@@ -1,4 +1,10 @@
-{ ... }:
+{ pkgs, ... }:
+let
+  sharedConfig = pkgs.substituteAll {
+    src = ./hyprland.conf;
+    scriptsDir = ./scripts;
+  };
+in
 {
   wayland.windowManager.hyprland = {
     enable = true;
@@ -23,7 +29,7 @@
     };
 
     extraConfig = ''
-      source = /home/rokokol/huix/home-manager/hyprland/hyprland.conf
+      source = ${sharedConfig}
     '';
   };
 

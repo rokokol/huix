@@ -2,7 +2,6 @@
 
 {
   networking.hostName = "nixos-laptop";
-  networking.wireless.enable = true;
   networking.networkmanager.enable = true;
 
   # Time and Locale
@@ -44,10 +43,7 @@
         "flakes"
       ];
       auto-optimise-store = true;
-      trusted-users = [
-        "root"
-        "rokokol"
-      ];
+      trusted-users = [ "root" ];
     };
     gc = {
       automatic = true;

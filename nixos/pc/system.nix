@@ -42,10 +42,7 @@
         "flakes"
       ];
       auto-optimise-store = true;
-      trusted-users = [
-        "root"
-        "rokokol"
-      ];
+      trusted-users = [ "root" ];
     };
     gc = {
       automatic = true;

@@ -23,6 +23,4 @@
       "docker"
     ];
   };
-
-  networking.firewall.trustedInterfaces = [ "docker0" ];
 }
