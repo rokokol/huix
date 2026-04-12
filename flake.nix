@@ -5,8 +5,9 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-25.11";
     nixvim.url = "github:nix-community/nixvim";
+
     comfyui-nix = {
-      url = "github:utensils/comfyui-nix";
+      url = "https://flakehub.com/f/utensils/comfyui/0.18.2";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 

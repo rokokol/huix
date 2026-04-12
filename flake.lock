@@ -10,15 +10,14 @@
       "locked": {
         "lastModified": 1775530069,
         "narHash": "sha256-LuWit2RDTkiwwHwAhqfPcfo6ZUcV931XXijeQqD6FTM=",
-        "owner": "utensils",
-        "repo": "comfyui-nix",
         "rev": "255224118c3a7d7514c4f0d975120feb3cb16b58",
-        "type": "github"
+        "revCount": 166,
+        "type": "tarball",
+        "url": "https://api.flakehub.com/f/pinned/utensils/comfyui/0.18.2/019d6678-84be-7e67-ba6f-ef395093f239/source.tar.gz"
       },
       "original": {
-        "owner": "utensils",
-        "repo": "comfyui-nix",
-        "type": "github"
+        "type": "tarball",
+        "url": "https://flakehub.com/f/utensils/comfyui/0.18.2"
       }
     },
     "flake-compat": {
