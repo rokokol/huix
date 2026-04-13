@@ -78,7 +78,7 @@ element-text {
 }
 
 element selected {
-  background-color: #ef7ba8;
+  background-color: #ffbcbd;
   border-color: #ef7ba8;
   text-color: #ffffff;
 }
