@@ -1,7 +1,6 @@
 { pkgs, ... }:
 
 {
-  dconf.enable = true;
   imports = [
     ./mime-apps.nix
     ./theme.nix
