@@ -20,13 +20,15 @@ let
     action="''${2-}"
 
     case "$iface" in
-      ""|lo|amn*|tun*|tap*|wg*|docker*|veth*|virbr*|br-*)
+      wl*|wlan*)
+        ;;
+      *)
         exit 0
         ;;
     esac
 
     case "$action" in
-      up|dhcp4-change|dhcp6-change|connectivity-change|reapply)
+      up|connectivity-change)
         ;;
       *)
         exit 0
