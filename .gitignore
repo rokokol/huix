@@ -7,3 +7,6 @@ result-*
 
 # Codex CLI temporary files
 .codex
+
+# VIM
+.nvimlog
