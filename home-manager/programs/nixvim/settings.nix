@@ -73,7 +73,7 @@
         pattern = "term://*",
         callback = function()
           local opts = {buffer = 0}
-          -- vim.keymap.set('t', '<Esc>', [[<C-\><C-n>]], opts)
+          vim.keymap.set('t', '<Esc><Esc>', [[<C-\><C-n>]], opts)
           vim.keymap.set('t', '<C-h>', [[<C-\><C-n><C-w>h]], opts)
           vim.keymap.set('t', '<C-j>', [[<C-\><C-n><C-w>j]], opts)
           vim.keymap.set('t', '<C-k>', [[<C-\><C-n><C-w>k]], opts)
