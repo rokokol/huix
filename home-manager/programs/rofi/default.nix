@@ -1,4 +1,4 @@
-{ pkgs, config, ... }:
+{ pkgs, config, lib, ... }:
 
 let
   rofiConfigDir = "${config.xdg.configHome}/rofi";
@@ -43,9 +43,14 @@ in
 
   xdg.configFile."rofi/themes/light.rasi".source = ./theme-light.rasi;
   xdg.configFile."rofi/themes/dark.rasi".source = ./theme-dark.rasi;
-  xdg.configFile."rofi/themes/active.rasi".source = ./theme-light.rasi;
   xdg.configFile."rofi/assets/polka-light.svg".source = ./assets/polka-light.svg;
   xdg.configFile."rofi/assets/polka-dark.svg".source = ./assets/polka-dark.svg;
+
+  home.activation.rofiInitActiveTheme = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    if [ ! -e "${rofiThemesDir}/active.rasi" ]; then
+      ln -sfn "${rofiThemesDir}/light.rasi" "${rofiThemesDir}/active.rasi"
+    fi
+  '';
 
   home.packages = with pkgs; [
     rofimoji
