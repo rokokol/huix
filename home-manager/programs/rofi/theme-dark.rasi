@@ -35,7 +35,7 @@ prompt {
 }
 
 entry {
-  placeholder: "Just Monika... or an app";
+  placeholder: "Okay, everyone!";
   placeholder-color: rgba(255, 247, 251, 0.48);
   text-color: #fff7fb;
 }
