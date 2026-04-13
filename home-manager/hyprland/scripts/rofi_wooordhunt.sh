@@ -9,13 +9,17 @@ print_message() {
   printf '\0message\x1f%s\n' "$1"
 }
 
+print_fallback_entry() {
+  printf '%s%s\n' "---" "$MARKER"
+}
+
 if [[ "$INPUT" == *"$MARKER" ]]; then
   printf '%s' "${INPUT%"$MARKER"}" | wl-copy
   exit 0
 fi
 
 if [[ -z "$INPUT" ]]; then
-  print_message "Wooordhunt ultra parser"
+  print_message "Wooordhunt ultra parser （´ω｀♡%）"
   exit 0
 fi
 
@@ -28,11 +32,12 @@ else
   curl_status=$?
 
   case "$curl_status" in
-    22) print_message "Ничего не найдено: ${PARSED_INPUT}" ;;
-    28) print_message "Wooordhunt не ответил вовремя" ;;
-    *) print_message "Не удалось получить ответ от Wooordhunt" ;;
+  22) print_message "Ничего не найдено: ${PARSED_INPUT} (╯°□°）╯︵ ┻━┻" ;;
+  28) print_message "Wooordhunt не ответил вовремя ٩(ó｡ò۶ ♡)))♬" ;;
+  *) print_message "Не удалось получить ответ от Wooordhunt |_・)" ;;
   esac
 
+  print_fallback_entry
   exit 0
 fi
 
@@ -41,7 +46,8 @@ TRANSCRIPTION_UK=$(printf '%s' "$HTML" | pup '#uk_tr_sound > .transcription text
 MEANINGS_LIST=$(printf '%s' "$HTML" | pup '.t_inline_en text{}' 2>/dev/null | sed 's/, /\n/g' | grep . || true)
 
 if [[ -z "$MEANINGS_LIST" ]]; then
-  print_message "Не удалось разобрать ответ Wooordhunt"
+  print_message "Не удалось разобрать ответ Wooordhunt (T＿T)"
+  print_fallback_entry
   exit 0
 fi
 
