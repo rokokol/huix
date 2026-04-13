@@ -34,11 +34,15 @@
       let
         inherit (config.lib.formats.rasi) mkLiteral;
 
-        paper-bg = mkLiteral "#fffbf0";
-        notebook-line = mkLiteral "#bad0ef";
+        shell-bg = mkLiteral "#16111d";
+        surface-bg = mkLiteral "#211829";
+        surface-alt = mkLiteral "#2a1f35";
+        outline-soft = mkLiteral "#433052";
         doki-pink = mkLiteral "#ff7aa2";
-        text-main = mkLiteral "#594a4e";
-        text-selected = mkLiteral "#ffffff";
+        doki-cream = mkLiteral "#fff3d8";
+        text-main = mkLiteral "#f6e7ef";
+        text-dim = mkLiteral "#bbaaba";
+        text-selected = mkLiteral "#16111d";
       in
       {
         "*" = {
@@ -51,21 +55,23 @@
         "window" = {
           location = mkLiteral "center";
           width = mkLiteral "700px";
-          border = mkLiteral "4px";
-          border-color = doki-pink;
-          border-radius = mkLiteral "15px";
+          border = mkLiteral "2px";
+          border-color = mkLiteral "rgba(255, 122, 162, 0.55)";
+          border-radius = mkLiteral "24px";
           dynamic = true;
-          background-color = paper-bg;
+          padding = mkLiteral "18px";
+          background-color = shell-bg;
+          background-image = mkLiteral ''url("${./assets/rofi-doki-bubbles.svg}", both)'';
         };
 
         "inputbar" = {
-          background-color = mkLiteral "rgba(255, 122, 162, 0.2)";
-          text-color = doki-pink;
-          border = mkLiteral "0px 0px 2px 0px";
-          border-color = doki-pink;
-          margin = mkLiteral "20px 20px 10px 20px";
-          padding = mkLiteral "10px";
-          border-radius = mkLiteral "10px";
+          background-color = mkLiteral "rgba(33, 24, 41, 0.88)";
+          text-color = doki-cream;
+          border = mkLiteral "1px";
+          border-color = mkLiteral "rgba(255, 122, 162, 0.26)";
+          margin = mkLiteral "4px 4px 14px 4px";
+          padding = mkLiteral "14px 16px";
+          border-radius = mkLiteral "18px";
           children = map mkLiteral [
             "prompt"
             "entry"
@@ -75,40 +81,47 @@
         "prompt" = {
           text-color = doki-pink;
           margin = mkLiteral "0px 10px 0px 0px";
+          font = "Doki 13";
         };
 
         "entry" = {
-          placeholder = "Okay, everyone!";
-          placeholder-color = mkLiteral "rgba(89, 74, 78, 0.5)";
+          placeholder = "Just Monika... or an app";
+          placeholder-color = text-dim;
           text-color = text-main;
         };
 
         "listview" = {
-          margin = mkLiteral "10px 20px 20px 20px";
+          background-color = mkLiteral "rgba(22, 17, 29, 0.18)";
+          margin = mkLiteral "0px 4px 4px 4px";
+          padding = mkLiteral "6px";
+          border-radius = mkLiteral "20px";
           columns = 1;
-          lines = 5;
-          spacing = mkLiteral "5px";
+          lines = 6;
+          spacing = mkLiteral "8px";
           fixed-height = false;
         };
 
         "element" = {
           orientation = mkLiteral "horizontal";
-          padding = mkLiteral "5px 10px";
-          spacing = mkLiteral "10px";
-          border-radius = mkLiteral "8px";
-          border = mkLiteral "2px";
-          border-color = notebook-line;
-          background-color = mkLiteral "#ffffff";
+          padding = mkLiteral "10px 14px";
+          spacing = mkLiteral "12px";
+          border-radius = mkLiteral "18px";
+          border = mkLiteral "1px";
+          border-color = outline-soft;
+          background-color = surface-bg;
         };
 
         "element-icon" = {
-          size = mkLiteral "48px";
+          background-color = mkLiteral "rgba(255, 122, 162, 0.1)";
+          padding = mkLiteral "8px";
+          size = mkLiteral "40px";
           horizontal-align = mkLiteral "0.5";
-          margin = mkLiteral "0px 0px 10px 0px";
+          vertical-align = mkLiteral "0.5";
+          border-radius = mkLiteral "12px";
         };
 
         "element-text" = {
-          horizontal-align = mkLiteral "0.5";
+          horizontal-align = mkLiteral "0";
           vertical-align = mkLiteral "0.5";
           font = "DepartureMono Nerd Font Mono 12";
         };
@@ -119,15 +132,25 @@
           text-color = text-selected;
         };
 
+        "element selected element-icon" = {
+          background-color = mkLiteral "rgba(22, 17, 29, 0.14)";
+        };
+
+        "element alternate" = {
+          background-color = surface-alt;
+        };
+
         "message" = {
-          margin = mkLiteral "0px 40px 5px 40px";
-          padding = mkLiteral "5px";
-          background-color = mkLiteral "rgba(255, 122, 162, 0.3)";
-          border-radius = mkLiteral "8px";
+          margin = mkLiteral "8px 10px 0px 10px";
+          padding = mkLiteral "10px 14px";
+          background-color = mkLiteral "rgba(255, 122, 162, 0.14)";
+          border = mkLiteral "1px";
+          border-color = mkLiteral "rgba(255, 243, 216, 0.16)";
+          border-radius = mkLiteral "16px";
         };
 
         "textbox" = {
-          text-color = doki-pink;
+          text-color = doki-cream;
           font = "DepartureMono Nerd Font Mono 12";
         };
       };
