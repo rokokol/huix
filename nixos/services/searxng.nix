@@ -9,7 +9,7 @@
 
     uwsgiConfig = {
       disable-logging = true;
-      workers = 8;
+      workers = 1;
       threads = 4;
     };
 
