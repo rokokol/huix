@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, config, ... }:
 
 let
   darkTheme = pkgs.writeText "rofi-doki-dark.rasi" ''
@@ -231,7 +231,7 @@ let
       theme_file="${lightTheme}"
     fi
 
-    exec ${pkgs.rofi}/bin/rofi -theme "$theme_file" "$@"
+    exec ${config.programs.rofi.finalPackage}/bin/rofi -theme "$theme_file" "$@"
   '';
 in
 {
