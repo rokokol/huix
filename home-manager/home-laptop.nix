@@ -13,6 +13,7 @@
     ./programs/btop.nix
     ./programs/nixvim/nixvim.nix
     ./programs/ssh.nix
+    ./programs/thunar.nix
     ./desktop/user-laptop.nix
   ];
 
