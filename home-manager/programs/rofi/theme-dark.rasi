@@ -1,0 +1,110 @@
+* {
+  background-color: transparent;
+  text-color: #fff7fb;
+  margin: 0px;
+  padding: 0px;
+  font: "sans 13";
+}
+
+window {
+  location: center;
+  width: 720px;
+  border: 2px;
+  border-color: rgba(255, 149, 187, 0.72);
+  border-radius: 28px;
+  dynamic: true;
+  padding: 18px;
+  background-color: #1d1621;
+  background-image: url("../assets/polka-dark.svg", both);
+}
+
+inputbar {
+  background-color: rgba(32, 25, 36, 0.92);
+  border: 1px;
+  border-color: rgba(255, 149, 187, 0.28);
+  margin: 6px 6px 14px 6px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  children: [ prompt, entry ];
+}
+
+prompt {
+  text-color: #ff8ab5;
+  margin: 0px 12px 0px 0px;
+  font: "Doki 13";
+}
+
+entry {
+  placeholder: "Just Monika... or an app";
+  placeholder-color: rgba(255, 247, 251, 0.48);
+  text-color: #fff7fb;
+}
+
+listview {
+  background-color: rgba(19, 14, 22, 0.36);
+  margin: 0px 6px 6px 6px;
+  padding: 6px;
+  border-radius: 20px;
+  columns: 1;
+  lines: 6;
+  spacing: 8px;
+  fixed-height: false;
+}
+
+element {
+  orientation: horizontal;
+  padding: 10px 14px;
+  spacing: 10px;
+  border-radius: 18px;
+  border: 1px;
+  border-color: rgba(81, 60, 89, 0.92);
+  background-color: rgba(36, 28, 41, 0.94);
+}
+
+element-icon {
+  background-color: rgba(255, 138, 181, 0.1);
+  padding: 6px;
+  size: 28px;
+  horizontal-align: 0.5;
+  vertical-align: 0.5;
+  border-radius: 12px;
+}
+
+element-text {
+  horizontal-align: 0;
+  vertical-align: 0.5;
+  text-color: #fff7fb;
+  font: "sans 13";
+}
+
+element selected {
+  background-color: #ff8ab5;
+  border-color: #ff8ab5;
+  text-color: #1d1621;
+}
+
+element selected element-text {
+  text-color: #1d1621;
+}
+
+element selected element-icon {
+  background-color: rgba(29, 22, 33, 0.14);
+}
+
+element alternate {
+  background-color: rgba(42, 33, 48, 0.96);
+}
+
+message {
+  margin: 8px 10px 0px 10px;
+  padding: 10px 14px;
+  background-color: rgba(255, 138, 181, 0.14);
+  border: 1px;
+  border-color: rgba(255, 247, 251, 0.16);
+  border-radius: 16px;
+}
+
+textbox {
+  text-color: #fff7fb;
+  font: "sans 12";
+}

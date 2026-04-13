@@ -4,10 +4,10 @@ set -euo pipefail
 
 GTK_THEME_KEY="/org/gnome/desktop/interface/gtk-theme"
 COLOR_SCHEME_KEY="/org/gnome/desktop/interface/color-scheme"
-ROFI_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/rofi"
-ROFI_LIGHT_THEME="$ROFI_DIR/theme-light.rasi"
-ROFI_DARK_THEME="$ROFI_DIR/theme-dark.rasi"
-ROFI_ACTIVE_THEME="$ROFI_DIR/theme-active.rasi"
+ROFI_THEMES_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/rofi/themes"
+ROFI_LIGHT_THEME="$ROFI_THEMES_DIR/light.rasi"
+ROFI_DARK_THEME="$ROFI_THEMES_DIR/dark.rasi"
+ROFI_ACTIVE_THEME="$ROFI_THEMES_DIR/active.rasi"
 
 LIGHT_THEME="Gruvbox-Light"
 DARK_THEME="Gruvbox-Dark"
@@ -20,7 +20,7 @@ current_scheme=$(dconf read "$COLOR_SCHEME_KEY" 2>/dev/null || true)
 set_rofi_theme() {
   local theme_path="$1"
 
-  mkdir -p "$ROFI_DIR"
+  mkdir -p "$ROFI_THEMES_DIR"
   ln -sfn "$theme_path" "$ROFI_ACTIVE_THEME"
 }
 

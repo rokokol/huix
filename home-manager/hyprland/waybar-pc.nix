@@ -33,7 +33,7 @@
 
         "custom/menu" = {
           format = " 🎀 ";
-          on-click = "rofi -show drun";
+          on-click = "rofi -show drun -show-icons";
           tooltip = false;
         };
 

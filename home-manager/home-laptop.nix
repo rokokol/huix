@@ -5,7 +5,7 @@
     inputs.nixvim.homeModules.nixvim
     ./hyprland/hyprland-laptop.nix
     ./programs/mako.nix
-    ./programs/rofi.nix
+    ./programs/rofi
     ./programs/zsh.nix
     ./programs/git.nix
     ./programs/starship.nix

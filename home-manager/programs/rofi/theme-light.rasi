@@ -1,0 +1,110 @@
+* {
+  background-color: transparent;
+  text-color: #4f4050;
+  margin: 0px;
+  padding: 0px;
+  font: "sans 13";
+}
+
+window {
+  location: center;
+  width: 720px;
+  border: 2px;
+  border-color: rgba(240, 131, 175, 0.96);
+  border-radius: 28px;
+  dynamic: true;
+  padding: 18px;
+  background-color: #fffafc;
+  background-image: url("../assets/polka-light.svg", both);
+}
+
+inputbar {
+  background-color: rgba(255, 255, 255, 0.92);
+  border: 1px;
+  border-color: rgba(239, 142, 181, 0.58);
+  margin: 6px 6px 14px 6px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  children: [ prompt, entry ];
+}
+
+prompt {
+  text-color: #ef6f9e;
+  margin: 0px 12px 0px 0px;
+  font: "Doki 13";
+}
+
+entry {
+  placeholder: "Okay, everyone!";
+  placeholder-color: rgba(79, 64, 80, 0.56);
+  text-color: #433645;
+}
+
+listview {
+  background-color: rgba(255, 255, 255, 0.5);
+  margin: 0px 6px 6px 6px;
+  padding: 6px;
+  border-radius: 20px;
+  columns: 1;
+  lines: 6;
+  spacing: 8px;
+  fixed-height: false;
+}
+
+element {
+  orientation: horizontal;
+  padding: 10px 14px;
+  spacing: 10px;
+  border-radius: 18px;
+  border: 1px;
+  border-color: rgba(241, 190, 211, 0.94);
+  background-color: rgba(255, 255, 255, 0.93);
+}
+
+element-icon {
+  background-color: rgba(241, 111, 158, 0.08);
+  padding: 6px;
+  size: 28px;
+  horizontal-align: 0.5;
+  vertical-align: 0.5;
+  border-radius: 12px;
+}
+
+element-text {
+  horizontal-align: 0;
+  vertical-align: 0.5;
+  text-color: #433645;
+  font: "sans 13";
+}
+
+element selected {
+  background-color: #ef7ba8;
+  border-color: #ef7ba8;
+  text-color: #ffffff;
+}
+
+element selected element-text {
+  text-color: #ffffff;
+}
+
+element selected element-icon {
+  background-color: rgba(255, 255, 255, 0.18);
+}
+
+element alternate {
+  background-color: rgba(255, 245, 249, 0.98);
+}
+
+message {
+  margin: 8px 10px 0px 10px;
+  padding: 10px 14px;
+  background-color: rgba(241, 111, 158, 0.14);
+  border: 1px;
+  border-color: rgba(255, 255, 255, 0.78);
+  border-radius: 16px;
+}
+
+textbox {
+  text-color: #d85d8f;
+  font: "sans 12";
+}
