@@ -28,15 +28,13 @@
 
       cmd_duration = {
         min_time = 0;
-        format = "took [$duration]($style) 󱎫 ";
-        style = "bold yellow";
+        format = "took [$duration](bold yellow) [󱎫](yellow) ";
         show_milliseconds = true;
       };
 
       time = {
         disabled = false;
-        format = "at [$time]($style) 󰃰 ";
-        style = "bold blue";
+        format = "at [$time](bold orange) [󰃰](orange) ";
         time_format = "%H:%M:%S";
       };
 
