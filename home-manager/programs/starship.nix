@@ -10,7 +10,7 @@
 
       # Path on top, input below
       format = "$os$username$directory$line_break$character";
-      right_format = "$all";
+      right_format = "$cmd_duration$time$all";
 
       character = {
         success_symbol = "[❯](bold yellow) ";
@@ -31,6 +31,13 @@
         format = "took [$duration]($style) ";
         style = "bold yellow";
         show_milliseconds = true;
+      };
+
+      time = {
+        disabled = false;
+        format = "at [$time]($style) ";
+        style = "bold blue";
+        time_format = "%H:%M:%S";
       };
 
       os = {
@@ -72,4 +79,3 @@
     };
   };
 }
-
