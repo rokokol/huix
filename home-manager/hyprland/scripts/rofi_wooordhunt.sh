@@ -1,33 +1,54 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 INPUT="$*"
 MARKER=$'\u200b'
 
+print_message() {
+  printf '\0message\x1f%s\n' "$1"
+}
+
 if [[ "$INPUT" == *"$MARKER" ]]; then
-  echo -n "${INPUT%"$MARKER"}" | wl-copy
+  printf '%s' "${INPUT%"$MARKER"}" | wl-copy
   exit 0
 fi
 
-if [ -z "$INPUT" ]; then
-  echo -en "\0message\x1fWooordhunt ultra parser\n"
+if [[ -z "$INPUT" ]]; then
+  print_message "Wooordhunt ultra parser"
   exit 0
 fi
 
-PARSED_INPUT=$(echo "${INPUT,,}" | xargs)
+PARSED_INPUT=$(printf '%s\n' "${INPUT,,}" | xargs)
 LINK="https://wooordhunt.ru/word/${PARSED_INPUT}"
-HTML=$(curl -s --max-time 5 "$LINK")
-TRANSCRIPTION_US=$(echo "$HTML" | pup '#us_tr_sound > .transcription text{}' | xargs)
-TRANSCRIPTION_UK=$(echo "$HTML" | pup '#uk_tr_sound > .transcription text{}' | xargs)
-MEANINGS_LIST=$(echo "$HTML" | pup '.t_inline_en text{}' | sed 's/, /\n/g' | grep .)
 
-if [ -z "$MEANINGS_LIST" ]; then
-  echo -en "\0message\x1f (,,#ﾟДﾟ)\n"
-  echo "$LINK$MARKER"
-  exit 0
+if HTML=$(curl -fsSL --max-time 5 "$LINK" 2>/dev/null); then
+  :
 else
-  echo -en "\0message\x1f🇺🇸: ${TRANSCRIPTION_US} // 🇬🇧: ${TRANSCRIPTION_UK}\n"
+  curl_status=$?
+
+  case "$curl_status" in
+    22) print_message "Ничего не найдено: ${PARSED_INPUT}" ;;
+    28) print_message "Wooordhunt не ответил вовремя" ;;
+    *) print_message "Не удалось получить ответ от Wooordhunt" ;;
+  esac
+
+  exit 0
 fi
 
-while read -r line; do
-  echo "$line$MARKER"
+TRANSCRIPTION_US=$(printf '%s' "$HTML" | pup '#us_tr_sound > .transcription text{}' 2>/dev/null | xargs || true)
+TRANSCRIPTION_UK=$(printf '%s' "$HTML" | pup '#uk_tr_sound > .transcription text{}' 2>/dev/null | xargs || true)
+MEANINGS_LIST=$(printf '%s' "$HTML" | pup '.t_inline_en text{}' 2>/dev/null | sed 's/, /\n/g' | grep . || true)
+
+if [[ -z "$MEANINGS_LIST" ]]; then
+  print_message "Не удалось разобрать ответ Wooordhunt"
+  exit 0
+fi
+
+if [[ -n "$TRANSCRIPTION_US" || -n "$TRANSCRIPTION_UK" ]]; then
+  print_message "🇺🇸: ${TRANSCRIPTION_US} // 🇬🇧: ${TRANSCRIPTION_UK}"
+fi
+
+while IFS= read -r line; do
+  printf '%s%s\n' "$line" "$MARKER"
 done <<<"$MEANINGS_LIST"
