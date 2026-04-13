@@ -1,34 +1,35 @@
-# Nixvim (Home Manager)
+# Nixvim
 
 Этот каталог содержит декларативную конфигурацию Neovim через Nixvim
 
 ## Что внутри
-- `nixvim.nix` — основной модуль, импортирует остальные части
-- `settings.nix` — базовые настройки Neovim и опции
+- `default.nix` — основной модуль и точка входа
+- `settings.nix` — базовые опции Neovim
 - `keymaps.nix` — все пользовательские бинды
-- `plugins/` — конфиги плагинов по категориям (LSP, UI, CMP и т.д.)
+- `plugins/` — плагины, разложенные по категориям
 
-## Плагины
-- `plugins/default.nix` — единая точка импорта всех модулей плагинов; в корне `plugins/` больше не лежат отдельные конфиги плагинов
-- `plugins/completion/` — completion-плагины (`cmp`, `luasnip`)
-- `plugins/editor/` — редакторские плагины (`neo-tree`, `telescope`, `treesitter`, `which-key`, `toggleterm`, `mini`)
-- `plugins/git/` — git-плагины (`gitsigns`, `lazygit`)
-- `plugins/lsp/` — LSP, диагностика и форматирование
-- `plugins/start/` — стартовые плагины и логика старта (`alpha`, `persistence`, `project-nvim`)
-- `plugins/ui/` — UI и работа с изображениями (`bufferline`, `lualine`, `web-devicons`, `image`)
+## Структура плагинов
+- `plugins/default.nix` — единая точка импорта всех категорий
+- `plugins/completion/` — completion и snippets
+- `plugins/editor/` — редакторские плагины, `neo-tree`, `telescope`, `treesitter`, `toggleterm`, `mini`, `which-key`
+- `plugins/git/` — git-интеграции
+- `plugins/lsp/` — LSP, diagnostics и форматирование
+- `plugins/start/` — стартовый экран, project logic и persistence
+- `plugins/ui/` — statusline, tabs, icons и работа с изображениями
 
-### Telescope
-- Telescope helper'ы вынесены в `home-manager/programs/nixvim/plugins/editor/telescope-helpers.nix`
-- В `ff`, `fa`, `fg` и поиске файлов внутри `projects` скрытые файлы переключаются через `<C-h>`
-- В превью можно перемещаться с помощью `<M-h/j/k/l>`
-- Media preview в Telescope определяется по MIME через `file`, а не по расширению
+## Особенности
+- helper'ы Telescope лежат в `plugins/editor/telescope-helpers.nix`
+- скрытые файлы в поиске переключаются через `<C-h>`
+- прокрутка превью в Telescope повешена на `<M-h/j/k/l>`
+- media preview определяется по MIME через `file`, а не по расширению
 
-## Как вносить изменения
-- Настройки ядра: `home-manager/programs/nixvim/settings.nix`
-- Бинды: `home-manager/programs/nixvim/keymaps.nix`
-- Плагины: добавляй/редактируй файлы в `home-manager/programs/nixvim/plugins/`
+## Где что менять
+- ядро и опции — `home-manager/programs/nixvim/settings.nix`
+- бинды — `home-manager/programs/nixvim/keymaps.nix`
+- плагины — `home-manager/programs/nixvim/plugins/`
 
 ## Применение
-Nixvim подключён через Home Manager (`home-manager/home-*.nix`)
-Тажке скачан `which-key`, чтобы помочь разобраться с моими кастомными шорткатами
-После правок — `rebuild`
+
+Модуль подключен через `home-manager/home-pc.nix` и `home-manager/home-laptop.nix`
+
+После правок достаточно обычного `rebuild`

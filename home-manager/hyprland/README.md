@@ -1,31 +1,35 @@
-# Hyprland (Home Manager)
+# Hyprland
 
-Этот каталог содержит конфигурацию Hyprland и сопутствующие настройки
+Этот каталог содержит конфигурацию Hyprland-сессии и все, что живет рядом с ней
 
 ## Что внутри
-- `hyprland.conf` — основной конфиг Hyprland (бинды, правила, переменные)
-- `hyprland-*.nix` — хост‑специфичные настройки (PC/ноут)
-- `hyprland-packages.nix` — пакеты и интеграции, нужные именно Hyprland-сессии
-- `hypridle.nix` — idle‑поведение и таймауты
-- `waybar-*.nix` — конфиги Waybar для разных хостов
-- `systemd.nix` — связанные systemd юниты
-- `cursor.nix` — настройки курсора
-- `scripts/` — вспомогательные скрипты (обои, rofi, синхронизация и т.д.)
+- `hyprland.conf` — основной конфиг Hyprland с биндами, правилами и переменными
+- `hyprland-pc.nix` и `hyprland-laptop.nix` — хост-специфичные настройки
+- `hyprland-packages.nix` — пакеты и интеграции, которые реально нужны сессии
+- `hypridle.nix` — idle-поведение, lock и действия до и после сна
+- `waybar-pc.nix` и `waybar-laptop.nix` — панели для разных хостов
+- `systemd.nix` — user units и timer'ы, связанные с сессией
+- `cursor.nix` — курсор и его интеграция в GTK и Wayland
+- `scripts/` — вспомогательные скрипты для скриншотов, `rofi`, синка и обоев
 
 ## Скрипты
-- `scripts/colorpicker.sh` — пипетка: копирует цвет и показывает HEX/RGB
-- `scripts/pin-screen.sh` — закрепляет участок экрана как «плавающее» окно‑картинку
-- `scripts/random_wallpaper.sh` — собирает коллаж и ставит случайные обои через `awww`
-- `scripts/rofi-clipboard.sh` — буфер обмена с превью картинок в rofi и удалением записей (`Ctrl+d`)
-- `scripts/rofi_wooordhunt.sh` — быстрый перевод/значения слов через woooordhunt
-- `scripts/sync.sh` — git pull/commit/push репозитория с уведомлениями
-- `scripts/toggle_theme.sh` — переключатель светлой/тёмной темы GTK
+- `scripts/colorpicker.sh` — пипетка с копированием цвета
+- `scripts/pin-screen.sh` — закрепление участка экрана как окна-картинки
+- `scripts/random_wallpaper.sh` — сборка коллажа и установка случайных обоев через `awww`
+- `scripts/rofi-clipboard.sh` — просмотр clipboard с превью картинок и удалением записей
+- `scripts/rofi_wooordhunt.sh` — быстрый поиск перевода и значений слов
+- `scripts/sync.sh` — `git pull` / commit / push с уведомлениями
+- `scripts/toggle_theme.sh` — переключение light и dark для `rofi` и связанного desktop-слоя
 
-## Как вносить изменения
-- Бинды и правила: `home-manager/hyprland/hyprland.conf`
-- Пакеты/зависимости: `home-manager/hyprland/hyprland-packages.nix`
-- Хост‑специфичное: `home-manager/hyprland/hyprland-pc.nix` или `home-manager/hyprland/hyprland-laptop.nix`
+## Где что менять
+- Бинды и window rules — `home-manager/hyprland/hyprland.conf`
+- Пакеты и зависимости — `home-manager/hyprland/hyprland-packages.nix`
+- Idle и lock — `home-manager/hyprland/hypridle.nix`
+- Waybar — `home-manager/hyprland/waybar-pc.nix` или `home-manager/hyprland/waybar-laptop.nix`
+- Скрипты — `home-manager/hyprland/scripts/`
 
 ## Применение
-Конфиг применяется через Home Manager, который подключён в `flake.nix`
-и `home-manager/home-*.nix`. После правок — обычный `rebuild`
+
+Конфиг подключается через `home-manager/home-pc.nix` и `home-manager/home-laptop.nix`
+
+После правок достаточно обычного `rebuild`
