@@ -14,24 +14,24 @@ in
       rofi-calc
     ];
 
-    font = "sans 13";
+    font = "Doki 12";
 
     extraConfig = {
       modi = "drun,calc";
       show-icons = false;
 
-      display-drun = "Apps";
-      display-calc = "Calc";
-      display-top = "Top";
-      display-mpd = "Music";
-      display-power = "Power";
+      display-drun = "👀";
+      display-calc = "🧮";
+      display-top = "📊";
+      display-mpd = "🎼";
+      display-power = "⚡";
 
-      display-emoji = "Emoji";
-      display-math = "Math";
-      display-chars = "Chars";
-      display-clip = "Clipboard";
-      display-kaomoji = "Kaomoji";
-      display-dictionary = "Dictionary";
+      display-emoji = "💀";
+      display-math = "∰";
+      display-chars = "¥";
+      display-clip = "📋";
+      display-kaomoji = "(,,#ﾟДﾟ)";
+      display-dictionary = "🤓";
       sorting-method = "fzf";
     };
   };

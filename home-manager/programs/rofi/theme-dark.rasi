@@ -3,7 +3,7 @@
   text-color: #fff7fb;
   margin: 0px;
   padding: 0px;
-  font: "sans 13";
+  font: "Doki 12";
 }
 
 window {
@@ -74,7 +74,7 @@ element-text {
   horizontal-align: 0;
   vertical-align: 0.5;
   text-color: #fff7fb;
-  font: "sans 13";
+  font: "DepartureMono Nerd Font Mono 12";
 }
 
 element selected {
@@ -106,5 +106,5 @@ message {
 
 textbox {
   text-color: #fff7fb;
-  font: "sans 12";
+  font: "DepartureMono Nerd Font Mono 12";
 }

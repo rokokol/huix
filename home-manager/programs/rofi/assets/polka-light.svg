@@ -1,13 +1,41 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" preserveAspectRatio="none">
-  <defs>
-    <pattern id="dots" width="220" height="180" patternUnits="userSpaceOnUse">
-      <circle cx="42" cy="32" r="19" fill="#f6c7dd" />
-      <circle cx="142" cy="98" r="19" fill="#f6c7dd" />
-      <circle cx="220" cy="32" r="19" fill="#f6c7dd" />
-      <circle cx="0" cy="98" r="19" fill="#f6c7dd" />
-    </pattern>
-  </defs>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 520" preserveAspectRatio="xMidYMid slice">
+  <rect width="720" height="520" fill="#fffafc" />
 
-  <rect width="1200" height="900" fill="#fffafc" />
-  <rect width="1200" height="900" fill="url(#dots)" />
+  <g fill="#f6c7dd">
+    <circle cx="42" cy="30" r="19" />
+    <circle cx="192" cy="30" r="19" />
+    <circle cx="342" cy="30" r="19" />
+    <circle cx="492" cy="30" r="19" />
+    <circle cx="642" cy="30" r="19" />
+
+    <circle cx="117" cy="125" r="19" />
+    <circle cx="267" cy="125" r="19" />
+    <circle cx="417" cy="125" r="19" />
+    <circle cx="567" cy="125" r="19" />
+    <circle cx="717" cy="125" r="19" />
+
+    <circle cx="42" cy="220" r="19" />
+    <circle cx="192" cy="220" r="19" />
+    <circle cx="342" cy="220" r="19" />
+    <circle cx="492" cy="220" r="19" />
+    <circle cx="642" cy="220" r="19" />
+
+    <circle cx="117" cy="315" r="19" />
+    <circle cx="267" cy="315" r="19" />
+    <circle cx="417" cy="315" r="19" />
+    <circle cx="567" cy="315" r="19" />
+    <circle cx="717" cy="315" r="19" />
+
+    <circle cx="42" cy="410" r="19" />
+    <circle cx="192" cy="410" r="19" />
+    <circle cx="342" cy="410" r="19" />
+    <circle cx="492" cy="410" r="19" />
+    <circle cx="642" cy="410" r="19" />
+
+    <circle cx="117" cy="505" r="19" />
+    <circle cx="267" cy="505" r="19" />
+    <circle cx="417" cy="505" r="19" />
+    <circle cx="567" cy="505" r="19" />
+    <circle cx="717" cy="505" r="19" />
+  </g>
 </svg>
