@@ -3,7 +3,6 @@
 {
   networking.hostName = "nixos-laptop";
   networking.networkmanager.enable = true;
-  networking.enableIPv6 = false;
 
   # Time and Locale
   time.timeZone = "Europe/Moscow";
