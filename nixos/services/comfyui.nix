@@ -3,6 +3,7 @@
   rokokolName,
   ...
 }:
+
 {
   imports = [ inputs.comfyui-nix.nixosModules.default ];
 

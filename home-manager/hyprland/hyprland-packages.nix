@@ -1,4 +1,5 @@
-{ pkgs, ... }:
+{ pkgs, huixDir, ... }:
+
 {
   services.swayosd.enable = true;
   services.playerctld.enable = true;
@@ -35,6 +36,10 @@
       ];
     })
   ];
+
+  wayland.windowManager.hyprland.extraConfig = ''
+    source = ${huixDir}/home-manager/hyprland/hyprland.conf
+  '';
 
   home.file.".config/swayimg/config".text = ''
     [info]

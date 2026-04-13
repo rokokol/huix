@@ -1,8 +1,5 @@
 { ... }:
-let
-  scriptsDir = ./scripts;
-  sharedConfig = builtins.replaceStrings [ "@scriptsDir@" ] [ (toString scriptsDir) ] (builtins.readFile ./hyprland.conf);
-in
+
 {
   wayland.windowManager.hyprland = {
     enable = true;
@@ -21,8 +18,6 @@ in
         sensitivity = 0;
       };
     };
-
-    extraConfig = sharedConfig;
   };
 
   imports = [
