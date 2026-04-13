@@ -13,7 +13,7 @@ cd "$HUIX_PATH" || {
 
 OLD_REV=$(git rev-parse HEAD)
 if ! git rev-parse --abbrev-ref --symbolic-full-name '@{u}' >/dev/null 2>&1; then
-  notify-send -u low "Sync Error" "No upstream branch configured"
+  notify-send -u low "Sync Error" "No upstream branch configured (;¬_¬)"
   exit 1
 fi
 

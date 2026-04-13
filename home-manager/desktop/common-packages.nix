@@ -17,7 +17,6 @@
     texlive.combined.scheme-full
     usbutils
     yt-dlp
-    hollywood
     matlab
 
     # --- Theming & toolkit integration ---
