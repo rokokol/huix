@@ -12,7 +12,7 @@
     ./programs/kitty.nix
     ./programs/btop.nix
     ./programs/direnv.nix
-    ./programs/nixvim/nixvim.nix
+    ./programs/nixvim/default.nix
     ./programs/ssh.nix
     ./programs/thunar.nix
     ./desktop/user-pc.nix

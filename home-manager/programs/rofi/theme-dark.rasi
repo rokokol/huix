@@ -78,17 +78,17 @@ element-text {
 }
 
 element selected {
-  background-color: #ff8ab5;
-  border-color: #ff8ab5;
-  text-color: #1d1621;
+  background-color: #c85a89;
+  border-color: #c85a89;
+  text-color: #fff7fb;
 }
 
 element selected element-text {
-  text-color: #1d1621;
+  text-color: #fff7fb;
 }
 
 element selected element-icon {
-  background-color: rgba(29, 22, 33, 0.14);
+  background-color: rgba(255, 247, 251, 0.12);
 }
 
 element alternate {
@@ -98,9 +98,9 @@ element alternate {
 message {
   margin: 8px 10px 0px 10px;
   padding: 10px 14px;
-  background-color: rgba(255, 138, 181, 0.14);
+  background-color: rgba(55, 39, 62, 0.88);
   border: 1px;
-  border-color: rgba(255, 247, 251, 0.16);
+  border-color: rgba(255, 149, 187, 0.28);
   border-radius: 16px;
 }
 

@@ -40,6 +40,7 @@ while true; do
       -i \
       -show-icons \
       -display-columns 2 \
+      -theme-str 'element-icon { size: 72px; } element { padding: 12px 14px; }' \
       -p "📋" \
       -mesg "Enter: копировать | Ctrl+d: удалить" \
       -kb-remove-char-forward "Delete" \
