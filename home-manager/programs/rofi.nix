@@ -1,5 +1,239 @@
-{ pkgs, config, ... }:
+{ pkgs, ... }:
 
+let
+  darkTheme = pkgs.writeText "rofi-doki-dark.rasi" ''
+    * {
+      background-color: transparent;
+      text-color: #f9ebf4;
+      margin: 0px;
+      padding: 0px;
+    }
+
+    window {
+      location: center;
+      width: 700px;
+      border: 2px;
+      border-color: rgba(255, 146, 186, 0.52);
+      border-radius: 24px;
+      dynamic: true;
+      padding: 18px;
+      background-color: #17121d;
+      background-image: url("${./assets/rofi-doki-bubbles-dark.svg}", both);
+    }
+
+    inputbar {
+      background-color: rgba(32, 24, 41, 0.9);
+      text-color: #fff6fb;
+      border: 1px;
+      border-color: rgba(255, 146, 186, 0.28);
+      margin: 4px 4px 14px 4px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      children: [ prompt, entry ];
+    }
+
+    prompt {
+      text-color: #ff84ae;
+      margin: 0px 10px 0px 0px;
+      font: "Doki 13";
+    }
+
+    entry {
+      placeholder: "Just Monika... or an app";
+      placeholder-color: #bfa9ba;
+      text-color: #f9ebf4;
+    }
+
+    listview {
+      background-color: rgba(23, 18, 29, 0.22);
+      margin: 0px 4px 4px 4px;
+      padding: 6px;
+      border-radius: 20px;
+      columns: 1;
+      lines: 6;
+      spacing: 8px;
+      fixed-height: false;
+    }
+
+    element {
+      orientation: horizontal;
+      padding: 10px 14px;
+      spacing: 12px;
+      border-radius: 18px;
+      border: 1px;
+      border-color: #483352;
+      background-color: rgba(35, 26, 43, 0.92);
+    }
+
+    element-icon {
+      background-color: rgba(255, 132, 174, 0.12);
+      padding: 8px;
+      size: 40px;
+      horizontal-align: 0.5;
+      vertical-align: 0.5;
+      border-radius: 12px;
+    }
+
+    element-text {
+      horizontal-align: 0;
+      vertical-align: 0.5;
+      font: "DepartureMono Nerd Font Mono 12";
+    }
+
+    element selected {
+      background-color: #ff84ae;
+      border-color: #ff84ae;
+      text-color: #17121d;
+    }
+
+    element selected element-icon {
+      background-color: rgba(23, 18, 29, 0.15);
+    }
+
+    element alternate {
+      background-color: rgba(41, 31, 49, 0.94);
+    }
+
+    message {
+      margin: 8px 10px 0px 10px;
+      padding: 10px 14px;
+      background-color: rgba(255, 132, 174, 0.14);
+      border: 1px;
+      border-color: rgba(255, 241, 247, 0.18);
+      border-radius: 16px;
+    }
+
+    textbox {
+      text-color: #fff6fb;
+      font: "DepartureMono Nerd Font Mono 12";
+    }
+  '';
+
+  lightTheme = pkgs.writeText "rofi-doki-light.rasi" ''
+    * {
+      background-color: transparent;
+      text-color: #574552;
+      margin: 0px;
+      padding: 0px;
+    }
+
+    window {
+      location: center;
+      width: 700px;
+      border: 2px;
+      border-color: rgba(245, 142, 182, 0.84);
+      border-radius: 24px;
+      dynamic: true;
+      padding: 18px;
+      background-color: #fff8fc;
+      background-image: url("${./assets/rofi-doki-bubbles-light.svg}", both);
+    }
+
+    inputbar {
+      background-color: rgba(255, 250, 253, 0.92);
+      text-color: #f15b99;
+      border: 1px;
+      border-color: rgba(245, 142, 182, 0.38);
+      margin: 4px 4px 14px 4px;
+      padding: 14px 16px;
+      border-radius: 18px;
+    }
+
+    prompt {
+      text-color: #f15b99;
+      margin: 0px 10px 0px 0px;
+      font: "Doki 13";
+    }
+
+    entry {
+      placeholder: "Okay, everyone!";
+      placeholder-color: rgba(87, 69, 82, 0.54);
+      text-color: #574552;
+    }
+
+    listview {
+      background-color: rgba(255, 255, 255, 0.45);
+      margin: 0px 4px 4px 4px;
+      padding: 6px;
+      border-radius: 20px;
+      columns: 1;
+      lines: 6;
+      spacing: 8px;
+      fixed-height: false;
+    }
+
+    element {
+      orientation: horizontal;
+      padding: 10px 14px;
+      spacing: 12px;
+      border-radius: 18px;
+      border: 1px;
+      border-color: rgba(248, 185, 209, 0.92);
+      background-color: rgba(255, 255, 255, 0.88);
+    }
+
+    element-icon {
+      background-color: rgba(255, 122, 162, 0.1);
+      padding: 8px;
+      size: 40px;
+      horizontal-align: 0.5;
+      vertical-align: 0.5;
+      border-radius: 12px;
+    }
+
+    element-text {
+      horizontal-align: 0;
+      vertical-align: 0.5;
+      font: "DepartureMono Nerd Font Mono 12";
+    }
+
+    element selected {
+      background-color: #ff86af;
+      border-color: #ff86af;
+      text-color: #ffffff;
+    }
+
+    element selected element-icon {
+      background-color: rgba(255, 255, 255, 0.18);
+    }
+
+    element alternate {
+      background-color: rgba(255, 245, 249, 0.96);
+    }
+
+    message {
+      margin: 8px 10px 0px 10px;
+      padding: 10px 14px;
+      background-color: rgba(255, 122, 162, 0.16);
+      border: 1px;
+      border-color: rgba(255, 255, 255, 0.72);
+      border-radius: 16px;
+    }
+
+    textbox {
+      text-color: #f15b99;
+      font: "DepartureMono Nerd Font Mono 12";
+    }
+  '';
+
+  rofiDoki = pkgs.writeShellScriptBin "rofi-doki" ''
+    set -euo pipefail
+
+    gtk_theme_key="/org/gnome/desktop/interface/gtk-theme"
+    color_scheme_key="/org/gnome/desktop/interface/color-scheme"
+
+    current_theme="$(${pkgs.dconf}/bin/dconf read "$gtk_theme_key" 2>/dev/null || true)"
+    current_scheme="$(${pkgs.dconf}/bin/dconf read "$color_scheme_key" 2>/dev/null || true)"
+
+    if [[ "''${current_theme,,}" == *"dark"* ]] || [[ "$current_scheme" == "'prefer-dark'" ]]; then
+      theme_file="${darkTheme}"
+    else
+      theme_file="${lightTheme}"
+    fi
+
+    exec ${pkgs.rofi}/bin/rofi -theme "$theme_file" "$@"
+  '';
+in
 {
   programs.rofi = {
     enable = true;
@@ -29,135 +263,11 @@
       display-dictionary = "🤓";
       sorting-method = "fzf";
     };
-
-    theme =
-      let
-        inherit (config.lib.formats.rasi) mkLiteral;
-
-        shell-bg = mkLiteral "#16111d";
-        surface-bg = mkLiteral "#211829";
-        surface-alt = mkLiteral "#2a1f35";
-        outline-soft = mkLiteral "#433052";
-        doki-pink = mkLiteral "#ff7aa2";
-        doki-cream = mkLiteral "#fff3d8";
-        text-main = mkLiteral "#f6e7ef";
-        text-dim = mkLiteral "#bbaaba";
-        text-selected = mkLiteral "#16111d";
-      in
-      {
-        "*" = {
-          background-color = mkLiteral "transparent";
-          text-color = text-main;
-          margin = mkLiteral "0px";
-          padding = mkLiteral "0px";
-        };
-
-        "window" = {
-          location = mkLiteral "center";
-          width = mkLiteral "700px";
-          border = mkLiteral "2px";
-          border-color = mkLiteral "rgba(255, 122, 162, 0.55)";
-          border-radius = mkLiteral "24px";
-          dynamic = true;
-          padding = mkLiteral "18px";
-          background-color = shell-bg;
-          background-image = mkLiteral ''url("${./assets/rofi-doki-bubbles.svg}", both)'';
-        };
-
-        "inputbar" = {
-          background-color = mkLiteral "rgba(33, 24, 41, 0.88)";
-          text-color = doki-cream;
-          border = mkLiteral "1px";
-          border-color = mkLiteral "rgba(255, 122, 162, 0.26)";
-          margin = mkLiteral "4px 4px 14px 4px";
-          padding = mkLiteral "14px 16px";
-          border-radius = mkLiteral "18px";
-          children = map mkLiteral [
-            "prompt"
-            "entry"
-          ];
-        };
-
-        "prompt" = {
-          text-color = doki-pink;
-          margin = mkLiteral "0px 10px 0px 0px";
-          font = "Doki 13";
-        };
-
-        "entry" = {
-          placeholder = "Just Monika... or an app";
-          placeholder-color = text-dim;
-          text-color = text-main;
-        };
-
-        "listview" = {
-          background-color = mkLiteral "rgba(22, 17, 29, 0.18)";
-          margin = mkLiteral "0px 4px 4px 4px";
-          padding = mkLiteral "6px";
-          border-radius = mkLiteral "20px";
-          columns = 1;
-          lines = 6;
-          spacing = mkLiteral "8px";
-          fixed-height = false;
-        };
-
-        "element" = {
-          orientation = mkLiteral "horizontal";
-          padding = mkLiteral "10px 14px";
-          spacing = mkLiteral "12px";
-          border-radius = mkLiteral "18px";
-          border = mkLiteral "1px";
-          border-color = outline-soft;
-          background-color = surface-bg;
-        };
-
-        "element-icon" = {
-          background-color = mkLiteral "rgba(255, 122, 162, 0.1)";
-          padding = mkLiteral "8px";
-          size = mkLiteral "40px";
-          horizontal-align = mkLiteral "0.5";
-          vertical-align = mkLiteral "0.5";
-          border-radius = mkLiteral "12px";
-        };
-
-        "element-text" = {
-          horizontal-align = mkLiteral "0";
-          vertical-align = mkLiteral "0.5";
-          font = "DepartureMono Nerd Font Mono 12";
-        };
-
-        "element selected" = {
-          background-color = doki-pink;
-          border-color = doki-pink;
-          text-color = text-selected;
-        };
-
-        "element selected element-icon" = {
-          background-color = mkLiteral "rgba(22, 17, 29, 0.14)";
-        };
-
-        "element alternate" = {
-          background-color = surface-alt;
-        };
-
-        "message" = {
-          margin = mkLiteral "8px 10px 0px 10px";
-          padding = mkLiteral "10px 14px";
-          background-color = mkLiteral "rgba(255, 122, 162, 0.14)";
-          border = mkLiteral "1px";
-          border-color = mkLiteral "rgba(255, 243, 216, 0.16)";
-          border-radius = mkLiteral "16px";
-        };
-
-        "textbox" = {
-          text-color = doki-cream;
-          font = "DepartureMono Nerd Font Mono 12";
-        };
-      };
   };
 
   home.packages = with pkgs; [
     rofimoji
     wl-clipboard
+    rofiDoki
   ];
 }

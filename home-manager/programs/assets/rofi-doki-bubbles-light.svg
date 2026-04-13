@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" preserveAspectRatio="none">
+  <defs>
+    <filter id="blur-soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="10" />
+    </filter>
+    <radialGradient id="big-ring" cx="50%" cy="50%" r="50%">
+      <stop offset="72%" stop-color="#000000" stop-opacity="0" />
+      <stop offset="82%" stop-color="#ffd1e2" stop-opacity="0.5" />
+      <stop offset="92%" stop-color="#f7a9c8" stop-opacity="0.88" />
+      <stop offset="100%" stop-color="#f7a9c8" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="900" fill="none" />
+
+  <g filter="url(#blur-soft)">
+    <circle cx="600" cy="450" r="355" fill="url(#big-ring)" />
+  </g>
+
+  <g fill="#f8c1d9" fill-opacity="0.55">
+    <circle cx="125" cy="105" r="30" />
+    <circle cx="345" cy="76" r="24" />
+    <circle cx="585" cy="90" r="28" />
+    <circle cx="865" cy="78" r="26" />
+    <circle cx="1085" cy="115" r="31" />
+    <circle cx="95" cy="298" r="34" />
+    <circle cx="1112" cy="286" r="29" />
+    <circle cx="128" cy="514" r="25" />
+    <circle cx="1080" cy="510" r="33" />
+    <circle cx="85" cy="718" r="30" />
+    <circle cx="323" cy="812" r="24" />
+    <circle cx="603" cy="828" r="30" />
+    <circle cx="886" cy="806" r="25" />
+    <circle cx="1094" cy="726" r="34" />
+  </g>
+
+  <g fill="#ffffff" fill-opacity="0.65">
+    <circle cx="220" cy="188" r="17" />
+    <circle cx="962" cy="202" r="14" />
+    <circle cx="224" cy="646" r="16" />
+    <circle cx="974" cy="642" r="18" />
+    <circle cx="600" cy="142" r="13" />
+    <circle cx="596" cy="756" r="15" />
+  </g>
+</svg>
