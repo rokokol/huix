@@ -34,7 +34,7 @@
 
       time = {
         disabled = false;
-        format = "at [$time](bold orange) [󰃰](orange) ";
+        format = "at [$time](bold blue) [󰃰](blue) ";
         time_format = "%H:%M:%S";
       };
 
