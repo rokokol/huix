@@ -41,7 +41,7 @@ while true; do
       -show-icons \
       -display-columns 2 \
       -p "📋" \
-      -kb-custom-1 "Control+d"
+      -kb-delete "Control+d"
   ); then
     status=0
   else
