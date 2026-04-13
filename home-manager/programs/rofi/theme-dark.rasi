@@ -98,7 +98,7 @@ element alternate {
 message {
   margin: 8px 10px 0px 10px;
   padding: 10px 14px;
-  background-color: rgba(55, 39, 62, 0.66);
+  background-color: rgba(55, 39, 62, 0.77);
   border: 1px;
   border-color: rgba(255, 149, 187, 0.28);
   border-radius: 16px;
