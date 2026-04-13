@@ -36,7 +36,7 @@
 
         "custom/menu" = {
           format = " 🎀 ";
-          on-click = "rofi-doki -show drun";
+          on-click = "rofi -show drun";
           tooltip = false;
         };
 

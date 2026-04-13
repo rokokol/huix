@@ -216,28 +216,14 @@ let
     }
   '';
 
-  rofiDoki = pkgs.writeShellScriptBin "rofi-doki" ''
-    set -euo pipefail
-
-    gtk_theme_key="/org/gnome/desktop/interface/gtk-theme"
-    color_scheme_key="/org/gnome/desktop/interface/color-scheme"
-
-    current_theme="$(${pkgs.dconf}/bin/dconf read "$gtk_theme_key" 2>/dev/null || true)"
-    current_scheme="$(${pkgs.dconf}/bin/dconf read "$color_scheme_key" 2>/dev/null || true)"
-
-    if [[ "''${current_theme,,}" == *"dark"* ]] || [[ "$current_scheme" == "'prefer-dark'" ]]; then
-      theme_file="${darkTheme}"
-    else
-      theme_file="${lightTheme}"
-    fi
-
-    exec ${config.programs.rofi.finalPackage}/bin/rofi -theme "$theme_file" "$@"
-  '';
+  rofiBaseConfig = "${config.xdg.configHome}/rofi/base.rasi";
+  rofiActiveTheme = "${config.xdg.configHome}/rofi/theme-active.rasi";
 in
 {
   programs.rofi = {
     enable = true;
     package = pkgs.rofi;
+    configPath = rofiBaseConfig;
 
     plugins = with pkgs; [
       rofi-calc
@@ -265,9 +251,17 @@ in
     };
   };
 
+  xdg.configFile."rofi/config.rasi".text = ''
+    @import "${rofiBaseConfig}"
+    @theme "${rofiActiveTheme}"
+  '';
+
+  xdg.configFile."rofi/theme-dark.rasi".source = darkTheme;
+  xdg.configFile."rofi/theme-light.rasi".source = lightTheme;
+  xdg.configFile."rofi/theme-active.rasi".source = lightTheme;
+
   home.packages = with pkgs; [
     rofimoji
     wl-clipboard
-    rofiDoki
   ];
 }

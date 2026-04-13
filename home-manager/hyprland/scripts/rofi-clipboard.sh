@@ -35,7 +35,7 @@ delete_entry() {
 
 while true; do
   if selection=$(
-    build_menu | rofi-doki \
+    build_menu | rofi \
       -dmenu \
       -i \
       -show-icons \
