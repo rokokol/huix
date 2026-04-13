@@ -16,7 +16,7 @@
 - `scripts/colorpicker.sh` — пипетка: копирует цвет и показывает HEX/RGB
 - `scripts/pin-screen.sh` — закрепляет участок экрана как «плавающее» окно‑картинку
 - `scripts/random_wallpaper.sh` — собирает коллаж и ставит случайные обои через `awww`
-- `scripts/rofi-clipboard.sh` — буфер обмена с превью картинок в rofi
+- `scripts/rofi-clipboard.sh` — буфер обмена с превью картинок в rofi и удалением записей (`Ctrl+d`)
 - `scripts/rofi_wooordhunt.sh` — быстрый перевод/значения слов через woooordhunt
 - `scripts/sync.sh` — git pull/commit/push репозитория с уведомлениями
 - `scripts/toggle_theme.sh` — переключатель светлой/тёмной темы GTK

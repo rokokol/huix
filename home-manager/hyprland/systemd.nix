@@ -28,10 +28,15 @@ in
 {
   systemd.user.services = {
     "sync-hourly" = {
-      Unit.Description = "sync.sh hourly";
+      Unit = {
+        Description = "sync.sh hourly";
+        After = [ "graphical-session.target" ];
+        PartOf = [ "graphical-session.target" ];
+      };
       Service = {
         Type = "oneshot";
         ExecStart = "${pkgs.bash}/bin/bash ${scriptsDir}/sync.sh";
+        TimeoutStartSec = "2min";
         Environment = "PATH=${lib.makeBinPath syncDeps} HUIX=${huixDir}";
       };
     };
@@ -52,12 +57,15 @@ in
 
   systemd.user.timers = {
     "sync-hourly" = {
-      Unit.Description = "Таймер для ежечасного запуска sync.sh";
+      Unit = {
+        Description = "Таймер для ежечасного запуска sync.sh";
+        PartOf = [ "graphical-session.target" ];
+      };
       Timer = {
         OnCalendar = "hourly";
         OnActiveSec = "10s";
       };
-      Install.WantedBy = [ "timers.target" ];
+      Install.WantedBy = [ "graphical-session.target" ];
     };
 
     "awww-collage" = {
