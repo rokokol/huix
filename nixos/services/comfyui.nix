@@ -20,7 +20,6 @@
     openFirewall = false;
     extraArgs = [
       "--lowvram"
-      "--disable-smart-memory"
     ];
   };
 }
