@@ -1,6 +1,11 @@
 { pkgs, ... }:
 
 {
+  environment.systemPackages = with pkgs; [
+    wl-clip-persist
+    wl-clipboard
+  ];
+
   systemd.user.services.wl-clip-persist = {
     description = "Persistent clipboard for Wayland";
     wantedBy = [ "graphical-session.target" ];

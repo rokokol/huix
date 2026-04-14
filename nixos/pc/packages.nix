@@ -30,8 +30,6 @@
     ripgrep
     translate-shell
     wget
-    wl-clipboard
-    wl-clip-persist
     cuda.ffmpeg-headless
   ];
 

@@ -8,5 +8,6 @@
     ./toggleterm.nix
     ./treesitter.nix
     ./which-key.nix
+    ./langmapper.nix
   ];
 }
