@@ -18,6 +18,7 @@
     ./services/amnezia-vpn.nix
     ./services/syncting.nix
     ./services/ollama.nix
+    ./services/cachix.nix
     ./services/tor.nix
   ];
 
