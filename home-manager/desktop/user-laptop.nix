@@ -44,22 +44,11 @@ in
     ];
   };
 
-  home.sessionVariables = {
-    EDITOR = "nvim";
-    TERMINAL = "kitty";
-    BROWSER = "firefox";
-    HUIX = huixDir;
-  };
-
   # Directories
   systemd.user.tmpfiles.rules = [
     "d ${projectsDir} 0755 - - -"
     "D ${tempDir} 0777 - - -"
   ];
-
-  home.file.".config/matlab/nix.sh".text = ''
-    INSTALL_DIR=$HOME/MATLAB2025a/ 
-  '';
 
   # Files
   home.file.".octaverc".text = ''

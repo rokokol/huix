@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, huixDir, ... }:
 
 {
   imports = [
@@ -30,4 +30,15 @@
     libsForQt5.qt5.qtwayland
     qt6.qtwayland
   ];
+
+  home.sessionVariables = {
+    EDITOR = "nvim";
+    VISUAL = "nvim";
+    TERMINAL = "kitty";
+    HUIX = huixDir;
+  };
+
+  home.file.".config/matlab/nix.sh".text = ''
+    INSTALL_DIR=$HOME/MATLAB2025a/ 
+  '';
 }

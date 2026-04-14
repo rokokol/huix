@@ -1,7 +1,6 @@
 {
   govnoDir,
   huixDir,
-  pkgs,
   rokokolName,
   ...
 }:
@@ -57,15 +56,4 @@ in
     "d ${govnoDir}/Pictures/Screenshots 0700 - - 30d"
     "D ${tempDir} 0777 - - -"
   ];
-
-  # Files
-  home.file.".octaverc".text = ''
-    PS1('>> ');
-    # to disable octave warn
-    warning('off', 'Octave:graphics-toolkit-gnuplot');
-  '';
-
-  home.file.".config/matlab/nix.sh".text = ''
-    INSTALL_DIR=$HOME/MATLAB2025a/ 
-  '';
 }
