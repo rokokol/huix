@@ -29,13 +29,14 @@
       cmd_duration = {
         min_time = 0;
         format = "took [$duration](bold yellow) [󱎫](yellow) ";
-        show_milliseconds = true;
+        show_milliseconds = false;
       };
 
       time = {
         disabled = false;
         format = "at [$time](bold blue) [󰃰](blue) ";
-        time_format = "%H:%M:%S";
+        # time_format = "%H:%M:%S";
+        show_milliseconds = false;
       };
 
       os = {
