@@ -29,7 +29,7 @@
       cmd_duration = {
         min_time = 0;
         format = "took [$duration](bold yellow) [󱎫](yellow) ";
-        show_milliseconds = false;
+        show_milliseconds = true;
       };
 
       time = {
