@@ -328,6 +328,31 @@
         key = "<S-Tab>";
         action = ":bprev<CR>";
       }
+      # Window resizing
+      {
+        mode = "n";
+        key = "<C-M-h>";
+        action = ":vertical resize -2<CR>";
+        options.desc = "Decrease window width";
+      }
+      {
+        mode = "n";
+        key = "<C-M-j>";
+        action = ":resize -2<CR>";
+        options.desc = "Decrease window height";
+      }
+      {
+        mode = "n";
+        key = "<C-M-k>";
+        action = ":resize +2<CR>";
+        options.desc = "Increase window height";
+      }
+      {
+        mode = "n";
+        key = "<C-M-l>";
+        action = ":vertical resize +2<CR>";
+        options.desc = "Increase window width";
+      }
       # Window navigation
       {
         mode = "n";
