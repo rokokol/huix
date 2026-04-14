@@ -25,17 +25,6 @@ Flake-репозиторий с двумя NixOS-хостами (`nixos-pc` и `
 - ПК использует `pkgs.stable.python3` с бинарными `torch*`, чтобы не собирать тяжелый ML-стек локально.
 - Ноутбук использует обычный `pkgs.python3Packages` без CUDA.
 
-## Как собран flake
-
-Поток сборки выглядит так:
-
-1. `flake.nix` задает inputs, overlays, общие аргументы (`rokokolName`, `huixDir`, `govnoDir`, `system`) и собирает оба `nixosConfigurations`.
-2. `nixos/configuration-*.nix` подключают системные модули хоста и reusable-сервисы.
-3. Через `home-manager.nixosModules.home-manager` в тот же system closure добавляется `home-manager/home-*.nix`.
-4. `home-manager/home-*.nix` подтягивают Hyprland, desktop layer и конфиги отдельных программ.
-
-Практическое следствие: если настройка относится к приложению пользователя, она почти наверняка должна лежать в `home-manager/`, а не в `nixos/`.
-
 ## Где менять что
 
 | Что нужно поменять | Куда идти |
@@ -52,17 +41,6 @@ Flake-репозиторий с двумя NixOS-хостами (`nixos-pc` и `
 | Hyprland, Waybar, hypridle, session-скрипты | `home-manager/hyprland/*` |
 | Конфиги отдельных программ | `home-manager/programs/*` |
 | Neovim через nixvim | `home-manager/programs/nixvim/*` |
-
-## Слои пакетов
-
-В репозитории уже есть явное разделение ответственности, его лучше не ломать:
-
-- `nixos/*/packages.nix`: системные пакеты и системные фичи хоста.
-- `home-manager/desktop/common-packages.nix`: общий пользовательский desktop stack.
-- `home-manager/desktop/pc-packages.nix` и `home-manager/desktop/laptop-packages.nix`: host-specific пользовательские пакеты.
-- `home-manager/hyprland/hyprland-packages.nix`: только то, что нужно самой Hyprland-сессии и связанным скриптам.
-
-Если пакет нужен только в UI-сессии пользователя, его лучше класть в Home Manager, а не в `environment.systemPackages`.
 
 ## Сервисы
 
@@ -91,63 +69,12 @@ Flake-репозиторий с двумя NixOS-хостами (`nixos-pc` и `
 - `openwebui.nix`
 - `comfyui.nix`
 
-## Команды
-
-Проверить, что конфиг собирается, без переключения:
-
-```sh
-nix build .#nixosConfigurations.nixos-pc.config.system.build.toplevel
-nix build .#nixosConfigurations.nixos-laptop.config.system.build.toplevel
-```
-
-Применить конфиг:
-
-```sh
-sudo nixos-rebuild switch --flake .#nixos-pc
-sudo nixos-rebuild switch --flake .#nixos-laptop
-```
-
-Обновить inputs:
-
-```sh
-nix flake update
-```
-
-В `zsh` есть alias:
-
-```sh
-rebuild
-```
-
-Он разворачивается в `sudo nixos-rebuild switch --flake /home/rokokol/huix`.
-
 ## Operational Notes
 
 - На ПК ожидается NTFS-раздел с label `govno`, который монтируется в `/home/rokokol/govno`.
 - На ПК `xdg.userDirs` для `Music`, `Documents`, `Pictures`, `Videos` указывают именно в `/home/rokokol/govno`, поэтому отсутствие этого mount не ломает boot из-за `nofail`, но ломает часть пользовательских путей.
-- `ssh-askpass` настроен через `rofi`, см. `nixos/services/ssh-askpass.nix`.
-- `home.file.".face".source = ../../logo.jpg` используется в обоих Home Manager entrypoint'ах.
 - `HUIX` экспортируется как session variable и используется в shell aliases и скриптах.
 - `system.stateVersion` и `home.stateVersion` сейчас зафиксированы на `25.11`.
-
-## Типовые изменения
-
-### Добавить новый system service
-
-1. Создать или изменить модуль в `nixos/services/`.
-2. Подключить его в нужном `nixos/configuration-*.nix`.
-3. Собрать нужный хост через `nix build` или применить через `nixos-rebuild switch`.
-
-### Добавить пакет только для ПК или ноутбука
-
-- System-wide: редактировать `nixos/pc/packages.nix` или `nixos/laptop/packages.nix`.
-- User-only: редактировать `home-manager/desktop/pc-packages.nix` или `home-manager/desktop/laptop-packages.nix`.
-
-### Поменять Hyprland/Waybar
-
-- Базовая сессия: `home-manager/hyprland/hyprland-pc.nix` или `home-manager/hyprland/hyprland-laptop.nix`
-- Общая логика и скрипты: `home-manager/hyprland/*`
-- Статусбар: `waybar-pc.nix` или `waybar-laptop.nix`
 
 ### Обновить hardware config
 
@@ -156,11 +83,6 @@ rebuild
 ```sh
 sudo nixos-generate-config --show-hardware-config > hardware-configuration.nix
 ```
-
-Файл нужно положить в соответствующий host directory:
-
-- `nixos/pc/hardware-configuration.nix`
-- `nixos/laptop/hardware-configuration.nix`
 
 ## Отдельные заметки
 
@@ -171,4 +93,3 @@ nix run gitlab:doronbehar/nix-matlab#matlab-shell
 nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHWORKS_R2025A/install
 ```
 
-Автотестов в репозитории нет. Базовая проверка изменений здесь означает хотя бы успешную сборку целевого `nixosConfiguration`, а для финальной валидации нужен `nixos-rebuild switch` на соответствующем хосте.
