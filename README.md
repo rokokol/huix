@@ -10,12 +10,12 @@
 
 ## Что здесь важно
 
-- Репозиторий рассчитан на `x86_64-linux` и использует только flake-based workflow.
-- Базовый пакетный набор идет из `nixos-unstable`.
-- Дополнительно проброшен `nixpkgs-stable` как `pkgs.stable`.
-- Для ПК есть отдельный CUDA overlay, который дает доступ к `pkgs.cuda.*`.
-- Home Manager подключен внутрь `nixosSystem` через `home-manager.nixosModules.home-manager`, то есть отдельного HM deployment-потока здесь нет.
-- `home-manager.useGlobalPkgs = true`, поэтому системный и пользовательский слой используют один и тот же пакетный набор и overlays.
+- Репозиторий рассчитан на `x86_64-linux` и использует только flake-based workflow
+- Базовый пакетный набор идет из `nixos-unstable`
+- Дополнительно проброшен `nixpkgs-stable` как `pkgs.stable`
+- Для ПК есть отдельный CUDA overlay, который дает доступ к `pkgs.cuda.*`, он, внезаптно, собирает приложения с поддержкой CUDA
+- Home Manager подключен внутрь `nixosSystem` через `home-manager.nixosModules.home-manager`, то есть отдельного HM deployment-потока здесь нет
+- `home-manager.useGlobalPkgs = true`, поэтому системный и пользовательский слой используют один и тот же пакетный набор и overlays
 
 ## Хосты
 
@@ -26,8 +26,8 @@
 
 Дополнительное различие по Python/ML:
 
-- ПК использует `pkgs.stable.python3` с бинарными `torch*`, чтобы не собирать тяжелый ML-стек локально.
-- Ноутбук использует обычный `pkgs.python3Packages` без CUDA.
+- ПК использует `pkgs.stable.python3` с бинарными `torch*`, чтобы не собирать тяжелый ML-стек локально
+- Ноутбук использует обычный `pkgs.python3Packages` без CUDA
 
 ## Где менять что
 
@@ -76,9 +76,9 @@
 ## Operational Notes
 
 - На ПК ожидается NTFS-раздел с label `govno`, который монтируется в `/home/rokokol/govno`.
-- На ПК `xdg.userDirs` для `Music`, `Documents`, `Pictures`, `Videos` указывают именно в `/home/rokokol/govno`, поэтому отсутствие этого mount не ломает boot из-за `nofail`, но ломает часть пользовательских путей.
-- `HUIX` экспортируется как session variable и используется в shell aliases и скриптах.
-- `system.stateVersion` и `home.stateVersion` сейчас зафиксированы на `25.11`.
+- На ПК `xdg.userDirs` для `Music`, `Documents`, `Pictures`, `Videos` указывают именно в `/home/rokokol/govno`, поэтому отсутствие этого mount не ломает boot из-за `nofail`, но ломает часть пользовательских путей
+- `HUIX` экспортируется как session variable и используется в shell aliases и скриптах
+- `system.stateVersion` и `home.stateVersion` сейчас зафиксированы на `25.11`
 
 ### Обновить hardware config
 
