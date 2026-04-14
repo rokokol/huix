@@ -32,8 +32,6 @@
     translate-shell
     trash-cli
     wget
-    wl-clipboard
-    wl-clip-persist
 
     # --- Power & OCR ---
     powertop
