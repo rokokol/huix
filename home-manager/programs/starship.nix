@@ -35,8 +35,7 @@
       time = {
         disabled = false;
         format = "at [$time](bold blue) [󰃰](blue) ";
-        # time_format = "%H:%M:%S";
-        show_milliseconds = false;
+        time_format = "%H:%M";
       };
 
       os = {
