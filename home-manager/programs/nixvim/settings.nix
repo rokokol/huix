@@ -38,7 +38,7 @@
 
       clipboard = "unnamedplus";
       # Russian layout support for commands
-      langmap = "ФИСВУАПРШОЛДЬТЩЗЙКЫЕГМЦЧНЯ;ABCDEFGHIJKLMNOPQRSTUVWXYZ,фисвуапршолдьтщзйкыегмцчня;abcdefghijklmnopqrstuvwxyz";
+      langmap = "йцукенгшщзхъфывапролджэячсмитьбю;qwertyuiop[]asdfghjkl;'zxcvbnm,.,ЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ;QWERTYUIOP{}ASDFGHJKL:\\\"ZXCVBNM<>?";
       updatetime = 250;
     };
 
