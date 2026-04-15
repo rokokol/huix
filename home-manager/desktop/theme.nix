@@ -1,17 +1,22 @@
 { pkgs, config, ... }:
 
+let
+  gtkThemeName = "Gruvbox-Light";
+  iconThemeName = "rose-pine-dawn";
+  colorScheme = "prefer-light";
+in
 {
   gtk = {
     enable = true;
     gtk4.theme = config.gtk.theme;
 
     theme = {
-      name = "Gruvbox-Light";
+      name = gtkThemeName;
       package = pkgs.gruvbox-gtk-theme;
     };
 
     iconTheme = {
-      name = "rose-pine-dawn";
+      name = iconThemeName;
       package = pkgs.rose-pine-icon-theme;
     };
 
@@ -22,6 +27,12 @@
     gtk4.extraConfig = {
       gtk-application-prefer-dark-theme = 0;
     };
+  };
+
+  dconf.settings."org/gnome/desktop/interface" = {
+    color-scheme = colorScheme;
+    gtk-theme = gtkThemeName;
+    icon-theme = iconThemeName;
   };
 
   qt = {
