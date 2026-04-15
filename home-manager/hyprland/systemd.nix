@@ -30,14 +30,22 @@ in
     "sync-hourly" = {
       Unit = {
         Description = "sync.sh hourly";
-        After = [ "graphical-session.target" ];
+        After = [
+          "graphical-session.target"
+          "ssh-agent.service"
+        ];
         PartOf = [ "graphical-session.target" ];
+        Wants = [ "ssh-agent.service" ];
       };
       Service = {
         Type = "oneshot";
         ExecStart = "${pkgs.bash}/bin/bash ${scriptsDir}/sync.sh";
         TimeoutStartSec = "2min";
-        Environment = "PATH=${lib.makeBinPath syncDeps} HUIX=${huixDir}";
+        Environment = [
+          "PATH=${lib.makeBinPath syncDeps}"
+          "HUIX=${huixDir}"
+          "SSH_ASKPASS_REQUIRE=force"
+        ];
       };
     };
 
@@ -63,7 +71,7 @@ in
       };
       Timer = {
         OnCalendar = "hourly";
-        OnActiveSec = "10s";
+        OnActiveSec = "15s";
       };
       Install.WantedBy = [ "graphical-session.target" ];
     };
