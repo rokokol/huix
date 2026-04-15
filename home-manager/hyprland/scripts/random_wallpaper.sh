@@ -34,11 +34,8 @@ WORK_W=1200
 IMAGES_NUM=6
 NUM_PICS=$((RANDOM % IMAGES_NUM + 1))
 
-# Do not check spicy if not nixos-pc
-FIND_OPTS=()
-if [ "$(hostname)" != "nixos-pc" ]; then
-  FIND_OPTS+=("-type" "d" "-name" "spicy" "-prune" "-o")
-fi
+# Search all subdirectories, but always skip spicy
+FIND_OPTS=("-type" "d" "-name" "spicy" "-prune" "-o")
 
 # Only static images
 mapfile -d $'\0' SELECTED_PICS < <(find "$WALLPAPER_DIR" "${FIND_OPTS[@]}" -type f \( -iname "*.jpg" -o -iname "*.JPG" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" -o -iname "*.ico" \) -print0 | shuf -z -n "$NUM_PICS")
