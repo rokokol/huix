@@ -89,7 +89,7 @@ in
 
       lm.setup({
         hack_keymap = true,
-        map_all_queues = true,
+        map_all_ctrl = true,
       })
 
       lm.automapping({ global = true, buffer = true })
