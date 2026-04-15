@@ -181,9 +181,7 @@
           {
             type = "button";
             val = "  Quit";
-            on_press = {
-              __raw = "function() vim.cmd('qa') end";
-            };
+            on_press = "<cmd>qa<CR>";
             opts = {
               position = "center";
               shortcut = "q";
