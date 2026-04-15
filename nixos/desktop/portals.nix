@@ -1,6 +1,8 @@
 { pkgs, ... }:
 
 {
+  programs.dconf.enable = true;
+
   xdg.portal = {
     enable = true;
     extraPortals = with pkgs; [
