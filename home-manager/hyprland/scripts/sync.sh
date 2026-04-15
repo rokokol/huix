@@ -9,11 +9,9 @@ notify() {
 DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"
 export DBUS_SESSION_BUS_ADDRESS
 HUIX_PATH="${HUIX:-$HOME/huix}"
-GIT_TERMINAL_PROMPT=0
-GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh -o BatchMode=yes -o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=2}"
+GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh -o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=2}"
 HOST_NAME="$(uname -n)"
 
-export GIT_TERMINAL_PROMPT
 export GIT_SSH_COMMAND
 
 cd "$HUIX_PATH" || {
