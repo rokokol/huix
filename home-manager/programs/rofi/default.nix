@@ -46,6 +46,13 @@ in
   xdg.configFile."rofi/assets/polka-light.svg".source = ./assets/polka-light.svg;
   xdg.configFile."rofi/assets/polka-dark.svg".source = ./assets/polka-dark.svg;
 
+  home.sessionVariables = {
+    ROFI_THEMES_DIR = rofiThemesDir;
+    ROFI_LIGHT_THEME = "${rofiThemesDir}/light.rasi";
+    ROFI_DARK_THEME = "${rofiThemesDir}/dark.rasi";
+    ROFI_ACTIVE_THEME = "${rofiThemesDir}/active.rasi";
+  };
+
   home.activation.rofiInitActiveTheme = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     if [ ! -e "${rofiThemesDir}/active.rasi" ]; then
       ln -sfn "${rofiThemesDir}/light.rasi" "${rofiThemesDir}/active.rasi"

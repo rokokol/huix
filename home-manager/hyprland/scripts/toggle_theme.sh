@@ -2,19 +2,43 @@
 
 set -euo pipefail
 
-GTK_THEME_KEY="/org/gnome/desktop/interface/gtk-theme"
-COLOR_SCHEME_KEY="/org/gnome/desktop/interface/color-scheme"
-ROFI_THEMES_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/rofi/themes"
-ROFI_LIGHT_THEME="$ROFI_THEMES_DIR/light.rasi"
-ROFI_DARK_THEME="$ROFI_THEMES_DIR/dark.rasi"
-ROFI_ACTIVE_THEME="$ROFI_THEMES_DIR/active.rasi"
+notify_error() {
+  if command -v notify-send >/dev/null 2>&1; then
+    notify-send -u critical "Theme switch error" "$1" && return
+  fi
 
-LIGHT_THEME="Gruvbox-Light"
-DARK_THEME="Gruvbox-Dark"
-LIGHT_SCHEME="prefer-light"
-DARK_SCHEME="prefer-dark"
-DEFAULT_THEME="$LIGHT_THEME"
-DEFAULT_SCHEME="$LIGHT_SCHEME"
+  printf '%s\n' "$1" >&2
+}
+
+require_env() {
+  local missing=()
+  local name
+
+  for name in "$@"; do
+    if [[ -z "${!name:-}" ]]; then
+      missing+=("$name")
+    fi
+  done
+
+  if (( ${#missing[@]} > 0 )); then
+    notify_error "Missing environment variables: ${missing[*]}"
+    exit 1
+  fi
+}
+
+require_env \
+  GTK_THEME_KEY \
+  COLOR_SCHEME_KEY \
+  LIGHT_THEME \
+  DARK_THEME \
+  LIGHT_SCHEME \
+  DARK_SCHEME \
+  DEFAULT_THEME \
+  DEFAULT_SCHEME \
+  ROFI_THEMES_DIR \
+  ROFI_LIGHT_THEME \
+  ROFI_DARK_THEME \
+  ROFI_ACTIVE_THEME
 
 read_current_theme() {
   dconf read "$GTK_THEME_KEY" 2>/dev/null || true
@@ -77,7 +101,7 @@ sync_theme_state() {
       set_rofi_theme "$ROFI_LIGHT_THEME"
       ;;
     *)
-      notify-send -u critical "Cannot sync theme state ヽ(ﾟДﾟ)ﾉ"
+      notify_error "Cannot sync theme state ヽ(ﾟДﾟ)ﾉ"
       exit 1
       ;;
   esac
@@ -97,6 +121,6 @@ if [[ "$(detect_theme_state)" == "dark" ]]; then
 elif [[ "$(detect_theme_state)" == "light" ]]; then
   set_theme "$DARK_THEME" "$DARK_SCHEME" "$ROFI_DARK_THEME" "Dark theme set 🌑"
 else
-  notify-send -u critical "Cannot determine theme state ヽ(ﾟДﾟ)ﾉ"
+  notify_error "Cannot determine theme state ヽ(ﾟДﾟ)ﾉ"
   exit 1
 fi

@@ -2,8 +2,10 @@
 
 let
   gtkThemeName = "Gruvbox-Light";
+  darkGtkThemeName = "Gruvbox-Dark";
   iconThemeName = "rose-pine-dawn";
   colorScheme = "prefer-light";
+  darkColorScheme = "prefer-dark";
 in
 {
   gtk = {
@@ -41,6 +43,14 @@ in
   };
 
   home.sessionVariables = {
+    GTK_THEME_KEY = "/org/gnome/desktop/interface/gtk-theme";
+    COLOR_SCHEME_KEY = "/org/gnome/desktop/interface/color-scheme";
+    LIGHT_THEME = gtkThemeName;
+    DARK_THEME = darkGtkThemeName;
+    LIGHT_SCHEME = colorScheme;
+    DARK_SCHEME = darkColorScheme;
+    DEFAULT_THEME = gtkThemeName;
+    DEFAULT_SCHEME = colorScheme;
     THUNARX_DIRS = "/run/current-system/sw/lib/thunarx-3";
   };
 }
