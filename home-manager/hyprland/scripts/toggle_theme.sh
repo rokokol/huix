@@ -4,7 +4,7 @@ set -euo pipefail
 
 notify_error() {
   if command -v notify-send >/dev/null 2>&1; then
-    notify-send -u critical "Theme switch error" "$1" && return
+    notify-send -u critical "Theme switch error (╯°□°）╯︵ ┻━┻" "$1" && return
   fi
 
   printf '%s\n' "$1" >&2
@@ -20,8 +20,8 @@ require_env() {
     fi
   done
 
-  if (( ${#missing[@]} > 0 )); then
-    notify_error "Missing environment variables: ${missing[*]}"
+  if ((${#missing[@]} > 0)); then
+    notify_error "${missing[*]}"
     exit 1
   fi
 }
@@ -84,26 +84,26 @@ set_theme() {
 
 sync_theme_state() {
   case "$(detect_theme_state)" in
-    dark)
-      dconf write "$GTK_THEME_KEY" "'${DARK_THEME}'"
-      dconf write "$COLOR_SCHEME_KEY" "'${DARK_SCHEME}'"
-      set_rofi_theme "$ROFI_DARK_THEME"
-      ;;
-    light)
-      dconf write "$GTK_THEME_KEY" "'${LIGHT_THEME}'"
-      dconf write "$COLOR_SCHEME_KEY" "'${LIGHT_SCHEME}'"
-      set_rofi_theme "$ROFI_LIGHT_THEME"
-      ;;
-    unset)
-      # Keep startup state aligned with the declarative Home Manager default theme.
-      dconf write "$GTK_THEME_KEY" "'${DEFAULT_THEME}'"
-      dconf write "$COLOR_SCHEME_KEY" "'${DEFAULT_SCHEME}'"
-      set_rofi_theme "$ROFI_LIGHT_THEME"
-      ;;
-    *)
-      notify_error "Cannot sync theme state ヽ(ﾟДﾟ)ﾉ"
-      exit 1
-      ;;
+  dark)
+    dconf write "$GTK_THEME_KEY" "'${DARK_THEME}'"
+    dconf write "$COLOR_SCHEME_KEY" "'${DARK_SCHEME}'"
+    set_rofi_theme "$ROFI_DARK_THEME"
+    ;;
+  light)
+    dconf write "$GTK_THEME_KEY" "'${LIGHT_THEME}'"
+    dconf write "$COLOR_SCHEME_KEY" "'${LIGHT_SCHEME}'"
+    set_rofi_theme "$ROFI_LIGHT_THEME"
+    ;;
+  unset)
+    # Keep startup state aligned with the declarative Home Manager default theme.
+    dconf write "$GTK_THEME_KEY" "'${DEFAULT_THEME}'"
+    dconf write "$COLOR_SCHEME_KEY" "'${DEFAULT_SCHEME}'"
+    set_rofi_theme "$ROFI_LIGHT_THEME"
+    ;;
+  *)
+    notify_error "Cannot sync theme state ヽ(ﾟДﾟ)ﾉ"
+    exit 1
+    ;;
   esac
 }
 
