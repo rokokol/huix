@@ -56,6 +56,8 @@
       "text/plain" = "org.gnome.TextEditor.desktop";
       "text/x-markdown" = "org.gnome.TextEditor.desktop";
       "application/x-zerosize" = "org.gnome.TextEditor.desktop";
+
+      "application/octet-stream" = "selectdefaultapplication.desktop";
     };
   };
 }
