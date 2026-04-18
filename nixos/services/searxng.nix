@@ -37,6 +37,58 @@
 
       engines = [
         {
+          name = "openlibrary";
+          disabled = false;
+        }
+        {
+          name = "dictzone";
+          disabled = true;
+        }
+        {
+          name = "lingva";
+          disabled = true;
+        }
+        {
+          name = "bing";
+          disabled = false;
+        }
+        {
+          name = "brave";
+          disabled = true;
+        }
+        {
+          name = "karmasearch";
+          disabled = true;
+        }
+        {
+          name = "karmasearch videos";
+          disabled = true;
+        }
+        {
+          name = "startpage";
+          disabled = true;
+        }
+        {
+          name = "aol";
+          disabled = true;
+        }
+        {
+          name = "aol";
+          disabled = true;
+        }
+        {
+          name = "wolframalpha";
+          disabled = false;
+        }
+        {
+          name = "yandex";
+          disabled = false;
+        }
+        {
+          name = "openlibrary";
+          disabled = false;
+        }
+        {
           name = "hoogle";
           disabled = true;
         }
