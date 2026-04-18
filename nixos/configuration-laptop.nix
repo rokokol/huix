@@ -38,6 +38,7 @@
       torchvision
       torchaudio
 
+      faker
       ipywidgets
     ];
   };
