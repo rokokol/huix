@@ -22,6 +22,10 @@
     yt-dlp
     matlab
 
+    # Python
+    uv
+    python313
+
     # --- Theming & toolkit integration ---
     gnome-themes-extra
     gsettings-desktop-schemas
