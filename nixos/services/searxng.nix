@@ -37,15 +37,11 @@
 
       engines = [
         {
-          name = "openlibrary";
-          disabled = false;
-        }
-        {
-          name = "dictzone";
+          name = "aol";
           disabled = true;
         }
         {
-          name = "lingva";
+          name = "aol";
           disabled = true;
         }
         {
@@ -57,44 +53,8 @@
           disabled = true;
         }
         {
-          name = "karmasearch";
+          name = "dictzone";
           disabled = true;
-        }
-        {
-          name = "karmasearch videos";
-          disabled = true;
-        }
-        {
-          name = "startpage";
-          disabled = true;
-        }
-        {
-          name = "aol";
-          disabled = true;
-        }
-        {
-          name = "aol";
-          disabled = true;
-        }
-        {
-          name = "wolframalpha";
-          disabled = false;
-        }
-        {
-          name = "yandex";
-          disabled = false;
-        }
-        {
-          name = "openlibrary";
-          disabled = false;
-        }
-        {
-          name = "hoogle";
-          disabled = true;
-        }
-        {
-          name = "nixos wiki";
-          disabled = false;
         }
         {
           name = "gitlab";
@@ -105,7 +65,47 @@
           disabled = false;
         }
         {
+          name = "hoogle";
+          disabled = true;
+        }
+        {
           name = "huggingface";
+          disabled = false;
+        }
+        {
+          name = "karmasearch videos";
+          disabled = true;
+        }
+        {
+          name = "karmasearch";
+          disabled = true;
+        }
+        {
+          name = "lingva";
+          disabled = true;
+        }
+        {
+          name = "nixos wiki";
+          disabled = false;
+        }
+        {
+          name = "openlibrary";
+          disabled = false;
+        }
+        {
+          name = "openlibrary";
+          disabled = false;
+        }
+        {
+          name = "startpage";
+          disabled = true;
+        }
+        {
+          name = "wolframalpha";
+          disabled = false;
+        }
+        {
+          name = "yandex";
           disabled = false;
         }
       ];
