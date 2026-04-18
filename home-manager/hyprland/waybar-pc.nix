@@ -18,7 +18,6 @@
         ipc = true;
 
         modules-left = [
-          "custom/menu"
           "hyprland/workspaces"
           "hyprland/window"
         ];
@@ -30,12 +29,6 @@
           "hyprland/language"
           "network"
         ];
-
-        "custom/menu" = {
-          format = " 🎀 ";
-          on-click = "rofi -show drun -show-icons";
-          tooltip = false;
-        };
 
         "hyprland/workspaces" = {
           format = "{icon}";
@@ -146,7 +139,7 @@
       }
 
       /* Modules style (islands) */
-      #custom-menu, #workspaces, #window, #clock, #pulseaudio, #network, #language, #custom-gpu, #hardware {
+      #workspaces, #window, #clock, #pulseaudio, #network, #language, #custom-gpu, #hardware {
           background: rgba(255, 240, 245, 0.9);
           color: #4c4c4c;
           padding: 0px 8px;   

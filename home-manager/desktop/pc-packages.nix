@@ -26,6 +26,10 @@
       openmpi
       pkg-config
 
+      # Python
+      uv
+      python313
+
       # Web
       nodejs
 
