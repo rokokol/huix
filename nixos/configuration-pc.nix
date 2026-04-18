@@ -60,6 +60,7 @@ in
       torchvision-bin
       torchaudio-bin
 
+      pytesseract
       ipywidgets
     ];
   };
