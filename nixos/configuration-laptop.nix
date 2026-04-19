@@ -38,9 +38,16 @@
       torchvision
       torchaudio
 
+      pytesseract
+      pymupdf
+      python-docx
+      striprtf
+      openpyxl
+
       faker
       ipywidgets
     ];
   };
+
   services.ollama.package = pkgs.ollama-cpu;
 }
