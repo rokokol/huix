@@ -35,6 +35,7 @@
     autosuggestion.enable = false;
     syntaxHighlighting.enable = true;
     autocd = false;
+    defaultKeymap = "viins";
 
     initContent = ''
       # Enable selection menu
