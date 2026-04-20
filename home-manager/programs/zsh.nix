@@ -35,6 +35,7 @@
     autosuggestion.enable = false;
     syntaxHighlighting.enable = true;
     autocd = false;
+    defaultKeymap = "emacs";
 
     initContent = ''
       # Enable selection menu
@@ -46,6 +47,14 @@
       bindkey "^[[1;5C" forward-word
       bindkey "^[[1;5D" backward-word
     '';
+
+    oh-my-zsh = {
+      enable = true;
+      plugins = [
+        "git"
+        "sudo"
+      ];
+    };
 
     plugins = [
       {
