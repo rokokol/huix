@@ -35,7 +35,6 @@
     autosuggestion.enable = false;
     syntaxHighlighting.enable = true;
     autocd = false;
-    defaultKeymap = "emacs";
 
     initContent = ''
       # Enable selection menu
