@@ -53,6 +53,7 @@
       plugins = [
         "git"
         "sudo"
+        "vi-mode"
       ];
     };
 
