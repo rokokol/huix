@@ -14,7 +14,7 @@
 
   # --- Gaming ---
   programs.steam.enable = true;
-  services.logmein-hamachi.enable = true;
+  services.zerotierone.enable = true;
 
   environment.systemPackages = with pkgs; [
     # --- CLI & development ---
@@ -32,9 +32,6 @@
     translate-shell
     wget
     cuda.ffmpeg-headless
-
-    logmein-hamachi
-    haguichi
   ];
 
   # Exclude basic X11 terminal
