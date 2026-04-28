@@ -11,7 +11,6 @@
   networking.networkmanager.enable = true;
 
   networking.firewall.trustedInterfaces = [
-    "zttqhzdmrk"
     "ztu7tmbf2e"
   ];
   networking.firewall = {
