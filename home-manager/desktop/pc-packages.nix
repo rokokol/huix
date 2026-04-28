@@ -36,7 +36,7 @@
       # --- Communication & web ---
       ayugram-desktop
       obsidian
-      vesktop
+      stable.vesktop
       tor-browser
 
       # --- Desktop apps ---
