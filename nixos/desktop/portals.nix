@@ -10,9 +10,7 @@
       xdg-desktop-portal-gtk
     ];
 
-    config.common = {
-      # Use GTK portal for chooser/open dialogs, keep Hyprland portal available
-      # for compositor-specific interfaces like screencasting.
+    config.hyprland = {
       "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
       "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
       "org.freedesktop.impl.portal.ScreenCast" = [ "hyprland" ];
