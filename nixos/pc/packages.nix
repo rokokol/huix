@@ -14,7 +14,6 @@
 
   # --- Gaming ---
   programs.steam.enable = true;
-  services.zerotierone.enable = true;
 
   environment.systemPackages = with pkgs; [
     # --- CLI & development ---
