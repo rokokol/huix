@@ -10,29 +10,6 @@
   networking.hostName = "nixos-pc";
   networking.networkmanager.enable = true;
 
-  networking.firewall.trustedInterfaces = [
-    "ztu7tmbf2e"
-  ];
-  networking.firewall = {
-    enable = true;
-    allowedTCPPorts = [
-      80
-      6667
-      28910
-      29900
-      29920
-    ];
-    allowedUDPPorts = [
-      4321
-      27900
-      8088
-      9993
-    ];
-
-    # Критично для старых игр в Wayland/NixOS:
-    checkReversePath = "loose";
-  };
-
   # Time and Locale
   time.timeZone = "Europe/Moscow";
   i18n.defaultLocale = "en_US.UTF-8";
