@@ -40,6 +40,7 @@
     VISUAL = "nvim";
     TERMINAL = "kitty";
     HUIX = huixDir;
+    NIXOS_OZONE_WL = "1";
   };
 
   home.file.".config/matlab/nix.sh".text = ''
