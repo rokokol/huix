@@ -44,6 +44,10 @@ in
     ];
   };
 
+  home.sessionVariables = {
+    MY_WIKI = "${homeDir}/myWiki";
+  };
+
   # Directories
   systemd.user.tmpfiles.rules = [
     "d ${projectsDir} 0755 - - -"
