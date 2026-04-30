@@ -21,6 +21,7 @@
     usbutils
     yt-dlp
     matlab
+    libreoffice-fresh
 
     # Python
     uv
