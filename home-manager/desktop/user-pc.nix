@@ -44,7 +44,7 @@ in
       "file://${huixDir}/"
       "file://${tempDir}/"
       "file://${projectsDir}/"
-      "file://${homeDir}/myWiki/media/"
+      "file://${govnoDir}/myWiki/media/"
       "file://${govnoDir}/"
       "file:///"
     ];
@@ -56,4 +56,8 @@ in
     "d ${govnoDir}/Pictures/Screenshots 0700 - - 30d"
     "D ${tempDir} 0777 - - -"
   ];
+
+  home.sessionVariables = {
+    MY_WIKI = "${govnoDir}/myWiki";
+  };
 }
