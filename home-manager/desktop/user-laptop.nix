@@ -2,6 +2,7 @@
 
 let
   homeDir = "/home/${rokokolName}";
+  myWikiDir = "${homeDir}/myWiki";
   downloadsDir = "${homeDir}/Downloads";
   projectsDir = "${homeDir}/Projects";
   tempDir = "${homeDir}/Temp";
@@ -20,7 +21,7 @@ in
     createDirectories = true;
     setSessionVariables = true;
 
-    music = "${homeDir}/Music";
+    music = "${myWikiDir}/music";
     documents = "${homeDir}/Documents";
     pictures = "${homeDir}/Pictures";
     videos = "${homeDir}/Videos";
@@ -39,7 +40,7 @@ in
       "file://${huixDir}/"
       "file://${tempDir}/"
       "file://${projectsDir}/"
-      "file://${homeDir}/myWiki/media/"
+      "file://${myWikiDir}/media/"
       "file:///"
     ];
   };
