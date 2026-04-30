@@ -3,7 +3,7 @@
 let
   gtkThemeName = "Gruvbox-Light";
   darkGtkThemeName = "Gruvbox-Dark";
-  iconThemeName = "rose-pine-dawn";
+  iconThemeName = "Mint-Y-Pink";
   colorScheme = "prefer-light";
   darkColorScheme = "prefer-dark";
 in
@@ -19,7 +19,7 @@ in
 
     iconTheme = {
       name = iconThemeName;
-      package = pkgs.rose-pine-icon-theme;
+      package = pkgs.mint-y-icons;
     };
 
     gtk3.extraConfig = {
