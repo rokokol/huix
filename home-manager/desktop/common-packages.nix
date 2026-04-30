@@ -22,6 +22,7 @@
     yt-dlp
     matlab
     libreoffice-fresh
+    exiftool
 
     # Python
     uv
