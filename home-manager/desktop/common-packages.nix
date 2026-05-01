@@ -1,5 +1,18 @@
 { pkgs, huixDir, ... }:
 
+let
+  crow-old = pkgs.crow-translate.overrideAttrs (oldAttrs: rec {
+    version = "2.11.1";
+    src = pkgs.fetchFromGitHub {
+      owner = "crow-translate";
+      repo = "crow-translate";
+      rev = "v${version}";
+      # Хэш можно узнать, заменив его на lib.fakeHash,
+      # запустив сборку и скопировав полученный из ошибки хэш.
+      hash = "sha256-787o6OId/qf6pD1Mv5s86H0A5p5pY5p5pY5p5pY5p5p=";
+    };
+  });
+in
 {
   imports = [
     ./mime-apps.nix
