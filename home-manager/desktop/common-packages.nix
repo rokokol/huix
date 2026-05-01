@@ -1,15 +1,61 @@
 { pkgs, huixDir, ... }:
 
 let
-  crow-old = pkgs.crow-translate.overrideAttrs (oldAttrs: rec {
-    version = "2.11.1";
-    src = pkgs.fetchFromGitHub {
-      owner = "crow-translate";
-      repo = "crow-translate";
-      rev = "${version}";
-      hash = "sha256-RIn0B6Dsh8S3lW8O13mK6v37mF6uG69XzH5/p9P5vE4=";
-    };
-  });
+  crow-old = pkgs.libsForQt5.callPackage (
+    {
+      stdenv,
+      fetchFromGitHub,
+      cmake,
+      qtbase,
+      qtx11extras,
+      qttools,
+      qtsvg,
+      kwayland,
+      leptonica,
+      tesseract,
+      extra-cmake-modules,
+      wrapQtAppsHook,
+      pkg-config,
+      libxdmcp,
+      libxau,
+    }:
+    stdenv.mkDerivation rec {
+      pname = "crow-translate";
+      version = "2.11.1";
+
+      src = fetchFromGitHub {
+        owner = "crow-translate";
+        repo = "crow-translate";
+        rev = version;
+        hash = "sha256-fvo/IdCdvbKD77+5etPmsw2tG6qbgFPInqPKc54Q2h0=";
+        fetchSubmodules = true;
+      };
+
+      nativeBuildInputs = [
+        cmake
+        extra-cmake-modules
+        qttools
+        wrapQtAppsHook
+        pkg-config
+      ];
+
+      cmakeFlags = [
+        "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
+      ];
+
+      buildInputs = [
+        qtbase
+        qtx11extras
+        qtsvg
+        qtmultimedia
+        kwayland
+        leptonica
+        tesseract
+        libxdmcp
+        libxau
+      ];
+    }
+  ) { };
 in
 {
   imports = [
