@@ -8,12 +8,15 @@
 {
   programs.git = {
     enable = true;
-    settings.user.Name = rokokolName;
-    settings.user.Email = "mailofilyusha@gmail.com";
-    settings.core.editor = "nvim";
-
-    extraConfig = {
-      safe.directory = "${govnoDir}/myWiki";
+    settings = {
+      user = {
+        Name = rokokolName;
+        Email = "mailofilyusha@gmail.com";
+      };
+      core.editor = "nvim";
+      safe = {
+        directory = "${govnoDir}/myWiki";
+      };
     };
   };
 
