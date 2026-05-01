@@ -27,6 +27,7 @@
           "custom/gpu"
           "pulseaudio"
           "hyprland/language"
+          "tray"
           "network"
         ];
 
@@ -105,6 +106,11 @@
           tooltip = false;
         };
 
+        "tray" = {
+          icon-size = 14;
+          spspacing = 20;
+        };
+
         "network" = {
           format-wifi = "📶";
           format-ethernet = "🌐";
@@ -139,7 +145,7 @@
       }
 
       /* Modules style (islands) */
-      #workspaces, #window, #clock, #pulseaudio, #network, #language, #custom-gpu, #hardware {
+      #workspaces, #window, #clock, #pulseaudio, #network, #language, #custom-gpu, #hardware, #tray {
           background: rgba(255, 240, 245, 0.9);
           color: #4c4c4c;
           padding: 0px 8px;   
