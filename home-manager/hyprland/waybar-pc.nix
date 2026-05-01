@@ -108,7 +108,7 @@
 
         "tray" = {
           icon-size = 14;
-          spspacing = 20;
+          spacing = 20;
         };
 
         "network" = {
