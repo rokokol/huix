@@ -23,6 +23,7 @@
     matlab
     libreoffice-fresh
     exiftool
+    tree
 
     # Python
     uv
