@@ -8,6 +8,7 @@
       anchor = "top-right";
       font = "Doki 12";
       padding = "15";
+      default-timeout = 5000;
 
       border-radius = 8;
       border-size = 3;
