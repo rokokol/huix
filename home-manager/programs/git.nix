@@ -1,4 +1,9 @@
-{ pkgs, rokokolName, ... }:
+{
+  pkgs,
+  rokokolName,
+  govnoDir,
+  ...
+}:
 
 {
   programs.git = {
@@ -6,6 +11,10 @@
     settings.user.Name = rokokolName;
     settings.user.Email = "mailofilyusha@gmail.com";
     settings.core.editor = "nvim";
+
+    extraConfig = {
+      safe.directory = "${govnoDir}/myWiki";
+    };
   };
 
   programs.gh = {
