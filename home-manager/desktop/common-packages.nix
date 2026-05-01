@@ -8,6 +8,7 @@ let
       cmake,
       qtbase,
       qtx11extras,
+      qtmultimedia,
       qttools,
       qtsvg,
       kwayland,
@@ -47,6 +48,7 @@ let
         qtbase
         qtx11extras
         qtsvg
+        qtmultimedia
         qtmultimedia
         kwayland
         leptonica
