@@ -6,10 +6,8 @@ let
     src = pkgs.fetchFromGitHub {
       owner = "crow-translate";
       repo = "crow-translate";
-      rev = "v${version}";
-      # Хэш можно узнать, заменив его на lib.fakeHash,
-      # запустив сборку и скопировав полученный из ошибки хэш.
-      hash = "sha256-787o6OId/qf6pD1Mv5s86H0A5p5pY5p5pY5p5pY5p5p=";
+      rev = "${version}";
+      hash = "sha256-RIn0B6Dsh8S3lW8O13mK6v37mF6uG69XzH5/p9P5vE4=";
     };
   });
 in
@@ -37,6 +35,7 @@ in
     libreoffice-fresh
     exiftool
     tree
+    crow-old
 
     # Python
     uv
