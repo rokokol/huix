@@ -78,8 +78,6 @@
         "browser.sessionstore.resume_from_crash" = true;
         "privacy.sanitize.sanitizeOnShutdown" = false;
         "network.cookie.cookieBehavior" = 0;
-
-        # Принудительное обновление закрепов при каждом запуске
         "zen.sync.essential-pins" = true;
         "browser.tabs.warnOnClose" = false;
       };
