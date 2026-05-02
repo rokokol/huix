@@ -1,5 +1,9 @@
 { ... }:
 
+let
+  flakeIcon = "share/icons/hicolor/scalable/apps/nix-snowflake.svg";
+  nixSnowflakeIcon = "${pkgs.nixos-icons}/${flakeIcon}";
+in
 {
   programs.zen-browser = {
     enable = true;
@@ -51,8 +55,99 @@
             icon = "https://icons.duckduckgo.com/ip3/wolframalpha.com.ico";
             definedAliases = [ "@w" ];
           };
+
+          "Nix Packages" = {
+            urls = [
+              {
+                template = "https://search.nixos.org/packages";
+                params = [
+                  {
+                    name = "type";
+                    value = "packages";
+                  }
+                  {
+                    name = "channel";
+                    value = "unstable";
+                  }
+                  {
+                    name = "query";
+                    value = "{searchTerms}";
+                  }
+                ];
+              }
+            ];
+            icon = nixSnowflakeIcon;
+            definedAliases = [ "p" ];
+          };
+
+          "Nix Options" = {
+            urls = [
+              {
+                template = "https://search.nixos.org/options";
+                params = [
+                  {
+                    name = "channel";
+                    value = "unstable";
+                  }
+                  {
+                    name = "query";
+                    value = "{searchTerms}";
+                  }
+                ];
+              }
+            ];
+            icon = nixSnowflakeIcon;
+            definedAliases = [ "o" ];
+          };
+
+          "Home Manager Options" = {
+            urls = [
+              {
+                template = "https://home-manager-options.extranix.com";
+                params = [
+                  {
+                    name = "query";
+                    value = "{searchTerms}";
+                  }
+                  {
+                    name = "release";
+                    value = "master";
+                  }
+                ];
+              }
+            ];
+            icon = nixSnowflakeIcon;
+            definedAliases = [ "hm" ];
+          };
         };
       };
     };
+  };
+
+  xdg.mimeApps = {
+    enable = true;
+    defaultApplications =
+      map
+        (name: {
+          inherit name;
+          value = "zen-beta.desktop";
+        })
+        [
+          "application/json"
+          "application/x-extension-htm"
+          "application/x-extension-html"
+          "application/x-extension-shtml"
+          "application/x-extension-xht"
+          "application/x-extension-xhtml"
+          "application/xhtml+xml"
+          "text/html"
+          "text/plain"
+          "x-scheme-handler/about"
+          "x-scheme-handler/chrome"
+          "x-scheme-handler/http"
+          "x-scheme-handler/https"
+          "x-scheme-handler/mailto"
+          "x-scheme-handler/unknown"
+        ];
   };
 }
