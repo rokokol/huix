@@ -9,7 +9,7 @@
       font = "Doki 12";
       padding = "15";
 
-      on-button-right = "exec makoctl menu -n $id -- rofi -dmenu";
+      on-button-right = "exec makoctl menu -n $id -- ${pkgs.rofi}/bin/rofi -dmenu -p 💌";
       on-button-left = "invoke-default-action";
       on-button-middle = "dismiss";
 
