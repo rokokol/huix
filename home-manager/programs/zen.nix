@@ -10,6 +10,11 @@ in
     profiles.default = {
       isDefault = true;
 
+      mods = [
+        "03a8e7ef-cf00-4f41-bf24-a90deeafc9db" # colorful picker
+        "a6335949-4465-4b71-926c-4a52d34bc9c0" # better search
+      ];
+
       search = {
         default = "SearXNG";
         force = true;
