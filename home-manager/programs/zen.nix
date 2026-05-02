@@ -1,5 +1,4 @@
 {
-  config,
   ...
 }:
 
@@ -7,7 +6,7 @@
   programs.zen-browser = {
     enable = true;
 
-    profiles.${config.home.username} = {
+    profiles.default = {
       isDefault = true;
 
       pins = {
@@ -55,9 +54,7 @@
       settings = {
         "zen.window-sync.enabled" = true;
         "zen.window-sync.sync-only-pinned-tabs" = true;
-
         "extensions.autoDisableScopes" = 0;
-
         "browser.shell.checkDefaultBrowser" = false;
         "browser.sessionstore.resume_from_crash" = true;
         "privacy.sanitize.sanitizeOnShutdown" = false;
@@ -65,5 +62,4 @@
       };
     };
   };
-
 }
