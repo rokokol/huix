@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ ... }:
 
 {
   services.mako = {
@@ -10,7 +10,7 @@
       font = "Doki 12";
       padding = "15";
 
-      on-button-right = "exec makoctl menu -n %i -- ${pkgs.rofi}/bin/rofi -dmenu";
+      on-button-right = "exec makoctl menu -n %i -- rofi -dmenu";
       on-button-left = "invoke-default-action";
       on-button-middle = "dismiss";
 
