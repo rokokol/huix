@@ -29,6 +29,7 @@
     pup
     jq
     rofimoji
+    translate-shell
     (tesseract5.override {
       enableLanguages = [
         "rus"
