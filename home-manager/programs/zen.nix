@@ -1,8 +1,7 @@
 { ... }:
 
 let
-  flakeIcon = "share/icons/hicolor/scalable/apps/nix-snowflake.svg";
-  nixSnowflakeIcon = "${pkgs.nixos-icons}/${flakeIcon}";
+  nixSnowflakeIcon = "https://wiki.nixos.org/favicon.ico";
 in
 {
   programs.zen-browser = {
@@ -38,7 +37,7 @@ in
           };
           "NixOS Wiki" = {
             urls = [ { template = "https://wiki.nixos.org/w/index.php?search={searchTerms}"; } ];
-            icon = "https://wiki.nixos.org/favicon.ico";
+            icon = nixSnowflakeIcon;
             definedAliases = [ "@nw" ];
           };
           "Wiby" = {
@@ -126,7 +125,7 @@ in
 
   xdg.mimeApps = {
     enable = true;
-    defaultApplications =
+    defaultApplications = builtins.listToAttrs (
       map
         (name: {
           inherit name;
@@ -148,6 +147,7 @@ in
           "x-scheme-handler/https"
           "x-scheme-handler/mailto"
           "x-scheme-handler/unknown"
-        ];
+        ]
+    );
   };
 }
