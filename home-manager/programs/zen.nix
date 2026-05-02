@@ -39,12 +39,17 @@
           };
           "Wiby" = {
             urls = [ { template = "https://wiby.me/?q={searchTerms}"; } ];
-            definedAliases = [ "@w" ];
+            definedAliases = [ "@wb" ];
           };
           "GitHub" = {
             urls = [ { template = "https://github.com/search?q={searchTerms}"; } ];
             icon = "https://github.com/favicon.ico";
             definedAliases = [ "@gh" ];
+          };
+          "WolframAlpha" = {
+            urls = [ { template = "https://www.wolframalpha.com/input/?i={searchTerms}"; } ];
+            icon = "https://www.wolframalpha.com/favicon.ico";
+            definedAliases = [ "@w" ];
           };
         };
       };
