@@ -5,6 +5,7 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-25.11";
     nixvim.url = "github:nix-community/nixvim";
+    nixpkgs-crow-old.url = "github:nixos/nixpkgs/nixos-22.05";
 
     comfyui-nix.url = "https://flakehub.com/f/utensils/comfyui/0.18.2";
 
@@ -35,6 +36,7 @@
       home-manager,
       nix-matlab,
       comfyui-nix,
+      nixpkgs-crow-old,
       ...
     }@inputs:
 
@@ -80,6 +82,14 @@
           config = configCuda;
         };
       };
+
+      overlay-crow-old = final: prev: {
+        crow-old =
+          (import nixpkgs-crow-old {
+            inherit system;
+            config.allowUnfree = true;
+          }).crow-translate;
+      };
     in
     {
       nixosConfigurations.nixos-pc = nixpkgs.lib.nixosSystem {
@@ -95,6 +105,7 @@
               overlay-stable
               nix-matlab.overlay
               comfyui-nix.overlays.default
+              overlay-crow-old
             ];
           }
 
@@ -124,6 +135,7 @@
             nixpkgs.overlays = [
               overlay-stable
               nix-matlab.overlay
+              overlay-crow-old
             ];
           }
 
