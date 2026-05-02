@@ -10,7 +10,7 @@
       hover = {
         max_width = 0.6;
         open_link = "gx";
-        open_browser = "!firefox";
+        open_browser = "xdg-open";
       };
     };
   };
