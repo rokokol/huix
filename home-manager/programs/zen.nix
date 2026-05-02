@@ -32,20 +32,21 @@
         default = "SearXNG";
         force = true;
         engines = {
+          "amazondotcom-us".metaData.hidden = true;
+          "ebay-uk".metaData.hidden = true;
+          "twitter".metaData.hidden = true;
+          "ddg".metaData.hidden = true;
+          "perplexity".metaData.hidden = true;
           "bing".metaData.hidden = true;
+
           "google" = {
             metaData.hidden = false;
             metaData.alias = "@g";
           };
-          "amazondotcom-us".metaData.hidden = true;
-          "eBay".metaData.hidden = true;
-          "twitter".metaData.hidden = true;
           "wikipedia" = {
             metaData.hidden = false;
             metaData.alias = "@wiki";
           };
-          "ddg".metaData.hidden = true;
-          "perplexity".metaData.hidden = true;
 
           "SearXNG" = {
             urls = [ { template = "http://localhost/search?q={searchTerms}"; } ];
