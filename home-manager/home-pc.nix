@@ -15,6 +15,7 @@
     ./programs/nixvim/default.nix
     ./programs/ssh.nix
     ./programs/thunar.nix
+    ./programs/zen.nix
     ./desktop/user-pc.nix
   ];
 
