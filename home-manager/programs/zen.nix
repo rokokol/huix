@@ -1,4 +1,5 @@
 {
+  config,
   ...
 }:
 
@@ -62,4 +63,6 @@
       };
     };
   };
+
+  home.file.".zen".source = config.lib.file.mkOutOfStoreSymlink "${config.xdg.configHome}/zen";
 }
