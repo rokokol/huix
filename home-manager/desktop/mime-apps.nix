@@ -1,20 +1,9 @@
 { ... }:
 
-let
-  browser = "zen-beta.desktop";
-in
 {
   xdg.mimeApps = {
     enable = true;
     defaultApplications = {
-      "text/html" = browser;
-      "x-scheme-handler/http" = browser;
-      "x-scheme-handler/https" = browser;
-      "x-scheme-handler/about" = browser;
-      "x-scheme-handler/unknown" = browser;
-      "inode/directory" = "thunar.desktop";
-      "application/x-directory" = "thunar.desktop";
-
       "image/jpeg" = "swayimg.desktop";
       "image/png" = "swayimg.desktop";
       "image/gif" = "swayimg.desktop";
