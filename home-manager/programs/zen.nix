@@ -32,13 +32,19 @@
         default = "SearXNG";
         force = true;
         engines = {
-          "Bing".metaData.hidden = true;
-          "Google".metaData.hidden = true;
-          "Amazon.com".metaData.hidden = true;
-          "eBay".metaData.hidden = true;
-          "Twitter".metaData.hidden = true;
-          "Wikipedia (en)".metaData.hidden = true;
-          "DuckDuckGo".metaData.hidden = true;
+          "bing".metaData.hidden = true;
+          "google" = {
+            metaData.hidden = true;
+            metaData.alias = "@g";
+          };
+          "amazondotcom-us".metaData.hidden = true;
+          "ebay".metaData.hidden = true;
+          "twitter".metaData.hidden = true;
+          "wikipedia" = {
+            metaData.hidden = true;
+            metaData.alias = "@wiki";
+          };
+          "ddg".metaData.hidden = true;
 
           "SearXNG" = {
             urls = [ { template = "http://localhost/search?q={searchTerms}"; } ];
@@ -59,9 +65,6 @@
             icon = "https://github.com/favicon.ico";
             definedAliases = [ "@gh" ];
           };
-
-          "google".metaData.alias = "@g";
-          "wikipedia".metaData.alias = "@wiki";
         };
       };
 
