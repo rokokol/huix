@@ -1,20 +1,20 @@
-{ ... }:
+{ pkgs, ... }:
 
 {
   services.mako = {
     enable = true;
-    maxHistory = 50;
 
     settings = {
       anchor = "top-right";
       font = "Doki 12";
       padding = "15";
 
-      on-button-right = "exec makoctl menu -n %i -- rofi -dmenu";
+      on-button-right = "exec makoctl menu -n $id -- rofi -dmenu";
       on-button-left = "invoke-default-action";
       on-button-middle = "dismiss";
 
       default-timeout = 5000;
+      max-history = 50;
 
       border-radius = 8;
       border-size = 3;
