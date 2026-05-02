@@ -41,10 +41,11 @@
           "ebay".metaData.hidden = true;
           "twitter".metaData.hidden = true;
           "wikipedia" = {
-            metaData.hidden = true;
+            metaData.hidden = false;
             metaData.alias = "@wiki";
           };
           "ddg".metaData.hidden = true;
+          "perplexity".metaData.hidden = true;
 
           "SearXNG" = {
             urls = [ { template = "http://localhost/search?q={searchTerms}"; } ];
