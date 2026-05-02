@@ -1,24 +1,33 @@
 {
   config,
-  pkgs,
-  inputs,
   ...
 }:
 
 {
-  programs.firefox = {
+  programs.zen-browser = {
     enable = true;
-    package = inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
     profiles.${config.home.username} = {
       isDefault = true;
 
+      pins = {
+        "YouTube" = {
+          id = "youtube-essential";
+          url = "https://www.youtube.com";
+          isEssential = true;
+        };
+        "GitHub" = {
+          id = "github-essential";
+          url = "https://github.com";
+          isEssential = true;
+        };
+      };
+
       search = {
         default = "SearXNG";
-        force = true; # Принудительно заменяет дефолтные поисковики
+        force = true;
         engines = {
           "SearXNG" = {
-            # Ссылаемся на твой Nginx proxy
             urls = [ { template = "http://localhost/search?q={searchTerms}"; } ];
             icon = "http://localhost/favicon.ico";
             definedAliases = [ "@s" ];
@@ -44,9 +53,17 @@
       };
 
       settings = {
-        # Разрешаем автоматическую активацию расширений, загруженных через Mozilla Sync
+        "zen.window-sync.enabled" = true;
+        "zen.window-sync.sync-only-pinned-tabs" = true;
+
         "extensions.autoDisableScopes" = 0;
+
+        "browser.shell.checkDefaultBrowser" = false;
+        "browser.sessionstore.resume_from_crash" = true;
+        "privacy.sanitize.sanitizeOnShutdown" = false;
+        "network.cookie.cookieBehavior" = 0;
       };
     };
   };
+
 }
