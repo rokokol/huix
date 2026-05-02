@@ -1,32 +1,13 @@
 {
-  config,
-  pkgs,
   ...
 }:
 
 {
-  # Принудительно направляем Zen в папку, которую использует Home Manager
-  home.file.".zen".source = config.lib.file.mkOutOfStoreSymlink "${config.xdg.configHome}/zen";
-
   programs.zen-browser = {
     enable = true;
 
     profiles.default = {
       isDefault = true;
-      path = "default";
-
-      pins = {
-        "YouTube" = {
-          id = "youtube-essential";
-          url = "https://www.youtube.com";
-          isEssential = true;
-        };
-        "GitHub" = {
-          id = "github-essential";
-          url = "https://github.com";
-          isEssential = true;
-        };
-      };
 
       search = {
         default = "SearXNG";
@@ -68,18 +49,6 @@
             definedAliases = [ "@gh" ];
           };
         };
-      };
-
-      settings = {
-        "zen.window-sync.enabled" = true;
-        "zen.window-sync.sync-only-pinned-tabs" = true;
-        "extensions.autoDisableScopes" = 0;
-        "browser.shell.checkDefaultBrowser" = false;
-        "browser.sessionstore.resume_from_crash" = true;
-        "privacy.sanitize.sanitizeOnShutdown" = false;
-        "network.cookie.cookieBehavior" = 0;
-        "zen.sync.essential-pins" = true;
-        "browser.tabs.warnOnClose" = false;
       };
     };
   };
