@@ -3,6 +3,7 @@
 {
   services.mako = {
     enable = true;
+    maxHistory = 50;
 
     settings = {
       anchor = "top-right";
