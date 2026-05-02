@@ -9,9 +9,10 @@
       font = "Doki 12";
       padding = "15";
 
-      on-button-right = "menu rofi -dmenu -p 'Выбор действия:'";
-      on-button-left = "invoke-default-action";
-      on-button-middle = "dismiss";
+      format = "<b>%s</b>\\n%b\\n\\n<span color='#24A1DE'>%a</span>";
+      # on-button-right = "menu rofi -dmenu -p 'Выбор действия:'";
+      # on-button-left = "invoke-default-action";
+      # on-button-middle = "dismiss";
 
       default-timeout = 5000;
       history-limit = 50;
