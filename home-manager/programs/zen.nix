@@ -34,11 +34,11 @@
         engines = {
           "bing".metaData.hidden = true;
           "google" = {
-            metaData.hidden = true;
+            metaData.hidden = false;
             metaData.alias = "@g";
           };
           "amazondotcom-us".metaData.hidden = true;
-          "ebay".metaData.hidden = true;
+          "eBay".metaData.hidden = true;
           "twitter".metaData.hidden = true;
           "wikipedia" = {
             metaData.hidden = false;
