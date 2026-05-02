@@ -48,7 +48,7 @@
           };
           "WolframAlpha" = {
             urls = [ { template = "https://www.wolframalpha.com/input/?i={searchTerms}"; } ];
-            icon = "https://www.wolframalpha.com/favicon.ico";
+            icon = "https://icons.duckduckgo.com/ip3/wolframalpha.com.ico";
             definedAliases = [ "@w" ];
           };
         };
