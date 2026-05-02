@@ -105,6 +105,9 @@
               useGlobalPkgs = true;
               useUserPackages = true;
               backupFileExtension = "bak";
+              sharedModules = [
+                inputs.zen-browser.homeModules.default
+              ];
 
               extraSpecialArgs = commonArgs;
 
@@ -134,6 +137,9 @@
               useGlobalPkgs = true;
               useUserPackages = true;
               backupFileExtension = "bak";
+              sharedModules = [
+                inputs.zen-browser.homeModules.default
+              ];
 
               extraSpecialArgs = commonArgs;
 

@@ -4,7 +4,6 @@
   # --- Core desktop session ---
   programs.zsh.enable = true;
   programs.hyprland.enable = true;
-  programs.firefox.enable = true;
 
   # --- Bluetooth ---
   hardware.bluetooth.enable = true;

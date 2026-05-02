@@ -5,9 +5,6 @@
   programs.hyprland.enable = true;
   programs.zsh.enable = true;
 
-  # --- Browser & privacy ---
-  programs.firefox.enable = true;
-
   # --- Desktop app integration ---
   programs.appimage.enable = true;
   services.flatpak.enable = true;
