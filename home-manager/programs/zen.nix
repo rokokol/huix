@@ -1,14 +1,19 @@
 {
   config,
+  pkgs,
   ...
 }:
 
 {
+  # Принудительно направляем Zen в папку, которую использует Home Manager
+  home.file.".zen".source = config.lib.file.mkOutOfStoreSymlink "${config.xdg.configHome}/zen";
+
   programs.zen-browser = {
     enable = true;
 
     profiles.default = {
       isDefault = true;
+      path = "default";
 
       pins = {
         "YouTube" = {
@@ -27,6 +32,14 @@
         default = "SearXNG";
         force = true;
         engines = {
+          "Bing".metaData.hidden = true;
+          "Google".metaData.hidden = true;
+          "Amazon.com".metaData.hidden = true;
+          "eBay".metaData.hidden = true;
+          "Twitter".metaData.hidden = true;
+          "Wikipedia (en)".metaData.hidden = true;
+          "DuckDuckGo".metaData.hidden = true;
+
           "SearXNG" = {
             urls = [ { template = "http://localhost/search?q={searchTerms}"; } ];
             icon = "http://localhost/favicon.ico";
@@ -60,9 +73,11 @@
         "browser.sessionstore.resume_from_crash" = true;
         "privacy.sanitize.sanitizeOnShutdown" = false;
         "network.cookie.cookieBehavior" = 0;
+
+        # Принудительное обновление закрепов при каждом запуске
+        "zen.sync.essential-pins" = true;
+        "browser.tabs.warnOnClose" = false;
       };
     };
   };
-
-  home.file.".zen".source = config.lib.file.mkOutOfStoreSymlink "${config.xdg.configHome}/zen";
 }
