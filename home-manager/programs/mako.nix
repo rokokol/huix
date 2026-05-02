@@ -9,10 +9,9 @@
       font = "Doki 12";
       padding = "15";
 
-      format = "<b>%s</b>\\n%b\\n\\n<span color='#24A1DE'>%a</span>";
-      # on-button-right = "menu rofi -dmenu -p 'Выбор действия:'";
-      # on-button-left = "invoke-default-action";
-      # on-button-middle = "dismiss";
+      on-button-right = "exec makoctl menu -n %i rofi -dmenu -p 'Выбор действия:'";
+      on-button-left = "invoke-default-action";
+      on-button-middle = "dismiss";
 
       default-timeout = 5000;
       history-limit = 50;
