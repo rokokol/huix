@@ -1,6 +1,11 @@
 { ... }:
 
 {
+  imports = [
+    ./zsh.nix
+    ./starship.nix
+  ];
+
   programs.kitty = {
     enable = true;
 
@@ -24,14 +29,21 @@
 
       linux_display_server = "wayland";
       wayland_titlebar_color = "system";
+
       background_opacity = "0.9";
       window_padding_width = 12;
-      hide_window_decorations = "no";
+      hide_window_decorations = "yes";
       shell = "zsh";
       enable_audio_bell = true;
+
       cursor_trail = 50;
       cursor_trail_decay = "0.1 0.35";
       cursor_trail_start_threshold = 1;
+
+      cursor_blink_interval = "0.5";
+      cursor_stop_blinking_after = "15.0";
+
+      disable_ligatures = "cursor";
     };
   };
 }
