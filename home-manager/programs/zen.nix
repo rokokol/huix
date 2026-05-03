@@ -13,6 +13,7 @@ in
       mods = [
         "03a8e7ef-cf00-4f41-bf24-a90deeafc9db" # colorful picker
         "a6335949-4465-4b71-926c-4a52d34bc9c0" # better search
+        "906c6915-5677-48ff-9bfc-096a02a72379" # floating status bar
       ];
 
       search = {
