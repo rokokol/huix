@@ -14,11 +14,4 @@ in
     overrideDevices = false;
     overrideFolders = false;
   };
-
-  # TCP 22000 - data, UDP 21027 - local
-  # networking.firewall.allowedTCPPorts = [ 22000 ];
-  # networking.firewall.allowedUDPPorts = [
-  #   21027
-  #   22000
-  # ];
 }

@@ -37,6 +37,7 @@ in
     ./services/nix-ld.nix
     ./services/amnezia-vpn.nix
     ./services/ollama.nix
+    ./services/libre-translate.nix
     ./services/openwebui.nix
     ./services/comfyui.nix
     ./services/syncthing.nix
