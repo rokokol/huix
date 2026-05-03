@@ -41,4 +41,8 @@ in
         -d '{"q": "прогрев", "source": "ru", "target": "en"}'
     '';
   };
+
+  environment.sessionVariables = {
+    LIBRE_TRANSLATE_PORT = port;
+  };
 }
