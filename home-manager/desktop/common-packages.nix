@@ -24,7 +24,6 @@
     libreoffice-fresh
     exiftool
     tree
-    dialect
 
     # Python
     uv
