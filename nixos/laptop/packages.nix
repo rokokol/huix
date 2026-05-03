@@ -28,7 +28,6 @@
     neovim
     pup
     ripgrep
-    translate-shell
     trash-cli
     wget
 

@@ -25,7 +25,6 @@
     lazygit
     pup
     ripgrep
-    translate-shell
     wget
     cuda.ffmpeg-headless
   ];
