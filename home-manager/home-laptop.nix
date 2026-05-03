@@ -6,9 +6,7 @@
     ./hyprland/hyprland-laptop.nix
     ./programs/mako.nix
     ./programs/rofi
-    ./programs/zsh.nix
     ./programs/git.nix
-    ./programs/starship.nix
     ./programs/kitty.nix
     ./programs/btop.nix
     ./programs/nixvim/default.nix

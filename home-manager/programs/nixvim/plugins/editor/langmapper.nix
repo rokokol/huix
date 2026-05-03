@@ -73,7 +73,7 @@ in
   programs.nixvim = {
     opts = {
       langmap = langmap;
-      langremap = true;
+      langremap = false;
     };
 
     extraPlugins = [
