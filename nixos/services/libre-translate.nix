@@ -26,17 +26,19 @@ in
     };
 
     script = ''
-      until ${pkgs.curl}/bin/curl -s "http://127.0.0.1:$port" > /dev/null; do
+      until ${pkgs.curl}/bin/curl -f -s "http://127.0.0.1:${toString port}/" > /dev/null; do
         sleep 2
       done
 
-      ${pkgs.curl}/bin/curl -s -X POST "http://127.0.0.1:$port/translate" \
+      echo "Starting EN -> RU warmup..."
+      ${pkgs.curl}/bin/curl -f -X POST "http://127.0.0.1:${toString port}/translate" \
         -H "Content-Type: application/json" \
-        -d '{"q": "warmup", "source": "en", "target": "ru"}' > /dev/null
+        -d '{"q": "warmup", "source": "en", "target": "ru"}'
 
-      ${pkgs.curl}/bin/curl -s -X POST "http://127.0.0.1:$port/translate" \
+      echo -e "\nStarting RU -> EN warmup..."
+      ${pkgs.curl}/bin/curl -f -X POST "http://127.0.0.1:${toString port}/translate" \
         -H "Content-Type: application/json" \
-        -d '{"q": "прогрев", "source": "ru", "target": "en"}' > /dev/null
+        -d '{"q": "прогрев", "source": "ru", "target": "en"}'
     '';
   };
 }
