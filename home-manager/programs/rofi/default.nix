@@ -1,4 +1,9 @@
-{ pkgs, config, lib, ... }:
+{
+  pkgs,
+  config,
+  lib,
+  ...
+}:
 
 let
   rofiConfigDir = "${config.xdg.configHome}/rofi";
@@ -33,6 +38,9 @@ in
       display-kaomoji = "(,,#ﾟДﾟ)";
       display-dictionary = "🤓";
       sorting-method = "fzf";
+
+      display-ru-en = "🇷🇺>🇺🇸";
+      display-en-ru = "🇺🇸>🇷🇺";
     };
   };
 
