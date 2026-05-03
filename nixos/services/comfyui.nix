@@ -4,6 +4,9 @@
   ...
 }:
 
+let
+  port = 8188;
+in
 {
   imports = [ inputs.comfyui-nix.nixosModules.default ];
 
@@ -11,7 +14,7 @@
     enable = true;
     gpuSupport = "cuda";
     enableManager = true;
-    port = 8188;
+    port = port;
     listenAddress = "127.0.0.1";
     dataDir = "/home/${rokokolName}/comfyui-data";
     user = rokokolName;
@@ -31,5 +34,9 @@
     trusted-public-keys = [
       "comfyui.cachix.org-1:33mf9VzoIjzVbp0zwj+fT51HG0y31ZTK3nzYZAX0rec="
     ];
+  };
+
+  environment.sessionVariables = {
+    COMFYUI_PORT = port;
   };
 }
