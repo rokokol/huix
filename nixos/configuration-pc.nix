@@ -39,7 +39,7 @@ in
     ./services/ollama.nix
     ./services/openwebui.nix
     ./services/comfyui.nix
-    ./services/syncting.nix
+    ./services/syncthing.nix
     ./services/tor.nix
   ];
 

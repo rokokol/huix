@@ -16,7 +16,7 @@
     ./services/jupyter.nix
     ./services/ssh-askpass.nix
     ./services/amnezia-vpn.nix
-    ./services/syncting.nix
+    ./services/syncthing.nix
     ./services/ollama.nix
     ./services/cachix.nix
     ./services/tor.nix
