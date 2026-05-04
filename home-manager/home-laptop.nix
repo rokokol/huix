@@ -1,23 +1,11 @@
-{ pkgs, inputs, ... }:
+{ pkgs, ... }:
 
 {
-  imports = [
-    inputs.nixvim.homeModules.nixvim
-    ./hyprland/hyprland-laptop.nix
-    ./programs/mako.nix
-    ./programs/rofi
-    ./programs/git.nix
-    ./programs/kitty.nix
-    ./programs/btop.nix
-    ./programs/nixvim/default.nix
-    ./programs/ssh.nix
-    ./programs/thunar.nix
-    ./programs/zen.nix
-    ./desktop/user-laptop.nix
-  ];
-
   programs.home-manager.enable = true;
-  programs.bash.enable = true;
+  imports = [
+    ./desktop/user-laptop.nix
+    ./programs/default.nix
+  ];
 
   _module.args.btopPackage = pkgs.btop;
 }

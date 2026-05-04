@@ -1,11 +1,6 @@
 { ... }:
 
 {
-  imports = [
-    ./zsh.nix
-    ./starship.nix
-  ];
-
   programs.kitty = {
     enable = true;
 

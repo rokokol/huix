@@ -5,9 +5,7 @@
   services.playerctld.enable = true;
 
   imports = [
-    ./cursor.nix
     ./hypridle.nix
-    ./sync.nix
   ];
 
   home.packages = with pkgs; [

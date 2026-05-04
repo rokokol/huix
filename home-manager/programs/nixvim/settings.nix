@@ -1,16 +1,21 @@
-{ ... }:
+{ pkgs, ... }:
 
 {
   programs.nixvim = {
+    enable = true;
+    defaultEditor = true;
+
     # --- Globals ---
     diagnostics = {
       underline = false;
       virtual_text = false;
     };
+
     globals = {
       mapleader = " ";
       maplocalleader = ",";
     };
+
     # --- Options ---
     opts = {
       confirm = true;
@@ -80,4 +85,8 @@
       })
     '';
   };
+
+  extraPlugins = with pkgs.vimPlugins; [
+    gruvbox-nvim
+  ];
 }
