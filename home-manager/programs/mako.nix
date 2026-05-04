@@ -13,7 +13,7 @@
       on-button-left = "invoke-default-action";
       on-button-middle = "dismiss";
 
-      default-timeout = 5000;
+      default-timeout = 6500;
       max-history = 50;
 
       border-radius = 8;
