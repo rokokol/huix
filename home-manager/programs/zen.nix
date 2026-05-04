@@ -17,7 +17,7 @@ in
       ];
 
       search = {
-        default = "SearXNG";
+        default = "google";
         force = true;
         engines = {
           "amazondotcom-us".metaData.hidden = true;

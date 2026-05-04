@@ -21,7 +21,6 @@
     ./services/cachix.nix
     ./services/tor.nix
     ./services/libre-translate.nix
-    ./services/searxng.nix
   ];
 
   system.stateVersion = "25.11";
