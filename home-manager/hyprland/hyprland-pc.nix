@@ -23,5 +23,6 @@
   imports = [
     ./hyprland-packages.nix
     ./waybar-pc.nix
+    ./wallpapaer_collager.nix
   ];
 }

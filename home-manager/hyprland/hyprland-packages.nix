@@ -7,7 +7,7 @@
   imports = [
     ./cursor.nix
     ./hypridle.nix
-    ./systemd.nix
+    ./sync.nix
   ];
 
   home.packages = with pkgs; [

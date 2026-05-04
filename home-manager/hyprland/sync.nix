@@ -7,16 +7,6 @@
 
 let
   scriptsDir = ./scripts;
-  wallpaperDeps = with pkgs; [
-    bash
-    imagemagick
-    awww
-    libnotify
-    gawk
-    findutils
-    coreutils
-  ];
-
   syncDeps = with pkgs; [
     git
     libnotify
@@ -48,19 +38,6 @@ in
         ];
       };
     };
-
-    "awww-collage" = {
-      Unit = {
-        Description = "Generate and set wallpaper collage";
-        After = [ "graphical-session.target" ];
-        PartOf = [ "graphical-session.target" ];
-      };
-      Service = {
-        Type = "oneshot";
-        ExecStart = "${pkgs.bash}/bin/bash ${scriptsDir}/random_wallpaper.sh";
-        Environment = "PATH=${lib.makeBinPath wallpaperDeps}";
-      };
-    };
   };
 
   systemd.user.timers = {
@@ -72,15 +49,6 @@ in
       Timer = {
         OnCalendar = "hourly";
         OnActiveSec = "15s";
-      };
-      Install.WantedBy = [ "graphical-session.target" ];
-    };
-
-    "awww-collage" = {
-      Unit.Description = "Timer for awww wallpaper collage";
-      Timer = {
-        OnActiveSec = "10s";
-        OnUnitActiveSec = "5min";
       };
       Install.WantedBy = [ "graphical-session.target" ];
     };
