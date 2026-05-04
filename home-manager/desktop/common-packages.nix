@@ -25,6 +25,9 @@
     exiftool
     tree
 
+    obsidian
+    super-productivity
+
     # Python
     uv
     python313
