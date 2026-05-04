@@ -4,6 +4,7 @@
   imports = [
     ./mime-apps.nix
     ./theme.nix
+    ./sync.nix
   ];
 
   home.packages = with pkgs; [
@@ -16,6 +17,11 @@
     file-roller
     gnome-disk-utility
     gnome-text-editor
+    obsidian
+    super-productivity
+    obs-studio
+
+    # --- CLI ---
     gthumb
     texlive.combined.scheme-full
     usbutils
@@ -24,9 +30,15 @@
     libreoffice-fresh
     exiftool
     tree
-
-    obsidian
-    super-productivity
+    ffmpeg-headless
+    imagemagick
+    jq
+    killall
+    lazygit
+    pup
+    ripgrep
+    trash-cli
+    wget
 
     # Python
     uv
