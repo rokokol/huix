@@ -6,7 +6,8 @@
   nix.settings = {
     substituters = [
       "https://cache.nixos.org"
-      "https://cache.nixos.kz"
+      # "https://cache.nixos.kz"
+      "https://mirror.yandex.ru/nixos"
       "https://nix-community.cachix.org"
     ];
 
