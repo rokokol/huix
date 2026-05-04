@@ -42,6 +42,8 @@
 
       cursor_blink_interval = "0.5";
       cursor_stop_blinking_after = "15.0";
+
+      disable_ligatures = "never";
     };
   };
 }
