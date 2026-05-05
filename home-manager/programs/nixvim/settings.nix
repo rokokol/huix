@@ -46,9 +46,22 @@
     };
 
     # --- Appearance ---
-   
+    colorschemes.gruvbox = {
+      enable = true;
+      settings = {
+        transparent_mode = true;
+        overrides = {
+          NormalFloat.bg = "none";
+          FloatBorder.bg = "none";
+          Pmenu.bg = "none";
+          TelescopeNormal.bg = "none";
+          TelescopeBorder.bg = "none";
+          WhichKeyFloat.bg = "none";
+        };
+      };
+    };
 
-    # extraPlugins = with pkgs.vimPlugins; [ gruvbox-nvim ];
+    extraPlugins = with pkgs.vimPlugins; [ gruvbox-nvim ];
 
     # --- Lua Config ---
     extraConfigLua = ''
