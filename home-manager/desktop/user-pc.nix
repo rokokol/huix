@@ -14,8 +14,10 @@ let
 in
 {
   imports = [
-    ./common-packages.nix
-    ./pc-packages.nix
+    ./hyprland/hyprland-pc.nix
+    ./packages/packages-pc.nix
+    ./sync.nix
+    ./theme/default.nix
   ];
 
   home.stateVersion = "25.11";

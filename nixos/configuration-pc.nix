@@ -12,36 +12,9 @@ let
 in
 {
   imports = [
-    ./desktop/portals.nix
-    ./fonts/fonts.nix
-    ./pc/hardware-configuration.nix
-    ./pc/boot.nix
-    ./pc/nvidia.nix
-    ./pc/hardware.nix
-    ./pc/sound.nix
-    ./pc/keyboard.nix
-    ./pc/packages.nix
-    ./pc/system.nix
-    ./services/file-manager.nix
-    ./services/docker.nix
-    ./services/jupyter.nix
-    ./services/virtualization.nix
-    ./services/searxng.nix
-    ./services/wl-clip-persist.nix
-    ./services/sddm.nix
-    ./services/tablet.nix
-    ./services/printing.nix
-    ./services/ssh-askpass.nix
-    ./services/cachix.nix
-    ./services/arduino.nix
-    ./services/nix-ld.nix
-    ./services/amnezia-vpn.nix
-    ./services/ollama.nix
-    ./services/libre-translate.nix
-    ./services/openwebui.nix
-    ./services/comfyui.nix
-    ./services/syncthing.nix
-    ./services/tor.nix
+    ./default.nix
+    ./pc/default.nix
+    ./services/services-pc.nix
   ];
 
   system.stateVersion = "25.11";

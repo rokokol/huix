@@ -9,8 +9,10 @@ let
 in
 {
   imports = [
-    ./common-packages.nix
-    ./laptop-packages.nix
+    ./hyprland/hyprland-laptop.nix
+    ./packages/packages-laptop.nix
+    ./sync.nix
+    ./theme/default.nix
   ];
 
   home.stateVersion = "25.11";

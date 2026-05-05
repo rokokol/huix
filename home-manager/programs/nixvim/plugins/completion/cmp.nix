@@ -63,8 +63,6 @@
       };
     };
 
-    extraPlugins = with pkgs.vimPlugins; [
-      cmp-zsh
-    ];
+    extraPlugins = with pkgs.vimPlugins; [ cmp-zsh ];
   };
 }

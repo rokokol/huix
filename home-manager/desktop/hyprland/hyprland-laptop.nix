@@ -20,12 +20,17 @@
         touchpad = {
           natural_scroll = true;
         };
+
+        exec-once = [
+          "awww init"
+          "awww img ./laptop_wallpaper.png"
+        ];
       };
     };
   };
 
   imports = [
-    ./hyprland-packages.nix
-    ./waybar-laptop.nix
+    ./services/hyprland-packages.nix
+    ./services/waybar-laptop.nix
   ];
 }
