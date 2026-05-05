@@ -5,6 +5,6 @@
     ./bufferline.nix
     ./image.nix
     ./lualine.nix
-    #./web-devicons.nix
+    ./web-devicons.nix
   ];
 }
