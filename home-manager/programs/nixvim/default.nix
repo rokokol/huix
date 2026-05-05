@@ -1,11 +1,56 @@
-{ inputs, ... }:
+{ pkgs, ... }:
 
 {
+  # Import all modules
   imports = [
-    inputs.nixvim.homeModules.nixvim
     ./settings.nix
     ./keymaps.nix
     ./plugins/default.nix
-    ./packages.nix
   ];
+
+  programs.nixvim = {
+    enable = true;
+    defaultEditor = true;
+
+    # System packages required for plugins and tools
+    extraPackages = with pkgs; [
+      tree-sitter
+
+      ripgrep
+      fd
+      bottom
+      gdu
+      wl-clipboard
+      gcc
+      gnumake
+      unzip
+      imagemagick # image.nvim processor
+      file # mime detection for Telescope media search
+      ffmpeg # audio waveform preview
+      ffmpegthumbnailer # video thumbnails for Telescope preview
+      bat
+
+      # LSPs and Formatters
+      nixd
+      nixfmt
+      deadnix
+      statix
+      ruff
+      black
+      pyright
+      clang-tools
+      stylua
+      shfmt
+      shellcheck
+      nodejs
+      lua-language-server
+      bash-language-server
+    ];
+
+    extraPlugins = with pkgs.vimPlugins; [
+      nvim-treesitter-parsers.matlab
+      gruvbox-nvim
+      cmp-zsh
+    ];
+  };
 }
