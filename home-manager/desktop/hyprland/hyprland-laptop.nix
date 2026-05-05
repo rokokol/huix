@@ -1,4 +1,4 @@
-{ ... }:
+{ huixDir, ... }:
 
 {
   wayland.windowManager.hyprland = {
@@ -23,7 +23,7 @@
 
         exec-once = [
           "awww init"
-          "awww img ./laptop_wallpaper.png"
+          "awww img ${huixDir}/home-manager/desktop/hyprland/laptop_wallpaper.png"
         ];
       };
     };

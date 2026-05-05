@@ -5,6 +5,10 @@
     enable = true;
     defaultEditor = true;
 
+    extraPlugins = with pkgs.vimPlugins; [
+      gruvbox-nvim
+    ];
+
     # --- Globals ---
     diagnostics = {
       underline = false;
@@ -84,9 +88,5 @@
         end,
       })
     '';
-
-    extraPlugins = with pkgs.vimPlugins; [
-      gruvbox-nvim
-    ];
   };
 }

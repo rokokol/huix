@@ -37,7 +37,7 @@
   ];
 
   wayland.windowManager.hyprland.extraConfig = ''
-    source = ${huixDir}/home-manager/hyprland/hyprland.conf
+    source = ${huixDir}/home-manager/desktop/hyprland/hyprland.conf
   '';
 
   home.file.".config/swayimg/config".text = ''
