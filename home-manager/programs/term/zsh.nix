@@ -1,4 +1,10 @@
-{ pkgs, huixDir, config, lib, ... }:
+{
+  pkgs,
+  huixDir,
+  config,
+  lib,
+  ...
+}:
 
 {
   home.shellAliases = {
@@ -13,12 +19,16 @@
 
     tp = "trash-put";
     rebuild = "sudo nixos-rebuild switch --flake ${huixDir}";
+    rebuilds = "sudo nixos-rebuild switch --flake ${huixDir} --option substituters \"https://mirror.yandex.ru/nixos\"";
   };
 
-  home.packages = with pkgs; [
-    trash-cli
-    yt-dlp
-  ] ++ lib.optional (!(config.programs.nixvim.enable or false)) neovim;
+  home.packages =
+    with pkgs;
+    [
+      trash-cli
+      yt-dlp
+    ]
+    ++ lib.optional (!(config.programs.nixvim.enable or false)) neovim;
 
   programs.zoxide = {
     enable = true;
