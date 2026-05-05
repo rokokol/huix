@@ -2,25 +2,9 @@
 
 {
   imports = [
-    ./desktop/portals.nix
-    ./fonts/fonts.nix
-    ./laptop/hardware-configuration.nix
-    ./laptop/boot.nix
-    ./laptop/keyboard.nix
-    ./laptop/hardware.nix
-    ./laptop/packages.nix
-    ./laptop/system.nix
-    ./services/file-manager.nix
-    ./services/wl-clip-persist.nix
-    ./services/sddm.nix
-    ./services/jupyter.nix
-    ./services/ssh-askpass.nix
-    ./services/amnezia-vpn.nix
-    ./services/syncthing.nix
-    ./services/ollama.nix
-    ./services/cachix.nix
-    ./services/tor.nix
-    ./services/libre-translate.nix
+    ./default.nix
+    ./laptop/default.nix
+    ./services/services-laptop.nix
   ];
 
   system.stateVersion = "25.11";

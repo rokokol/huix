@@ -6,6 +6,7 @@
 
   imports = [
     ./hypridle.nix
+    ./mako.nix
   ];
 
   home.packages = with pkgs; [

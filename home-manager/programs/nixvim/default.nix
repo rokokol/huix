@@ -1,7 +1,6 @@
 { inputs, ... }:
 
 {
-  # Import all modules
   imports = [
     inputs.nixvim.homeModules.nixvim
     ./settings.nix

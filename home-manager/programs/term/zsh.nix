@@ -1,23 +1,25 @@
-{ huixDir, pkgs, ... }:
+{ pkgs, huixDir, ... }:
 
 {
   home.shellAliases = {
     ll = "ls -l";
     la = "ls -la";
     v = "nvim";
-    conf = "cd ${huixDir}/home-manager/ && nvim home.nix";
-    syssync = "bash \"$HUIX/home-manager/hyprland/scripts/sync.sh\"";
+    syssync = "bash \"${huixDir}/scripts/sync.sh\"";
     download-music = "yt-dlp -x --audio-format mp3 --audio-quality 0 --embed-metadata --embed-thumbnail -o '%(title)s.%(ext)s'";
 
     ".." = "cd ..";
     "..." = "cd ../..";
 
-    # cp = "cp -iv";
-    # mv = "mv -iv";
-    # rm = "rm -iv";
     tp = "trash-put";
     rebuild = "sudo nixos-rebuild switch --flake ${huixDir}";
   };
+
+  home.packages = with pkgs; [
+    nvim
+    trash-cli
+    yt-dlp
+  ];
 
   programs.zoxide = {
     enable = true;

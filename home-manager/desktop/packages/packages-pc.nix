@@ -1,21 +1,14 @@
-{
-  pkgs,
-  inputs,
-  ...
-}:
+{ pkgs, inputs, ... }:
 
 {
+  imports = [ ./packages-common.nix ];
+
   home.packages =
     with pkgs;
     [
       # --- CLI & system tools ---
-      appimage-run
-      fastfetch
-      gdu
-      ncdu
+      cuda.ffmpeg-headless
       nvtopPackages.nvidia
-      trash-cli
-      unzip
 
       # --- Development ---
       # C++
@@ -26,30 +19,21 @@
       openmpi
       pkg-config
 
-      # Python
-      uv
-      python313
-
       # Web
       nodejs
 
-      # --- Communication & web ---
-      ayugram-desktop
-      obsidian
-      stable.discord
-      tor-browser
-
       # --- Desktop apps ---
+      stable.discord
       vial
 
       # --- Creative & audio ---
       aseprite
       cuda.darktable
+      cuda.obs-studio
+      easyeffects
       gimp2-with-plugins
       gimpPlugins.gmic
       kdePackages.kdenlive
-      cuda.obs-studio
-      easyeffects
       krita
       solvespace
     ]

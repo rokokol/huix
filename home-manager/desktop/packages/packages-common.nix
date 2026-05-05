@@ -1,56 +1,47 @@
 { pkgs, huixDir, ... }:
 
 {
-  imports = [
-    ./mime-apps.nix
-    ./theme.nix
-    ./sync.nix
-  ];
+  imports = [ ./mime-apps.nix ];
 
   home.packages = with pkgs; [
     # --- Common desktop apps ---
+    ayugram-desktop
     baobab
     celluloid
-    codex
-    gemini-cli
     evince
     file-roller
     gnome-disk-utility
     gnome-text-editor
+    obs-studio
     obsidian
     super-productivity
-    obs-studio
 
     # --- CLI ---
-    gthumb
-    texlive.combined.scheme-full
-    usbutils
-    yt-dlp
-    matlab
-    libreoffice-fresh
+    appimage-run
+    codex
+    curl
     exiftool
-    tree
-    ffmpeg-headless
+    fastfetch
+    gemini-cli
+    gthumb
     imagemagick
     jq
     killall
     lazygit
+    libreoffice-fresh
+    matlab
     pup
+    python3Packages.huggingface-hub
     ripgrep
-    trash-cli
+    texlive.combined.scheme-full
+    tree
+    unzip
+    usbutils
     wget
 
     # Python
-    uv
     python313
-
-    # --- Theming & toolkit integration ---
-    gnome-themes-extra
-    gsettings-desktop-schemas
-    gtk-engine-murrine
-    gtk3
-    libsForQt5.qt5.qtwayland
-    qt6.qtwayland
+    uv
   ];
 
   home.sessionVariables = {

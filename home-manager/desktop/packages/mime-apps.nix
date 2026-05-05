@@ -3,6 +3,7 @@
 {
   xdg.mimeApps = {
     enable = true;
+
     defaultApplications = {
       "image/jpeg" = "swayimg.desktop";
       "image/png" = "swayimg.desktop";

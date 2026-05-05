@@ -31,6 +31,15 @@ in
     };
   };
 
+  home.packages = with pkgs; [
+    gnome-themes-extra
+    gsettings-desktop-schemas
+    gtk-engine-murrine
+    gtk3
+    libsForQt5.qt5.qtwayland
+    qt6.qtwayland
+  ];
+
   dconf.settings."org/gnome/desktop/interface" = {
     color-scheme = colorScheme;
     gtk-theme = gtkThemeName;
