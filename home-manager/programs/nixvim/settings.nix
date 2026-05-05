@@ -85,6 +85,8 @@
       })
     '';
 
-    extraPlugins = with pkgs.vimPlugins; [ gruvbox-nvim ];
+    extraPlugins = with pkgs.vimPlugins; [
+      gruvbox-nvim
+    ];
   };
 }
