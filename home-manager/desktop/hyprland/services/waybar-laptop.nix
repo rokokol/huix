@@ -30,6 +30,7 @@
           "backlight"
           "pulseaudio"
           "hyprland/language"
+          "tray"
           "network"
           "battery"
         ];
@@ -64,6 +65,7 @@
               today = "<span color='#f11a7e'><b><u>{}</u></b></span>";
             };
           };
+
           "actions" = {
             on-scroll-up = "shift_up";
             on-scroll-down = "shift_down";
@@ -83,34 +85,46 @@
           on-scroll-up = "brightnessctl set 1%+";
           on-scroll-down = "brightnessctl set 1%-";
         };
+
         "hyprland/language" = {
           format = "{}";
           format-en = "🏳‍🌈";
           format-ru = "ZOV";
         };
+
         "cpu" = {
           format = "{usage}% 💻";
           interval = 2;
         };
+
         "temperature" = {
           # rewrite to correct temp by lm_sensors
           format = "{temperatureC}°C 🌡️";
           critical-threshold = 80;
           format-critical = "{temperatureC}°C ⚠️";
         };
+
         "memory" = {
           format = "{used:0.1f}Gb 🧠";
           interval = 2;
         };
+
         "battery" = {
           format = "{capacity}% {icon}";
           format-icons = [ "🔋" ];
         };
+
+        "tray" = {
+          icon-size = 14;
+          spacing = 5;
+        };
+
         "network" = {
           format-wifi = "📶";
           format-ethernet = "🌐";
           tooltip-format = "{essid}";
         };
+
         "pulseaudio" = {
           format = "{volume}% {icon}";
           format-muted = "{volume}% 🔇";
@@ -121,6 +135,7 @@
               "🔊"
             ];
           };
+
           on-click = "pavucontrol";
         };
       };
@@ -140,7 +155,7 @@
       }
 
       /* Modules style (islands) */
-      #workspaces, #window, #clock, #cpu, #memory, #pulseaudio, #temperature, #network, #battery, #language, #backlight {
+      #workspaces, #window, #clock, #cpu, #memory, #pulseaudio, #temperature, #network, #battery, #language, #backlight, #tray {
           background: rgba(255, 240, 245, 0.9);
           color: #4c4c4c;
           padding: 0px 8px;   
