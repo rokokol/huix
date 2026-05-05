@@ -1,4 +1,4 @@
-{ pkgs, huixDir, ... }:
+{ pkgs, huixDir, config, lib, ... }:
 
 {
   home.shellAliases = {
@@ -18,7 +18,7 @@
   home.packages = with pkgs; [
     trash-cli
     yt-dlp
-  ];
+  ] ++ lib.optional (!(config.programs.nixvim.enable or false)) neovim;
 
   programs.zoxide = {
     enable = true;
