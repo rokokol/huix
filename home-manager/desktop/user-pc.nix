@@ -56,7 +56,6 @@ in
   # Directories
   systemd.user.tmpfiles.rules = [
     "d ${projectsDir} 0755 - - -"
-    "d ${govnoDir}/Pictures/Screenshots 0700 - - 30d"
     "D ${tempDir} 0777 - - -"
   ];
 
