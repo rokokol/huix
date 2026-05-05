@@ -21,7 +21,7 @@
   };
 
   imports = [
-    ./servces/wallpapaer_collager.nix
+    ./services/wallpapaer_collager.nix
     ./services/hyprland-packages.nix
     ./services/waybar-pc.nix
   ];

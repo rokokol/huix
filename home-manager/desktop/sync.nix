@@ -1,12 +1,12 @@
 {
-  huixDir,
   pkgs,
   lib,
+  huixDir,
   ...
 }:
 
 let
-  scriptsDir = ./scripts;
+  scriptsDir = "${huixDir}/scripts";
   syncDeps = with pkgs; [
     git
     libnotify

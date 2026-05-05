@@ -56,7 +56,7 @@
 - `jupyter.nix`
 - `ssh-askpass.nix`
 - `amnezia-vpn.nix`
-- `syncting.nix`
+- `syncthing.nix`
 - `ollama.nix`
 - `tor.nix`
 
