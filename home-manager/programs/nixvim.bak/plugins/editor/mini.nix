@@ -5,7 +5,7 @@
     enable = true;
     modules = {
       icons = { };
-      surround = { };
+      # surround = { };
     };
     mockDevIcons = true;
   };
