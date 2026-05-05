@@ -12,7 +12,6 @@
     file-roller
     gnome-disk-utility
     gnome-text-editor
-    obs-studio
     obsidian
     super-productivity
 
