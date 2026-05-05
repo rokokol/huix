@@ -40,9 +40,9 @@
 | Аппаратные настройки, boot, GPU, sound, keyboard | `nixos/pc/*`, `nixos/laptop/*` |
 | Reusable system services | `nixos/services/*.nix` |
 | Локальные шрифты и их подключение | `nixos/fonts/*` |
-| Пользовательские пакеты desktop-слоя | `home-manager/desktop/common-packages.nix`, `home-manager/desktop/pc-packages.nix`, `home-manager/desktop/laptop-packages.nix` |
+| Пользовательские пакеты desktop-слоя | `home-manager/desktop/packages/packages-common.nix`, `home-manager/desktop/packages/packages-pc.nix`, `home-manager/desktop/packages/packages-laptop.nix` |
 | Пользовательские директории, bookmarks, env vars, dotfiles | `home-manager/desktop/user-pc.nix`, `home-manager/desktop/user-laptop.nix` |
-| Hyprland, Waybar, hypridle, session-скрипты | `home-manager/hyprland/*` |
+| Hyprland, Waybar, hypridle, session-скрипты | `home-manager/desktop/hyprland/*` |
 | Конфиги отдельных программ | `home-manager/programs/*` |
 | Neovim через nixvim | `home-manager/programs/nixvim/*` |
 
