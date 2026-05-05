@@ -2,6 +2,9 @@
 
 {
   programs.nixvim = {
+    enable = true;
+    defaultEditor = true;
+
     # --- Globals ---
     diagnostics = {
       underline = false;
