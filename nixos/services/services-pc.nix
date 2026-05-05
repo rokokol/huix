@@ -1,12 +1,11 @@
 { ... }:
 
 {
-  inputs = [
+  imports = [
     ./ai/comfyui.nix
     ./ai/ollama.nix
     ./ai/openwebui.nix
     ./desktop/amnezia-vpn.nix
-    ./desktop/arduino.nix
     ./desktop/file-manager.nix
     ./desktop/sddm.nix
     ./desktop/ssh-askpass.nix

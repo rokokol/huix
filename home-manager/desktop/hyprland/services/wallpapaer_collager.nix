@@ -1,11 +1,12 @@
 {
   pkgs,
   lib,
+  huixDir,
   ...
 }:
 
 let
-  scriptsDir = ./scripts;
+  scriptsDir = "${huixDir}/scripts";
   wallpaperDeps = with pkgs; [
     bash
     imagemagick

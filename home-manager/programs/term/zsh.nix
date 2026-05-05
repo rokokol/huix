@@ -16,7 +16,7 @@
   };
 
   home.packages = with pkgs; [
-    nvim
+    neovim
     trash-cli
     yt-dlp
   ];
