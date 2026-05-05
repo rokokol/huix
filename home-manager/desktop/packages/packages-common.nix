@@ -14,6 +14,7 @@
     gnome-text-editor
     obsidian
     super-productivity
+    tauon
 
     # --- CLI ---
     appimage-run
