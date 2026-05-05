@@ -7,12 +7,14 @@ in
   services.libretranslate = {
     enable = true;
     port = port;
-    updateModels = true;
+    updateModels = false;
 
     extraArgs = {
       "load-only" = "ru,en";
     };
   };
+
+  environment.systemPackages = [ pkgs.libretranslate ];
 
   systemd.services.libretranslate-warmup = {
     description = "Warm up LibreTranslate models in RAM";
