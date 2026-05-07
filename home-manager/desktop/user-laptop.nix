@@ -16,7 +16,6 @@ in
   ];
 
   home.stateVersion = "25.11";
-  home.file.".face".source = ../../logo.jpg;
 
   xdg.userDirs = {
     enable = true;
