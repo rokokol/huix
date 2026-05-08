@@ -7,11 +7,12 @@
     ./desktop/file-manager.nix
     ./desktop/sddm.nix
     ./desktop/ssh-askpass.nix
-    ./utils/tor.nix
     ./desktop/wl-clip-persist.nix
     ./system/cachix.nix
     ./tools/jupyter.nix
     ./tools/libre-translate.nix
     ./tools/syncthing.nix
+    ./utils/docker.nix
+    ./utils/tor.nix
   ];
 }
