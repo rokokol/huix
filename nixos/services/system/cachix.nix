@@ -11,10 +11,7 @@
     substituters = [
       "https://cache.nixos.org"
       "https://mirror.yandex.ru/nixos"
-      "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store"
-      "https://nixos-cache-proxy.cofob.dev"
       "https://nixos-cache-proxy.sweetdogs.ru"
-      "https://ncproxy.vizqq.cc"
       "https://nix-community.cachix.org"
     ];
 
