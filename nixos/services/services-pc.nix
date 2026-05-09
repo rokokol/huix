@@ -22,6 +22,5 @@
     ./utils/docker.nix
     ./utils/tor.nix
     ./utils/virtualization.nix
-    ./utils/zapret.nix
   ];
 }
