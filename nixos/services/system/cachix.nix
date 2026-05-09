@@ -4,14 +4,17 @@
   environment.systemPackages = [ pkgs.cachix ];
 
   nix.settings = {
-    # connect-timeout = 4;
-    # fallback = true;
-    # stalled-download-timeout = 4;
+    connect-timeout = 4;
+    stalled-download-timeout = 4;
+    fallback = true;
 
     substituters = [
       "https://cache.nixos.org"
-      "https://cache.nixos.kz"
       "https://mirror.yandex.ru/nixos"
+      "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store"
+      "https://nixos-cache-proxy.cofob.dev"
+      "https://nixos-cache-proxy.sweetdogs.ru"
+      "https://ncproxy.vizqq.cc"
       "https://nix-community.cachix.org"
     ];
 
