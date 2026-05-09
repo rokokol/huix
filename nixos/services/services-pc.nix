@@ -20,7 +20,7 @@
     ./tools/syncthing.nix
     ./utils/arduino.nix
     ./utils/docker.nix
-    ./utils/tor.nix
     ./utils/virtualization.nix
+    ./utils/zapret.nix
   ];
 }
