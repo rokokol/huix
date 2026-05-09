@@ -1,4 +1,4 @@
-{ ... }:
+{ pkgs, ... }:
 
 {
   boot.kernelModules = [
@@ -9,7 +9,8 @@
   networking.enableIPv6 = false;
 
   services.zapret = {
-    enable = false;
+    enable = true;
+    package = pkgs.zapret2;
 
     udpSupport = true;
     udpPorts = [ "443" ];
