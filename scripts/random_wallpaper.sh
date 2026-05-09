@@ -11,7 +11,7 @@ get_normal() {
     }'
 }
 
-WALLPAPER_DIR="$MY_WIKI/media"
+WALLPAPER_DIR="$MY_WIKI/Media"
 TEMP_COLLAGE="/tmp/awww_collage.jpg"
 CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/awww"
 BG_COLOR="#282828" # ImageMagick bg
