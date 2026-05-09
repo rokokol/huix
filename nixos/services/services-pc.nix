@@ -21,6 +21,5 @@
     ./utils/arduino.nix
     ./utils/docker.nix
     ./utils/virtualization.nix
-    ./utils/zapret.nix
   ];
 }
