@@ -9,4 +9,9 @@
       "--filter-udp=443 --dpi-desync=fake --dpi-desync-repeats=11 --dpi-desync-any-protocol"
     ];
   };
+
+  boot.kernelModules = [
+    "nft_queue"
+    "nfnetlink_queue"
+  ];
 }
