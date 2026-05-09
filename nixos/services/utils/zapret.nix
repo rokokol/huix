@@ -9,8 +9,8 @@
   networking.enableIPv6 = false;
 
   services.zapret = {
-    enable = true;
-    package = pkgs.zapret2;
+    enable = false;
+    package = pkgs.zapret;
 
     udpSupport = true;
     udpPorts = [ "443" ];
