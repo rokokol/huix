@@ -12,6 +12,7 @@
   home.packages = with pkgs; [
     kitty
     awww
+    dex
     hypridle
     hyprlock
     hyprpolkitagent

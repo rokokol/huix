@@ -20,12 +20,12 @@
         touchpad = {
           natural_scroll = true;
         };
-
-        exec-once = [
-          "awww init"
-          "awww img ${huixDir}/presets/laptop_wallpaper.png"
-        ];
       };
+
+      exec-once = [
+        "awww init"
+        "awww img ${huixDir}/presets/laptop_wallpaper.png"
+      ];
     };
   };
 
