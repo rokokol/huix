@@ -31,8 +31,8 @@
       cuda.darktable
       cuda.obs-studio
       easyeffects
-      gimp2-with-plugins
-      gimpPlugins.gmic
+      stable.gimp
+      stable.gimpPlugins.gmic
       kdePackages.kdenlive
       krita
       solvespace
