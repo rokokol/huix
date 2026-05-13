@@ -23,7 +23,7 @@ if [[ "$USER_INPUT" == "✔ "* ]]; then
 fi
 
 # Введен новый текст (нужен перевод)
-translation=$(curl -s -L -m 10 -X POST "http://localhost:$LIBRE_TRANSLATE_PORT/translate" \
+translation=$(curl -s -L -m 15 -X POST "http://localhost:$LIBRE_TRANSLATE_PORT/translate" \
   -H "Content-Type: application/json" \
   -d "{\"q\": \"$USER_INPUT\", \"source\": \"$SRC\", \"target\": \"$TGT\", \"format\": \"text\"}" | jq -r '.translatedText')
 
