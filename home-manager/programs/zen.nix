@@ -31,6 +31,7 @@ in
             metaData.hidden = false;
             metaData.alias = "@g";
           };
+
           "wikipedia" = {
             metaData.hidden = false;
             metaData.alias = "@wiki";
@@ -41,20 +42,31 @@ in
             icon = "http://localhost/favicon.ico";
             definedAliases = [ "@s" ];
           };
+
           "NixOS Wiki" = {
             urls = [ { template = "https://wiki.nixos.org/w/index.php?search={searchTerms}"; } ];
             icon = nixSnowflakeIcon;
             definedAliases = [ "@nw" ];
           };
+
           "Wiby" = {
             urls = [ { template = "https://wiby.me/?q={searchTerms}"; } ];
+            icon = "https://wiby.me/favicon.ico";
             definedAliases = [ "@wb" ];
           };
+
+          "WooordHunt" = {
+            urls = [ { template = "https://wooordhunt.ru/word/?q={searchTerms}"; } ];
+            icon = "https://wooordhunt.ru/favicon.ico";
+            definedAliases = [ "@wh" ];
+          };
+
           "GitHub" = {
             urls = [ { template = "https://github.com/search?q={searchTerms}"; } ];
             icon = "https://github.com/favicon.ico";
             definedAliases = [ "@gh" ];
           };
+
           "WolframAlpha" = {
             urls = [ { template = "https://www.wolframalpha.com/input/?i={searchTerms}"; } ];
             icon = "https://icons.duckduckgo.com/ip3/wolframalpha.com.ico";
