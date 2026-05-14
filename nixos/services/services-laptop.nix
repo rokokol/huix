@@ -12,5 +12,10 @@
     ./system/cachix.nix
     ./tools/libre-translate.nix
     ./tools/syncthing.nix
+    ./tools/jupyter.nix
   ];
+
+  custom.jupyter = {
+    enable = true;
+  };
 }
