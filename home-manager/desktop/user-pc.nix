@@ -27,7 +27,7 @@ in
     createDirectories = true;
     setSessionVariables = true;
 
-    music = "${myWikiDir}/Music";
+    music = "${myWikiDir}/00. Вложения/02. Music";
     documents = "${govnoDir}/Documents";
     pictures = "${govnoDir}/Pictures";
     videos = "${govnoDir}/Videos";
@@ -46,7 +46,7 @@ in
       "file://${huixDir}/"
       "file://${tempDir}/"
       "file://${projectsDir}/"
-      "file://${myWikiDir}/Media/"
+      "file://${myWikiDir}/"
       "file://${govnoDir}/"
       "file:///"
     ];
