@@ -12,6 +12,7 @@ in
     dataDir = "${homeDir}/Documents";
     configDir = "${homeDir}/.config/syncthing";
 
+    openDefaultPorts = true;
     overrideDevices = false;
     overrideFolders = false;
   };

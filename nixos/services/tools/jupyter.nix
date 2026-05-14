@@ -43,8 +43,8 @@ in
     notebookConfig = ''
       c.KernelSpecManager.ensure_native_kernel = False
 
-      visible_kernels = {'pythonDatascience', 'octave'}
-      c.KernelSpecManager.whitelist = visible_kernels
+      visible_kernels = {'pythondatascience', 'octave'}
+      c.KernelSpecManager.allowed_kernelspecs = visible_kernels
     '';
 
     kernels = {
@@ -52,7 +52,7 @@ in
 
       octave = pkgs.octave-kernel.definition;
 
-      pythonDatascience = {
+      pythondatascience = {
         displayName = "Python (Data Science)";
         argv = [
           "${pythonDatascience.interpreter}"
