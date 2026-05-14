@@ -1,21 +1,29 @@
-{ config, lib, pkgs, rokokolName, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  rokokolName,
+  ...
+}:
 
 let
   homeDir = "/home/${rokokolName}";
-  
+
   cfg = config.custom.jupyter;
 
   # to avoid transformers build
-  myPython = if cfg.withCuda then 
-    pkgs.stable.python3.override {
-      packageOverrides = _: super: {
-        torch = super.torch-bin;
-        torchvision = super.torchvision-bin;
-        torchaudio = super.torchaudio-bin;
-      };
-    }
-  else
-    pkgs.stable.python3;
+  # suddenly, it has cuda support
+  myPython =
+    if cfg.withCuda then
+      pkgs.stable.python3.override {
+        packageOverrides = _: super: {
+          torch = super.torch-bin;
+          torchvision = super.torchvision-bin;
+          torchaudio = super.torchaudio-bin;
+        };
+      }
+    else
+      pkgs.stable.python3;
 
   pythonDatascience = myPython.withPackages (
     ps: with ps; [
