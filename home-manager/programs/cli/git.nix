@@ -14,6 +14,7 @@
         Email = "mailofilyusha@gmail.com";
       };
       core.editor = "nvim";
+      core.quotepath = "false";
       safe = {
         directory = "${govnoDir}/myWiki";
       };
