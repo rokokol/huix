@@ -24,7 +24,7 @@
 
       exec-once = [
         "awww init"
-        "awww img ${huixDir}/presets/laptop_wallpaper.png"
+        "awww img ${huixDir}/asssets/laptop_wallpaper.png"
       ];
     };
   };
