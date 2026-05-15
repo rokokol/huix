@@ -7,6 +7,7 @@
     ./desktop/file-manager.nix
     ./desktop/sddm.nix
     ./desktop/ssh-askpass.nix
+    ./utils/docker.nix
     ./utils/tor.nix
     ./desktop/wl-clip-persist.nix
     ./system/cachix.nix
