@@ -8,10 +8,7 @@ let
     "org.freedesktop.impl.portal.ScreenCast" = [ "hyprland" ];
     "org.freedesktop.impl.portal.Screenshot" = [ "hyprland" ];
 
-    default = [
-      "hyprland"
-      "gtk"
-    ];
+    default = [ "gtk" ];
   };
 in
 {
@@ -23,7 +20,10 @@ in
       xdg-desktop-portal-hyprland
       xdg-desktop-portal-gtk
     ];
-    configPackages = [ pkgs.xdg-desktop-portal-hyprland ];
+    configPackages = with pkgs; [
+      xdg-desktop-portal-hyprland
+      xdg-desktop-portal-gtk
+    ];
 
     config = {
       common = hyprlandPortalConfig;
