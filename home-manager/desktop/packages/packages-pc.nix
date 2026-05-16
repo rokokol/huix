@@ -1,5 +1,18 @@
 { pkgs, inputs, ... }:
 
+let
+  vesktopWithPipewire = pkgs.symlinkJoin {
+    name = "vesktop-with-pipewire";
+    paths = [ pkgs.vesktop ];
+    buildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      rm $out/bin/vesktop
+      makeWrapper ${pkgs.vesktop}/bin/vesktop $out/bin/vesktop \
+        --add-flags "--ozone-platform=wayland" \
+        --add-flags "--enable-features=WebRTCPipeWireCapturer,WaylandWindowDecorations"
+    '';
+  };
+in
 {
   imports = [ ./packages-common.nix ];
 
@@ -24,7 +37,7 @@
 
       # --- Desktop apps ---
       stable.discord
-      vesktop
+      vesktopWithPipewire
       vial
 
       # --- Creative & audio ---
