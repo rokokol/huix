@@ -1,5 +1,19 @@
 { pkgs, ... }:
 
+let
+  hyprlandPortalConfig = {
+    "org.freedesktop.impl.portal.AppChooser" = [ "gtk" ];
+    "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
+    "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
+    "org.freedesktop.impl.portal.ScreenCast" = [ "hyprland" ];
+    "org.freedesktop.impl.portal.Screenshot" = [ "hyprland" ];
+
+    default = [
+      "hyprland"
+      "gtk"
+    ];
+  };
+in
 {
   programs.dconf.enable = true;
 
@@ -10,17 +24,9 @@
       xdg-desktop-portal-gtk
     ];
 
-    config.common = {
-      "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
-      "org.freedesktop.impl.portal.OpenURI" = [ "gtk" ];
-      "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
-      "org.freedesktop.impl.portal.ScreenCast" = [ "hyprland" ];
-      "org.freedesktop.impl.portal.Screenshot" = [ "hyprland" ];
-
-      default = [
-        "hyprland"
-        "gtk"
-      ];
+    config = {
+      common = hyprlandPortalConfig;
+      hyprland = hyprlandPortalConfig;
     };
   };
 }
