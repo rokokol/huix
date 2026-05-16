@@ -23,6 +23,7 @@ in
       xdg-desktop-portal-hyprland
       xdg-desktop-portal-gtk
     ];
+    configPackages = [ pkgs.xdg-desktop-portal-hyprland ];
 
     config = {
       common = hyprlandPortalConfig;

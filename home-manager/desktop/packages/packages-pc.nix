@@ -24,6 +24,7 @@
 
       # --- Desktop apps ---
       stable.discord
+      vesktop
       vial
 
       # --- Creative & audio ---
