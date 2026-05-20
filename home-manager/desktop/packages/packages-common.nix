@@ -18,6 +18,7 @@
 
     # --- CLI ---
     appimage-run
+    claude-code
     codex
     curl
     exiftool
