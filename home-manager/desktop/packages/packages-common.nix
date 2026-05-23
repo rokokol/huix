@@ -42,15 +42,18 @@
     wget
 
     # Python
-    (python313.withPackages (ps: with ps; [
-      numpy
-      scipy
-      sympy
-      pandas
-      matplotlib
-      requests
-      rich
-    ]))
+    (python313.withPackages (
+      ps: with ps; [
+        matplotlib
+        numpy
+        pandas
+        requests
+        rich
+        scipy
+        sympy
+        tqdm
+      ]
+    ))
     uv
   ];
 

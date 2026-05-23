@@ -27,20 +27,21 @@ let
 
   pythonDatascience = myPython.withPackages (
     ps: with ps; [
-      matplotlib
-      pandas
-      seaborn
-      numpy
-      sympy
-      librosa
-      scikit-learn
-      transformers
-      torch
-      torchvision
-      torchaudio
-      pytesseract
-      ipywidgets
       ipykernel
+      ipywidgets
+      librosa
+      matplotlib
+      numpy
+      pandas
+      pytesseract
+      scikit-learn
+      seaborn
+      sympy
+      torch
+      torchaudio
+      torchvision
+      tqdm
+      transformers
     ]
   );
 in
@@ -90,9 +91,9 @@ in
     };
 
     systemd.services.jupyter.path = with pkgs; [
-      octave
-      gnuplot
       ghostscript
+      gnuplot
+      octave
     ];
 
     systemd.tmpfiles.rules = [
