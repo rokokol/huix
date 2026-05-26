@@ -1,7 +1,6 @@
 { pkgs, ... }:
 
 {
-  services.timesyncd.enable = false;
   boot = {
     loader = {
       systemd-boot.enable = true;
