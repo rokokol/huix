@@ -56,7 +56,7 @@ in
           };
 
           "WooordHunt" = {
-            urls = [ { template = "https://wooordhunt.ru/word/?q={searchTerms}"; } ];
+            urls = [ { template = "https://wooordhunt.ru/word/{searchTerms}"; } ];
             icon = "https://wooordhunt.ru/favicon.ico";
             definedAliases = [ "@wh" ];
           };
