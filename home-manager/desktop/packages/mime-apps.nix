@@ -46,6 +46,7 @@
       "application/vnd.rar" = "org.gnome.FileRoller.desktop";
 
       "text/markdown" = "org.gnome.TextEditor.desktop";
+      "text/x-tex" = "org.gnome.TextEditor.desktop";
       "text/plain" = "org.gnome.TextEditor.desktop";
       "text/x-markdown" = "org.gnome.TextEditor.desktop";
       "application/x-zerosize" = "org.gnome.TextEditor.desktop";
