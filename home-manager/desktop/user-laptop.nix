@@ -5,7 +5,7 @@ let
   myWikiDir = "${homeDir}/myWiki";
   downloadsDir = "${homeDir}/Downloads";
   projectsDir = "${homeDir}/Projects";
-  tempDir = "${homeDir}/Temp";
+  tempDir = "$/tmp/Temp";
 in
 {
   imports = [
