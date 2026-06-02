@@ -97,7 +97,7 @@
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
-              backupFileExtension = "bak";
+              backupFileExtension = "bak-${toString inputs.self.lastModified}";
               sharedModules = [
                 inputs.zen-browser.homeModules.default
               ];
@@ -129,7 +129,7 @@
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
-              backupFileExtension = "bak";
+              backupFileExtension = "bak-${toString inputs.self.lastModified}";
               sharedModules = [
                 inputs.zen-browser.homeModules.default
               ];
