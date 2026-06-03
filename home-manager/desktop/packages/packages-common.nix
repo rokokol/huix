@@ -24,7 +24,6 @@
     exiftool
     fastfetch
     file
-    gemini-cli
     gthumb
     imagemagick
     jq
