@@ -23,6 +23,7 @@
       nodejs
 
       # --- Desktop apps ---
+      (bambu-studio.override { withNvidiaGLWorkaround = true; })
       stable.discord
       vial
 
