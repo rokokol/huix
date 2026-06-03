@@ -187,7 +187,7 @@ if [[ -z "$MEANINGS_LIST" ]]; then
 fi
 
 if [[ -z "$MEANINGS_LIST" ]]; then
-  print_message "Не удалось разобрать ответ Wooordhunt (T＿T)"
+  print_message "Не удалось разобрать ответ Wooordhunt ヽ(；▽；)ノ"
   print_fallback_entry
   exit 0
 fi
