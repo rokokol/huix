@@ -4,6 +4,10 @@ set -euo pipefail
 
 INPUT="$*"
 SENTINEL_NOOP="__wooordhunt_noop__"
+# Wrap widths (in chars) tuned to the 720px window: WRAP_WIDTH for indented
+# explanation rows, HEAD_MAX for the word+gloss row before it gets wrapped below.
+WRAP_WIDTH=54
+HEAD_MAX=58
 
 print_message() {
   printf '\0message\x1f%s\n' "$1"
@@ -15,12 +19,21 @@ print_entry() {
   printf '%s\0info\x1f%s\n' "$display" "$copy_value"
 }
 
-print_hint() {
-  printf '   %s\0info\x1f%s\n' "$1" "$1"
-}
-
 print_fallback_entry() {
   printf '%s\0info\x1f%s\n' "---" "$SENTINEL_NOOP"
+}
+
+# Print a long explanation beneath its translation. rofi rows are single-line,
+# so we wrap by hand and emit one row per line. The rows are nonselectable
+# (skipped while navigating) and carry the english word as copy value, so an
+# accidental activation still copies something sensible.
+print_hint_lines() {
+  local text="$1" copy_value="$2" line
+  while IFS= read -r line; do
+    line="${line%"${line##*[![:space:]]}"}"
+    [[ -z "$line" ]] && continue
+    printf '   %s\0info\x1f%s\x1fnonselectable\x1ftrue\n' "$line" "$copy_value"
+  done < <(printf '%s\n' "$text" | fold -s -w "$WRAP_WIDTH")
 }
 
 if [[ -n "${ROFI_INFO:-}" ]]; then
@@ -43,6 +56,14 @@ URL_SLUG="${PARSED_INPUT// /_}"
 
 fetch_html() {
   curl -fsSL --max-time 5 "$1" 2>/dev/null
+}
+
+# US transcription for a single english word, e.g. "house" -> |haʊs|.
+# Used to annotate RU->EN results, which carry no transcription themselves.
+fetch_transcription() {
+  local slug="${1// /_}"
+  curl -fsSL --max-time 4 "https://wooordhunt.ru/word/${slug}" 2>/dev/null |
+    pup '#us_tr_sound > .transcription text{}' 2>/dev/null | xargs || true
 }
 
 HTML=""
@@ -69,36 +90,76 @@ TRANSCRIPTION_UK=$(printf '%s' "$HTML" | pup '#uk_tr_sound > .transcription text
 if [[ -n "$TRANSCRIPTION_US" || -n "$TRANSCRIPTION_UK" ]]; then
   print_message "🇺🇸: ${TRANSCRIPTION_US} // 🇬🇧: ${TRANSCRIPTION_UK}"
 elif [[ "$PARSED_INPUT" =~ [а-яА-ЯёЁ] ]]; then
-  print_message "🇷🇺: ${ORIGINAL_INPUT}"
+  print_message "🇷🇺: ${ORIGINAL_INPUT} （´ω｀♡%）"
 fi
 
 if printf '%s' "$HTML" | grep -q 'class="sub_entry"'; then
-  H3_RAW=$(printf '%s' "$HTML" | pup 'section.sub_entry h3 text{}' 2>/dev/null | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep . || true)
-  MEANINGS=$(printf '%s' "$HTML" | pup 'section.sub_entry p.meaning text{}' 2>/dev/null | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep . || true)
+  # Each sub_entry is one meaning group: one or more synonym words (e.g.
+  # "exam / examination") sharing a "— glosses" list and one explanation.
+  # Parse per section via JSON so words, glosses and meanings stay aligned —
+  # a flat text dump misaligns whenever a section has several words or no meaning.
+  SECTIONS=$(printf '%s' "$HTML" | pup 'section.sub_entry json{}' 2>/dev/null | jq -r '
+    .[] |
+      (.children[]? | select(.tag=="h3")) as $h3 |
+      ([$h3.children[]? | select(.tag=="a") | .text] | join(" / ")) as $words |
+      (($h3.text // "") | (capture("—\\s*(?<g>.*)")?.g) // "") as $gloss |
+      ((.children[]? | select(.tag=="p" and ((.class // "") | test("meaning"))) | .text) // "") as $meaning |
+      [$words, $gloss, $meaning] | @tsv
+  ' 2>/dev/null || true)
 
-  if [[ -z "$H3_RAW" ]]; then
+  if [[ -z "$SECTIONS" ]]; then
     print_message "Не удалось разобрать ответ Wooordhunt (T＿T)"
     print_fallback_entry
     exit 0
   fi
 
-  H3_PAIRS=$(printf '%s\n' "$H3_RAW" | paste -d'|' - -)
+  trans_key() {
+    local s="${1// /_}"
+    printf '%s' "${s//[^a-zA-Z0-9_]/_}"
+  }
 
-  paste -d$'\t' <(printf '%s\n' "$H3_PAIRS") <(printf '%s\n' "$MEANINGS") | while IFS=$'\t' read -r pair meaning; do
-    engword="${pair%%|*}"
-    rest="${pair#*|}"
-    rest="${rest# }"
-    rest="${rest#— }"
-    rest="${rest#— }"
-    if [[ -n "$rest" && "$rest" != "$engword" ]]; then
-      print_entry "${engword} — ${rest}" "$engword"
-    else
-      print_entry "$engword" "$engword"
+  # Fetch every english word's transcription in parallel (RU->EN pages have none).
+  TMPD=$(mktemp -d)
+  trap 'rm -rf "$TMPD"' EXIT
+  while IFS= read -r word; do
+    word=$(printf '%s' "$word" | xargs)
+    [[ -z "$word" ]] && continue
+    (fetch_transcription "$word" >"$TMPD/$(trans_key "$word")" 2>/dev/null || true) &
+  done < <(printf '%s' "$HTML" | pup 'section.sub_entry h3 a text{}' 2>/dev/null | sort -u)
+  wait
+
+  while IFS=$'\t' read -r words gloss meaning; do
+    [[ -z "$words" ]] && continue
+    gloss=$(printf '%s' "$gloss" | xargs)
+    meaning=$(printf '%s' "$meaning" | xargs)
+
+    # First word is what we copy; build the head with each word's transcription.
+    mapfile -t wlist < <(printf '%s\n' "$words" | sed 's@ / @\n@g')
+    copy_word=$(printf '%s' "${wlist[0]}" | xargs)
+    head=""
+    for w in "${wlist[@]}"; do
+      w=$(printf '%s' "$w" | xargs)
+      [[ -z "$w" ]] && continue
+      tr=$(cat "$TMPD/$(trans_key "$w")" 2>/dev/null || true)
+      part="$w"
+      [[ -n "$tr" ]] && part+=" ${tr}"
+      [[ -z "$head" ]] && head="$part" || head+=" / ${part}"
+    done
+
+    # Keep short gloss lists inline with the word; wrap long ones onto indented
+    # rows below so the selectable row never overflows the window.
+    gloss_below=""
+    if [[ -n "$gloss" ]]; then
+      if ((${#head} + ${#gloss} + 3 <= HEAD_MAX)); then
+        head+=" — ${gloss}"
+      else
+        gloss_below="$gloss"
+      fi
     fi
-    if [[ -n "$meaning" ]]; then
-      print_hint "$meaning"
-    fi
-  done
+    print_entry "$head" "$copy_word"
+    [[ -n "$gloss_below" ]] && print_hint_lines "$gloss_below" "$copy_word"
+    [[ -n "$meaning" ]] && print_hint_lines "$meaning" "$copy_word"
+  done < <(printf '%s\n' "$SECTIONS")
   exit 0
 fi
 
