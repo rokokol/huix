@@ -37,16 +37,19 @@ fi
 
 ORIGINAL_INPUT=$(printf '%s\n' "$INPUT" | xargs)
 PARSED_INPUT="${ORIGINAL_INPUT,,}"
+# wooordhunt uses underscores for multi-word phrases (e.g. give_up); a raw
+# space in the URL makes curl fail outright, so collapse spaces to underscores.
+URL_SLUG="${PARSED_INPUT// /_}"
 
 fetch_html() {
   curl -fsSL --max-time 5 "$1" 2>/dev/null
 }
 
 HTML=""
-if HTML=$(fetch_html "https://wooordhunt.ru/переводы/${PARSED_INPUT}"); then
+if HTML=$(fetch_html "https://wooordhunt.ru/переводы/${URL_SLUG}"); then
   :
 else
-  if HTML=$(fetch_html "https://wooordhunt.ru/word/${PARSED_INPUT}"); then
+  if HTML=$(fetch_html "https://wooordhunt.ru/word/${URL_SLUG}"); then
     :
   else
     last_status=$?
@@ -114,6 +117,12 @@ else
       MEANINGS_LIST="$TR_TEXT"
     fi
   fi
+fi
+
+# Phrase pages (e.g. "эй там") carry the translation in .light_tr instead of
+# any of the structured selectors above.
+if [[ -z "$MEANINGS_LIST" ]]; then
+  MEANINGS_LIST=$(printf '%s' "$HTML" | pup '.light_tr text{}' 2>/dev/null | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep . || true)
 fi
 
 if [[ -z "$MEANINGS_LIST" ]]; then
