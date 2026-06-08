@@ -6,8 +6,29 @@
   font: "Doki 12";
 }
 
+/* Fullscreen surface so clicks outside the card are captured (click-to-exit on Wayland). */
 window {
-  location: center;
+  fullscreen: true;
+  padding: 0px;
+  background-color: transparent;
+  orientation: horizontal;
+  children: [ "hspace-left", "vcenter", "hspace-right" ];
+}
+
+hspace-left, hspace-right, vspace-top, vspace-bottom {
+  expand: true;
+  background-color: transparent;
+}
+
+vcenter {
+  expand: false;
+  orientation: vertical;
+  background-color: transparent;
+  children: [ "vspace-top", "mainbox", "vspace-bottom" ];
+}
+
+mainbox {
+  expand: false;
   width: 720px;
   border: 2px;
   border-color: rgba(240, 131, 175, 0.96);
