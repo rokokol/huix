@@ -24,7 +24,6 @@ in
     extraConfig = {
       modi = "drun,calc";
       show-icons = false;
-      click-to-exit = true;
 
       display-drun = "👀";
       display-calc = "🧮";
