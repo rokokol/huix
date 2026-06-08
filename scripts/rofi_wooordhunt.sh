@@ -58,60 +58,66 @@ fetch_html() {
   curl -fsSL --max-time 5 "$1" 2>/dev/null
 }
 
-# Map wooordhunt's audio-file POS suffix (transfer_verb.mp3 -> verb) to a short
-# RU label. Unknown suffixes pass through verbatim rather than getting dropped.
-pos_label() {
-  case "$1" in
-  verb) printf 'гл.' ;;
-  noun) printf 'сущ.' ;;
-  adjective) printf 'прил.' ;;
-  adverb) printf 'нар.' ;;
-  pronoun) printf 'мест.' ;;
-  preposition) printf 'предл.' ;;
-  conjunction) printf 'союз' ;;
-  numeral) printf 'числ.' ;;
-  interjection) printf 'межд.' ;;
-  *) printf '%s' "$1" ;;
-  esac
-}
-
-# Pull every transcription out of a #us_tr_sound / #uk_tr_sound block as
-# "<transcription>\t<pos>" rows. Homographs (e.g. transfer noun vs verb) render
-# as several such blocks sharing the same id, so we must read all of them, not
-# just the first; the part of speech is recovered from the audio file name.
-# Args: $1 = HTML, $2 = element id (us_tr_sound | uk_tr_sound).
-extract_transcriptions() {
-  printf '%s' "$1" | pup "#$2 json{}" 2>/dev/null | jq -r '
-    [.[] | {
-      tr: ([.children[]? | select((.class // "") == "transcription") | .text] | first // empty),
-      pos: ([.children[]? | select(.tag == "audio") | .children[]? | .src] | first // ""
-             | (capture("_(?<p>[a-z]+)\\.mp3$")?.p) // "")
-    }] | map(select(.tr != "")) | .[] | [.tr, .pos] | @tsv
+# Parse a word page's pronunciation block into one row per pronounced form:
+# "<us-transcription>\t<uk-transcription>\t<part-of-speech>". Homographs (e.g.
+# transfer noun vs verb) render as several us/uk blocks sharing the same id under
+# <div class="trans_sound">, each preceded by a label like "глагол произносится";
+# we walk the block in order so every form is kept and tagged with the site's own
+# part-of-speech word (first token of that label, empty for single-form words).
+# Args: $1 = HTML.
+parse_transcriptions() {
+  printf '%s' "$1" | pup '.trans_sound json{}' 2>/dev/null | jq -r '
+    .[].children
+    | reduce .[] as $c ({forms: [], cur: null};
+        if (($c.class // "") | startswith("es_div")) then
+          (if .cur then .forms += [.cur] else . end)
+          | .cur = {us: "", uk: "", pos:
+              ([$c.children[]? | select((.class // "") == "es_i") | .text]
+               | first // "" | gsub("^\\s+|\\s+$"; "") | split(" ")[0])}
+        elif ($c.id // "") == "us_tr_sound" then
+          (.cur //= {us: "", uk: "", pos: ""})
+          | .cur.us = ([$c.children[]? | select((.class // "") == "transcription") | .text]
+                        | first // "" | gsub("^\\s+|\\s+$"; ""))
+        elif ($c.id // "") == "uk_tr_sound" then
+          (.cur //= {us: "", uk: "", pos: ""})
+          | .cur.uk = ([$c.children[]? | select((.class // "") == "transcription") | .text]
+                        | first // "" | gsub("^\\s+|\\s+$"; ""))
+        else . end)
+    | (if .cur then .forms + [.cur] else .forms end)
+    | .[] | select((.us | length > 0) or (.uk | length > 0))
+    | [.us, .uk, .pos] | @tsv
   ' 2>/dev/null || true
 }
 
-# Join transcription rows for display. A lone transcription is shown bare; when a
-# word has several (omographs), each is tagged with its part of speech so the two
-# pronunciations are told apart instead of silently glued together.
+# Render parsed transcription rows for display. With several forms (omographs)
+# each transcription is tagged with its part of speech so the pronunciations are
+# told apart instead of silently glued together; a lone form is shown bare.
+#   mode=head  -> American, British fallback when no American (RU->EN annotations)
+#   mode=us|uk -> that accent only (EN->RU header line)
 format_transcriptions() {
-  local rows="$1" tr pos part result="" count
+  local rows="$1" mode="$2" us uk pos val part result="" count
   count=$(printf '%s\n' "$rows" | grep -c . || true)
-  while IFS=$'\t' read -r tr pos; do
-    tr=$(printf '%s' "$tr" | xargs)
-    [[ -z "$tr" ]] && continue
-    part="$tr"
-    [[ "$count" -gt 1 && -n "$pos" ]] && part="${tr} ($(pos_label "$pos"))"
+  while IFS=$'\t' read -r us uk pos; do
+    case "$mode" in
+    head) val="${us:-$uk}" ;;
+    us) val="$us" ;;
+    uk) val="$uk" ;;
+    esac
+    val=$(printf '%s' "$val" | xargs)
+    [[ -z "$val" ]] && continue
+    part="$val"
+    [[ "$count" -gt 1 && -n "$pos" ]] && part="${val} (${pos})"
     [[ -z "$result" ]] && result="$part" || result+=", ${part}"
   done < <(printf '%s\n' "$rows")
   printf '%s' "$result"
 }
 
-# US transcription(s) for a single english word, e.g. "house" -> |haʊs|.
-# Used to annotate RU->EN results, which carry no transcription themselves.
+# US transcription(s) for a single english word, e.g. "house" -> |haʊs|, with the
+# British one as fallback. Used to annotate RU->EN results, which carry none.
 fetch_transcription() {
   local slug="${1// /_}" html
   html=$(curl -fsSL --max-time 4 "https://wooordhunt.ru/word/${slug}" 2>/dev/null || true)
-  format_transcriptions "$(extract_transcriptions "$html" us_tr_sound)"
+  format_transcriptions "$(parse_transcriptions "$html")" head
 }
 
 HTML=""
@@ -132,8 +138,9 @@ else
   fi
 fi
 
-TRANSCRIPTION_US=$(format_transcriptions "$(extract_transcriptions "$HTML" us_tr_sound)")
-TRANSCRIPTION_UK=$(format_transcriptions "$(extract_transcriptions "$HTML" uk_tr_sound)")
+TR_ROWS=$(parse_transcriptions "$HTML")
+TRANSCRIPTION_US=$(format_transcriptions "$TR_ROWS" us)
+TRANSCRIPTION_UK=$(format_transcriptions "$TR_ROWS" uk)
 
 if [[ -n "$TRANSCRIPTION_US" || -n "$TRANSCRIPTION_UK" ]]; then
   print_message "🇺🇸: ${TRANSCRIPTION_US} // 🇬🇧: ${TRANSCRIPTION_UK}"
@@ -150,9 +157,15 @@ if printf '%s' "$HTML" | grep -q 'class="sub_entry"'; then
     .[] |
       (.children[]? | select(.tag=="h3")) as $h3 |
       # Most words sit in <a> links, but unlinked phrases (e.g. "baking oven")
-      # come as a bare <span>; take both. (Transcriptions live in a separate
-      # block and are fetched per-word below, never inside these h3s.)
-      ([$h3.children[]? | select(.tag=="a" or .tag=="span") | .text] | join(" / ")) as $words |
+      # come as a bare <span>; take both. The word may be the link own text
+      # (transfer) or nested one level in a <span> (risk -> <a><span>risk</span>),
+      # so fall back to child text. (Transcriptions live in a separate block and
+      # are fetched per-word below, never inside these h3s.)
+      ([$h3.children[]?
+         | select(.tag == "a" or .tag == "span")
+         | (([.text] + [.children[]?.text]) | map(select(. != null and (. | test("\\S")))) | first // "")
+         | select(. != "")
+       ] | join(" / ")) as $words |
       (($h3.text // "") | (capture("—\\s*(?<g>.*)")?.g) // "") as $gloss |
       ((.children[]? | select(.tag=="p" and ((.class // "") | test("meaning"))) | .text) // "") as $meaning |
       [$words, $gloss, $meaning] | @tsv
