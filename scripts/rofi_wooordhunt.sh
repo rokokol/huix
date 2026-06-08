@@ -58,12 +58,60 @@ fetch_html() {
   curl -fsSL --max-time 5 "$1" 2>/dev/null
 }
 
-# US transcription for a single english word, e.g. "house" -> |haʊs|.
+# Map wooordhunt's audio-file POS suffix (transfer_verb.mp3 -> verb) to a short
+# RU label. Unknown suffixes pass through verbatim rather than getting dropped.
+pos_label() {
+  case "$1" in
+  verb) printf 'гл.' ;;
+  noun) printf 'сущ.' ;;
+  adjective) printf 'прил.' ;;
+  adverb) printf 'нар.' ;;
+  pronoun) printf 'мест.' ;;
+  preposition) printf 'предл.' ;;
+  conjunction) printf 'союз' ;;
+  numeral) printf 'числ.' ;;
+  interjection) printf 'межд.' ;;
+  *) printf '%s' "$1" ;;
+  esac
+}
+
+# Pull every transcription out of a #us_tr_sound / #uk_tr_sound block as
+# "<transcription>\t<pos>" rows. Homographs (e.g. transfer noun vs verb) render
+# as several such blocks sharing the same id, so we must read all of them, not
+# just the first; the part of speech is recovered from the audio file name.
+# Args: $1 = HTML, $2 = element id (us_tr_sound | uk_tr_sound).
+extract_transcriptions() {
+  printf '%s' "$1" | pup "#$2 json{}" 2>/dev/null | jq -r '
+    [.[] | {
+      tr: ([.children[]? | select((.class // "") == "transcription") | .text] | first // empty),
+      pos: ([.children[]? | select(.tag == "audio") | .children[]? | .src] | first // ""
+             | (capture("_(?<p>[a-z]+)\\.mp3$")?.p) // "")
+    }] | map(select(.tr != "")) | .[] | [.tr, .pos] | @tsv
+  ' 2>/dev/null || true
+}
+
+# Join transcription rows for display. A lone transcription is shown bare; when a
+# word has several (omographs), each is tagged with its part of speech so the two
+# pronunciations are told apart instead of silently glued together.
+format_transcriptions() {
+  local rows="$1" tr pos part result="" count
+  count=$(printf '%s\n' "$rows" | grep -c . || true)
+  while IFS=$'\t' read -r tr pos; do
+    tr=$(printf '%s' "$tr" | xargs)
+    [[ -z "$tr" ]] && continue
+    part="$tr"
+    [[ "$count" -gt 1 && -n "$pos" ]] && part="${tr} ($(pos_label "$pos"))"
+    [[ -z "$result" ]] && result="$part" || result+=", ${part}"
+  done < <(printf '%s\n' "$rows")
+  printf '%s' "$result"
+}
+
+# US transcription(s) for a single english word, e.g. "house" -> |haʊs|.
 # Used to annotate RU->EN results, which carry no transcription themselves.
 fetch_transcription() {
-  local slug="${1// /_}"
-  curl -fsSL --max-time 4 "https://wooordhunt.ru/word/${slug}" 2>/dev/null |
-    pup '#us_tr_sound > .transcription text{}' 2>/dev/null | xargs || true
+  local slug="${1// /_}" html
+  html=$(curl -fsSL --max-time 4 "https://wooordhunt.ru/word/${slug}" 2>/dev/null || true)
+  format_transcriptions "$(extract_transcriptions "$html" us_tr_sound)"
 }
 
 HTML=""
@@ -84,8 +132,8 @@ else
   fi
 fi
 
-TRANSCRIPTION_US=$(printf '%s' "$HTML" | pup '#us_tr_sound > .transcription text{}' 2>/dev/null | xargs || true)
-TRANSCRIPTION_UK=$(printf '%s' "$HTML" | pup '#uk_tr_sound > .transcription text{}' 2>/dev/null | xargs || true)
+TRANSCRIPTION_US=$(format_transcriptions "$(extract_transcriptions "$HTML" us_tr_sound)")
+TRANSCRIPTION_UK=$(format_transcriptions "$(extract_transcriptions "$HTML" uk_tr_sound)")
 
 if [[ -n "$TRANSCRIPTION_US" || -n "$TRANSCRIPTION_UK" ]]; then
   print_message "🇺🇸: ${TRANSCRIPTION_US} // 🇬🇧: ${TRANSCRIPTION_UK}"
