@@ -101,7 +101,10 @@ if printf '%s' "$HTML" | grep -q 'class="sub_entry"'; then
   SECTIONS=$(printf '%s' "$HTML" | pup 'section.sub_entry json{}' 2>/dev/null | jq -r '
     .[] |
       (.children[]? | select(.tag=="h3")) as $h3 |
-      ([$h3.children[]? | select(.tag=="a") | .text] | join(" / ")) as $words |
+      # Most words sit in <a> links, but unlinked phrases (e.g. "baking oven")
+      # come as a bare <span>; take both. (Transcriptions live in a separate
+      # block and are fetched per-word below, never inside these h3s.)
+      ([$h3.children[]? | select(.tag=="a" or .tag=="span") | .text] | join(" / ")) as $words |
       (($h3.text // "") | (capture("—\\s*(?<g>.*)")?.g) // "") as $gloss |
       ((.children[]? | select(.tag=="p" and ((.class // "") | test("meaning"))) | .text) // "") as $meaning |
       [$words, $gloss, $meaning] | @tsv
@@ -167,7 +170,21 @@ MEANINGS_LIST=""
 if printf '%s' "$HTML" | grep -q 'class="t_inline_en"'; then
   MEANINGS_LIST=$(printf '%s' "$HTML" | pup '.t_inline_en text{}' 2>/dev/null | xargs)
 else
-  TR_SPANS=$(printf '%s' "$HTML" | pup '.tr > span text{}' 2>/dev/null | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep . || true)
+  # One translation per direct-child span. We flatten each span's element HTML
+  # by hand instead of `text{}` because a span may wrap a parenthetical in its
+  # own tag (e.g. "<i>(чрезмерно)</i> подчёркивать"); text{} would emit that as
+  # two lines and split one meaning into two rows.
+  TR_SPANS=$(printf '%s' "$HTML" | pup '.tr > span' 2>/dev/null | awk '
+    /^<span/ { buf = ""; next }
+    /^<\/span>/ {
+      gsub(/<[^>]*>/, "", buf)
+      gsub(/[[:space:]]+/, " ", buf)
+      sub(/^ /, "", buf); sub(/ $/, "", buf)
+      if (buf != "") print buf
+      next
+    }
+    { buf = buf " " $0 }
+  ' || true)
   if [[ -n "$TR_SPANS" ]]; then
     MEANINGS_LIST="$TR_SPANS"
   elif printf '%s' "$HTML" | grep -q 'class="t_inline"'; then
