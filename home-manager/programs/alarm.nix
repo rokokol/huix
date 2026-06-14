@@ -95,18 +95,33 @@ let
       trap restore EXIT INT TERM
 
       # Sleep in a loop so an early wake (power button, lid, USB) doesn't ring
-      # by mistake. `-m mem` suspends the kernel directly, bypassing logind, so
-      # hypridle's before_sleep lock never fires. Relative `-s` dodges RTC
-      # timezone issues. rtcwake returns on ANY wake, so after each resume we
-      # check the clock: if it's not time yet, offer a 20s cancel window and
-      # otherwise go back to sleep.
+      # by mistake. We suspend the proper way — `rtcwake -m no` only ARMS the RTC
+      # wakealarm, then `systemctl suspend` does a real deep suspend through
+      # logind (so nvidia-suspend hooks run and the box actually goes quiet).
+      # hypridle is stopped above, so logind's sleep won't trigger the lock.
+      # `systemctl suspend` returns immediately and the process then freezes with
+      # the machine; we detect the resume by the wall-clock jump (sleep counts
+      # awake time only, so a big delta means we suspended and came back).
       while :; do
         delay=$(( target - $(date +%s) ))
         if [ "$delay" -le 10 ]; then
           break
         fi
         [ "$delay" -lt 30 ] && delay=30
-        sudo "$RTCWAKE" -m mem -s "$delay"
+
+        sudo "$RTCWAKE" -m no -s "$delay"
+        t0=$(date +%s)
+        systemctl suspend
+
+        # Block until we have actually suspended and resumed (clock jumped) or,
+        # as a safety net if suspend silently failed, until the target passes.
+        while :; do
+          sleep 4
+          now=$(date +%s)
+          [ $(( now - t0 )) -gt 8 ] && break
+          [ "$now" -ge "$target" ] && break
+          t0=$now
+        done
 
         # Woke at (or past) target -> fall through to the alarm.
         [ "$(date +%s)" -ge $(( target - 10 )) ] && break
