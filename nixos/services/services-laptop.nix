@@ -10,6 +10,7 @@
     ./utils/docker.nix
     ./utils/tor.nix
     ./desktop/wl-clip-persist.nix
+    ./system/alarm.nix
     ./system/cachix.nix
     ./tools/libre-translate.nix
     ./tools/syncthing.nix
@@ -19,4 +20,6 @@
   custom.jupyter = {
     enable = true;
   };
+
+  custom.alarm.enable = true;
 }

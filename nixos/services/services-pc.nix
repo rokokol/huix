@@ -12,6 +12,7 @@
     ./desktop/wl-clip-persist.nix
     ./devices/printer.nix
     ./devices/tablet.nix
+    ./system/alarm.nix
     ./system/cachix.nix
     ./system/nix-ld.nix
     ./tools/jupyter.nix
@@ -27,4 +28,6 @@
     enable = true;
     withCuda = true;
   };
+
+  custom.alarm.enable = true;
 }
