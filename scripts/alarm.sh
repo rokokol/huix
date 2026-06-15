@@ -4,7 +4,6 @@ set -euo pipefail
 
 RTCWAKE="/run/current-system/sw/bin/rtcwake"
 ALARM_SOUND="${ALARM_SOUND:-/run/current-system/sw/share/sounds/freedesktop/stereo/alarm-clock-elapsed.oga}"
-
 usage() {
   cat <<'EOF'
 alarm — усыпляет компьютер на заданное время, а после будит и звенит.
@@ -40,7 +39,6 @@ target=$(($(date +%s) + secs))
 wake_human=$(date -d "@$target" '+%H:%M %d.%m')
 echo "Сон до $wake_human. Подъём — Ctrl+C, чтобы остановить звон."
 notify-send -u low "Будильник заведён （-＾〇＾-）" "Подъём в $wake_human" || true
-sleep 3
 
 # rtcwake -m no только ЗАВОДИТ будильник RTC, не усыпляя сам. Прямой
 # `rtcwake -m mem` пишет в /sys/power/state в обход systemd и на десктопе с GPU
@@ -60,21 +58,15 @@ done
 # ---- проснулись -> звеним ----
 wpctl set-mute @DEFAULT_AUDIO_SINK@ 0 || true
 wpctl set-volume @DEFAULT_AUDIO_SINK@ 1.0 || true
-notify-send -u critical "ПОДЪЁМ (*≧m≦*)" "Ctrl+C, чтобы выключить будильник" || true
+notify-send -u critical "ПОДЪЁМ (*≧m≦*)" "Помни, зачем ты это сделал, уебище" || true
 
-# Один Ctrl+C должен сразу глушить звон. Без trap'а SIGINT убивает только
-# текущий pw-play, а цикл запускает звук заново — поэтому ловим сигнал и выходим.
-ring_pid=""
-stop() {
-  [ -n "$ring_pid" ] && kill "$ring_pid" 2>/dev/null
-  echo
-  echo "Будильник выключен."
-  exit 0
-}
-trap stop INT TERM
-
-while :; do
-  pw-play "$ALARM_SOUND" || sleep 1
-done &
+# Звук крутим в фоне, а сами ждём нажатие любой клавиши.
+(while :; do pw-play "$ALARM_SOUND" || sleep 1; done) &
 ring_pid=$!
-wait "$ring_pid"
+
+read -rsn1 -p "Нажми любую клавишу, чтобы выключить будильник... " _ || true
+
+kill "$ring_pid" 2>/dev/null || true     # остановить цикл
+pkill -P "$ring_pid" 2>/dev/null || true # добить текущий pw-play
+echo
+echo "Будильник выключен."

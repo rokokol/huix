@@ -12,6 +12,7 @@ let
       coreutils
       gawk
       libnotify
+      procps
       wireplumber
       pipewire
     ];
