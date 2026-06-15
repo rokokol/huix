@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
-# alarm — усыпляет компьютер на заданное время, а после будит и звенит.
-#
-# Зависимости: rtcwake (util-linux), pw-play + wpctl (pipewire/wireplumber),
-# notify-send (libnotify), awk, coreutils. Звук можно переопределить через
-# переменную окружения ALARM_SOUND.
+
 set -euo pipefail
 
 RTCWAKE="/run/current-system/sw/bin/rtcwake"
@@ -22,10 +18,10 @@ EOF
 }
 
 case "${1:-}" in
-  -h | --help | "")
-    usage
-    exit 0
-    ;;
+-h | --help | "")
+  usage
+  exit 0
+  ;;
 esac
 
 minutes="${1}"
@@ -40,20 +36,45 @@ if [ "$secs" -lt 60 ]; then
   exit 1
 fi
 
-wake_human=$(date -d "+$secs seconds" '+%H:%M %d.%m')
+target=$(($(date +%s) + secs))
+wake_human=$(date -d "@$target" '+%H:%M %d.%m')
 echo "Сон до $wake_human. Подъём — Ctrl+C, чтобы остановить звон."
-notify-send -u critical "⏰ Будильник заведён" "Подъём в $wake_human" || true
+notify-send -u low "Будильник заведён （-＾〇＾-）" "Подъём в $wake_human" || true
 sleep 3
 
-# rtcwake -m mem усыпляет в RAM, заводит RTC и возвращает управление только
-# после того, как машина проснётся в назначенный срок.
-sudo "$RTCWAKE" -m mem -s "$secs"
+# rtcwake -m no только ЗАВОДИТ будильник RTC, не усыпляя сам. Прямой
+# `rtcwake -m mem` пишет в /sys/power/state в обход systemd и на десктопе с GPU
+# падает с "write error" — поэтому сам сон делаем через `systemctl suspend`,
+# чтобы отработали systemd-хуки (в т.ч. nvidia).
+sudo "$RTCWAKE" -m no -s "$secs"
+systemctl suspend
+
+# `systemctl suspend` возвращает управление сразу после инициации сна; процесс
+# замораживается вместе с машиной и продолжится уже после пробуждения. Ждём,
+# пока не настанет назначенное время (на случай, если suspend не сработал —
+# просто досидим до срока наяву).
+while [ "$(date +%s)" -lt "$target" ]; do
+  sleep 5
+done
 
 # ---- проснулись -> звеним ----
 wpctl set-mute @DEFAULT_AUDIO_SINK@ 0 || true
 wpctl set-volume @DEFAULT_AUDIO_SINK@ 1.0 || true
-notify-send -u critical "⏰ ПОДЪЁМ" "Ctrl+C, чтобы выключить будильник" || true
+notify-send -u critical "ПОДЪЁМ (*≧m≦*)" "Ctrl+C, чтобы выключить будильник" || true
+
+# Один Ctrl+C должен сразу глушить звон. Без trap'а SIGINT убивает только
+# текущий pw-play, а цикл запускает звук заново — поэтому ловим сигнал и выходим.
+ring_pid=""
+stop() {
+  [ -n "$ring_pid" ] && kill "$ring_pid" 2>/dev/null
+  echo
+  echo "Будильник выключен."
+  exit 0
+}
+trap stop INT TERM
 
 while :; do
   pw-play "$ALARM_SOUND" || sleep 1
-done
+done &
+ring_pid=$!
+wait "$ring_pid"
