@@ -92,13 +92,13 @@ in
       -- twin on `.`, which overwrites real `.` mappings (e.g. neo-tree's
       -- `.` = set_root). Make that key identity so no `.`/`,` twins are produced;
       -- this matches the native `langmap` above, which also omits that pair.
-      local ru = vim.deepcopy(require('langmapper.config').config.layouts.ru)
-      ru.layout = ru.layout:gsub(',ё', '?ё'):gsub('%.$', '/')
+      local ru_layout = require('langmapper.config').config.layouts.ru.layout
+      ru_layout = ru_layout:gsub(',ё', '?ё'):gsub('%.$', '/')
 
       lm.setup({
         hack_keymap = true,
         map_all_ctrl = true,
-        layouts = { ru = ru },
+        layouts = { ru = { layout = ru_layout } },
       })
 
       lm.automapping({ global = true, buffer = true })
