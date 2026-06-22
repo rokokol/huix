@@ -26,12 +26,11 @@ fi
 name="${VMIC_NAME:-Virtual-Mic}"
 sink_name="virtual_mic"
 
-# media.class=Audio/Source/Virtual — нода появляется именно как микрофон (а не
-# как "Monitor of ..."), в этот источник ffmpeg и пишет звук.
+# Обычный null-sink: это "чёрная дыра" без вывода в железо, поэтому в наушниках
+# тишина. ffmpeg пишет в этот sink, а в приложении выбираешь его монитор
+# («Monitor of <name>») как микрофон.
 module_id="$(pactl load-module module-null-sink \
-  media.class=Audio/Source/Virtual \
   sink_name="$sink_name" \
-  channel_map=front-left,front-right \
   sink_properties="device.description=$name")"
 
 cleanup() {
@@ -39,8 +38,8 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-echo "virtual-mic: $file → микрофон «$name»"
-echo "virtual-mic: выбери этот микрофон в приложении (Ctrl+C чтобы остановить)"
+echo "virtual-mic: $file → «$name» (звука в наушниках не будет)"
+echo "virtual-mic: в приложении выбери микрофон «Monitor of $name» (Ctrl+C — стоп)"
 
 # -vn: видео игнорируем, берём только звук. aresample=async сглаживает рассинхрон
 # на склейке цикла. Без exec — чтобы по Ctrl+C отработал trap и выгрузил источник.
