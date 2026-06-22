@@ -87,9 +87,18 @@ in
         return
       end
 
+      -- langmapper's built-in RU layout maps the physical `/?` key to `.`/`,`.
+      -- With `hack_keymap` that makes every plugin `/` mapping silently create a
+      -- twin on `.`, which overwrites real `.` mappings (e.g. neo-tree's
+      -- `.` = set_root). Make that key identity so no `.`/`,` twins are produced;
+      -- this matches the native `langmap` above, which also omits that pair.
+      local ru = vim.deepcopy(require('langmapper.config').config.layouts.ru)
+      ru.layout = ru.layout:gsub(',ё', '?ё'):gsub('%.$', '/')
+
       lm.setup({
         hack_keymap = true,
         map_all_ctrl = true,
+        layouts = { ru = ru },
       })
 
       lm.automapping({ global = true, buffer = true })
