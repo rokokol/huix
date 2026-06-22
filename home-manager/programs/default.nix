@@ -8,6 +8,7 @@
     ./rofi/default.nix
     ./term/default.nix
     ./thunar.nix
+    ./virtual-mic.nix
     ./zen.nix
   ];
 }

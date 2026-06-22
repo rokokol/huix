@@ -6,6 +6,8 @@
 # Использование:
 #   virtual-cam <файл> [устройство]
 # По умолчанию устройство ищется по метке "Virtual Camera", иначе /dev/video10.
+# VCAM_FPS  — частота кадров (по умолчанию 30).
+# VCAM_FLIP=1 — отзеркалить по горизонтали (если приложение само не зеркалит).
 
 set -euo pipefail
 
@@ -35,24 +37,32 @@ if [[ ! -e "$dev" ]]; then
   exit 1
 fi
 
+fps="${VCAM_FPS:-30}"
+
 mime="$(file --brief --mime-type "$file")"
 
 echo "virtual-cam: $file ($mime) → $dev  (Ctrl+C чтобы остановить)"
 
-# Чётные размеры обязательны для yuv420p.
-common_filter="format=yuv420p,scale=trunc(iw/2)*2:trunc(ih/2)*2"
+# Родное разрешение, только чётные размеры (нужны для yuv420p). Постоянный fps +
+# пересчёт PTS из номера кадра: таймстампы строго монотонны и непрерывны через
+# границу зацикливания — иначе на каждой склейке цикла муксер v4l2 ловит
+# немонотонные DTS и поток дёргается/обрывается.
+common_filter="fps=${fps}"
+[[ "${VCAM_FLIP:-0}" == "1" ]] && common_filter+=",hflip"
+common_filter+=",format=yuv420p,scale=trunc(iw/2)*2:trunc(ih/2)*2,setpts=N/(${fps}*TB)"
 
 case "$mime" in
   image/*)
     exec ffmpeg -hide_banner -loglevel warning \
       -re -loop 1 -i "$file" \
-      -vf "$common_filter" -r 30 \
+      -vf "$common_filter" \
       -f v4l2 "$dev"
     ;;
   video/*)
     exec ffmpeg -hide_banner -loglevel warning \
       -stream_loop -1 -re -i "$file" \
       -vf "$common_filter" -an \
+      -fflags +genpts \
       -f v4l2 "$dev"
     ;;
   *)
