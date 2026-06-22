@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-# Переключает чёрно-белый (grayscale) режим монитора через screen-shader Hyprland.
-# Удобно вечером перед сном, чтобы цвета не будоражили.
+# Переключает чёрно-белый (grayscale) режим монитора через screen-shader Hyprland
 
 set -euo pipefail
 
