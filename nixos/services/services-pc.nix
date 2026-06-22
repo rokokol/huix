@@ -12,6 +12,7 @@
     ./desktop/wl-clip-persist.nix
     ./devices/printer.nix
     ./devices/tablet.nix
+    ./devices/virtual-camera.nix
     ./system/cachix.nix
     ./system/nix-ld.nix
     ./tools/jupyter.nix
