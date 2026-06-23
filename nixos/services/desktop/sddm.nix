@@ -15,9 +15,11 @@
     };
   };
 
+  # Программный курсор на экране логина: грубер SDDM работает на KWin, а на NVIDIA
+  # аппаратный курсор под Wayland глючит. (WLR_NO_HARDWARE_CURSORS убрана — она от
+  # wlroots, а ни KWin, ни Hyprland 0.55/Aquamarine её не читают.)
   environment.variables = {
     KWIN_FORCE_SW_CURSOR = "1";
-    WLR_NO_HARDWARE_CURSORS = "1";
   };
 
   environment.systemPackages = with pkgs; [
