@@ -35,7 +35,13 @@ notify_info() {
 # Пинаем waybar перечитать индикатор шейдера (модуль слушает SIGRTMIN+N). Номер
 # сигнала задаёт Nix (waybar-pc.nix) и кладёт в WAYBAR_SHADER_SIGNAL — единый
 # источник правды. Не задан (ноут без индикатора / вне сессии) — просто не шлём.
+#
+# SHADER_NO_SIGNAL гасит сигнал при restore на старте сессии: SIGRTMIN+N по
+# умолчанию ЗАВЕРШАЕТ процесс, и если послать его пока waybar ещё не успел
+# установить обработчик (гонка autostart), waybar убивается. На старте сигнал и
+# не нужен — waybar сам прочитает статус своим exec-ом при запуске.
 signal_waybar() {
+  [[ -z "${SHADER_NO_SIGNAL:-}" ]] || return 0
   [[ -n "${WAYBAR_SHADER_SIGNAL:-}" ]] || return 0
   pkill -RTMIN+"$WAYBAR_SHADER_SIGNAL" waybar 2>/dev/null || true
 }
@@ -50,8 +56,11 @@ require_env() {
 require_env
 
 SHADER_DIR="$HUIX/scripts/shaders"
+# Генерируемые active-*.frag — эфемерны, держим в рантайме.
 STATE_DIR="${XDG_RUNTIME_DIR:-/tmp}/hypr-shader"
-STATE="$STATE_DIR/state"
+# Выбор эффекта/яркости — durable (как тема): переживает логаут и ребут, чтобы
+# шейдер не слетал на старте новой сессии. Не в git-дереве (hourly-sync не трогает).
+STATE="${XDG_STATE_HOME:-$HOME/.local/state}/huix/shader"
 
 # Порядок для листания (effect next/prev). none первым — это «выключено».
 EFFECTS=(none grayscale sepia invert warm cool vignette crt matrix posterize wave glitch)
@@ -102,6 +111,7 @@ load_state() {
 }
 
 save_state() {
+  mkdir -p "$(dirname "$STATE")"
   printf 'effect=%s\nbright=%s\nslot=%s\n' "$effect" "$bright" "$slot" >"$STATE"
 }
 
@@ -264,6 +274,10 @@ cmd_bright() {
 # (в т.ч. при nixos-rebuild) — screen_shader живёт только в рантайме и слетает,
 # поэтому hyprland.conf зовёт это через `exec` на каждом reload.
 cmd_restore() {
+  # На старте сессии не сигналим waybar (см. signal_waybar) — иначе ранний
+  # SIGRTMIN+N убьёт ещё не готовый waybar. Скрипт тут же завершается, так что
+  # глобальная установка флага безопасна.
+  SHADER_NO_SIGNAL=1
   load_state
   apply
 }
