@@ -25,8 +25,8 @@
       # Модификаторы пишем литералом (SUPER ALT), т.к. эти настройки
       # рендерятся ДО source = hyprland.conf, где определён $mainScreenMod.
       bindel = [
-        "SUPER ALT, bracketright, exec, ${huixDir}/scripts/screen-shader.sh bright up"
-        "SUPER ALT, bracketleft,  exec, ${huixDir}/scripts/screen-shader.sh bright down"
+        "SUPER CTRL, bracketright, exec, ${huixDir}/scripts/screen-shader.sh bright up"
+        "SUPER CTRL, bracketleft,  exec, ${huixDir}/scripts/screen-shader.sh bright down"
       ];
       bind = [
         "SUPER ALT, backslash, exec, ${huixDir}/scripts/screen-shader.sh bright reset"
