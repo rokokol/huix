@@ -1,9 +1,6 @@
 { huixDir, ... }:
 
 let
-  # Единый источник правды для сигнала обновления индикатора шейдера: waybar-модуль
-  # слушает SIGRTMIN+shaderSignal, а screen-shader.sh шлёт его после смены состояния.
-  # Число задаётся только здесь и пробрасывается скрипту через WAYBAR_SHADER_SIGNAL.
   shaderSignal = 8;
 in
 {
