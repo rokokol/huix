@@ -53,10 +53,16 @@ EFFECTS=(none grayscale sepia invert warm cool vignette crt matrix posterize wav
 ANIMATED=(wave glitch matrix)
 
 # Статичные эффекты, которые сэмплят текстуру со СМЕЩЕНИЕМ (кривизна, искажение).
-# При частичном damage tracking они читают непереисованные соседние области и
-# «ломаются» на быстрых изменениях экрана. Им нужна полная перерисовка
-# (damage_tracking 0), но VFR можно оставить — анимации нет.
+# При точном damage tracking (2) они читают непереисованные соседние области и
+# «ломаются» на быстрых изменениях экрана. Им нужна перерисовка ВСЕГО монитора
+# при любом изменении (damage_tracking 1), но в простое можно спать — анимации нет.
 OFFSET=(crt)
+
+# Эффекты, которые двигают пиксели ГЕОМЕТРИЧЕСКИ (кривизна/искажение). Для них
+# включаем ПРОГРАММНЫЙ курсор, чтобы он проходил через шейдер вместе с экраном:
+# аппаратный курсор рисуется оверлеем мимо шейдера и не совпадает с искажённым
+# контентом (из-за чего клики у краёв уезжают). Для остальных — аппаратный (быстрее).
+WARP=(crt wave glitch)
 
 mkdir -p "$STATE_DIR"
 
@@ -98,16 +104,16 @@ in_list() {
 }
 
 # Режим отрисовки по типу эффекта:
-#   animated   — анимация (uniform time): полный damage + VFR off (рисуем каждый
-#                кадр; при включённом VFR Hyprland уходит в idle и анимация дёргается);
-#   fullstatic — статичный, но со смещённой выборкой (кривизна): полный damage +
-#                VFR on (перерисовываем весь экран, но только при изменениях —
-#                иначе частичный damage ломает искажённую выборку);
-#   default    — попиксельный эффект: дефолтные damage + VFR (частичный damage ок).
+#   animated   — анимация (uniform time): damage 0 (рисуем каждый кадр) + VFR off
+#                (при включённом VFR Hyprland уходит в idle и анимация дёргается);
+#   fullstatic — статичный, но со смещённой выборкой (кривизна): damage 1 — при
+#                любом изменении перерисовываем весь монитор (иначе точный damage
+#                ломает искажённую выборку), но в простое спим; VFR on;
+#   default    — попиксельный эффект: дефолтные damage 2 + VFR (частичный damage ок).
 set_render_mode() {
   case "$1" in
     animated)   hyprctl --batch "keyword debug:damage_tracking 0 ; keyword debug:vfr 0" >/dev/null ;;
-    fullstatic) hyprctl --batch "keyword debug:damage_tracking 0 ; keyword debug:vfr 1" >/dev/null ;;
+    fullstatic) hyprctl --batch "keyword debug:damage_tracking 1 ; keyword debug:vfr 1" >/dev/null ;;
     *)          hyprctl --batch "keyword debug:damage_tracking 2 ; keyword debug:vfr 1" >/dev/null ;;
   esac
 }
@@ -122,10 +128,22 @@ render_mode_for() {
   fi
 }
 
+# Программный курсор для искажающих эффектов (см. WARP) — иначе аппаратный курсор
+# идёт мимо шейдера. На NVIDIA «программный курсор» = воркэраунд аппаратного, так
+# что это безопасная сторона; аппаратный (false) — текущий дефолт.
+set_cursor_for() {
+  if in_list "$1" "${WARP[@]}"; then
+    hyprctl keyword cursor:no_hardware_cursors true >/dev/null
+  else
+    hyprctl keyword cursor:no_hardware_cursors false >/dev/null
+  fi
+}
+
 apply() {
   # Полностью убираем шейдер, если ни эффекта, ни затемнения нет.
   if [[ "$effect" == "none" && "$bright" == "1.00" ]]; then
     set_render_mode default
+    set_cursor_for none
     hyprctl keyword decoration:screen_shader "[[EMPTY]]" >/dev/null
     return
   fi
@@ -161,6 +179,7 @@ apply() {
   } >"$active"
 
   set_render_mode "$(render_mode_for "$effect")"
+  set_cursor_for "$effect"
   hyprctl keyword decoration:screen_shader "$active" >/dev/null
   save_state
 }
@@ -174,24 +193,40 @@ set_effect() {
   effect="$name"
   save_state
   apply
-  [[ "$name" == "none" ]] \
-    && notify_info "Shader" "Эффект выключен (★^O^★)" \
-    || notify_info "Shader" "Эффект: $name （-＾〇＾-）"
+  if [[ "$name" == "none" ]]; then
+    notify_info "Shader" "Эффект выключен (★^O^★)"
+  else
+    notify_info "Shader" "Эффект: $name （-＾〇＾-）"
+  fi
 }
 
 cmd_effect() {
   load_state
   case "${1:-}" in
     set)    set_effect "${2:?effect name required}" ;;
-    toggle) [[ "$effect" == "${2:?effect name required}" ]] && set_effect none || set_effect "$2" ;;
+    toggle)
+      if [[ "$effect" == "${2:?effect name required}" ]]; then
+        set_effect none
+      else
+        set_effect "$2"
+      fi
+      ;;
+    off-or)
+      # Любой активный эффект -> выключить; если эффекта нет -> включить <name>.
+      if [[ "$effect" == "none" ]]; then
+        set_effect "${2:?effect name required}"
+      else
+        set_effect none
+      fi
+      ;;
     next|prev)
       local idx step n
       idx=$(effect_index "$effect")
       n=${#EFFECTS[@]}
-      [[ "$1" == "next" ]] && step=1 || step=$((n - 1))
+      if [[ "$1" == "next" ]]; then step=1; else step=$((n - 1)); fi
       set_effect "${EFFECTS[$(((idx + step) % n))]}"
       ;;
-    *) notify_error "Usage: effect set|toggle <name> | next | prev"; exit 1 ;;
+    *) notify_error "Usage: effect set|toggle|off-or <name> | next | prev"; exit 1 ;;
   esac
 }
 
