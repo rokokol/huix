@@ -25,7 +25,7 @@
         "SUPER CTRL, bracketleft,  exec, ${huixDir}/scripts/screen-shader.sh bright down"
       ];
       bind = [
-        "SUPER CTRL, backslash, exec, ${huixDir}/scripts/screen-shader.sh bright reset"
+        "SUPER CTRL, BackSpace, exec, ${huixDir}/scripts/screen-shader.sh bright reset"
       ];
     };
   };
