@@ -8,6 +8,7 @@ let
     runtimeInputs = with pkgs; [
       ffmpeg
       pulseaudio # pactl — создание виртуального источника в PipeWire
+      coreutils # mktemp/mkfifo/rm для FIFO
     ];
     text = ''
       exec bash "${huixDir}/scripts/virtual-mic.sh" "$@"
