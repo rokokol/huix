@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 
-# Выбор полноэкранного шейдера через rofi. По выбору вызывает screen-shader.sh.
+# Пикер полноэкранного шейдера как rofi script-modi (modi "shader").
+# Вне rofi (ROFI_RETV не задан) — лаунчер: открываем rofi с этим же скриптом в
+# роли modi, чтобы и хоткей, и клик в waybar звали один скрипт без дублирования
+# команды rofi. Промпт пикера (📺) задаётся в конфиге rofi через display-shader
+# (как display-dictionary и т.п.), а не флагом -p. Пункты и эмодзи берём из
+# screen-shader.sh menu — единый источник.
 
 set -euo pipefail
 
@@ -14,17 +19,17 @@ require_env() {
 
 require_env
 
-# Список «подпись|значение» берём из screen-shader.sh — единый источник эмодзи
-# и подписей (не дублируем здесь).
-mapfile -t ENTRIES < <("$HUIX/scripts/screen-shader.sh" menu)
+# Вне rofi — лаунчер: запускаем rofi с этим же скриптом в роли modi "shader".
+if [[ -z "${ROFI_RETV:-}" ]]; then
+  exec rofi -show shader -modi "shader:$0" -mesg "Эффект на весь экран"
+fi
 
-labels=$(printf '%s\n' "${ENTRIES[@]}" | cut -d'|' -f1)
+# Выбран пункт — его значение rofi кладёт в ROFI_INFO. Применяем эффект.
+if [[ -n "${ROFI_INFO:-}" ]]; then
+  exec "$HUIX/scripts/screen-shader.sh" effect set "$ROFI_INFO"
+fi
 
-choice=$(printf '%s\n' "$labels" | rofi -dmenu -i -p "📺" -mesg "Эффект на весь экран")
-[[ -z "$choice" ]] && exit 0
-
-for e in "${ENTRIES[@]}"; do
-  if [[ "${e%%|*}" == "$choice" ]]; then
-    exec "$HUIX/scripts/screen-shader.sh" effect set "${e##*|}"
-  fi
-done
+# Первый вызов от rofi — печатаем пункты: видимая подпись + скрытое значение (info).
+while IFS='|' read -r label value; do
+  printf '%s\0info\x1f%s\n' "$label" "$value"
+done < <("$HUIX/scripts/screen-shader.sh" menu)
