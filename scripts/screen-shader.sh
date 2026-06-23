@@ -32,9 +32,12 @@ notify_info() {
   command -v notify-send >/dev/null 2>&1 && notify-send -u low "$1" "$2" || true
 }
 
-# Пинаем waybar перечитать индикатор шейдера (модуль слушает SIGRTMIN+8).
+# Пинаем waybar перечитать индикатор шейдера (модуль слушает SIGRTMIN+N). Номер
+# сигнала задаёт Nix (waybar-pc.nix) и кладёт в WAYBAR_SHADER_SIGNAL — единый
+# источник правды. Не задан (ноут без индикатора / вне сессии) — просто не шлём.
 signal_waybar() {
-  pkill -RTMIN+"$WAYBAR_SIGNAL" waybar 2>/dev/null || true
+  [[ -n "${WAYBAR_SHADER_SIGNAL:-}" ]] || return 0
+  pkill -RTMIN+"$WAYBAR_SHADER_SIGNAL" waybar 2>/dev/null || true
 }
 
 require_env() {
