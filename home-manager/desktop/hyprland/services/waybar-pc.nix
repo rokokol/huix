@@ -1,4 +1,4 @@
-{ ... }:
+{ huixDir, ... }:
 
 {
   programs.waybar = {
@@ -25,6 +25,7 @@
         modules-right = [
           "group/hardware"
           "custom/gpu"
+          "custom/shader"
           "pulseaudio"
           "hyprland/language"
           "tray"
@@ -106,6 +107,17 @@
           tooltip = false;
         };
 
+        "custom/shader" = {
+          exec = "${huixDir}/scripts/screen-shader.sh status";
+          return-type = "json";
+          format = "{}";
+          signal = 8;
+          on-click = "${huixDir}/scripts/rofi-shader.sh";
+          on-click-right = "${huixDir}/scripts/screen-shader.sh effect set none";
+          on-scroll-up = "${huixDir}/scripts/screen-shader.sh bright up";
+          on-scroll-down = "${huixDir}/scripts/screen-shader.sh bright down";
+        };
+
         "tray" = {
           icon-size = 14;
           spacing = 5;
@@ -145,7 +157,7 @@
       }
 
       /* Modules style (islands) */
-      #workspaces, #window, #clock, #pulseaudio, #network, #language, #custom-gpu, #hardware, #tray {
+      #workspaces, #window, #clock, #pulseaudio, #network, #language, #custom-gpu, #custom-shader, #hardware, #tray {
           background: rgba(255, 240, 245, 0.9);
           color: #4c4c4c;
           padding: 0px 8px;   

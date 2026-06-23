@@ -32,6 +32,11 @@ notify_info() {
   command -v notify-send >/dev/null 2>&1 && notify-send -u low "$1" "$2" || true
 }
 
+# Пинаем waybar перечитать индикатор шейдера (модуль слушает SIGRTMIN+8).
+signal_waybar() {
+  pkill -RTMIN+"$WAYBAR_SIGNAL" waybar 2>/dev/null || true
+}
+
 require_env() {
   if [[ -z "${HUIX:-}" ]]; then
     notify_error "HUIX is not set"
@@ -63,6 +68,21 @@ OFFSET=(crt)
 # аппаратный курсор рисуется оверлеем мимо шейдера и не совпадает с искажённым
 # контентом (из-за чего клики у краёв уезжают). Для остальных — аппаратный (быстрее).
 WARP=(crt wave glitch)
+
+# Эмодзи и подписи для индикатора в waybar (status) — один источник правды.
+declare -A EMOJI=(
+  [none]="🌈" [grayscale]="⚫" [sepia]="🟤" [invert]="🔄" [warm]="🌅"
+  [cool]="❄️" [vignette]="🎯" [crt]="📺" [matrix]="🟢" [posterize]="🎨"
+  [wave]="🌊" [glitch]="📡"
+)
+declare -A LABEL=(
+  [none]="Обычный" [grayscale]="Чёрно-белый" [sepia]="Сепия" [invert]="Негатив"
+  [warm]="Тёплый (ночь)" [cool]="Холодный" [vignette]="Виньетка" [crt]="Кинескоп"
+  [matrix]="Матрица" [posterize]="Постеризация" [wave]="Волна" [glitch]="Глитч"
+)
+
+# Сигнал, по которому waybar перечитывает модуль custom/shader (SIGRTMIN+8).
+WAYBAR_SIGNAL=8
 
 mkdir -p "$STATE_DIR"
 
@@ -145,6 +165,7 @@ apply() {
     set_render_mode default
     set_cursor_for none
     hyprctl keyword decoration:screen_shader "[[EMPTY]]" >/dev/null
+    signal_waybar
     return
   fi
 
@@ -182,6 +203,7 @@ apply() {
   set_cursor_for "$effect"
   hyprctl keyword decoration:screen_shader "$active" >/dev/null
   save_state
+  signal_waybar
 }
 
 set_effect() {
@@ -238,8 +260,47 @@ cmd_bright() {
   notify_info "Brightness" "Яркость: $(awk -v b="$bright" 'BEGIN{printf "%d", b*100}')% ☀"
 }
 
+# Перечитать состояние и заново применить шейдер. Нужно после reload Hyprland
+# (в т.ч. при nixos-rebuild) — screen_shader живёт только в рантайме и слетает,
+# поэтому hyprland.conf зовёт это через `exec` на каждом reload.
+cmd_restore() {
+  load_state
+  apply
+}
+
+# JSON для waybar (custom/shader): эмодзи эффекта + процент яркости.
+cmd_status() {
+  load_state
+  local pct emoji
+  pct=$(awk -v b="$bright" 'BEGIN{printf "%d", b * 100}')
+  emoji="${EMOJI[$effect]:-🎬}"
+  if [[ "$effect" == "none" && "$bright" == "1.00" ]]; then
+    # Ничего не активно — модуль прячется (пустой text).
+    printf '{"text":"","tooltip":"","class":"off"}\n'
+  elif [[ "$effect" == "none" ]]; then
+    printf '{"text":"🔅 %s%%","tooltip":"Яркость %s%%","class":"dim"}\n' "$pct" "$pct"
+  elif [[ "$bright" == "1.00" ]]; then
+    printf '{"text":"%s","tooltip":"%s","class":"%s"}\n' "$emoji" "${LABEL[$effect]}" "$effect"
+  else
+    printf '{"text":"%s %s%%","tooltip":"%s · яркость %s%%","class":"%s"}\n' \
+      "$emoji" "$pct" "${LABEL[$effect]}" "$pct" "$effect"
+  fi
+}
+
+# Список «<эмодзи> <подпись>|<значение>» в порядке EFFECTS — единый источник
+# правды для rofi-пикера (rofi-shader.sh читает именно это).
+cmd_menu() {
+  local e
+  for e in "${EFFECTS[@]}"; do
+    printf '%s %s|%s\n' "${EMOJI[$e]}" "${LABEL[$e]}" "$e"
+  done
+}
+
 case "${1:-}" in
-  effect) shift; cmd_effect "$@" ;;
-  bright) shift; cmd_bright "$@" ;;
-  *) notify_error "Usage: screen-shader.sh effect|bright ..."; exit 1 ;;
+  effect)  shift; cmd_effect "$@" ;;
+  bright)  shift; cmd_bright "$@" ;;
+  restore) cmd_restore ;;
+  status)  cmd_status ;;
+  menu)    cmd_menu ;;
+  *) notify_error "Usage: screen-shader.sh effect|bright|restore|status|menu ..."; exit 1 ;;
 esac
