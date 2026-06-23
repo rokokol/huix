@@ -14,21 +14,9 @@ require_env() {
 
 require_env
 
-# Упорядоченный список «подпись|значение».
-ENTRIES=(
-  "🌈 Обычный|none"
-  "⚫ Чёрно-белый|grayscale"
-  "🟤 Сепия|sepia"
-  "🔄 Негатив|invert"
-  "🌅 Тёплый (ночь)|warm"
-  "❄️ Холодный|cool"
-  "🎯 Виньетка|vignette"
-  "📺 Кинескоп|crt"
-  "🟢 Матрица|matrix"
-  "🎨 Постеризация|posterize"
-  "🌊 Волна|wave"
-  "📡 Глитч|glitch"
-)
+# Список «подпись|значение» берём из screen-shader.sh — единый источник эмодзи
+# и подписей (не дублируем здесь).
+mapfile -t ENTRIES < <("$HUIX/scripts/screen-shader.sh" menu)
 
 labels=$(printf '%s\n' "${ENTRIES[@]}" | cut -d'|' -f1)
 
