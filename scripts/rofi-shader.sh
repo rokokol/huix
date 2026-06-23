@@ -6,8 +6,8 @@ set -euo pipefail
 
 require_env() {
   if [[ -z "${HUIX:-}" ]]; then
-    command -v notify-send >/dev/null 2>&1 \
-      && notify-send -u critical "Shader error (╯°□°）╯︵ ┻━┻" "HUIX is not set"
+    command -v notify-send >/dev/null 2>&1 &&
+      notify-send -u critical "Shader error (╯°□°）╯︵ ┻━┻" "HUIX is not set"
     exit 1
   fi
 }
@@ -23,14 +23,16 @@ ENTRIES=(
   "🌅 Тёплый (ночь)|warm"
   "❄️ Холодный|cool"
   "🎯 Виньетка|vignette"
-  "📺 ЭЛТ / CRT|crt"
+  "📺 Кинескоп|crt"
   "🟢 Матрица|matrix"
   "🎨 Постеризация|posterize"
+  "🌊 Волна|wave"
+  "📡 Глитч|glitch"
 )
 
 labels=$(printf '%s\n' "${ENTRIES[@]}" | cut -d'|' -f1)
 
-choice=$(printf '%s\n' "$labels" | rofi -dmenu -i -p "Шейдер" -mesg "Эффект на весь экран")
+choice=$(printf '%s\n' "$labels" | rofi -dmenu -i -p "📺" -mesg "Эффект на весь экран")
 [[ -z "$choice" ]] && exit 0
 
 for e in "${ENTRIES[@]}"; do
