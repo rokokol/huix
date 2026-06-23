@@ -13,7 +13,7 @@
 #
 # Использование:
 #   screen-shader.sh effect set <name>      — поставить эффект
-#   screen-shader.sh effect toggle <name>   — переключить эффект <-> none
+#   screen-shader.sh effect off-or <name>   — есть эффект -> выкл; нет -> включить <name>
 #   screen-shader.sh effect next|prev       — листать эффекты по кругу
 #   screen-shader.sh bright up|down         — яркость ±0.10 (кламп 0.10..1.00)
 #   screen-shader.sh bright reset           — яркость = 1.00
@@ -204,13 +204,6 @@ cmd_effect() {
   load_state
   case "${1:-}" in
     set)    set_effect "${2:?effect name required}" ;;
-    toggle)
-      if [[ "$effect" == "${2:?effect name required}" ]]; then
-        set_effect none
-      else
-        set_effect "$2"
-      fi
-      ;;
     off-or)
       # Любой активный эффект -> выключить; если эффекта нет -> включить <name>.
       if [[ "$effect" == "none" ]]; then
@@ -226,7 +219,7 @@ cmd_effect() {
       if [[ "$1" == "next" ]]; then step=1; else step=$((n - 1)); fi
       set_effect "${EFFECTS[$(((idx + step) % n))]}"
       ;;
-    *) notify_error "Usage: effect set|toggle|off-or <name> | next | prev"; exit 1 ;;
+    *) notify_error "Usage: effect set|off-or <name> | next | prev"; exit 1 ;;
   esac
 }
 
