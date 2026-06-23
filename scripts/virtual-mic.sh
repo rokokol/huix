@@ -28,11 +28,24 @@ name="Virtual-Mic"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -h | --help) usage; exit 0 ;;
-    -n | --name) name="${2:?--name требует значение}"; shift 2 ;;
-    --) shift; break ;;
-    -*) echo "virtual-mic: неизвестная опция: $1" >&2; usage >&2; exit 1 ;;
-    *) break ;;
+  -h | --help)
+    usage
+    exit 0
+    ;;
+  -n | --name)
+    name="${2:?--name требует значение}"
+    shift 2
+    ;;
+  --)
+    shift
+    break
+    ;;
+  -*)
+    echo "virtual-mic: неизвестная опция: $1" >&2
+    usage >&2
+    exit 1
+    ;;
+  *) break ;;
   esac
 done
 
@@ -62,21 +75,16 @@ ff_pid=""
 # ничего опасного при пустых переменных.
 cleanup() {
   set +e
-  [[ -n "$ff_pid" ]]    && kill "$ff_pid" 2>/dev/null
+  [[ -n "$ff_pid" ]] && kill "$ff_pid" 2>/dev/null
   [[ -n "$module_id" ]] && pactl unload-module "$module_id" 2>/dev/null
-  [[ -n "$fifo" ]]      && rm -f "$fifo"
+  [[ -n "$fifo" ]] && rm -f "$fifo"
 }
-# Ставим trap ДО создания ресурсов: если упадёт mkfifo/load-module, повисший
-# FIFO/модуль всё равно подчистится. HUP важен для закрытия терминала — без него
-# (как и при любом неперехваченном сигнале) EXIT-trap не выполнится.
 trap cleanup EXIT
 trap 'exit 130' INT TERM HUP
 
 fifo="$(mktemp -u /tmp/virtual-mic.XXXXXX.fifo)"
 mkfifo "$fifo"
 
-# module-pipe-source создаёт только источник (микрофон), без sink/вывода в
-# железо. Звук берёт из FIFO; формат должен совпадать с тем, что пишет ffmpeg.
 module_id="$(pactl load-module module-pipe-source \
   source_name="$source_name" \
   file="$fifo" \
@@ -86,10 +94,6 @@ module_id="$(pactl load-module module-pipe-source \
 echo "virtual-mic: $file → микрофон «$name» (в наушниках тишина, вывод не создаётся)"
 echo "virtual-mic: выбери микрофон «$name» в приложении (Ctrl+C — стоп)"
 
-# ffmpeg в фоне + wait: wait прерывается trap'ом, тот добивает ffmpeg в cleanup —
-# так процесс не осиротеет. По Ctrl+C ffmpeg может напечатать одну строку, это ок.
-# -vn: только звук. aresample=async сглаживает рассинхрон на склейке цикла.
-# Сырой s16le льём в FIFO (-y — перезаписать уже созданный нами файл-пайп).
 ffmpeg -hide_banner -loglevel error -y \
   -stream_loop -1 -re -i "$file" \
   -vn -af "aresample=async=1000" \
