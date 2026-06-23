@@ -81,9 +81,6 @@ declare -A LABEL=(
   [matrix]="Матрица" [posterize]="Постеризация" [wave]="Волна" [glitch]="Глитч"
 )
 
-# Сигнал, по которому waybar перечитывает модуль custom/shader (SIGRTMIN+8).
-WAYBAR_SIGNAL=8
-
 mkdir -p "$STATE_DIR"
 
 effect="none"

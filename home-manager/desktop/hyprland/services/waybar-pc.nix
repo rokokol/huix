@@ -1,6 +1,14 @@
 { huixDir, ... }:
 
+let
+  # Единый источник правды для сигнала обновления индикатора шейдера: waybar-модуль
+  # слушает SIGRTMIN+shaderSignal, а screen-shader.sh шлёт его после смены состояния.
+  # Число задаётся только здесь и пробрасывается скрипту через WAYBAR_SHADER_SIGNAL.
+  shaderSignal = 8;
+in
 {
+  home.sessionVariables.WAYBAR_SHADER_SIGNAL = toString shaderSignal;
+
   programs.waybar = {
     enable = true;
     systemd.enable = false;
@@ -111,7 +119,7 @@
           exec = "${huixDir}/scripts/screen-shader.sh status";
           return-type = "json";
           format = "{}";
-          signal = 8;
+          signal = shaderSignal;
           on-click = "${huixDir}/scripts/rofi-shader.sh";
           on-click-right = "${huixDir}/scripts/screen-shader.sh effect set none";
           on-scroll-up = "${huixDir}/scripts/screen-shader.sh bright up";

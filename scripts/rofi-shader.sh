@@ -1,12 +1,5 @@
 #!/usr/bin/env bash
 
-# Пикер полноэкранного шейдера как rofi script-modi (modi "shader").
-# Вне rofi (ROFI_RETV не задан) — лаунчер: открываем rofi с этим же скриптом в
-# роли modi, чтобы и хоткей, и клик в waybar звали один скрипт без дублирования
-# команды rofi. Промпт пикера (📺) задаётся в конфиге rofi через display-shader
-# (как display-dictionary и т.п.), а не флагом -p. Пункты и эмодзи берём из
-# screen-shader.sh menu — единый источник.
-
 set -euo pipefail
 
 require_env() {

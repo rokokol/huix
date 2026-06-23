@@ -40,9 +40,12 @@ in
     qt6.qtwayland
   ];
 
+  # icon-theme не переключается — его держим декларативно. А вот color-scheme и
+  # gtk-theme переключает toggle_theme.sh в рантайме; если задать их здесь, каждый
+  # nixos-rebuild будет `dconf load`-ом затирать выбор светлым дефолтом (тема
+  # «слетает» на светлую). Поэтому этими двумя ключами владеет рантайм-тоггл +
+  # его state-файл, а не декларация.
   dconf.settings."org/gnome/desktop/interface" = {
-    color-scheme = colorScheme;
-    gtk-theme = gtkThemeName;
     icon-theme = iconThemeName;
   };
 
@@ -58,8 +61,6 @@ in
     DARK_THEME = darkGtkThemeName;
     LIGHT_SCHEME = colorScheme;
     DARK_SCHEME = darkColorScheme;
-    DEFAULT_THEME = gtkThemeName;
-    DEFAULT_SCHEME = colorScheme;
     THUNARX_DIRS = "/run/current-system/sw/lib/thunarx-3";
   };
 }
