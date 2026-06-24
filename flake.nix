@@ -7,7 +7,7 @@
     nixvim.url = "github:nix-community/nixvim";
     zen-browser.url = "github:0xc000022070/zen-browser-flake";
 
-    comfyui-nix.url = "https://flakehub.com/f/utensils/comfyui/0.18.2";
+    # comfyui-nix.url = "https://flakehub.com/f/utensils/comfyui/0.18.2";
 
     home-manager = {
       url = "github:nix-community/home-manager";
@@ -28,7 +28,7 @@
       nixpkgs-stable,
       home-manager,
       nix-matlab,
-      comfyui-nix,
+      # comfyui-nix,
       ...
     }@inputs:
 
@@ -88,7 +88,7 @@
               overlay-cuda
               overlay-stable
               nix-matlab.overlay
-              comfyui-nix.overlays.default
+              # comfyui-nix.overlays.default
             ];
           }
 

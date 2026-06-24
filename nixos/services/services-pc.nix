@@ -2,7 +2,7 @@
 
 {
   imports = [
-    ./ai/comfyui.nix
+    # ./ai/comfyui.nix
     ./ai/ollama.nix
     ./ai/openwebui.nix
     ./desktop/amnezia-vpn.nix
@@ -21,6 +21,7 @@
     ./tools/syncthing.nix
     ./utils/arduino.nix
     ./utils/docker.nix
+    ./utils/tor.nix
     ./utils/virtualization.nix
   ];
 
