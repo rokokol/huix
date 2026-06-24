@@ -13,7 +13,6 @@
     gnome-disk-utility
     gnome-text-editor
     obsidian
-    pinta
     super-productivity
     tauon
 
