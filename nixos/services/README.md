@@ -1,3 +1,11 @@
+<div align="center">
+
+<img src="../../assets/Сайори%20в%20коробке.jpg" alt="каждый сервис в своей коробочке" width="300"/>
+
+<em>каждый сервис разложен аккуратно по своей коробочке</em>
+
+</div>
+
 # Сервисы
 
 [![huix](https://img.shields.io/badge/huix-наверх-222222?style=for-the-badge&logo=nixos&logoColor=white)](../../README.md)
@@ -62,12 +70,4 @@
 - кастомные опции живут под `custom.*` — пока есть только `custom.jupyter.{enable,withCuda}` (см. `tools/jupyter.nix`). Не гейти поведение через `mkIf config.services.foo.enable` из чужого модуля — заводи свою опцию
 - Jupyter на ПК берёт `pkgs.stable.python3` с бинарными `torch*`, чтобы не собирать ML-стек из исходников
 - тяжёлые сборки ускоряются кэшами `cuda-maintainers` (ПК, объявлен в `nixos/pc/nvidia.nix`) и `comfyui` (ПК) — при добавлении тяжёлого билда лучше дописать substituter, чем пересобирать
-
-<div align="center">
-
-<img src="../../assets/Сайори%20в%20коробке.jpg" alt="каждый сервис в своей коробочке" width="300"/>
-
-<em>каждый сервис аккуратно по своей коробочке</em>
-
-</div>
 

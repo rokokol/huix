@@ -1,3 +1,11 @@
+<div align="center">
+
+<img src="../assets/laptop_wallpaper.png" alt="обои ноута" width="380"/>
+
+<em>тут живёт всё, что делает рабочий стол крутым</em>
+
+</div>
+
 # Home Manager-слой
 
 [![huix](https://img.shields.io/badge/huix-наверх-222222?style=for-the-badge&logo=nixos&logoColor=white)](../README.md)
@@ -38,12 +46,4 @@ HM подключён не отдельным потоком, а как NixOS-м
 ## Применение
 
 Подключается из `nixos/configuration-<host>.nix` через `home-manager.nixosModules.home-manager`
-
-<div align="center">
-
-<img src="../assets/laptop_wallpaper.png" alt="обои ноута" width="380"/>
-
-<em>тут живёт всё, что делает рабочий стол своим</em>
-
-</div>
 
