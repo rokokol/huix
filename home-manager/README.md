@@ -9,6 +9,7 @@
 # Home Manager-слой
 
 [![huix](https://img.shields.io/badge/huix-наверх-222222?style=for-the-badge&logo=nixos&logoColor=white)](../README.md)
+[![hyprland](https://img.shields.io/badge/hyprland-рабочий_стол-00AAAE?style=for-the-badge&logo=hyprland&logoColor=white)](desktop/hyprland/README.md)
 [![programs](https://img.shields.io/badge/programs-программы-7E57C2?style=for-the-badge)](programs/README.md)
 [![nixvim](https://img.shields.io/badge/nixvim-neovim-019733?style=for-the-badge&logo=neovim&logoColor=white)](programs/nixvim/README.md)
 [![rofi](https://img.shields.io/badge/rofi-лаунчер-EE2A7B?style=for-the-badge)](programs/rofi/README.md)
@@ -24,7 +25,7 @@ HM подключён не отдельным потоком, а как NixOS-м
 | `home-pc.nix` / `home-laptop.nix` | точки входа per-host |
 | `desktop/user-pc.nix` / `user-laptop.nix` | XDG-директории, закладки, tmpfiles, env |
 | `desktop/sync.nix` | systemd-таймер авто-синка конфига (`scripts/sync.sh`, ежечасно) |
-| `desktop/hyprland/` | `hyprland.conf`, per-host обвязка, `services/`: waybar, mako, hypridle, обои-коллажер |
+| [`desktop/hyprland/`](desktop/hyprland/README.md) | `hyprland.conf`, per-host обвязка, `services/`: waybar, mako, hypridle, обои-коллажер |
 | `desktop/packages/` | `packages-common` + per-host наборы + `mime-apps` |
 | `desktop/theme/` | курсор, GTK/qt-тема, дефолты |
 | `programs/` | конфиги отдельных программ, см. [programs/README.md](programs/README.md) |
