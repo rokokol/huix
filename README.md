@@ -26,6 +26,7 @@
 [![services](https://img.shields.io/badge/services-сервисы-0E7C7B?style=for-the-badge)](nixos/services/README.md)
 [![fonts](https://img.shields.io/badge/fonts-шрифты-EA4AAA?style=for-the-badge&logo=googlefonts&logoColor=white)](nixos/fonts/README.md)
 [![home-manager](https://img.shields.io/badge/home--manager-юзер_слой-5E81AC?style=for-the-badge)](home-manager/README.md)
+[![hyprland](https://img.shields.io/badge/hyprland-рабочий_стол-00AAAE?style=for-the-badge&logo=hyprland&logoColor=white)](home-manager/desktop/hyprland/README.md)
 [![programs](https://img.shields.io/badge/programs-программы-7E57C2?style=for-the-badge)](home-manager/programs/README.md)
 [![nixvim](https://img.shields.io/badge/nixvim-neovim-019733?style=for-the-badge&logo=neovim&logoColor=white)](home-manager/programs/nixvim/README.md)
 [![rofi](https://img.shields.io/badge/rofi-лаунчер-EE2A7B?style=for-the-badge)](home-manager/programs/rofi/README.md)
