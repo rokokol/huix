@@ -39,3 +39,11 @@ HM подключён не отдельным потоком, а как NixOS-м
 
 Подключается из `nixos/configuration-<host>.nix` через `home-manager.nixosModules.home-manager`
 
+<div align="center">
+
+<img src="../assets/laptop_wallpaper.png" alt="обои ноута" width="380"/>
+
+<em>тут живёт всё, что делает рабочий стол своим</em>
+
+</div>
+
