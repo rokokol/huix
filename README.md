@@ -4,7 +4,7 @@
 
 # huix
 
-**Мой NixOS-флейк на два хоста — десктоп с NVIDIA/CUDA и ноут, оба на Hyprland**
+**Мой NixOS-флейк на два хоста — десктоп с NVIDIA/CUDA и ноут, оба на Hyprland** （´ω｀♡%）
 
 ![NixOS](https://img.shields.io/badge/NixOS-unstable-5277C3?style=flat&logo=nixos&logoColor=white)
 ![Nix](https://img.shields.io/badge/Nix-flakes-7EBAE4?style=flat&logo=nixos&logoColor=white)
