@@ -1,5 +1,8 @@
 # Полноэкранные шейдеры Hyprland + софт-яркость
 
+[![huix](https://img.shields.io/badge/huix-наверх-222222?style=for-the-badge&logo=nixos&logoColor=white)](../../README.md)
+[![scripts](https://img.shields.io/badge/scripts-скрипты-4EAA25?style=for-the-badge&logo=gnubash&logoColor=white)](../README.md)
+
 Набор полноэкранных эффектов для Hyprland и софтверное затемнение экрана через
 хоткеи. Управляется одним менеджером `scripts/screen-shader.sh`
 
@@ -10,7 +13,7 @@ Hyprland держит **только один** слот шейдера (`decora
 **композирует**: каждый эффект описывает лишь функцию `vec3 effect(...)`, а
 скрипт собирает из неё + уровня яркости финальный шейдер и применяет его. На
 десктопе нет аппаратной подсветки — затемнение чисто программное (умножение
-цвета), поэтому может уходить ниже «железного» минимума
+цвета), поэтому может уходить ниже "железного" минимума
 
 ## Файлы
 
@@ -44,7 +47,7 @@ screen-shader.sh bright up|down        # яркость ±0.10 (кламп 0.10.
 screen-shader.sh bright reset|set <v>  # сброс / точное значение
 screen-shader.sh restore               # перечитать состояние и применить (на reload)
 screen-shader.sh status                # JSON для waybar (эмодзи + %)
-screen-shader.sh menu                  # список «<эмодзи> <подпись>|<значение>»
+screen-shader.sh menu                  # список "<эмодзи> <подпись>|<значение>"
 ```
 
 ## Эффекты
@@ -81,7 +84,7 @@ screen-shader.sh menu                  # список «<эмодзи> <подп
 
 `WARP`-эффекты дополнительно включают **программный** курсор
 (`cursor:no_hardware_cursors true`), чтобы он шёл через шейдер вместе с экраном
-(иначе у искажённых краёв клики визуально «уезжают»)
+(иначе у искажённых краёв клики визуально "уезжают")
 
 ## Персистентность и индикатор (важные тонкости)
 
@@ -94,16 +97,8 @@ screen-shader.sh menu                  # список «<эмодзи> <подп
 - **Индикатор waybar обновляется сигналом** `SIGRTMIN+N`, где `N` задаётся
   **один раз** в `waybar-pc.nix` (`shaderSignal`) и пробрасывается скрипту через
   `WAYBAR_SHADER_SIGNAL`. После смены состояния скрипт шлёт `pkill -RTMIN+N
-  waybar` — это не «убить», а «перечитай модуль» (у RT-сигналов есть обработчик
+  waybar` — это не "убить", а "перечитай модуль" (у RT-сигналов есть обработчик
   в waybar). **НО** дефолтное действие RT-сигнала — завершить процесс, поэтому
   на старте сессии `restore` сигнал НЕ шлёт (`SHADER_NO_SIGNAL`): иначе ранний
   сигнал убьёт ещё не готовый waybar. На старте он и не нужен — waybar сам читает
   `status` своим `exec`-ом
-
-## Проверка
-
-```sh
-bash -n scripts/screen-shader.sh
-nix shell nixpkgs#shellcheck -c shellcheck scripts/screen-shader.sh scripts/rofi-shader.sh
-nix eval .#nixosConfigurations.nixos-pc.config.system.build.toplevel.drvPath   # бинды/waybar
-```

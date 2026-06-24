@@ -1,5 +1,9 @@
 # Nixvim
 
+[![huix](https://img.shields.io/badge/huix-наверх-222222?style=for-the-badge&logo=nixos&logoColor=white)](../../../README.md)
+[![programs](https://img.shields.io/badge/programs-программы-7E57C2?style=for-the-badge)](../README.md)
+[![rofi](https://img.shields.io/badge/rofi-лаунчер-EE2A7B?style=for-the-badge)](../rofi/README.md)
+
 Этот каталог содержит декларативную конфигурацию Neovim через Nixvim
 
 ## Что внутри
@@ -32,5 +36,3 @@
 ## Применение
 
 Модуль подключен через `home-manager/home-pc.nix` и `home-manager/home-laptop.nix`
-
-После правок достаточно обычного `rebuild`
