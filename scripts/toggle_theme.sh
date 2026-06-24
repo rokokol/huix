@@ -38,11 +38,7 @@ require_env \
   ROFI_DARK_THEME \
   ROFI_ACTIVE_THEME
 
-# Durable-память выбранной темы. Нужна потому, что тему декларативно задаёт
-# home-manager (dconf.settings + gtk.theme в theme.nix), и каждый nixos-rebuild
-# при активации делает `dconf load`, затирая рантайм-выбор светлым дефолтом. Из-за
-# этого dconf — ненадёжный источник правды, поэтому свой выбор (light/dark) храним
-# отдельно в $XDG_STATE_HOME (переживает и ребилд, и ребут, и не лежит в git-дереве),
+# Durable-память выбранной темы. Проблема в том, что после ребилда тема слетает,
 # а --sync на каждом reload Hyprland восстанавливает тему именно отсюда.
 STATE_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/huix/theme"
 
@@ -125,7 +121,6 @@ sync_theme_state() {
   case "$want" in
   dark) apply_state dark ;;
   light) apply_state light ;;
-  # Первый старт без состояния — выравниваемся по декларативному дефолту HM (свет).
   unset) apply_state light ;;
   *)
     notify_error "Cannot sync theme state ヽ(ﾟДﾟ)ﾉ"
