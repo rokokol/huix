@@ -1,3 +1,9 @@
+<div align="center">
+
+<img src="../../assets/Say_sketch2.webp" alt="say sketch" width="280"/>
+
+</div>
+
 # Программы
 
 [![huix](https://img.shields.io/badge/huix-наверх-222222?style=for-the-badge&logo=nixos&logoColor=white)](../../README.md)
@@ -25,10 +31,4 @@
 - `alarm.nix` и `virtual-mic.nix` — тонкие Nix-обёртки, вся логика живёт в [`scripts/`](../../scripts/README.md), Nix только собирает PATH и прокидывает аргументы
 - `*-pc`/`*-laptop` разводки здесь нет — программы общие для обоих хостов, host-специфика уезжает в [пакеты desktop-слоя](../desktop/packages)
 - `term/zsh.nix` содержит алиасы для терминала
-
-<div align="center">
-
-<img src="../../assets/Say_sketch2.webp" alt="say sketch" width="280"/>
-
-</div>
 

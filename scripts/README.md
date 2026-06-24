@@ -1,3 +1,11 @@
+<div align="center">
+
+<img src="../assets/SHEF%20OS%20320%20KG.jpg" alt="шеф готовит утилиты" width="300"/>
+
+<em>320kg scripts 💀</em>
+
+</div>
+
 # Скрипты
 
 [![huix](https://img.shields.io/badge/huix-наверх-222222?style=for-the-badge&logo=nixos&logoColor=white)](../README.md)
@@ -34,11 +42,3 @@
 ## Применение
 
 Скрипты подключаются либо биндами в `home-manager/desktop/hyprland/hyprland.conf`, либо Nix-обёртками (`writeShellApplication`), которые кладут зависимости в PATH
-
-<div align="center">
-
-<img src="../assets/SHEF%20OS%20320%20KG.jpg" alt="шеф готовит утилиты" width="300"/>
-
-<em>кухня, где из bash готовятся утилиты</em>
-
-</div>
