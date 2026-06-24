@@ -3,7 +3,7 @@
 {
   programs.nixvim.plugins.treesitter = {
     enable = true;
-    nixGrammar = true;
+    nixGrammars = true;
     settings = {
       indent.enable = true;
       highlight.enable = true;
