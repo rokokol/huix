@@ -18,12 +18,16 @@ in
       package = pkgs.mint-y-icons;
     };
 
+    # gtk-theme-name пишем ТОЛЬКО в settings.ini (через extraConfig), но НЕ в dconf.
+    # Это базовая тема для приложений, которые не цепляются к dconf-мосту GtkSettings
     gtk3.extraConfig = {
       gtk-application-prefer-dark-theme = 0;
+      gtk-theme-name = gtkThemeName;
     };
 
     gtk4.extraConfig = {
       gtk-application-prefer-dark-theme = 0;
+      gtk-theme-name = gtkThemeName;
     };
   };
 
