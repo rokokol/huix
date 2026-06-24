@@ -108,7 +108,9 @@ nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHW
 </td></tr>
 </table>
 
-<sub>❄️ made with declarative love · NixOS · никспобеда.рф ❄️</sub>
+<a href="https://никспобеда.рф"><img src="https://img.shields.io/badge/никспобеда.рф-❄️_НИКС_ПОБЕДА-1793D1?style=for-the-badge&logo=nixos&logoColor=white" alt="никспобеда.рф"/></a>
+
+<sub>❄️ made with declarative love · NixOS ❄️</sub>
 
 </div>
 
