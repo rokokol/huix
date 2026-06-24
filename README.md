@@ -50,8 +50,8 @@
 
 ## Всякое 
 
+Алиасы: rebuild — обычная сборка, rebuilds — зеркало только от Яндекса, если проблемы с сетью
 ```sh
-## Алиасы: rebuild — обычная сборка, rebuilds — зеркало только от Яндекса, если проблемы с сетью
 rebuild
 ```
 
@@ -83,8 +83,32 @@ nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHW
 - [ ] Настроить секреты в sops-nix
 - [ ] Настроить disko
 
+<br/>
+
+---
+
 <div align="center">
 
 <img src="./assets/IM%20KING%20OF%20THE%20WORLD!!!.jpg" alt="im king of the world" width="320"/>
 
+<br/><br/>
+
+<table>
+<tr><td align="center">
+
+❄️❄️🚀 <b>ВСЕ ВАШИ ПАКЕТНИКИ ГОВНО</b> 🤬❄️<br/>
+МУТАБЕЛЬНЫЙ МУСОР 🌋🚀❄️ НУЖНО ПЕРЕЙТИ ❄️ НА НИКС ❄️❤️<br/>
+😍 НА НИКС ПЕРЕЙДИ ❄️❄️<br/>
+НА НИКС ПЕРЕЙДИ СУКА 😡❄️<br/>
+🚀 МНЕ НУЖНА ❄️❄️ ДЕКЛАРАТИВНОСТЬ СУКА 🚀❄️<br/>
+ДЕКЛАРАТИВНЫЙ НИКС ПОДХОД 😍❤️🚀❄️<br/>
+ВСЕ ВАШИ ОС ИМПЕРАТИВНОЕ 🤬💩 ГОВНО ❄️<br/>
+❄️ ПЕРЕЙДИ НА НИКС
+
+</td></tr>
+</table>
+
+<sub>❄️ made with declarative love · NixOS ❄️</sub>
+
 </div>
+
