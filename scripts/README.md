@@ -23,6 +23,7 @@
 | `random_wallpaper.sh` | рандомные обои для Hyprland (выборка по нормальному распределению) |
 | `colorpicker.sh` | пипетка через `hyprpicker`, копирует HEX/RGB и шлёт превью в уведомление |
 | `pin-screen.sh` | закрепить выделенную область экрана поверх остальных окон |
+| `zoom.sh` | живая лупа: зум экрана вокруг курсора через `cursor:zoom_factor` (ALT+WIN+колесо) |
 | `rofi-clipboard.sh` | история буфера через `cliphist` в rofi с превью |
 | `rofi-libre.sh` | перевод выделенного через LibreTranslate в rofi |
 | `rofi-shader.sh` | пикер эффектов как rofi script-modi |
