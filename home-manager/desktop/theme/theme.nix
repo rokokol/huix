@@ -37,7 +37,7 @@ in
     gsettings-desktop-schemas
     gtk-engine-murrine
     gtk3
-    libsForQt5.qt5.qtwayland
+    qt5.qtwayland
     qt6.qtwayland
   ];
 

@@ -6,7 +6,7 @@
     defaultEditor = true;
 
     # --- Globals ---
-    diagnostics = {
+    diagnostic.settings = {
       underline = false;
       virtual_text = false;
     };
