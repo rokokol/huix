@@ -1,5 +1,9 @@
 # Rofi
 
+[![huix](https://img.shields.io/badge/huix-наверх-222222?style=for-the-badge&logo=nixos&logoColor=white)](../../../README.md)
+[![programs](https://img.shields.io/badge/programs-программы-7E57C2?style=for-the-badge)](../README.md)
+[![nixvim](https://img.shields.io/badge/nixvim-neovim-019733?style=for-the-badge&logo=neovim&logoColor=white)](../nixvim/README.md)
+
 Этот каталог содержит конфиг `rofi`, разложенный по отдельным файлам
 
 ## Что внутри
@@ -24,5 +28,3 @@
 ## Применение
 
 Модуль подключен через `home-manager/home-pc.nix` и `home-manager/home-laptop.nix`
-
-После правок достаточно обычного `rebuild`

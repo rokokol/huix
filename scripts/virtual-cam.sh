@@ -5,14 +5,14 @@ set -euo pipefail
 usage() {
   cat <<'EOF'
 virtual-cam — крутит видео или картинку в виртуальную камеру (v4l2loopback)
-на репите. В приложении выбираешь камеру «Virtual Camera».
+на репите. В приложении выбираешь камеру "Virtual Camera".
 
 Использование:
   virtual-cam [опции] <видео-или-картинка>
 
 Опции:
   -d, --device <путь>   устройство вывода
-                        (по умолчанию: ищется по метке «Virtual Camera», иначе /dev/video10)
+                        (по умолчанию: ищется по метке "Virtual Camera", иначе /dev/video10)
   -f, --fps <n>         частота кадров (по умолчанию 30)
   -m, --mirror          отзеркалить по горизонтали
                         (если приложение само не зеркалит превью)
@@ -54,7 +54,7 @@ if [[ ! -r "$file" ]]; then
   exit 1
 fi
 
-# Устройство: явный флаг → метка «Virtual Camera» → /dev/video10.
+# Устройство: явный флаг → метка "Virtual Camera" → /dev/video10.
 if [[ -z "$device" ]]; then
   device="$(v4l2-ctl --list-devices 2>/dev/null \
     | awk '/Virtual Camera/{getline; gsub(/^[[:space:]]+/,""); print; exit}')"

@@ -5,7 +5,7 @@ set -euo pipefail
 usage() {
   cat <<'EOF'
 virtual-mic — создаёт виртуальный микрофон (PipeWire) и крутит в него аудиофайл
-или звук из видео на репите. В приложении выбираешь микрофон «Virtual-Mic».
+или звук из видео на репите. В приложении выбираешь микрофон "Virtual-Mic".
 
 Реальный микрофон не трогается, в наушники ничего не выводится и устройства
 вывода не создаётся (используется module-pipe-source — чистый источник из FIFO).
@@ -15,7 +15,7 @@ virtual-mic — создаёт виртуальный микрофон (PipeWire
   virtual-mic [опции] <аудио-или-видео-файл>
 
 Опции:
-  -n, --name <имя>   имя микрофона в списке устройств (по умолчанию «Virtual-Mic»)
+  -n, --name <имя>   имя микрофона в списке устройств (по умолчанию "Virtual-Mic")
   -h, --help         показать эту справку
 
 Примеры:
@@ -65,7 +65,7 @@ rate=48000
 channels=2
 
 # Создаваемые ресурсы. Объявлены заранее и пустыми, чтобы cleanup мог их убирать
-# с проверкой «создан ли» — даже если что-то упадёт на полпути инициализации.
+# с проверкой "создан ли" — даже если что-то упадёт на полпути инициализации.
 fifo=""
 module_id=""
 ff_pid=""
@@ -91,8 +91,8 @@ module_id="$(pactl load-module module-pipe-source \
   format=s16le rate="$rate" channels="$channels" \
   source_properties="device.description=$name")"
 
-echo "virtual-mic: $file → микрофон «$name» (в наушниках тишина, вывод не создаётся)"
-echo "virtual-mic: выбери микрофон «$name» в приложении (Ctrl+C — стоп)"
+echo "virtual-mic: $file → микрофон "$name" (в наушниках тишина, вывод не создаётся)"
+echo "virtual-mic: выбери микрофон "$name" в приложении (Ctrl+C — стоп)"
 
 ffmpeg -hide_banner -loglevel error -y \
   -stream_loop -1 -re -i "$file" \
