@@ -18,8 +18,8 @@ grim -g "$X,$Y ${W}x${H}" "$FILE"
   # Форсируем локаль, чтобы не было ошибки с точкой/запятой
   LC_NUMERIC=C swayimg \
     --class="desktop-pin" \
-    --config="general.position=$X,$Y" \
-    --config="general.size=$W,$H" \
+    --position="$X,$Y" \
+    --size="$W,$H" \
     "$FILE"
 
   # Удаляем файл после закрытия окна
