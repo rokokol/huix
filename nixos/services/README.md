@@ -21,9 +21,9 @@
 | `ai/` | `ollama` (на ПК подменяется на `ollama-cuda`), `comfyui`, `openwebui` |
 | `desktop/` | `amnezia-vpn`, `file-manager`, `sddm`, `ssh-askpass`, `wl-clip-persist` |
 | `devices/` | `printer`, `tablet`, `virtual-camera` |
-| `system/` | `cachix`, `nix-ld` |
+| `system/` | `appimage`, `cachix`, `nix-ld` |
 | `tools/` | `jupyter`, `libre-translate`, `searxng`, `syncthing` |
-| `utils/` | `arduino`, `docker`, `tor`, `virtualization`, `zapret` |
+| `utils/` | `docker`, `embedded`, `tor`, `virtualization`, `zapret` |
 
 ## Кто где включён
 
@@ -32,18 +32,20 @@
 - `ai/ollama` — локальные LLM (ПК тянет CUDA-сборку, ноут CPU-only)
 - `desktop/amnezia-vpn` — VPN-клиент
 - `desktop/file-manager`, `desktop/sddm`, `desktop/ssh-askpass`, `desktop/wl-clip-persist`
+- `system/appimage` — прямой запуск *.AppImage (binfmt) + `steam-run` (FHS-песочница)
 - `system/cachix` — бинарные кэши
+- `system/nix-ld` — запуск динамических не-Nix бинарей (FHS-набор библиотек)
 - `tools/jupyter` (на ПК с CUDA), `tools/libre-translate`, `tools/syncthing`
 - `utils/docker`
+- `utils/embedded` — тулчейны AVR/ESP/STM32/RP2040 + udev (platformio)
 
 Только ПК:
 
 - `ai/comfyui` — слоп-машина картинок (через flakehub `comfyui-nix`)
 - `ai/openwebui` — веб-морда к Ollama
 - `devices/printer`, `devices/tablet`, `devices/virtual-camera`
-- `system/nix-ld` — запуск динамических не-Nix бинарей
 - `tools/searxng` — приватный метапоиск за nginx
-- `utils/arduino`, `utils/virtualization` (libvirtd + KVM/AMD + vfio)
+- `utils/virtualization` (libvirtd + KVM/AMD + vfio)
 
 Только ноут:
 
