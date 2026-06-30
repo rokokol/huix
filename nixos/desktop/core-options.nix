@@ -1,7 +1,8 @@
 { pkgs, ... }:
 
 {
-  programs.appimage.enable = true;
+  # AppImage support (programs.appimage.* incl. binfmt) lives in
+  # nixos/services/system/appimage.nix — single source of truth.
   programs.hyprland = {
     enable = true;
     withUWSM = true;

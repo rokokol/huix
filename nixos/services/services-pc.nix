@@ -13,14 +13,15 @@
     ./devices/printer.nix
     ./devices/tablet.nix
     ./devices/virtual-camera.nix
+    ./system/appimage.nix
     ./system/cachix.nix
     ./system/nix-ld.nix
     ./tools/jupyter.nix
     ./tools/libre-translate.nix
     ./tools/searxng.nix
     ./tools/syncthing.nix
-    ./utils/arduino.nix
     ./utils/docker.nix
+    ./utils/embedded.nix
     ./utils/tor.nix
     ./utils/virtualization.nix
   ];
