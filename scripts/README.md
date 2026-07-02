@@ -20,7 +20,7 @@
 | `sync.sh` | авто-синк конфига: `git pull --rebase --autostash` → `add` → `commit` → `push`, ежечасно по таймеру |
 | `toggle_theme.sh` | переключение light/dark: dconf `color-scheme`+`gtk-theme`, тема rofi, выбор в state-файле |
 | `screen-shader.sh` | менеджер полноэкранных шейдеров и софт-яркости, см. [shaders/README.md](shaders/README.md) |
-| `notify-center.sh` | центр уведомлений поверх mako: режим «не беспокоить», копирование текста уведомлений, очистка истории, листание ленты в тултипе, JSON-статус для waybar |
+| `notify-center.sh` | центр уведомлений поверх mako: режим «не беспокоить», копирование текста уведомлений, очистка истории, JSON-статус для waybar |
 | `random_wallpaper.sh` | рандомные обои для Hyprland (выборка по нормальному распределению) |
 | `colorpicker.sh` | пипетка через `hyprpicker`, копирует HEX/RGB и шлёт превью в уведомление |
 | `pin-screen.sh` | закрепить выделенную область экрана поверх остальных окон |
