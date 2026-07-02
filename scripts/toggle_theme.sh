@@ -2,6 +2,23 @@
 
 set -euo pipefail
 
+usage() {
+  cat <<'EOF'
+toggle_theme.sh — тумблер light/dark темы (бинд SUPER+A)
+
+Использование:
+  toggle_theme.sh           переключить тему на противоположную
+  toggle_theme.sh --sync    только привести систему к сохранённому выбору
+                            (exec на каждом reload Hyprland)
+  toggle_theme.sh --help    эта справка
+
+Тема живёт в рантайме, не в Nix: скрипт флипает color-scheme + gtk-theme в
+dconf и подменяет симлинк темы rofi. Выбор хранится durable в
+~/.local/state/huix/theme — dconf load на nixos-rebuild сбрасывает тему,
+--sync возвращает её обратно. Имена тем/ключей приходят из env (Nix-обёртка).
+EOF
+}
+
 notify_error() {
   if command -v notify-send >/dev/null 2>&1; then
     notify-send -u critical "Theme switch error (╯°□°）╯︵ ┻━┻" "$1" && return
@@ -38,8 +55,6 @@ require_env \
   ROFI_DARK_THEME \
   ROFI_ACTIVE_THEME
 
-# Durable-память выбранной темы. Проблема в том, что после ребилда тема слетает,
-# а --sync на каждом reload Hyprland восстанавливает тему именно отсюда.
 STATE_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/huix/theme"
 
 save_state() {
@@ -129,10 +144,16 @@ sync_theme_state() {
   esac
 }
 
-if [[ "${1:-}" == "--sync" ]]; then
+case "${1:-}" in
+--sync)
   sync_theme_state
   exit 0
-fi
+  ;;
+help | -h | --help)
+  usage
+  exit 0
+  ;;
+esac
 
 sync_theme_state
 current_theme=$(read_current_theme)

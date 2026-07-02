@@ -44,8 +44,7 @@ while true; do
       -p "📋" \
       \
       -kb-remove-char-forward "Delete" \
-      -kb-custom-1 "Control+d" # -mesg "Enter: копировать | Ctrl+d: удалить" \
-    # -theme-str 'element-icon { size: 72px; } element { padding: 12px 14px; }' \
+      -kb-custom-1 "Control+d"
   ); then
     status=0
   else

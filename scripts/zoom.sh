@@ -1,12 +1,30 @@
 #!/usr/bin/env bash
 
-# Живая лупа: зум экрана вокруг курсора через Hyprland cursor:zoom_factor.
 set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+zoom.sh — живая лупа: зум экрана вокруг курсора (Hyprland cursor:zoom_factor)
+
+Использование:
+  zoom.sh in|out [шаг]   ближе/дальше (множитель, по умолчанию 1.3)
+  zoom.sh toggle         2.5x или обратно 1x (по умолчанию)
+  zoom.sh reset          1x
+  zoom.sh --help         эта справка
+EOF
+}
 
 action=${1:-toggle}
 step=${2:-1.3}
 min=1.0
 max=20.0
+
+case "$action" in
+help | -h | --help)
+  usage
+  exit 0
+  ;;
+esac
 
 current=$(hyprctl getoption cursor:zoom_factor -j | jq -r '.float')
 
@@ -20,7 +38,7 @@ new=$(awk -v c="$current" -v a="$action" -v s="$step" -v lo="$min" -v hi="$max" 
   if (v < lo) v = lo
   printf "%.4f", v
 }') || {
-  echo "usage: zoom.sh in|out|reset|toggle [step]" >&2
+  usage >&2
   exit 1
 }
 

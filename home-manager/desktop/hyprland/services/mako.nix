@@ -55,8 +55,8 @@
       # DND, тумблер — notify-center.sh dnd
       "mode=do-not-disturb".invisible = 1;
 
-      # Служебный режим notify-center.sh: restore/dismiss-цепочки по истории
-      # не мигают попапами
+      # Служебный режим для notify-center.sh clear: у makoctl нет очистки
+      # истории, её выедает restore+dismiss-цепочка — режим прячет эти попапы
       "mode=silent".invisible = 1;
     };
   };
