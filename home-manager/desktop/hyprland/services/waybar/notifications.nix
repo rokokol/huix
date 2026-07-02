@@ -27,8 +27,6 @@ in
       on-click-right = "${huixDir}/scripts/notify-center.sh dnd toggle";
       # -h: ручное закрытие мимо истории, как СКМ по попапу
       on-click-middle = "makoctl dismiss -a -h";
-      on-scroll-down = "${huixDir}/scripts/notify-center.sh nav down";
-      on-scroll-up = "${huixDir}/scripts/notify-center.sh nav up";
     };
   };
 }
