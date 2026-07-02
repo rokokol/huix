@@ -33,6 +33,7 @@ in
           "custom/shader"
           "pulseaudio"
           "hyprland/language"
+          "custom/notifications"
           "tray"
           "network"
         ];
@@ -162,7 +163,7 @@ in
       }
 
       /* Modules style (islands) */
-      #workspaces, #window, #clock, #pulseaudio, #network, #language, #custom-gpu, #custom-shader, #hardware, #tray {
+      #workspaces, #window, #clock, #pulseaudio, #network, #language, #custom-gpu, #custom-shader, #custom-notifications, #hardware, #tray {
           background: rgba(255, 240, 245, 0.9);
           color: #4c4c4c;
           padding: 0px 8px;   
@@ -183,6 +184,13 @@ in
       #clock {
           color: #f11a7e;
           padding: 0 12px;
+      }
+
+      /* Режим "не беспокоить" — остров гаснет в серый */
+      #custom-notifications.dnd {
+          background: rgba(224, 224, 224, 0.9);
+          border: 1px solid #9e9e9e;
+          color: #757575;
       }
 
       #window {

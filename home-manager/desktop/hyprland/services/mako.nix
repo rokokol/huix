@@ -45,6 +45,15 @@
         progress-color = "over #ffcdd2";
         default-timeout = 20000;
       };
+
+      # Режим "не беспокоить": попапы не рендерятся, но уведомления копятся в
+      # истории. Тумблер — notify-center.sh dnd (SUPER+SHIFT+N / ПКМ по
+      # индикатору waybar). Режим живёт в рантайме mako и сбрасывается с сессией.
+      "mode=do-not-disturb".invisible = 1;
+
+      # Служебный режим notify-center.sh: под ним restore/dismiss-цепочки
+      # перекладывают историю (удаление записи, показ снова), не мигая попапами.
+      "mode=silent".invisible = 1;
     };
   };
 }
