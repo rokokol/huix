@@ -52,7 +52,7 @@
         default-timeout = 20000;
       };
 
-      # DND: родной режим mako, тумблер — notify-center.sh dnd
+      # DND, тумблер — notify-center.sh dnd
       "mode=do-not-disturb".invisible = 1;
 
       # Служебный режим notify-center.sh: restore/dismiss-цепочки по истории

@@ -1,0 +1,69 @@
+{ config, lib, ... }:
+
+let
+  cfg = config.custom.hyprland;
+in
+{
+  imports = [
+    ./services/wallpaper_collager.nix
+    ./services/hyprland-packages.nix
+    ./services/waybar
+  ];
+
+  options.custom.hyprland = {
+    enable = lib.mkEnableOption "Hyprland";
+
+    monitorScale = lib.mkOption {
+      type = lib.types.str;
+      default = "1";
+      description = "масштаб монитора (,preferred,auto,<scale>)";
+    };
+
+    kbOptions = lib.mkOption {
+      type = lib.types.str;
+      description = "XKB-опции: переключение раскладки и прочее";
+    };
+
+    touchpadNaturalScroll = lib.mkEnableOption "natural scroll тачпада";
+
+    wallpaperImage = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      description = "статичные обои через awww; null — без них (см. wallpaperCollage)";
+    };
+  };
+
+  config = lib.mkIf cfg.enable {
+    wayland.windowManager.hyprland = {
+      enable = true;
+      configType = "hyprlang";
+
+      settings = {
+        monitor = [
+          ",preferred,auto,${cfg.monitorScale}"
+        ];
+
+        input = {
+          kb_layout = "us,ru";
+          kb_variant = "";
+          kb_options = cfg.kbOptions;
+
+          follow_mouse = 1;
+
+          sensitivity = 0; # -1.0 - 1.0, 0 means no modification.
+        }
+        // lib.optionalAttrs cfg.touchpadNaturalScroll {
+          touchpad = {
+            natural_scroll = true;
+          };
+        };
+      }
+      // lib.optionalAttrs (cfg.wallpaperImage != null) {
+        exec-once = [
+          "awww init"
+          "awww img ${cfg.wallpaperImage}"
+        ];
+      };
+    };
+  };
+}

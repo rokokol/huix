@@ -118,7 +118,7 @@ cmd_menu() {
     .[] | [
       (.id | tostring),
       (.app_icon // ""),
-      ((if .urgency == "critical" then "🔴" elif .urgency == "low" then "🟢" else "🟡" end)
+      ((if .urgency == "critical" then "🔴" elif .urgency == "low" then "🟢" elif .urgency == "low" then "🟡" else "🟡" end)
        + " \(.app_name // "?"): \((.summary // "") | gsub("[\\t\\n\\u001f]"; " "))"
        + (if (.body // "") != "" then
             " — " + (.body | gsub("[\\t\\n\\u001f]"; " ") | .[0:70])
