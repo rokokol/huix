@@ -1,4 +1,4 @@
-{ huixDir, ... }:
+{ ... }:
 
 {
   wayland.windowManager.hyprland = {
@@ -19,21 +19,19 @@
 
         sensitivity = 0;
       };
-
-      bindel = [
-        "SUPER CTRL, bracketright, exec, ${huixDir}/scripts/screen-shader.sh bright up"
-        "SUPER CTRL, bracketleft,  exec, ${huixDir}/scripts/screen-shader.sh bright down"
-      ];
-      bind = [
-        "SUPER CTRL, BackSpace, exec, ${huixDir}/scripts/screen-shader.sh bright reset"
-      ];
     };
+  };
+
+  custom.waybar = {
+    enable = true;
+    nvidia = true;
+    shader = true;
+    temperatureHwmon = "/sys/class/hwmon/hwmon0/temp1_input";
   };
 
   imports = [
     ./services/wallpaper_collager.nix
     ./services/hyprland-packages.nix
-    ./services/waybar-pc.nix
-    ./services/waybar-notifications.nix
+    ./services/waybar
   ];
 }
