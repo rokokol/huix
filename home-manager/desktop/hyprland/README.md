@@ -15,10 +15,10 @@
 | Файл | Что внутри |
 | --- | --- |
 | `hyprland.conf` | весь общий конфиг: autostart, env, look&feel, биндинги, window/layer-rules. Правится руками, не через Nix-опции |
-| `hyprland-pc.nix` | per-host: монитор `1x`, раскладка `us,ru` (`win+space`), биндинги яркости шейдера, планшет Gaomon на `DP-1`, импорт waybar-pc и обоев-коллажера |
-| `hyprland-laptop.nix` | per-host: монитор `1.33x`, раскладка `us,ru` (`shift+shift`, `ctrl:swapcaps`), natural scroll тачпада, статичные обои, waybar-laptop |
+| `hyprland-pc.nix` | per-host: монитор `1x`, раскладка `us,ru` (`win+space`), планшет Gaomon на `DP-1`, вход `custom.waybar` (nvidia, shader, hwmon), обои-коллажер |
+| `hyprland-laptop.nix` | per-host: монитор `1.33x`, раскладка `us,ru` (`shift+shift`, `ctrl:swapcaps`), natural scroll тачпада, статичные обои, вход `custom.waybar` (shader, backlight, battery) |
 | `services/hyprland-packages.nix` | общий пакетный набор (kitty, awww, hyprlock/hypridle, grim/slurp/satty, tesseract rus+eng, cliphist…), `source` главного конфига, конфиг swayimg |
-| `services/waybar-pc.nix` / `waybar-laptop.nix` | бары; на PC — кастомные модули GPU (`nvidia-smi`) и шейдера (по RT-сигналу) |
+| `services/waybar/` | единый бар: база + файл на фичу, хост включает нужное опциями — см. [waybar/README](services/waybar/README.md) |
 | `services/mako.nix` | уведомления, цвета по `urgency`, меню по правому клику в rofi |
 | `services/hypridle.nix` | лок по таймауту 90 мин + перед сном, `hyprlock` |
 | `services/wallpaper_collager.nix` | systemd-user таймер: коллаж обоев через `random_wallpaper.sh` |
@@ -89,7 +89,7 @@
 | `SUPER + Y` | словарь wooordhunt в rofi |
 | `SUPER + U` | перевод ru↔en через LibreTranslate |
 | `SUPER + G` | toggle grayscale-шейдер, `SUPER SHIFT + G` — пикер шейдеров |
-| `SUPER CTRL + [ / ]` | софт-яркость через шейдер вниз/вверх (PC), `Backspace` — сброс |
+| `SUPER CTRL + [ / ]` | софт-яркость через шейдер вниз/вверх, `Backspace` — сброс |
 | `SUPER + Z` | toggle waybar |
 | `SUPER + F12` | лок сессии |
 | медиа/яркость | `XF86Audio*` / `XF86MonBrightness*` → swayosd + playerctl |

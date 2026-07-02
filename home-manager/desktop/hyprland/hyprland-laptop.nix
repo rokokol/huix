@@ -31,9 +31,15 @@
     };
   };
 
+  custom.waybar = {
+    enable = true;
+    shader = true;
+    backlight = true;
+    battery = true;
+  };
+
   imports = [
     ./services/hyprland-packages.nix
-    ./services/waybar-laptop.nix
-    ./services/waybar-notifications.nix
+    ./services/waybar
   ];
 }

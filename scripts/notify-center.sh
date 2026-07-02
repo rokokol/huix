@@ -1,38 +1,41 @@
 #!/usr/bin/env bash
 
-# Центр уведомлений поверх mako: режим "не беспокоить", история, waybar-индикатор.
-#
-# Принцип: показывается ВСЁ, что есть (лента = видимые попапы + история mako),
-# ничего не отсеивается. Операции — минимум: скопировать текст, вызвать
-# действие уведомления, очистить историю целиком.
-#
-# Вызвать action у уведомления ИЗ ИСТОРИИ mako не умеет (makoctl invoke молча
-# возвращает 0, но действие не доставляется — проверено; работает он только по
-# показанным). Единственный способ достать запись из истории — makoctl restore,
-# и тот возвращает лишь САМУЮ СВЕЖУЮ. Поэтому invoke для исторической записи —
-# цепочка под служебным невидимым режимом (mode=silent, см. mako.nix):
-# restore-им записи с верхушки истории до целевой, вызываем действие и
-# возвращаем всё обратно повторным dismiss — он кладёт записи в историю сверху,
-# так что порядок сохраняется, если возвращать от старых к новым. Попапы при
-# этом не мигают. Если приложение-отправитель уже умерло, действие уйдёт в
-# пустоту — это ограничение самого механизма ActionInvoked.
-#
-# Режимы mako живут в рантайме демона: DND переживает reload Hyprland и
-# nixos-rebuild, но сбрасывается при перезапуске сессии — для "временно
-# отключить" это ожидаемое поведение, restore-на-старте не нужен.
-#
-# Использование:
-#   notify-center.sh status          — JSON для waybar (custom/notifications)
-#   notify-center.sh dnd toggle|on|off — переключить "не беспокоить"
-#   notify-center.sh dnd status      — печатает on|off (для rofi-notify.sh)
-#   notify-center.sh clear           — очистить всю историю
-#   notify-center.sh invoke <id> <key> — вызвать действие уведомления
-#   notify-center.sh actions <id>    — строки "key<TAB>label" действий записи
-#   notify-center.sh menu            — строки "id<US>icon<US>label" для rofi
-#   notify-center.sh text <id>       — текст уведомления (для копирования)
-#   notify-center.sh nav up|down     — листать ленту в тултипе (колесо на waybar)
-
 set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+notify-center.sh — центр уведомлений поверх mako (=^･ω･^=)
+
+Команды:
+  status              JSON для waybar (custom/notifications)
+  dnd toggle|on|off   переключить "не беспокоить"
+  dnd status          печатает on|off
+  clear               очистить всю историю
+  menu                строки "id<US>icon<US>label" для rofi (новые сверху)
+  text <id>           текст уведомления (для копирования)
+  actions <id>        строки "key<TAB>label" действий записи
+  invoke <id> <key>   вызвать действие уведомления (в т.ч. из истории)
+  nav up|down         листать ленту в тултипе waybar (колесо по индикатору)
+  help                эта справка
+
+Лента = видимые попапы + история mako, новые сверху, ничего не отсеивается.
+Операции над записями — минимум: скопировать текст и вызвать действие;
+история чистится только целиком.
+
+DND — родной механизм mako: режим do-not-disturb с invisible=1 (man mako(5)).
+Скрипт лишь дёргает makoctl mode и пинает waybar сигналом, чтобы индикатор
+обновился сразу. Режимы живут в рантайме демона: DND переживает reload
+Hyprland и nixos-rebuild, но сбрасывается с перезапуском сессии.
+
+invoke по записи ИЗ ИСТОРИИ mako не умеет (makoctl invoke молча no-op — он
+работает только по показанным попапам), а makoctl restore возвращает лишь
+самую свежую запись. Поэтому invoke исторической записи — цепочка под
+служебным невидимым режимом silent (см. mako.nix): restore записей с
+верхушки истории до целевой, вызов действия, возврат всего обратно. Попапы
+не мигают, порядок истории сохраняется. Если приложение-отправитель уже
+умерло, действие уйдёт в пустоту — ограничение самого ActionInvoked.
+EOF
+}
 
 notify_error() {
   if command -v notify-send >/dev/null 2>&1; then
@@ -41,10 +44,9 @@ notify_error() {
   printf '%s\n' "$1" >&2
 }
 
-# Пинаем waybar перечитать индикатор (модуль слушает SIGRTMIN+N). Номер сигнала
-# задаёт Nix (waybar-notifications.nix) и кладёт в WAYBAR_NOTIF_SIGNAL — единый
-# источник правды. В отличие от шейдера, гонки с автостартом waybar тут нет:
-# сигнал шлётся только по явным действиям пользователя, когда waybar уже жив.
+# Номер SIGRTMIN+N задаёт Nix (waybar/notifications.nix) через
+# WAYBAR_NOTIF_SIGNAL. Гонки с автостартом waybar нет: сигнал шлётся только
+# по явным действиям пользователя, когда waybar уже жив.
 signal_waybar() {
   [[ -n "${WAYBAR_NOTIF_SIGNAL:-}" ]] || return 0
   pkill -RTMIN+"$WAYBAR_NOTIF_SIGNAL" waybar 2>/dev/null || true
@@ -56,23 +58,24 @@ dnd_active() {
 
 cmd_dnd() {
   case "${1:-}" in
-    on)     makoctl mode -a do-not-disturb >/dev/null ;;
-    off)    makoctl mode -r do-not-disturb >/dev/null ;;
-    toggle) makoctl mode -t do-not-disturb >/dev/null ;;
-    status)
-      if dnd_active; then printf 'on\n'; else printf 'off\n'; fi
-      return
-      ;;
-    *) notify_error "Usage: dnd toggle|on|off|status"; exit 1 ;;
+  on) makoctl mode -a do-not-disturb >/dev/null ;;
+  off) makoctl mode -r do-not-disturb >/dev/null ;;
+  toggle) makoctl mode -t do-not-disturb >/dev/null ;;
+  status)
+    if dnd_active; then printf 'on\n'; else printf 'off\n'; fi
+    return
+    ;;
+  *)
+    notify_error "Usage: dnd toggle|on|off|status"
+    exit 1
+    ;;
   esac
   signal_waybar
 }
 
-# JSON для waybar: колокольчик + счётчик ЛЕНТЫ (видимые попапы + история —
-# иначе висящее на экране уведомление «не существует» для счётчика), класс dnd
-# при "не беспокоить". Тултип: обычно последние 5 записей ленты; при живом
-# курсоре листания — страница вокруг курсора с маркером ▶. Текст экранируем
-# (@html): тултип — Pango-разметка.
+# Счётчик считает ленту целиком — история без видимых попапов сделала бы
+# висящее на экране уведомление невидимым для счётчика. Тултип: последние 5
+# записей, при живом nav-курсоре — страница вокруг него с маркером ▶.
 cmd_status() {
   local dnd=0
   dnd_active && dnd=1
@@ -96,7 +99,7 @@ cmd_status() {
                 | if . == $cur then "<b>▶ \($lines[.])</b>" else "   \($lines[.])" end]
                | join("\n")))
        else $lines[:5] | join("\n") end) as $feed
-    | ($feed + "\nЛКМ: история · ПКМ: не беспокоить · СКМ: закрыть попапы · колесо: листать") as $tt
+    | $feed as $tt
     | if $dnd == 1 then
         {text: (if $n > 0 then "🔕 \($n)" else "🔕" end),
          tooltip: ("Не беспокоить (－ω－) zzZ\n" + $tt), class: "dnd"}
@@ -107,12 +110,9 @@ cmd_status() {
       end'
 }
 
-# Строки ленты для rofi-пикера (rofi-notify.sh), новые сверху:
-#   id<US>icon<US>label   (US = \x1f)
-# Разделитель — именно \x1f, НЕ таб: у записей без иконки среднее поле пустое,
-# а TAB — IFS-whitespace, и bash схлопывает подряд идущие whitespace-разделители
-# в один, теряя пустые поля (label уезжает в icon, строка в rofi пустеет).
-# Не-whitespace разделитель пустые поля сохраняет. Сам \x1f из текста вычищаем.
+# Разделитель полей — именно \x1f, НЕ таб: у записей без иконки среднее поле
+# пустое, а TAB — IFS-whitespace, bash схлопывает подряд идущие whitespace-
+# разделители и теряет пустые поля. Сам \x1f из текста вычищаем.
 cmd_menu() {
   feed_json | jq -r '
     .[] | [
@@ -123,7 +123,7 @@ cmd_menu() {
        + (if (.body // "") != "" then
             " — " + (.body | gsub("[\\t\\n\\u001f]"; " ") | .[0:70])
           else "" end))
-    ] | join("\u001f")'
+    ] | join("")'
 }
 
 cmd_text() {
@@ -133,7 +133,7 @@ cmd_text() {
     | [(.summary // ""), (.body // "")] | map(select(. != "")) | join("\n")'
 }
 
-# Действия записи: "key<TAB>label". Пустой label (бывает, шлют " ") заменяем ключом.
+# Пустой label (бывает, шлют " ") заменяем ключом.
 cmd_actions() {
   local id="${1:?id required}"
   feed_json | jq -r --argjson id "$id" '
@@ -141,19 +141,16 @@ cmd_actions() {
     | "\(.key)\t\(if (.value | gsub("\\s"; "")) == "" then .key else .value end)"'
 }
 
-# Листание истории в тултипе waybar-модуля (как календарь у часов): колесо
-# двигает курсор (nav up|down), сигнал заставляет waybar перечитать status, а
-# status при живом курсоре рисует в тултипе страницу ленты вокруг него. GTK
-# обновляет уже открытый тултип на лету: set_tooltip_markup дёргает re-query.
-# Курсор эфемерный: живёт в рантайме и протухает через NAV_TTL секунд без
-# скролла — тултип возвращается к обычной сводке.
+# Курсор листания эфемерный: живёт в рантайме и протухает через NAV_TTL секунд
+# без скролла — тултип возвращается к обычной сводке.
 NAV_STATE="${XDG_RUNTIME_DIR:-/tmp}/huix-notify-nav"
 NAV_TTL=20
 
-# Лента модуля = видимые попапы + история (новые сверху) — по ней считается
-# счётчик, листает курсор и строится rofi-список.
 feed_json() {
-  { makoctl list -j; makoctl history -j; } | jq -s '.[0] + .[1]'
+  {
+    makoctl list -j
+    makoctl history -j
+  } | jq -s '.[0] + .[1]'
 }
 
 feed_len() {
@@ -182,19 +179,27 @@ cmd_nav() {
   local dir="${1:?up|down required}" n
   load_nav
   n=$(feed_len)
-  # down — глубже (старее), up — к свежим. Первый скролл в любую сторону
-  # встаёт на самую свежую запись (idx = -1 -> 0).
+  # down — глубже (старее), up — к свежим; первый скролл встаёт на самую свежую.
   case "$dir" in
-    down) idx=$((idx + 1)); ((idx > n - 1)) && idx=$((n - 1)) ;;
-    up)   idx=$((idx - 1)); ((idx < 0)) && idx=0 ;;
-    *) notify_error "Usage: nav up|down"; exit 1 ;;
+  down)
+    idx=$((idx + 1))
+    ((idx > n - 1)) && idx=$((n - 1))
+    ;;
+  up)
+    idx=$((idx - 1))
+    ((idx < 0)) && idx=0
+    ;;
+  *)
+    notify_error "Usage: nav up|down"
+    exit 1
+    ;;
   esac
   ((n == 0)) && idx=-1
   printf 'idx=%s\nts=%s\n' "$idx" "$(date +%s)" >"$NAV_STATE"
   signal_waybar
 }
 
-silent_on()  { makoctl mode -a silent >/dev/null; }
+silent_on() { makoctl mode -a silent >/dev/null; }
 silent_off() { makoctl mode -r silent >/dev/null 2>&1 || true; }
 
 # Достаёт уведомление <id> из истории на экран (невидимо, под mode=silent):
@@ -212,8 +217,8 @@ pluck() {
   return 1
 }
 
-# Возвращает снятые pluck-ом записи обратно в историю. dismiss кладёт в историю
-# сверху, поэтому идём от старых к новым — исходный порядок сохраняется.
+# dismiss кладёт в историю сверху, поэтому возвращаем от старых к новым —
+# исходный порядок сохраняется.
 restack() {
   local i
   for ((i = ${#RESTORED_ABOVE[@]} - 1; i >= 0; i--)); do
@@ -223,16 +228,14 @@ restack() {
 
 cmd_invoke() {
   local id="${1:?id required}" key="${2:?action key required}"
-  # Видимый попап: обычный invoke, дальше пусть решают mako и отправитель.
   if is_displayed "$id"; then
     makoctl invoke -n "$id" "$key"
     signal_waybar
     return
   fi
-  # Историческая запись: invoke по истории — no-op, поэтому тихо достаём её на
-  # экран (silent), вызываем действие и возвращаем обратно в историю. Если
-  # отправитель сам закрыл её по ActionInvoked — она уже в истории, dismiss
-  # просто не найдёт её (|| true). Запись в любом случае никуда не пропадает.
+  # Историческая запись: тихо достаём на экран, вызываем действие, возвращаем.
+  # Если отправитель сам закрыл её по ActionInvoked — она уже в истории,
+  # dismiss просто не найдёт её (|| true). Запись никуда не пропадает.
   trap silent_off EXIT
   if ! pluck "$id"; then
     restack
@@ -260,13 +263,33 @@ cmd_clear() {
 }
 
 case "${1:-}" in
-  status)  cmd_status ;;
-  dnd)     shift; cmd_dnd "$@" ;;
-  clear)   cmd_clear ;;
-  invoke)  shift; cmd_invoke "$@" ;;
-  actions) shift; cmd_actions "$@" ;;
-  menu)    cmd_menu ;;
-  text)    shift; cmd_text "$@" ;;
-  nav)     shift; cmd_nav "$@" ;;
-  *) notify_error "Usage: notify-center.sh status|dnd|clear|invoke|actions|menu|text|nav ..."; exit 1 ;;
+status) cmd_status ;;
+dnd)
+  shift
+  cmd_dnd "$@"
+  ;;
+clear) cmd_clear ;;
+invoke)
+  shift
+  cmd_invoke "$@"
+  ;;
+actions)
+  shift
+  cmd_actions "$@"
+  ;;
+menu) cmd_menu ;;
+text)
+  shift
+  cmd_text "$@"
+  ;;
+nav)
+  shift
+  cmd_nav "$@"
+  ;;
+help | -h | --help) usage ;;
+*)
+  usage >&2
+  notify_error "Usage: notify-center.sh status|dnd|clear|invoke|actions|menu|text|nav|help"
+  exit 1
+  ;;
 esac

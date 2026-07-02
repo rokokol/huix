@@ -1,10 +1,8 @@
 { pkgs, lib, ... }:
 
 {
-  # mako стартует через exec-once в hyprland.conf и сам конфиг НЕ перечитывает:
-  # без reload демон живёт со снапшотом на момент старта сессии, и правки
-  # биндингов/режимов «применяются», но не действуют. Пинаем на каждой
-  # активации; вне графической сессии (сборка с другого хоста) молча скипаем.
+  # mako сам конфиг не перечитывает (exec-once, без systemd-юнита) — пинаем на
+  # каждой активации; вне графической сессии молча скипаем.
   home.activation.reloadMako = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     ${pkgs.mako}/bin/makoctl reload 2>/dev/null || true
   '';
@@ -54,13 +52,11 @@
         default-timeout = 20000;
       };
 
-      # Режим "не беспокоить": попапы не рендерятся, но уведомления копятся в
-      # истории. Тумблер — notify-center.sh dnd (SUPER+SHIFT+N / ПКМ по
-      # индикатору waybar). Режим живёт в рантайме mako и сбрасывается с сессией.
+      # DND: родной режим mako, тумблер — notify-center.sh dnd
       "mode=do-not-disturb".invisible = 1;
 
-      # Служебный режим notify-center.sh: под ним restore/dismiss-цепочки
-      # перекладывают историю (удаление записи, показ снова), не мигая попапами.
+      # Служебный режим notify-center.sh: restore/dismiss-цепочки по истории
+      # не мигают попапами
       "mode=silent".invisible = 1;
     };
   };
