@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-# История уведомлений mako в rofi (script-modi, как rofi-shader.sh).
-# Верхний уровень: тумблер DND, очистка истории и сами уведомления (новые
-# сверху). Выбор уведомления открывает меню действий: показать снова /
-# скопировать текст / удалить из истории. Вся логика — в notify-center.sh,
-# здесь только представление.
+# Лента уведомлений mako (видимые попапы + история) в rofi (script-modi, как
+# rofi-shader.sh). Верхний уровень: тумблер DND, очистка истории и сами
+# уведомления (новые сверху). Выбор уведомления открывает меню: действия самого
+# уведомления (⚡) / скопировать текст / удалить. Вся логика — в
+# notify-center.sh, здесь только представление.
 
 set -euo pipefail
 
@@ -46,10 +46,16 @@ print_top() {
 }
 
 print_item_menu() {
-  local id="$1"
-  printf '👀 Показать снова (☆ω☆)\0info\x1fact:restore:%s\n' "$id"
+  local id="$1" key label
+  # Действия самого уведомления (если есть). В info ключ идёт ПОСЛЕ id:
+  # id числовой, поэтому разбор по первому двоеточию однозначен,
+  # даже если в ключе действия есть свои двоеточия.
+  while IFS=$'\t' read -r key label; do
+    [[ -n "$key" ]] || continue
+    printf '⚡ %s (☆ω☆)\0info\x1fact:invoke:%s:%s\n' "$label" "$id" "$key"
+  done < <("$NC" actions "$id")
   printf '📋 Скопировать текст φ(．．)\0info\x1fact:copy:%s\n' "$id"
-  printf '🗑️ Удалить из истории (ﾉ´･ω･)ﾉ ﾐ ┻━┻\0info\x1fact:delete:%s\n' "$id"
+  printf '🗑️ Удалить (ﾉ´･ω･)ﾉ ﾐ ┻━┻\0info\x1fact:delete:%s\n' "$id"
   printf '↩️ Назад (￣▽￣)ノ\0info\x1fcmd:top\n'
 }
 
@@ -59,7 +65,7 @@ case "${ROFI_INFO:-}" in
   cmd:dnd)       "$NC" dnd toggle ;;
   cmd:clear)     "$NC" clear ;;
   id:*)          print_item_menu "${ROFI_INFO#id:}" ;;
-  act:restore:*) "$NC" restore "${ROFI_INFO#act:restore:}" ;;
+  act:invoke:*)  rest="${ROFI_INFO#act:invoke:}"; "$NC" invoke "${rest%%:*}" "${rest#*:}" ;;
   act:copy:*)    "$NC" text "${ROFI_INFO#act:copy:}" | wl-copy ;;
   act:delete:*)  "$NC" delete "${ROFI_INFO#act:delete:}"; print_top ;;
 esac

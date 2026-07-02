@@ -27,7 +27,7 @@
 | `zoom.sh` | живая лупа: зум экрана вокруг курсора через `cursor:zoom_factor` (ALT+WIN+колесо) |
 | `rofi-clipboard.sh` | история буфера через `cliphist` в rofi с превью |
 | `rofi-libre.sh` | перевод выделенного через LibreTranslate в rofi |
-| `rofi-notify.sh` | история уведомлений в rofi: показать снова, скопировать, удалить, очистить, тумблер DND |
+| `rofi-notify.sh` | лента уведомлений в rofi: действия уведомления, скопировать, удалить, очистить, тумблер DND |
 | `rofi-shader.sh` | пикер эффектов как rofi script-modi |
 | `rofi_wooordhunt.sh` | словарь wooordhunt в rofi |
 | `virtual-cam.sh` | виртуальная камера на повторе через `v4l2loopback` |
