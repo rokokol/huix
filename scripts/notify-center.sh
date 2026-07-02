@@ -106,7 +106,7 @@ cmd_menu() {
       ((if .urgency == "critical" then "🔴" elif .urgency == "normal" then "🟡" elif .urgency == "low" then "🟢" else "⚪" end)
        + " \(.app_name // "?"): \((.summary // "") | gsub("[\\t\\n]"; " "))"
        + (if (.body // "") != "" then
-            " — " + (.body | gsub("[\\t\\n]"; " ") | .[0:70])
+            " — " + (.body | gsub("[\\t\\n]"; " ") | .[0:200])
           else "" end))
     ] | join("")'
 }
