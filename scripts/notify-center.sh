@@ -28,7 +28,7 @@
 #   notify-center.sh restore <id>    — показать уведомление из истории снова
 #   notify-center.sh menu            — строки "id<TAB>icon<TAB>label" для rofi
 #   notify-center.sh text <id>       — текст уведомления (для копирования)
-#   notify-center.sh nav up|down     — листать историю попапом (колесо на waybar)
+#   notify-center.sh nav up|down     — листать ленту в тултипе (колесо на waybar)
 
 set -euo pipefail
 
@@ -66,22 +66,35 @@ cmd_dnd() {
   signal_waybar
 }
 
-# JSON для waybar: колокольчик + счётчик истории, класс dnd при "не беспокоить",
-# в тултипе — последние 5 уведомлений (текст экранируем: тултип — Pango-разметка).
+# JSON для waybar: колокольчик + счётчик ЛЕНТЫ (видимые попапы + история —
+# иначе висящее на экране уведомление «не существует» для счётчика), класс dnd
+# при "не беспокоить". Тултип: обычно последние 5 записей ленты; при живом
+# курсоре листания — страница вокруг курсора с маркером ▶. Текст экранируем
+# (@html): тултип — Pango-разметка.
 cmd_status() {
   local dnd=0
   dnd_active && dnd=1
-  makoctl history -j | jq -c --argjson dnd "$dnd" '
-    length as $n
+  load_nav
+  { makoctl list -j; makoctl history -j; } | jq -c -s --argjson dnd "$dnd" --argjson idx "$idx" '
+    (.[0] + .[1]) as $all
+    | ($all | length) as $n
+    | ($all | map(
+        ("\(.app_name // "?"): \(.summary // "")"
+         + (if (.body // "") != "" then
+              " — " + (.body | gsub("\\s+"; " ") | .[0:80])
+            else "" end))
+        | @html)) as $lines
     | (if $n == 0 then "Уведомлений нет ( ´ ▽ ` )"
-       else [.[:5][]
-             | "\(.app_name // "?"): \(.summary // "")"
-               + (if (.body // "") != "" then
-                    " — " + (.body | gsub("\\s+"; " ") | .[0:80])
-                  else "" end)]
-            | join("\n") | @html
-       end) as $hist
-    | ($hist + "\nЛКМ: история · ПКМ: не беспокоить · СКМ: закрыть попапы · колесо: листать") as $tt
+       elif $idx >= 0 then
+         ([$idx, $n - 1] | min) as $cur
+         | ([$cur - 2, 0] | max) as $from
+         | ([$from + 9, $n] | min) as $to
+         | ("📜 \($cur + 1)/\($n)\n"
+            + ([range($from; $to)
+                | if . == $cur then "<b>▶ \($lines[.])</b>" else "   \($lines[.])" end]
+               | join("\n")))
+       else $lines[:5] | join("\n") end) as $feed
+    | ($feed + "\nЛКМ: история · ПКМ: не беспокоить · СКМ: закрыть попапы · колесо: листать") as $tt
     | if $dnd == 1 then
         {text: (if $n > 0 then "🔕 \($n)" else "🔕" end),
          tooltip: ("Не беспокоить (－ω－) zzZ\n" + $tt), class: "dnd"}
@@ -115,60 +128,49 @@ cmd_text() {
     | [(.summary // ""), (.body // "")] | map(select(. != "")) | join("\n")'
 }
 
-# Листание истории «в самом уведомлении»: колесо на waybar-модуле показывает
-# записи одним самозаменяющимся попапом (notify-send -r). Попап уходит с
-# категорией huix-history-preview: mako не кладёт его в историю (history=0,
-# иначе листание засоряло бы то, что листает) и показывает даже под DND
-# (см. mako.nix). Курсор эфемерный: живёт в рантайме и сбрасывается на самую
-# свежую запись, если с последнего скролла прошло больше NAV_TTL — попап к
-# тому времени погас, листание начинается заново.
+# Листание истории в тултипе waybar-модуля (как календарь у часов): колесо
+# двигает курсор (nav up|down), сигнал заставляет waybar перечитать status, а
+# status при живом курсоре рисует в тултипе страницу ленты вокруг него. GTK
+# обновляет уже открытый тултип на лету: set_tooltip_markup дёргает re-query.
+# Курсор эфемерный: живёт в рантайме и протухает через NAV_TTL секунд без
+# скролла — тултип возвращается к обычной сводке.
 NAV_STATE="${XDG_RUNTIME_DIR:-/tmp}/huix-notify-nav"
-NAV_TTL=8
+NAV_TTL=20
 
-cmd_nav() {
-  local dir="${1:?up|down required}" hist n now idx=-1 nid=0 ts=0
-  hist=$(makoctl history -j)
-  n=$(jq length <<<"$hist")
+# Лента модуля = видимые попапы + история (новые сверху) — по ней считается
+# счётчик и листает курсор.
+feed_len() {
+  { makoctl list -j; makoctl history -j; } | jq -s '(.[0] | length) + (.[1] | length)'
+}
+
+load_nav() { # -> глобальный idx: позиция курсора в ленте, -1 = неактивен
+  idx=-1
+  local ts=0 now
   now=$(date +%s)
   if [[ -f "$NAV_STATE" ]]; then
     # shellcheck disable=SC1090
     source "$NAV_STATE"
-    [[ "$nid" =~ ^[0-9]+$ ]] || nid=0
-    ((now - ts > NAV_TTL)) && idx=-1
+    [[ "$idx" =~ ^-?[0-9]+$ ]] || idx=-1
+    # NB: не сворачивать в `(( )) && ...` — ложное (( )) последней командой
+    # функции вернёт 1, и set -e убьёт скрипт.
+    if ((now - ts > NAV_TTL)); then idx=-1; fi
   fi
+}
 
-  local args=(-p -t 6000 -c huix-history-preview)
-  ((nid > 0)) && args+=(-r "$nid")
-
-  if ((n == 0)); then
-    # NB: в каомодзи есть бэктик — только одинарные кавычки
-    nid=$(notify-send "${args[@]}" -u low 'История пуста ( ´ ▽ ` )')
-    printf 'idx=%s\nnid=%s\nts=%s\n' -1 "$nid" "$now" >"$NAV_STATE"
-    return
-  fi
-
-  # down — глубже в историю (старее), up — обратно к свежим. Первый скролл
-  # в любую сторону показывает самую свежую запись (idx = -1 -> 0).
+cmd_nav() {
+  local dir="${1:?up|down required}" n
+  load_nav
+  n=$(feed_len)
+  # down — глубже (старее), up — к свежим. Первый скролл в любую сторону
+  # встаёт на самую свежую запись (idx = -1 -> 0).
   case "$dir" in
     down) idx=$((idx + 1)); ((idx > n - 1)) && idx=$((n - 1)) ;;
     up)   idx=$((idx - 1)); ((idx < 0)) && idx=0 ;;
     *) notify_error "Usage: nav up|down"; exit 1 ;;
   esac
-
-  local entry summary body icon app urgency
-  entry=$(jq -c --argjson i "$idx" '.[$i]' <<<"$hist")
-  summary=$(jq -r '.summary // ""' <<<"$entry")
-  body=$(jq -r '.body // ""' <<<"$entry")
-  icon=$(jq -r '.app_icon // ""' <<<"$entry")
-  app=$(jq -r '.app_name // "?"' <<<"$entry")
-  urgency=$(jq -r '.urgency // "normal"' <<<"$entry")
-
-  local marker="📜 $((idx + 1))/$n · $app"
-  if [[ -n "$body" ]]; then body="$body"$'\n'"$marker"; else body="$marker"; fi
-  [[ -n "$icon" ]] && args+=(-i "$icon")
-
-  nid=$(notify-send "${args[@]}" -u "$urgency" "${summary:-(без темы)}" "$body")
-  printf 'idx=%s\nnid=%s\nts=%s\n' "$idx" "$nid" "$now" >"$NAV_STATE"
+  ((n == 0)) && idx=-1
+  printf 'idx=%s\nts=%s\n' "$idx" "$(date +%s)" >"$NAV_STATE"
+  signal_waybar
 }
 
 silent_on()  { makoctl mode -a silent >/dev/null; }
