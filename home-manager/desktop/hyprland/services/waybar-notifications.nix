@@ -23,5 +23,8 @@ in
     on-click = "${huixDir}/scripts/rofi-notify.sh";
     on-click-right = "${huixDir}/scripts/notify-center.sh dnd toggle";
     on-click-middle = "makoctl dismiss -a";
+    # Листание истории попапом-превью: вниз — старее, вверх — свежее.
+    on-scroll-down = "${huixDir}/scripts/notify-center.sh nav down";
+    on-scroll-up = "${huixDir}/scripts/notify-center.sh nav up";
   };
 }

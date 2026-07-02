@@ -28,6 +28,7 @@
 #   notify-center.sh restore <id>    — показать уведомление из истории снова
 #   notify-center.sh menu            — строки "id<TAB>icon<TAB>label" для rofi
 #   notify-center.sh text <id>       — текст уведомления (для копирования)
+#   notify-center.sh nav up|down     — листать историю попапом (колесо на waybar)
 
 set -euo pipefail
 
@@ -80,7 +81,7 @@ cmd_status() {
                   else "" end)]
             | join("\n") | @html
        end) as $hist
-    | ($hist + "\nЛКМ: история · ПКМ: не беспокоить · СКМ: закрыть попапы") as $tt
+    | ($hist + "\nЛКМ: история · ПКМ: не беспокоить · СКМ: закрыть попапы · колесо: листать") as $tt
     | if $dnd == 1 then
         {text: (if $n > 0 then "🔕 \($n)" else "🔕" end),
          tooltip: ("Не беспокоить (－ω－) zzZ\n" + $tt), class: "dnd"}
@@ -112,6 +113,62 @@ cmd_text() {
   makoctl history -j | jq -r --argjson id "$id" '
     .[] | select(.id == $id)
     | [(.summary // ""), (.body // "")] | map(select(. != "")) | join("\n")'
+}
+
+# Листание истории «в самом уведомлении»: колесо на waybar-модуле показывает
+# записи одним самозаменяющимся попапом (notify-send -r). Попап уходит с
+# категорией huix-history-preview: mako не кладёт его в историю (history=0,
+# иначе листание засоряло бы то, что листает) и показывает даже под DND
+# (см. mako.nix). Курсор эфемерный: живёт в рантайме и сбрасывается на самую
+# свежую запись, если с последнего скролла прошло больше NAV_TTL — попап к
+# тому времени погас, листание начинается заново.
+NAV_STATE="${XDG_RUNTIME_DIR:-/tmp}/huix-notify-nav"
+NAV_TTL=8
+
+cmd_nav() {
+  local dir="${1:?up|down required}" hist n now idx=-1 nid=0 ts=0
+  hist=$(makoctl history -j)
+  n=$(jq length <<<"$hist")
+  now=$(date +%s)
+  if [[ -f "$NAV_STATE" ]]; then
+    # shellcheck disable=SC1090
+    source "$NAV_STATE"
+    [[ "$nid" =~ ^[0-9]+$ ]] || nid=0
+    ((now - ts > NAV_TTL)) && idx=-1
+  fi
+
+  local args=(-p -t 6000 -c huix-history-preview)
+  ((nid > 0)) && args+=(-r "$nid")
+
+  if ((n == 0)); then
+    # NB: в каомодзи есть бэктик — только одинарные кавычки
+    nid=$(notify-send "${args[@]}" -u low 'История пуста ( ´ ▽ ` )')
+    printf 'idx=%s\nnid=%s\nts=%s\n' -1 "$nid" "$now" >"$NAV_STATE"
+    return
+  fi
+
+  # down — глубже в историю (старее), up — обратно к свежим. Первый скролл
+  # в любую сторону показывает самую свежую запись (idx = -1 -> 0).
+  case "$dir" in
+    down) idx=$((idx + 1)); ((idx > n - 1)) && idx=$((n - 1)) ;;
+    up)   idx=$((idx - 1)); ((idx < 0)) && idx=0 ;;
+    *) notify_error "Usage: nav up|down"; exit 1 ;;
+  esac
+
+  local entry summary body icon app urgency
+  entry=$(jq -c --argjson i "$idx" '.[$i]' <<<"$hist")
+  summary=$(jq -r '.summary // ""' <<<"$entry")
+  body=$(jq -r '.body // ""' <<<"$entry")
+  icon=$(jq -r '.app_icon // ""' <<<"$entry")
+  app=$(jq -r '.app_name // "?"' <<<"$entry")
+  urgency=$(jq -r '.urgency // "normal"' <<<"$entry")
+
+  local marker="📜 $((idx + 1))/$n · $app"
+  if [[ -n "$body" ]]; then body="$body"$'\n'"$marker"; else body="$marker"; fi
+  [[ -n "$icon" ]] && args+=(-i "$icon")
+
+  nid=$(notify-send "${args[@]}" -u "$urgency" "${summary:-(без темы)}" "$body")
+  printf 'idx=%s\nnid=%s\nts=%s\n' "$idx" "$nid" "$now" >"$NAV_STATE"
 }
 
 silent_on()  { makoctl mode -a silent >/dev/null; }
@@ -190,5 +247,6 @@ case "${1:-}" in
   restore) shift; cmd_restore "$@" ;;
   menu)    cmd_menu ;;
   text)    shift; cmd_text "$@" ;;
-  *) notify_error "Usage: notify-center.sh status|dnd|clear|delete|restore|menu|text ..."; exit 1 ;;
+  nav)     shift; cmd_nav "$@" ;;
+  *) notify_error "Usage: notify-center.sh status|dnd|clear|delete|restore|menu|text|nav ..."; exit 1 ;;
 esac

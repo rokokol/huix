@@ -54,6 +54,17 @@
       # Служебный режим notify-center.sh: под ним restore/dismiss-цепочки
       # перекладывают историю (удаление записи, показ снова), не мигая попапами.
       "mode=silent".invisible = 1;
+
+      # Попап-превью листания истории (notify-center.sh nav, колесо на
+      # waybar-модуле). history=0 — не попадает в историю НИКАК (ни по таймауту,
+      # ни при ручном закрытии), иначе листание засоряло бы то, что листает.
+      "category=huix-history-preview".history = 0;
+
+      # ...и превью видно даже под DND: раз пользователь листает историю, он
+      # явно хочет её видеть. Секция должна идти ПОСЛЕ "mode=do-not-disturb",
+      # чтобы её invisible=0 победил — Nix сериализует ключи по алфавиту, и
+      # "mode=do-not-disturb category=..." сортируется после "mode=do-not-disturb".
+      "mode=do-not-disturb category=huix-history-preview".invisible = 0;
     };
   };
 }

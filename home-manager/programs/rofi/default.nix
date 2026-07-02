@@ -43,6 +43,7 @@ in
       display-en-ru = "🇺🇸>🇷🇺";
 
       display-shader = "📺";
+      display-notifications = "💌";
     };
   };
 
