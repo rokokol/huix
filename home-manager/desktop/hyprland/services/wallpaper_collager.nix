@@ -1,4 +1,5 @@
 {
+  config,
   pkgs,
   lib,
   huixDir,
@@ -18,29 +19,33 @@ let
   ];
 in
 {
-  systemd.user.services = {
-    "awww-collage" = {
-      Unit = {
-        Description = "Generate and set wallpaper collage";
-        After = [ "graphical-session.target" ];
-        PartOf = [ "graphical-session.target" ];
-      };
-      Service = {
-        Type = "oneshot";
-        ExecStart = "${pkgs.bash}/bin/bash ${scriptsDir}/random_wallpaper.sh";
-        Environment = "PATH=${lib.makeBinPath wallpaperDeps}";
+  options.custom.hyprland.wallpaperCollage = lib.mkEnableOption "коллаж обоев по таймеру (random_wallpaper.sh)";
+
+  config = lib.mkIf config.custom.hyprland.wallpaperCollage {
+    systemd.user.services = {
+      "awww-collage" = {
+        Unit = {
+          Description = "Generate and set wallpaper collage";
+          After = [ "graphical-session.target" ];
+          PartOf = [ "graphical-session.target" ];
+        };
+        Service = {
+          Type = "oneshot";
+          ExecStart = "${pkgs.bash}/bin/bash ${scriptsDir}/random_wallpaper.sh";
+          Environment = "PATH=${lib.makeBinPath wallpaperDeps}";
+        };
       };
     };
-  };
 
-  systemd.user.timers = {
-    "awww-collage" = {
-      Unit.Description = "Timer for awww wallpaper collage";
-      Timer = {
-        OnActiveSec = "10s";
-        OnUnitActiveSec = "5min";
+    systemd.user.timers = {
+      "awww-collage" = {
+        Unit.Description = "Timer for awww wallpaper collage";
+        Timer = {
+          OnActiveSec = "10s";
+          OnUnitActiveSec = "5min";
+        };
+        Install.WantedBy = [ "graphical-session.target" ];
       };
-      Install.WantedBy = [ "graphical-session.target" ];
     };
   };
 }
