@@ -28,7 +28,7 @@
 #   notify-center.sh clear           — очистить всю историю
 #   notify-center.sh invoke <id> <key> — вызвать действие уведомления
 #   notify-center.sh actions <id>    — строки "key<TAB>label" действий записи
-#   notify-center.sh menu            — строки "id<TAB>icon<TAB>label" для rofi
+#   notify-center.sh menu            — строки "id<US>icon<US>label" для rofi
 #   notify-center.sh text <id>       — текст уведомления (для копирования)
 #   notify-center.sh nav up|down     — листать ленту в тултипе (колесо на waybar)
 
@@ -108,19 +108,22 @@ cmd_status() {
 }
 
 # Строки ленты для rofi-пикера (rofi-notify.sh), новые сверху:
-#   id<TAB>icon<TAB>label
-# Табы и переводы строк внутри текста заменяем пробелами — TAB здесь разделитель.
+#   id<US>icon<US>label   (US = \x1f)
+# Разделитель — именно \x1f, НЕ таб: у записей без иконки среднее поле пустое,
+# а TAB — IFS-whitespace, и bash схлопывает подряд идущие whitespace-разделители
+# в один, теряя пустые поля (label уезжает в icon, строка в rofi пустеет).
+# Не-whitespace разделитель пустые поля сохраняет. Сам \x1f из текста вычищаем.
 cmd_menu() {
   feed_json | jq -r '
     .[] | [
       (.id | tostring),
       (.app_icon // ""),
       ((if .urgency == "critical" then "🔴" elif .urgency == "low" then "🟢" else "🟡" end)
-       + " \(.app_name // "?"): \((.summary // "") | gsub("[\\t\\n]"; " "))"
+       + " \(.app_name // "?"): \((.summary // "") | gsub("[\\t\\n\\u001f]"; " "))"
        + (if (.body // "") != "" then
-            " — " + (.body | gsub("[\\t\\n]"; " ") | .[0:70])
+            " — " + (.body | gsub("[\\t\\n\\u001f]"; " ") | .[0:70])
           else "" end))
-    ] | join("\t")'
+    ] | join("\u001f")'
 }
 
 cmd_text() {

@@ -36,7 +36,9 @@ print_top() {
   menu=$("$NC" menu)
   [[ -n "$menu" ]] || return 0
   printf '🧹 Очистить историю (ﾉ>ω<)ﾉ ･ﾟ✧\0info\x1fcmd:clear\n'
-  while IFS=$'\t' read -r id icon label; do
+  # Разделитель \x1f, не TAB: whitespace-IFS схлопывает пустое поле иконки,
+  # и label уезжает в icon (см. cmd_menu в notify-center.sh).
+  while IFS=$'\x1f' read -r id icon label; do
     if [[ -n "$icon" ]]; then
       printf '%s\0info\x1fid:%s\x1ficon\x1f%s\n' "$label" "$id" "$icon"
     else
