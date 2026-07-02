@@ -19,9 +19,7 @@
 
       on-button-right = "exec makoctl menu -n $id -- ${pkgs.rofi}/bin/rofi -dmenu -p 💌";
       on-button-left = "invoke-default-action";
-      # Закрытие руками — мимо истории: история хранит только то, что
-      # протухло непрочитанным.
-      on-button-middle = "dismiss --no-history";
+      on-button-middle = "dismiss";
 
       default-timeout = 6500;
       max-history = 50;
