@@ -113,12 +113,15 @@ cmd_status() {
 # Строки ленты для rofi-пикера (rofi-notify.sh), новые сверху:
 #   id<TAB>icon<TAB>label
 # Табы и переводы строк внутри текста заменяем пробелами — TAB здесь разделитель.
+# Номер в label соответствует 📜 n/N листания в тултипе и делает различимыми
+# одинаковые уведомления (их часто несколько подряд).
 cmd_menu() {
   feed_json | jq -r '
-    .[] | [
+    to_entries[] | .key as $i | .value | [
       (.id | tostring),
       (.app_icon // ""),
-      ((if .urgency == "critical" then "🔴" elif .urgency == "low" then "🟢" else "🟡" end)
+      ("\($i + 1) · "
+       + (if .urgency == "critical" then "🔴" elif .urgency == "low" then "🟢" else "🟡" end)
        + " \(.app_name // "?"): \((.summary // "") | gsub("[\\t\\n]"; " "))"
        + (if (.body // "") != "" then
             " — " + (.body | gsub("[\\t\\n]"; " ") | .[0:70])

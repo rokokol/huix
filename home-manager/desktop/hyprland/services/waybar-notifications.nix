@@ -22,7 +22,8 @@ in
     signal = notifSignal;
     on-click = "${huixDir}/scripts/rofi-notify.sh";
     on-click-right = "${huixDir}/scripts/notify-center.sh dnd toggle";
-    on-click-middle = "makoctl dismiss -a";
+    # -h: смахнул попапы сам — значит прочитал, в историю им не надо.
+    on-click-middle = "makoctl dismiss -a -h";
     # Листание ленты уведомлений в тултипе: вниз — старее, вверх — свежее.
     on-scroll-down = "${huixDir}/scripts/notify-center.sh nav down";
     on-scroll-up = "${huixDir}/scripts/notify-center.sh nav up";

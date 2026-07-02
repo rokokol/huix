@@ -1,6 +1,14 @@
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 
 {
+  # mako стартует через exec-once в hyprland.conf и сам конфиг НЕ перечитывает:
+  # без reload демон живёт со снапшотом на момент старта сессии, и правки
+  # биндингов/режимов «применяются», но не действуют. Пинаем на каждой
+  # активации; вне графической сессии (сборка с другого хоста) молча скипаем.
+  home.activation.reloadMako = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    ${pkgs.mako}/bin/makoctl reload 2>/dev/null || true
+  '';
+
   services.mako = {
     enable = true;
 
@@ -11,9 +19,9 @@
 
       on-button-right = "exec makoctl menu -n $id -- ${pkgs.rofi}/bin/rofi -dmenu -p 💌";
       on-button-left = "invoke-default-action";
-      # Закрытие руками — мимо истории (-h): история хранит только то, что
-      # протухло непрочитанным. Биндинг dismiss флагов не принимает, поэтому exec.
-      on-button-middle = "exec makoctl dismiss -h -n $id";
+      # Закрытие руками — мимо истории: история хранит только то, что
+      # протухло непрочитанным.
+      on-button-middle = "dismiss --no-history";
 
       default-timeout = 6500;
       max-history = 50;
