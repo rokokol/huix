@@ -21,8 +21,12 @@ require_env
 NC="$HUIX/scripts/notify-center.sh"
 
 # Вне rofi — лаунчер: запускаем rofi с этим же скриптом в роли modi.
+# Тема глобально ограничивает listview шестью строками БЕЗ скроллбара — для
+# длинной ленты это выглядит как «уведомлений всего шесть». Здесь список
+# расширяем и включаем скроллбар, не трогая тему остальных пикеров.
 if [[ -z "${ROFI_RETV:-}" ]]; then
-  exec rofi -show notifications -modi "notifications:$0" -mesg "Центр уведомлений"
+  exec rofi -show notifications -modi "notifications:$0" -mesg "Центр уведомлений" \
+    -theme-str 'listview { lines: 12; scrollbar: true; }'
 fi
 
 # Главный список. У строк уведомлений в info лежит id, у служебных — команда.
