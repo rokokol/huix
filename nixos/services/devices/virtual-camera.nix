@@ -1,5 +1,6 @@
 {
   config,
+  lib,
   pkgs,
   rokokolName,
   huixDir,
@@ -20,25 +21,29 @@ let
   };
 in
 {
-  # Виртуальная вебка: v4l2loopback создаёт /dev/video10, в который любой
-  # источник (ffmpeg, OBS) пишет кадры, а приложения видят его как обычную
-  # камеру. Заливка видео/картинки на репите — командой `virtual-cam`.
-  boot.extraModulePackages = [ config.boot.kernelPackages.v4l2loopback ];
-  boot.kernelModules = [ "v4l2loopback" ];
+  options.custom.virtualCamera.enable = lib.mkEnableOption "виртуальная вебка (v4l2loopback)";
 
-  # exclusive_caps=1 нужен, чтобы устройство определялось браузерами/мессенджерами как camera
-  boot.extraModprobeConfig = ''
-    options v4l2loopback devices=1 video_nr=10 card_label="Virtual Camera" exclusive_caps=1
-  '';
+  config = lib.mkIf config.custom.virtualCamera.enable {
+    # Виртуальная вебка: v4l2loopback создаёт /dev/video10, в который любой
+    # источник (ffmpeg, OBS) пишет кадры, а приложения видят его как обычную
+    # камеру. Заливка видео/картинки на репите — командой `virtual-cam`.
+    boot.extraModulePackages = [ config.boot.kernelPackages.v4l2loopback ];
+    boot.kernelModules = [ "v4l2loopback" ];
 
-  environment.systemPackages = [
-    virtual-cam
-    pkgs.v4l-utils
-  ];
+    # exclusive_caps=1 нужен, чтобы устройство определялось браузерами/мессенджерами как camera
+    boot.extraModprobeConfig = ''
+      options v4l2loopback devices=1 video_nr=10 card_label="Virtual Camera" exclusive_caps=1
+    '';
 
-  users.users.${rokokolName} = {
-    extraGroups = [
-      "video"
+    environment.systemPackages = [
+      virtual-cam
+      pkgs.v4l-utils
     ];
+
+    users.users.${rokokolName} = {
+      extraGroups = [
+        "video"
+      ];
+    };
   };
 }

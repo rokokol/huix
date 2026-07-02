@@ -22,18 +22,18 @@ HM подключён не отдельным потоком, а как NixOS-м
 
 | Файл / каталог | Что внутри |
 | --- | --- |
-| `home-pc.nix` / `home-laptop.nix` | точки входа per-host |
-| `desktop/user-pc.nix` / `user-laptop.nix` | XDG-директории, закладки, tmpfiles, env |
+| `home-pc.nix` / `home-laptop.nix` | точки входа per-host: весь вход `custom.*` (hyprland, waybar, packages, dataDir) + btop-пакет |
+| `desktop/user.nix` | XDG-директории, закладки, tmpfiles, env; база данных хоста — опция `custom.home.dataDir` |
 | `desktop/sync.nix` | systemd-таймер авто-синка конфига (`scripts/sync.sh`, ежечасно) |
-| [`desktop/hyprland/`](desktop/hyprland/README.md) | `hyprland.conf`, per-host обвязка, `services/`: waybar, mako, hypridle, обои-коллажер |
-| `desktop/packages/` | `packages-common` + per-host наборы + `mime-apps` |
+| [`desktop/hyprland/`](desktop/hyprland/README.md) | `hyprland.conf`, единый `hyprland.nix` с опциями `custom.hyprland.*`, `services/`: waybar, mako, hypridle, обои-коллажер |
+| `desktop/packages/` | `packages-common` + `packages.nix` с флагами `custom.packages.{pc,laptop}` + `mime-apps` |
 | `desktop/theme/` | курсор, GTK/qt-тема, дефолты |
 | `programs/` | конфиги отдельных программ, см. [programs/README.md](programs/README.md) |
 
 ## Где что менять
 
-- пользовательские пакеты — `desktop/packages/packages-common.nix`, `packages-pc.nix`, `packages-laptop.nix`
-- XDG-директории, закладки, env — `desktop/user-<host>.nix`
+- пользовательские пакеты — `desktop/packages/packages-common.nix` (общие) и группы в `packages.nix` (per-host)
+- XDG-директории, закладки, env — `desktop/user.nix`; что включено на хосте — `home-<host>.nix`
 - Hyprland, Waybar, hypridle, обои, mako — `desktop/hyprland/*`
 - тема (cursor, GTK, qt) — `desktop/theme/*`
 - конфиги программ (kitty, zsh, starship, git, ssh, btop, direnv, rofi, thunar, zen, nixvim) — `programs/*`

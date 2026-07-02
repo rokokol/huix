@@ -33,7 +33,7 @@
 | `battery` | bool | индикатор батареи |
 | `temperatureHwmon` | null или str | `hwmon-path` для модуля temperature; `null` — автовыбор waybar |
 
-Кто что включает (в `hyprland-pc.nix` / `hyprland-laptop.nix`):
+Кто что включает (в `home-pc.nix` / `home-laptop.nix`):
 
 | Хост | Вход |
 | --- | --- |
@@ -58,4 +58,4 @@
 
 ## Применение
 
-Хост импортирует каталог целиком (`./services/waybar` из `hyprland-<host>.nix`) и задаёт вход в `custom.waybar`. Сам waybar стартует через `exec-once` в `hyprland.conf`, `SUPER+Z` — тумблер бара
+Каталог целиком импортирует `hyprland.nix`, а вход `custom.waybar` задаёт `home-<host>.nix`. Сам waybar стартует через `exec-once` в `hyprland.conf`, `SUPER+Z` — тумблер бара
