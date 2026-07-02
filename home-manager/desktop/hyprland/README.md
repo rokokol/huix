@@ -15,8 +15,7 @@
 | Файл | Что внутри |
 | --- | --- |
 | `hyprland.conf` | весь общий конфиг: autostart, env, look&feel, биндинги, window/layer-rules. Правится руками, не через Nix-опции |
-| `hyprland-pc.nix` | per-host: монитор `1x`, раскладка `us,ru` (`win+space`), планшет Gaomon на `DP-1`, вход `custom.waybar` (nvidia, shader, hwmon), обои-коллажер |
-| `hyprland-laptop.nix` | per-host: монитор `1.33x`, раскладка `us,ru` (`shift+shift`, `ctrl:swapcaps`), natural scroll тачпада, статичные обои, вход `custom.waybar` (shader, backlight, battery) |
+| `hyprland.nix` | единый Nix-модуль: опции `custom.hyprland.*` (масштаб монитора, XKB-опции, natural scroll, обои — статичные или коллаж); вход задают `home-pc.nix` / `home-laptop.nix` |
 | `services/hyprland-packages.nix` | общий пакетный набор (kitty, awww, hyprlock/hypridle, grim/slurp/satty, tesseract rus+eng, cliphist…), `source` главного конфига, конфиг swayimg |
 | `services/waybar/` | единый бар: база + файл на фичу, хост включает нужное опциями — см. [waybar/README](services/waybar/README.md) |
 | `services/mako.nix` | уведомления, цвета по `urgency`, меню по правому клику в rofi |
@@ -111,4 +110,4 @@
 
 ## Применение
 
-Подключается из `home-manager/home-<host>.nix` через `desktop/user-<host>.nix`. Общий `hyprland.conf` `source`-ится из Nix-обвязки, per-host различия — в `hyprland-pc.nix` / `hyprland-laptop.nix`. Бинды дёргают скрипты из [`$HUIX/scripts`](../../../scripts/README.md)
+Подключается из `home-manager/home-<host>.nix` через `desktop/user.nix`. Общий `hyprland.conf` `source`-ится из Nix-обвязки, per-host различия — опции `custom.hyprland.*` и `custom.waybar.*`, выставляемые в `home-<host>.nix`. Бинды дёргают скрипты из [`$HUIX/scripts`](../../../scripts/README.md)

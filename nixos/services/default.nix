@@ -25,9 +25,4 @@
     ./utils/tor.nix
     ./utils/virtualization.nix
   ];
-
-  custom.jupyter = {
-    enable = true;
-    withCuda = true;
-  };
 }

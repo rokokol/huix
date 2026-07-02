@@ -1,31 +1,41 @@
-{ pkgs, rokokolName, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  rokokolName,
+  ...
+}:
 
 {
-  boot = {
-    kernelParams = [
-      "amd_iommu=on"
-      "iommu=pt"
-    ];
+  options.custom.virtualization.enable = lib.mkEnableOption "libvirt + virt-manager (KVM/VFIO)";
 
-    kernelModules = [
-      "kvm-amd"
-      "vfio_pci"
-      "vfio"
-      "vfio_iommu_type1"
-      "vfio_virqfd"
+  config = lib.mkIf config.custom.virtualization.enable {
+    boot = {
+      kernelParams = [
+        "amd_iommu=on"
+        "iommu=pt"
+      ];
+
+      kernelModules = [
+        "kvm-amd"
+        "vfio_pci"
+        "vfio"
+        "vfio_iommu_type1"
+        "vfio_virqfd"
+      ];
+    };
+    virtualisation.libvirtd.enable = true;
+    programs.virt-manager.enable = true;
+
+    users.users.${rokokolName} = {
+      extraGroups = [
+        "libvirtd"
+      ];
+    };
+
+    systemd.services.virt-secret-init-encryption.serviceConfig.ExecStart = pkgs.lib.mkForce [
+      ""
+      "/bin/sh -c \"umask 0077 && if [ ! -f /var/lib/libvirt/secrets/secrets-encryption-key ]; then dd if=/dev/random status=none bs=32 count=1 | systemd-creds encrypt --name=secrets-encryption-key - /var/lib/libvirt/secrets/secrets-encryption-key; fi\""
     ];
   };
-  virtualisation.libvirtd.enable = true;
-  programs.virt-manager.enable = true;
-
-  users.users.${rokokolName} = {
-    extraGroups = [
-      "libvirtd"
-    ];
-  };
-
-  systemd.services.virt-secret-init-encryption.serviceConfig.ExecStart = pkgs.lib.mkForce [
-    ""
-    "/bin/sh -c \"umask 0077 && if [ ! -f /var/lib/libvirt/secrets/secrets-encryption-key ]; then dd if=/dev/random status=none bs=32 count=1 | systemd-creds encrypt --name=secrets-encryption-key - /var/lib/libvirt/secrets/secrets-encryption-key; fi\""
-  ];
 }

@@ -40,14 +40,14 @@ There is no `nix flake check` target wired up and no per-module test — validat
 3. **`commonArgs` is the only way arguments cross the flake boundary.** `flake.nix` builds `commonArgs = { rokokolName, huixDir, govnoDir, system, inputs }` and passes it via both `specialArgs` (NixOS) and `extraSpecialArgs` (HM). Any module can pull these out of its arguments — no need to thread them manually. When you add a new constant that multiple modules need, add it here, not as a `let` binding scattered across files.
 
 4. **Host composition is layered. Edit the narrowest layer.**
-   - `nixos/configuration-<host>.nix` — only imports + the one or two settings that genuinely differ per host (`ollama.package`, `stateVersion`).
+   - `nixos/configuration-<host>.nix` — the per-host *input*: imports, the one or two settings that genuinely differ (`ollama.package`, `stateVersion`) and the `custom.*.enable` flags for host-specific services.
    - `nixos/default.nix` — modules shared by both hosts (desktop, fonts).
    - `nixos/<host>/` — host-specific hardware/system/boot/keyboard/options.
-   - `nixos/services/services-<host>.nix` — the per-host *list of enabled services*. To add or remove a service from a host, edit this file, not the service module itself.
-   - `nixos/services/<category>/` — individual service modules, grouped by `ai/`, `desktop/`, `devices/`, `system/`, `tools/`, `utils/`. New services go into the appropriate category and get imported in the host aggregator.
-   - Same shape mirrors on the HM side: `home-manager/home-<host>.nix` → `desktop/user-<host>.nix` → shared `programs/` + `desktop/`.
+   - `nixos/services/default.nix` — the single aggregator importing *all* service modules on both hosts. Shared services are unconditional; host-specific ones are gated by `custom.<name>.enable` declared inside their own module. To add/remove a service from a host, flip the flag in `configuration-<host>.nix`.
+   - `nixos/services/<category>/` — individual service modules, grouped by `ai/`, `desktop/`, `devices/`, `system/`, `tools/`, `utils/`. New services go into the appropriate category and get imported in `services/default.nix`.
+   - Same shape mirrors on the HM side: `home-manager/home-<host>.nix` is the per-host input (all `custom.*` values: hyprland, waybar, packages, dataDir) → shared `desktop/user.nix` → shared `programs/` + `desktop/`.
 
-5. **Custom options are namespaced under `custom.*`.** Today: `custom.jupyter.{enable,withCuda}` on the NixOS side (`nixos/services/tools/jupyter.nix`) and `custom.waybar.*` on the HM side (`home-manager/desktop/hyprland/services/waybar/` — one bar, per-feature component files, hosts declare their input in `hyprland-<host>.nix`). Follow this pattern — don't reach for `mkIf config.services.foo.enable` from another module to gate behavior; expose an option.
+5. **Custom options are namespaced under `custom.*` and declared in the module they gate.** NixOS side: `custom.jupyter.{enable,withCuda}` plus enable flags for host-specific services (`comfyui`, `openwebui`, `searxng`, `printer`, `tablet`, `virtualCamera`, `virtualization`), set in `configuration-<host>.nix`. HM side: `custom.hyprland.*`, `custom.waybar.*` (one bar, per-feature component files), `custom.packages.{pc,laptop}`, `custom.home.dataDir`, set in `home-<host>.nix`. Follow this pattern — don't reach for `mkIf config.services.foo.enable` from another module to gate behavior; expose an option.
 
 6. **`useGlobalPkgs = true` consequence.** You cannot set `nixpkgs.config` or `nixpkgs.overlays` inside an HM module — they're ignored. All package/overlay config lives in `flake.nix` (system-level).
 
@@ -57,7 +57,7 @@ When in doubt where a change belongs:
 
 - **NixOS (`nixos/`)** — boot, hardware, networking, kernel, GPU, system-wide services, users, global security, anything touching `/etc` or systemd-system units.
 - **Home Manager (`home-manager/`)** — interactive user environment, app config, shell behavior, desktop theming, Hyprland/Waybar, per-user packages, systemd-user units.
-- **New system service** — new file in the matching `nixos/services/<category>/`, imported in `services-<host>.nix`. Do not collapse multiple services into one module.
+- **New system service** — new file in the matching `nixos/services/<category>/`, imported in `nixos/services/default.nix`; if it shouldn't run on both hosts, gate it behind `custom.<name>.enable` and flip the flag in `configuration-<host>.nix`. Do not collapse multiple services into one module.
 - **New user app with config** — new file in `home-manager/programs/`.
 - Do not cross the streams: no HM options under `nixos/`, no system services under `home-manager/`.
 
@@ -65,7 +65,7 @@ When in doubt where a change belongs:
 
 - System packages and feature toggles → host-specific NixOS modules (`nixos/pc/`, `nixos/laptop/`).
 - User-facing shared packages → `home-manager/desktop/packages/packages-common.nix`.
-- Host-specific user packages → `packages-pc.nix` / `packages-laptop.nix`.
+- Host-specific user packages → the `custom.packages.{pc,laptop}` groups in `packages/packages.nix` (flags set in `home-<host>.nix`).
 - Always pick the right source: `pkgs` (unstable default), `pkgs.stable` (stability-critical), `pkgs.cuda` (CUDA workloads on PC).
 
 ## Style

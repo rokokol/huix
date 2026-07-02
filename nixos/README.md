@@ -10,8 +10,8 @@
 
 | Файл / каталог | Что внутри |
 | --- | --- |
-| `configuration-pc.nix` | точка входа ПК: список импортов + `ollama-cuda` |
-| `configuration-laptop.nix` | точка входа ноута: список импортов + `ollama-cpu` |
+| `configuration-pc.nix` | точка входа ПК: импорты, `ollama-cuda`, флаги `custom.*` (comfyui, openwebui, searxng, printer, tablet, virtualCamera, virtualization, jupyter+CUDA) |
+| `configuration-laptop.nix` | точка входа ноута: импорты, `ollama-cpu`, `custom.jupyter` |
 | `default.nix` | общий для обоих хостов слой — desktop + шрифты |
 | `desktop/` | core-options и xdg-портал |
 | `fonts/` | системные шрифты, см. [fonts/README.md](fonts/README.md) |
@@ -25,7 +25,7 @@
 - какие модули подключены на хосте — в `configuration-<host>.nix`
 - host-specific опции, boot, GPU, клавиатуру — в `pc/*` или `laptop/*`
 - базовые настройки (hostname, юзер, locale, Nix GC, ФС) — в `pc/system.nix` / `laptop/system.nix`
-- набор включённых сервисов — в `services/services-<host>.nix`
+- набор включённых сервисов — флаги `custom.*.enable` в `configuration-<host>.nix` (все модули импортирует общий `services/default.nix`)
 
 ## Тонкости
 
