@@ -21,7 +21,19 @@
     cliphist
     grim
     slurp
-    satty
+    (pkgs.satty.overrideAttrs (old: rec {
+      version = "0.21.1-image-tool";
+      src = pkgs.fetchFromGitHub {
+        owner = "rokokol";
+        repo = "Satty";
+        rev = "7630661a1f08224412df6aab802f0a275097866d"; # feat/image-tool
+        hash = "sha256-kXMLWhYSv+eNZIiw5HBfBnjf+VtaOFRz7ts1uA80gJI=";
+      };
+      cargoDeps = pkgs.rustPlatform.fetchCargoVendor {
+        inherit src;
+        hash = "sha256-Oavfb2Jp9WO0eaT5TqRwSxU3+rm9lBxwuWTWnc2CnZ0=";
+      };
+    }))
     swayosd
     swayimg
     lm_sensors
