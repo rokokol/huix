@@ -2,22 +2,20 @@
 
 # Центр уведомлений поверх mako: режим "не беспокоить", история, waybar-индикатор.
 #
-# У mako нет команд "удалить одно уведомление из истории" и "показать снова
-# произвольное" — есть только restore (возвращает на экран САМОЕ СВЕЖЕЕ из
-# истории) и dismiss [-h|--no-history]. Поэтому обе операции сделаны цепочкой:
-# под служебным невидимым режимом (mode=silent, см. mako.nix) restore-им записи
-# с верхушки истории до целевой, делаем своё дело и возвращаем лишние обратно
-# повторным dismiss — он кладёт их в историю сверху, так что порядок
-# сохраняется, если возвращать от старых к новым. Попапы при этом не мигают.
+# Принцип: показывается ВСЁ, что есть (лента = видимые попапы + история mako),
+# ничего не отсеивается. Операции — минимум: скопировать текст, вызвать
+# действие уведомления, очистить историю целиком.
 #
 # Вызвать action у уведомления ИЗ ИСТОРИИ mako не умеет (makoctl invoke молча
-# возвращает 0, но действие не доставляется — проверено), поэтому invoke для
-# исторической записи сначала тихо восстанавливает её на экран той же цепочкой
-# и только потом вызывает действие. Если приложение-отправитель уже умерло,
-# действие уйдёт в пустоту — это ограничение самого механизма ActionInvoked.
-#
-# Все команды работают с ЛЕНТОЙ (видимые попапы + история): для видимых —
-# прямые вызовы makoctl, для истории — цепочки.
+# возвращает 0, но действие не доставляется — проверено; работает он только по
+# показанным). Единственный способ достать запись из истории — makoctl restore,
+# и тот возвращает лишь САМУЮ СВЕЖУЮ. Поэтому invoke для исторической записи —
+# цепочка под служебным невидимым режимом (mode=silent, см. mako.nix):
+# restore-им записи с верхушки истории до целевой, вызываем действие и
+# возвращаем всё обратно повторным dismiss — он кладёт записи в историю сверху,
+# так что порядок сохраняется, если возвращать от старых к новым. Попапы при
+# этом не мигают. Если приложение-отправитель уже умерло, действие уйдёт в
+# пустоту — это ограничение самого механизма ActionInvoked.
 #
 # Режимы mako живут в рантайме демона: DND переживает reload Hyprland и
 # nixos-rebuild, но сбрасывается при перезапуске сессии — для "временно
@@ -28,7 +26,6 @@
 #   notify-center.sh dnd toggle|on|off — переключить "не беспокоить"
 #   notify-center.sh dnd status      — печатает on|off (для rofi-notify.sh)
 #   notify-center.sh clear           — очистить всю историю
-#   notify-center.sh delete <id>     — убрать запись (с экрана или из истории)
 #   notify-center.sh invoke <id> <key> — вызвать действие уведомления
 #   notify-center.sh actions <id>    — строки "key<TAB>label" действий записи
 #   notify-center.sh menu            — строки "id<TAB>icon<TAB>label" для rofi
@@ -164,10 +161,6 @@ is_displayed() {
   makoctl list -j | jq -e --argjson id "$1" 'any(.[]; .id == $id)' >/dev/null
 }
 
-in_history() {
-  makoctl history -j | jq -e --argjson id "$1" 'any(.[]; .id == $id)' >/dev/null
-}
-
 load_nav() { # -> глобальный idx: позиция курсора в ленте, -1 = неактивен
   idx=-1
   local ts=0 now
@@ -225,57 +218,28 @@ restack() {
   done
 }
 
-cmd_delete() {
-  local id="${1:?id required}"
-  # Запись прямо на экране — обычный dismiss мимо истории, цепочка не нужна.
+cmd_invoke() {
+  local id="${1:?id required}" key="${2:?action key required}"
+  # Видимый попап: обычный invoke, дальше пусть решают mako и отправитель.
   if is_displayed "$id"; then
-    makoctl dismiss -n "$id" -h
+    makoctl invoke -n "$id" "$key"
     signal_waybar
     return
   fi
+  # Историческая запись: invoke по истории — no-op, поэтому тихо достаём её на
+  # экран (silent), вызываем действие и возвращаем обратно в историю. Если
+  # отправитель сам закрыл её по ActionInvoked — она уже в истории, dismiss
+  # просто не найдёт её (|| true). Запись в любом случае никуда не пропадает.
   trap silent_off EXIT
   if ! pluck "$id"; then
     restack
     notify_error "Уведомление $id не найдено (・_・;)"
     exit 1
   fi
-  makoctl dismiss -n "$id" -h
+  makoctl invoke -n "$id" "$key"
+  makoctl dismiss -n "$id" 2>/dev/null || true
   restack
   silent_off
-  signal_waybar
-}
-
-cmd_invoke() {
-  local id="${1:?id required}" key="${2:?action key required}"
-  trap silent_off EXIT
-  if is_displayed "$id"; then
-    makoctl invoke -n "$id" "$key"
-  else
-    # Историческая запись: invoke по истории — no-op, поэтому сначала тихо
-    # достаём её на экран (silent) и вызываем действие уже по показанной.
-    if ! pluck "$id"; then
-      restack
-      notify_error "Уведомление $id не найдено (・_・;)"
-      exit 1
-    fi
-    makoctl invoke -n "$id" "$key"
-    restack
-    silent_off
-  fi
-  # Действие "потреблено" — убираем уведомление без следа. Живой отправитель
-  # часто сам закрывает его по ActionInvoked (CloseNotification), успевая
-  # раньше нас и роняя запись в историю, — поэтому ждём мгновение и подчищаем,
-  # где бы она ни оказалась.
-  sleep 0.2
-  if is_displayed "$id"; then
-    makoctl dismiss -n "$id" -h
-  elif in_history "$id"; then
-    if pluck "$id"; then
-      makoctl dismiss -n "$id" -h
-    fi
-    restack
-    silent_off
-  fi
   signal_waybar
 }
 
@@ -296,11 +260,10 @@ case "${1:-}" in
   status)  cmd_status ;;
   dnd)     shift; cmd_dnd "$@" ;;
   clear)   cmd_clear ;;
-  delete)  shift; cmd_delete "$@" ;;
   invoke)  shift; cmd_invoke "$@" ;;
   actions) shift; cmd_actions "$@" ;;
   menu)    cmd_menu ;;
   text)    shift; cmd_text "$@" ;;
   nav)     shift; cmd_nav "$@" ;;
-  *) notify_error "Usage: notify-center.sh status|dnd|clear|delete|invoke|actions|menu|text|nav ..."; exit 1 ;;
+  *) notify_error "Usage: notify-center.sh status|dnd|clear|invoke|actions|menu|text|nav ..."; exit 1 ;;
 esac

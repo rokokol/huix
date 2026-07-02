@@ -21,12 +21,8 @@ require_env
 NC="$HUIX/scripts/notify-center.sh"
 
 # Вне rofi — лаунчер: запускаем rofi с этим же скриптом в роли modi.
-# Тема глобально ограничивает listview шестью строками БЕЗ скроллбара — для
-# длинной ленты это выглядит как «уведомлений всего шесть». Здесь список
-# расширяем и включаем скроллбар, не трогая тему остальных пикеров.
 if [[ -z "${ROFI_RETV:-}" ]]; then
-  exec rofi -show notifications -modi "notifications:$0" -mesg "Центр уведомлений" \
-    -theme-str 'listview { lines: 12; scrollbar: true; }'
+  exec rofi -show notifications -modi "notifications:$0" -mesg "Центр уведомлений"
 fi
 
 # Главный список. У строк уведомлений в info лежит id, у служебных — команда.
@@ -59,7 +55,6 @@ print_item_menu() {
     printf '⚡ %s (☆ω☆)\0info\x1fact:invoke:%s:%s\n' "$label" "$id" "$key"
   done < <("$NC" actions "$id")
   printf '📋 Скопировать текст φ(．．)\0info\x1fact:copy:%s\n' "$id"
-  printf '🗑️ Удалить (ﾉ´･ω･)ﾉ ﾐ ┻━┻\0info\x1fact:delete:%s\n' "$id"
   printf '↩️ Назад (￣▽￣)ノ\0info\x1fcmd:top\n'
 }
 
@@ -71,5 +66,4 @@ case "${ROFI_INFO:-}" in
   id:*)          print_item_menu "${ROFI_INFO#id:}" ;;
   act:invoke:*)  rest="${ROFI_INFO#act:invoke:}"; "$NC" invoke "${rest%%:*}" "${rest#*:}" ;;
   act:copy:*)    "$NC" text "${ROFI_INFO#act:copy:}" | wl-copy ;;
-  act:delete:*)  "$NC" delete "${ROFI_INFO#act:delete:}"; print_top ;;
 esac
