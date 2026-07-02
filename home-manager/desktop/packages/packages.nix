@@ -50,7 +50,6 @@ in
           easyeffects
           stable.gimp
           stable.gimpPlugins.gmic
-          kdePackages.kdenlive
           krita
           solvespace
         ]
