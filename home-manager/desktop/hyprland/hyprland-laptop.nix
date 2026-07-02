@@ -34,5 +34,6 @@
   imports = [
     ./services/hyprland-packages.nix
     ./services/waybar-laptop.nix
+    ./services/waybar-notifications.nix
   ];
 }
