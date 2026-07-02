@@ -1,25 +1,34 @@
 #!/usr/bin/env bash
 
-# Единый менеджер полноэкранных шейдеров Hyprland.
-#
-# Hyprland держит только ОДИН слот шейдера (decoration:screen_shader), поэтому
-# цветовой эффект и затемнение нельзя включить независимо — мы их композируем.
-# Каждый эффект в scripts/shaders/<name>.frag описывает только функцию
-#   vec3 effect(vec3 c, vec2 uv)
-# а этот скрипт собирает из неё + уровня яркости финальный шейдер и применяет его.
-#
-# Состояние (выбранный эффект и яркость) хранится в runtime-каталоге, а не в
-# git-дереве, чтобы hourly-sync его не закоммитил.
-#
-# Использование:
-#   screen-shader.sh effect set <name>      — поставить эффект
-#   screen-shader.sh effect off-or <name>   — есть эффект -> выкл; нет -> включить <name>
-#   screen-shader.sh effect next|prev       — листать эффекты по кругу
-#   screen-shader.sh bright up|down         — яркость ±0.10 (кламп 0.10..1.00)
-#   screen-shader.sh bright reset           — яркость = 1.00
-#   screen-shader.sh bright set <0.10..1.00>
-
 set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+screen-shader.sh — менеджер полноэкранных шейдеров и софт-яркости Hyprland
+
+Команды:
+  effect set <name>      поставить эффект (имена — см. menu)
+  effect off-or <name>   есть эффект — выключить; нет — включить <name>
+  effect next|prev       листать эффекты по кругу
+  bright up|down         софт-яркость ±10% (кламп 10..100%)
+  bright reset           яркость 100%
+  bright set <0.10..1>   яркость точно
+  restore                перечитать state и применить заново
+                         (exec на каждом reload Hyprland — слот рантаймовый)
+  status                 JSON для waybar (custom/shader)
+  menu                   строки "<эмодзи> <подпись>|<имя>" для rofi-пикера
+  help                   эта справка
+
+У Hyprland один слот шейдера (decoration:screen_shader), поэтому эффект и
+яркость нельзя включить независимо — скрипт композирует их в один
+генерируемый шейдер. Каждый эффект в scripts/shaders/<name>.frag описывает
+только функцию vec3 effect(vec3 c, vec2 uv).
+
+Выбор (эффект+яркость) хранится durable в ~/.local/state/huix/shader —
+переживает логаут/ребут и не виден hourly-sync; сгенерированные шейдеры
+эфемерны и живут в $XDG_RUNTIME_DIR/hypr-shader.
+EOF
+}
 
 notify_error() {
   if command -v notify-send >/dev/null 2>&1; then
@@ -32,14 +41,9 @@ notify_info() {
   command -v notify-send >/dev/null 2>&1 && notify-send -u low "$1" "$2" || true
 }
 
-# Пинаем waybar перечитать индикатор шейдера (модуль слушает SIGRTMIN+N). Номер
-# сигнала задаёт Nix (waybar/shader.nix) и кладёт в WAYBAR_SHADER_SIGNAL —
-# единый источник правды. Не задан (вне сессии) — просто не шлём.
-#
-# SHADER_NO_SIGNAL гасит сигнал при restore на старте сессии: SIGRTMIN+N по
-# умолчанию ЗАВЕРШАЕТ процесс, и если послать его пока waybar ещё не успел
-# установить обработчик (гонка autostart), waybar убивается. На старте сигнал и
-# не нужен — waybar сам прочитает статус своим exec-ом при запуске.
+# Номер SIGRTMIN+N задаёт Nix (waybar/shader.nix) через WAYBAR_SHADER_SIGNAL.
+# SHADER_NO_SIGNAL гасит сигнал при restore на старте сессии: дефолтное действие
+# RT-сигнала — убить процесс, а waybar мог ещё не поставить обработчик.
 signal_waybar() {
   [[ -z "${SHADER_NO_SIGNAL:-}" ]] || return 0
   [[ -n "${WAYBAR_SHADER_SIGNAL:-}" ]] || return 0
@@ -56,10 +60,7 @@ require_env() {
 require_env
 
 SHADER_DIR="$HUIX/scripts/shaders"
-# Генерируемые active-*.frag — эфемерны, держим в рантайме.
 STATE_DIR="${XDG_RUNTIME_DIR:-/tmp}/hypr-shader"
-# Выбор эффекта/яркости — durable (как тема): переживает логаут и ребут, чтобы
-# шейдер не слетал на старте новой сессии. Не в git-дереве (hourly-sync не трогает).
 STATE="${XDG_STATE_HOME:-$HOME/.local/state}/huix/shader"
 
 # Порядок для листания (effect next/prev). none первым — это "выключено".
@@ -270,13 +271,9 @@ cmd_bright() {
   notify_info "Brightness" "Яркость: $(awk -v b="$bright" 'BEGIN{printf "%d", b*100}')% ☀"
 }
 
-# Перечитать состояние и заново применить шейдер. Нужно после reload Hyprland
-# (в т.ч. при nixos-rebuild) — screen_shader живёт только в рантайме и слетает,
-# поэтому hyprland.conf зовёт это через `exec` на каждом reload.
 cmd_restore() {
-  # На старте сессии не сигналим waybar (см. signal_waybar) — иначе ранний
-  # SIGRTMIN+N убьёт ещё не готовый waybar. Скрипт тут же завершается, так что
-  # глобальная установка флага безопасна.
+  # Не сигналим waybar на старте сессии (см. signal_waybar); скрипт тут же
+  # завершается, так что глобальная установка флага безопасна.
   SHADER_NO_SIGNAL=1
   load_state
   apply
@@ -316,5 +313,10 @@ case "${1:-}" in
   restore) cmd_restore ;;
   status)  cmd_status ;;
   menu)    cmd_menu ;;
-  *) notify_error "Usage: screen-shader.sh effect|bright|restore|status|menu ..."; exit 1 ;;
+  help | -h | --help) usage ;;
+  *)
+    usage >&2
+    notify_error "Usage: screen-shader.sh effect|bright|restore|status|menu|help"
+    exit 1
+    ;;
 esac

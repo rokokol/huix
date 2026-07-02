@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# virtual-cam — крутит видео/картинку в виртуальную камеру. Справка: --help.
+
 set -euo pipefail
 
 usage() {

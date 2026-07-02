@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 
-# Лента уведомлений mako (видимые попапы + история) в rofi (script-modi, как
-# rofi-shader.sh). Верхний уровень: тумблер DND, очистка истории и сами
-# уведомления (новые сверху). Выбор уведомления открывает меню: действия самого
-# уведомления (⚡) / скопировать текст / удалить. Вся логика — в
+# Лента уведомлений mako в rofi (script-modi, как rofi-shader.sh): тумблер DND,
+# очистка истории, клик по уведомлению копирует его текст. Вся логика — в
 # notify-center.sh, здесь только представление.
 
 set -euo pipefail
@@ -47,25 +45,10 @@ print_top() {
   done <<<"$menu"
 }
 
-print_item_menu() {
-  local id="$1" key label
-  # Действия самого уведомления (если есть). В info ключ идёт ПОСЛЕ id:
-  # id числовой, поэтому разбор по первому двоеточию однозначен,
-  # даже если в ключе действия есть свои двоеточия.
-  while IFS=$'\t' read -r key label; do
-    [[ -n "$key" ]] || continue
-    printf '⚡ %s (☆ω☆)\0info\x1fact:invoke:%s:%s\n' "$label" "$id" "$key"
-  done < <("$NC" actions "$id")
-  printf '📋 Скопировать текст φ(．．)\0info\x1fact:copy:%s\n' "$id"
-  printf '↩️ Назад (￣▽￣)ノ\0info\x1fcmd:top\n'
-}
-
 # Пустой вывод закрывает rofi; печать нового списка — продолжает сессию.
 case "${ROFI_INFO:-}" in
-  "" | cmd:top)  print_top ;;
-  cmd:dnd)       "$NC" dnd toggle ;;
-  cmd:clear)     "$NC" clear ;;
-  id:*)          print_item_menu "${ROFI_INFO#id:}" ;;
-  act:invoke:*)  rest="${ROFI_INFO#act:invoke:}"; "$NC" invoke "${rest%%:*}" "${rest#*:}" ;;
-  act:copy:*)    "$NC" text "${ROFI_INFO#act:copy:}" | wl-copy ;;
+  "")        print_top ;;
+  cmd:dnd)   "$NC" dnd toggle ;;
+  cmd:clear) "$NC" clear ;;
+  id:*)      "$NC" text "${ROFI_INFO#id:}" | wl-copy ;;
 esac

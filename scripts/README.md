@@ -20,14 +20,14 @@
 | `sync.sh` | авто-синк конфига: `git pull --rebase --autostash` → `add` → `commit` → `push`, ежечасно по таймеру |
 | `toggle_theme.sh` | переключение light/dark: dconf `color-scheme`+`gtk-theme`, тема rofi, выбор в state-файле |
 | `screen-shader.sh` | менеджер полноэкранных шейдеров и софт-яркости, см. [shaders/README.md](shaders/README.md) |
-| `notify-center.sh` | центр уведомлений поверх mako: режим «не беспокоить», действия/копирование уведомлений, очистка истории, листание ленты в тултипе, JSON-статус для waybar |
+| `notify-center.sh` | центр уведомлений поверх mako: режим «не беспокоить», копирование текста уведомлений, очистка истории, листание ленты в тултипе, JSON-статус для waybar |
 | `random_wallpaper.sh` | рандомные обои для Hyprland (выборка по нормальному распределению) |
 | `colorpicker.sh` | пипетка через `hyprpicker`, копирует HEX/RGB и шлёт превью в уведомление |
 | `pin-screen.sh` | закрепить выделенную область экрана поверх остальных окон |
 | `zoom.sh` | живая лупа: зум экрана вокруг курсора через `cursor:zoom_factor` (ALT+WIN+колесо) |
 | `rofi-clipboard.sh` | история буфера через `cliphist` в rofi с превью |
 | `rofi-libre.sh` | перевод выделенного через LibreTranslate в rofi |
-| `rofi-notify.sh` | лента уведомлений в rofi: действия уведомления, скопировать текст, очистить всё, тумблер DND |
+| `rofi-notify.sh` | лента уведомлений в rofi: клик копирует текст, очистить всё, тумблер DND |
 | `rofi-shader.sh` | пикер эффектов как rofi script-modi |
 | `rofi_wooordhunt.sh` | словарь wooordhunt в rofi |
 | `virtual-cam.sh` | виртуальная камера на повторе через `v4l2loopback` |
