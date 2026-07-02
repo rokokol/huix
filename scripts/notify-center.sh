@@ -11,9 +11,13 @@
 # сохраняется, если возвращать от старых к новым. Попапы при этом не мигают.
 #
 # Вызвать action у уведомления ИЗ ИСТОРИИ mako не умеет (makoctl invoke молча
-# возвращает 0, но действие не доставляется — проверено), поэтому
-# "взаимодействие" = restore: уведомление возвращается на экран живым, со
-# своими кнопками/меню (ПКМ по попапу — makoctl menu, как обычно).
+# возвращает 0, но действие не доставляется — проверено), поэтому invoke для
+# исторической записи сначала тихо восстанавливает её на экран той же цепочкой
+# и только потом вызывает действие. Если приложение-отправитель уже умерло,
+# действие уйдёт в пустоту — это ограничение самого механизма ActionInvoked.
+#
+# Все команды работают с ЛЕНТОЙ (видимые попапы + история): для видимых —
+# прямые вызовы makoctl, для истории — цепочки.
 #
 # Режимы mako живут в рантайме демона: DND переживает reload Hyprland и
 # nixos-rebuild, но сбрасывается при перезапуске сессии — для "временно
@@ -24,8 +28,9 @@
 #   notify-center.sh dnd toggle|on|off — переключить "не беспокоить"
 #   notify-center.sh dnd status      — печатает on|off (для rofi-notify.sh)
 #   notify-center.sh clear           — очистить всю историю
-#   notify-center.sh delete <id>     — убрать одну запись из истории
-#   notify-center.sh restore <id>    — показать уведомление из истории снова
+#   notify-center.sh delete <id>     — убрать запись (с экрана или из истории)
+#   notify-center.sh invoke <id> <key> — вызвать действие уведомления
+#   notify-center.sh actions <id>    — строки "key<TAB>label" действий записи
 #   notify-center.sh menu            — строки "id<TAB>icon<TAB>label" для rofi
 #   notify-center.sh text <id>       — текст уведомления (для копирования)
 #   notify-center.sh nav up|down     — листать ленту в тултипе (колесо на waybar)
@@ -75,8 +80,8 @@ cmd_status() {
   local dnd=0
   dnd_active && dnd=1
   load_nav
-  { makoctl list -j; makoctl history -j; } | jq -c -s --argjson dnd "$dnd" --argjson idx "$idx" '
-    (.[0] + .[1]) as $all
+  feed_json | jq -c --argjson dnd "$dnd" --argjson idx "$idx" '
+    . as $all
     | ($all | length) as $n
     | ($all | map(
         ("\(.app_name // "?"): \(.summary // "")"
@@ -105,11 +110,11 @@ cmd_status() {
       end'
 }
 
-# Строки истории для rofi-пикера (rofi-notify.sh), новые сверху:
+# Строки ленты для rofi-пикера (rofi-notify.sh), новые сверху:
 #   id<TAB>icon<TAB>label
 # Табы и переводы строк внутри текста заменяем пробелами — TAB здесь разделитель.
 cmd_menu() {
-  makoctl history -j | jq -r '
+  feed_json | jq -r '
     .[] | [
       (.id | tostring),
       (.app_icon // ""),
@@ -123,9 +128,17 @@ cmd_menu() {
 
 cmd_text() {
   local id="${1:?id required}"
-  makoctl history -j | jq -r --argjson id "$id" '
+  feed_json | jq -r --argjson id "$id" '
     .[] | select(.id == $id)
     | [(.summary // ""), (.body // "")] | map(select(. != "")) | join("\n")'
+}
+
+# Действия записи: "key<TAB>label". Пустой label (бывает, шлют " ") заменяем ключом.
+cmd_actions() {
+  local id="${1:?id required}"
+  feed_json | jq -r --argjson id "$id" '
+    .[] | select(.id == $id) | .actions // {} | to_entries[]
+    | "\(.key)\t\(if (.value | gsub("\\s"; "")) == "" then .key else .value end)"'
 }
 
 # Листание истории в тултипе waybar-модуля (как календарь у часов): колесо
@@ -138,9 +151,21 @@ NAV_STATE="${XDG_RUNTIME_DIR:-/tmp}/huix-notify-nav"
 NAV_TTL=20
 
 # Лента модуля = видимые попапы + история (новые сверху) — по ней считается
-# счётчик и листает курсор.
+# счётчик, листает курсор и строится rofi-список.
+feed_json() {
+  { makoctl list -j; makoctl history -j; } | jq -s '.[0] + .[1]'
+}
+
 feed_len() {
-  { makoctl list -j; makoctl history -j; } | jq -s '(.[0] | length) + (.[1] | length)'
+  feed_json | jq length
+}
+
+is_displayed() {
+  makoctl list -j | jq -e --argjson id "$1" 'any(.[]; .id == $id)' >/dev/null
+}
+
+in_history() {
+  makoctl history -j | jq -e --argjson id "$1" 'any(.[]; .id == $id)' >/dev/null
 }
 
 load_nav() { # -> глобальный idx: позиция курсора в ленте, -1 = неактивен
@@ -202,10 +227,16 @@ restack() {
 
 cmd_delete() {
   local id="${1:?id required}"
+  # Запись прямо на экране — обычный dismiss мимо истории, цепочка не нужна.
+  if is_displayed "$id"; then
+    makoctl dismiss -n "$id" -h
+    signal_waybar
+    return
+  fi
   trap silent_off EXIT
   if ! pluck "$id"; then
     restack
-    notify_error "Уведомление $id не найдено в истории (・_・;)"
+    notify_error "Уведомление $id не найдено (・_・;)"
     exit 1
   fi
   makoctl dismiss -n "$id" -h
@@ -214,17 +245,37 @@ cmd_delete() {
   signal_waybar
 }
 
-cmd_restore() {
-  local id="${1:?id required}"
+cmd_invoke() {
+  local id="${1:?id required}" key="${2:?action key required}"
   trap silent_off EXIT
-  if ! pluck "$id"; then
+  if is_displayed "$id"; then
+    makoctl invoke -n "$id" "$key"
+  else
+    # Историческая запись: invoke по истории — no-op, поэтому сначала тихо
+    # достаём её на экран (silent) и вызываем действие уже по показанной.
+    if ! pluck "$id"; then
+      restack
+      notify_error "Уведомление $id не найдено (・_・;)"
+      exit 1
+    fi
+    makoctl invoke -n "$id" "$key"
     restack
-    notify_error "Уведомление $id не найдено в истории (・_・;)"
-    exit 1
+    silent_off
   fi
-  restack
-  # После снятия silent целевое уведомление отрисовывается (если не активен DND).
-  silent_off
+  # Действие "потреблено" — убираем уведомление без следа. Живой отправитель
+  # часто сам закрывает его по ActionInvoked (CloseNotification), успевая
+  # раньше нас и роняя запись в историю, — поэтому ждём мгновение и подчищаем,
+  # где бы она ни оказалась.
+  sleep 0.2
+  if is_displayed "$id"; then
+    makoctl dismiss -n "$id" -h
+  elif in_history "$id"; then
+    if pluck "$id"; then
+      makoctl dismiss -n "$id" -h
+    fi
+    restack
+    silent_off
+  fi
   signal_waybar
 }
 
@@ -246,9 +297,10 @@ case "${1:-}" in
   dnd)     shift; cmd_dnd "$@" ;;
   clear)   cmd_clear ;;
   delete)  shift; cmd_delete "$@" ;;
-  restore) shift; cmd_restore "$@" ;;
+  invoke)  shift; cmd_invoke "$@" ;;
+  actions) shift; cmd_actions "$@" ;;
   menu)    cmd_menu ;;
   text)    shift; cmd_text "$@" ;;
   nav)     shift; cmd_nav "$@" ;;
-  *) notify_error "Usage: notify-center.sh status|dnd|clear|delete|restore|menu|text|nav ..."; exit 1 ;;
+  *) notify_error "Usage: notify-center.sh status|dnd|clear|delete|invoke|actions|menu|text|nav ..."; exit 1 ;;
 esac
