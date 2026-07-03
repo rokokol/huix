@@ -26,7 +26,7 @@
       src = pkgs.fetchFromGitHub {
         owner = "rokokol";
         repo = "Satty";
-        rev = "770a7e35f1d78bf0dcb926f64303068ca21f43c8"; # feat/image-tool
+        rev = "42ddbc3e046b49dd6747eb54faea53d0b2644b9f"; # feat/image-tool
         hash = "sha256-kXMLWhYSv+eNZIiw5HBfBnjf+VtaOFRz7ts1uA80gJI=";
       };
       cargoDeps = pkgs.rustPlatform.fetchCargoVendor {
