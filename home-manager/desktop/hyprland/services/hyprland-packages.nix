@@ -21,19 +21,27 @@
     cliphist
     grim
     slurp
-    (pkgs.satty.overrideAttrs (old: rec {
-      version = "0.21.1-image-tool";
-      src = pkgs.fetchFromGitHub {
-        owner = "rokokol";
-        repo = "Satty";
-        rev = "42ddbc3e046b49dd6747eb54faea53d0b2644b9f"; # feat/image-tool
-        hash = "sha256-kXMLWhYSv+eNZIiw5HBfBnjf+VtaOFRz7ts1uA80gJI=";
-      };
-      cargoDeps = pkgs.rustPlatform.fetchCargoVendor {
+    (pkgs.satty.overrideAttrs (
+      _:
+      let
+        src = pkgs.fetchFromGitHub {
+          owner = "rokokol";
+          repo = "Satty";
+          rev = "feat/image-tool";
+          hash = "sha256-12UXatLyjI/ZliomKHhQjrTF9AFbACzBJEhdoU1ej4Y=";
+        };
+      in
+      {
+        version = "unstable";
+
         inherit src;
-        hash = "sha256-Oavfb2Jp9WO0eaT5TqRwSxU3+rm9lBxwuWTWnc2CnZ0=";
-      };
-    }))
+
+        cargoDeps = pkgs.rustPlatform.fetchCargoVendor {
+          inherit src;
+          hash = "sha256-IzJQ/5yRZrWuM4M9shGm87k7HQkU1p1OiEtCku4+8p0=";
+        };
+      }
+    ))
     swayosd
     swayimg
     lm_sensors
