@@ -64,7 +64,7 @@ When in doubt where a change belongs:
 ## Package layering
 
 - System packages and feature toggles → host-specific NixOS modules (`nixos/pc/`, `nixos/laptop/`).
-- User-facing shared packages → `home-manager/desktop/packages/packages-common.nix`.
+- User-facing shared packages → the common block in `home-manager/desktop/packages/packages.nix`.
 - Host-specific user packages → the `custom.packages.{pc,laptop}` groups in `packages/packages.nix` (flags set in `home-<host>.nix`).
 - Always pick the right source: `pkgs` (unstable default), `pkgs.stable` (stability-critical), `pkgs.cuda` (CUDA workloads on PC).
 
