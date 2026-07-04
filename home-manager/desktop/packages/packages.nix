@@ -3,6 +3,7 @@
   lib,
   pkgs,
   inputs,
+  huixDir,
   ...
 }:
 
@@ -10,7 +11,7 @@ let
   cfg = config.custom.packages;
 in
 {
-  imports = [ ./packages-common.nix ];
+  imports = [ ./mime-apps.nix ];
 
   options.custom.packages = {
     pc = lib.mkEnableOption "пакеты рабочей станции (CUDA, тяжёлый десктоп, creative)";
@@ -18,6 +19,74 @@ in
   };
 
   config = lib.mkMerge [
+    # --- Общие для обоих хостов ---
+    {
+      home.packages = with pkgs; [
+        # --- Common desktop apps ---
+        ayugram-desktop
+        baobab
+        celluloid
+        evince
+        file-roller
+        freecad
+        gnome-disk-utility
+        gnome-text-editor
+        obsidian
+        super-productivity
+        tauon
+
+        # --- CLI ---
+        claude-code
+        codex
+        curl
+        exiftool
+        fastfetch
+        file
+        gthumb
+        imagemagick
+        jq
+        killall
+        lazygit
+        libreoffice-fresh
+        matlab
+        pup
+        python3Packages.huggingface-hub
+        ripgrep
+        texlive.combined.scheme-full
+        tree
+        unzip
+        usbutils
+        wget
+
+        # Python
+        (python313.withPackages (
+          ps: with ps; [
+            matplotlib
+            numpy
+            pandas
+            requests
+            rich
+            scipy
+            sympy
+            tqdm
+          ]
+        ))
+        uv
+      ];
+
+      home.sessionVariables = {
+        EDITOR = "nvim";
+        VISUAL = "nvim";
+        TERMINAL = "kitty";
+        HUIX = huixDir;
+        NIXOS_OZONE_WL = "1";
+      };
+
+      home.file.".config/matlab/nix.sh".text = ''
+        INSTALL_DIR=$HOME/MATLAB2025a/
+      '';
+    }
+
     (lib.mkIf cfg.pc {
       home.packages =
         with pkgs;
@@ -51,7 +120,6 @@ in
           stable.gimp
           stable.gimpPlugins.gmic
           krita
-          solvespace
         ]
         ++ (with inputs; [
           freesmlauncher.packages.${pkgs.stdenv.hostPlatform.system}.default

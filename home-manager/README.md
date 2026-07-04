@@ -26,13 +26,13 @@ HM подключён не отдельным потоком, а как NixOS-м
 | `desktop/user.nix` | XDG-директории, закладки, tmpfiles, env; база данных хоста — опция `custom.home.dataDir` |
 | `desktop/sync.nix` | systemd-таймер авто-синка конфига (`scripts/sync.sh`, ежечасно) |
 | [`desktop/hyprland/`](desktop/hyprland/README.md) | `hyprland.conf`, единый `hyprland.nix` с опциями `custom.hyprland.*`, `services/`: waybar, mako, hypridle, обои-коллажер |
-| `desktop/packages/` | `packages-common` + `packages.nix` с флагами `custom.packages.{pc,laptop}` + `mime-apps` |
+| `desktop/packages/` | `packages.nix`: общие пакеты + группы с флагами `custom.packages.{pc,laptop}` + `mime-apps` |
 | `desktop/theme/` | курсор, GTK/qt-тема, дефолты |
 | `programs/` | конфиги отдельных программ, см. [programs/README.md](programs/README.md) |
 
 ## Где что менять
 
-- пользовательские пакеты — `desktop/packages/packages-common.nix` (общие) и группы в `packages.nix` (per-host)
+- пользовательские пакеты — `desktop/packages/packages.nix`: общий блок (оба хоста) и группы `custom.packages.{pc,laptop}` (per-host)
 - XDG-директории, закладки, env — `desktop/user.nix`; что включено на хосте — `home-<host>.nix`
 - Hyprland, Waybar, hypridle, обои, mako — `desktop/hyprland/*`
 - тема (cursor, GTK, qt) — `desktop/theme/*`
