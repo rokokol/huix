@@ -79,10 +79,6 @@
           config = configCuda;
         };
       };
-
-      overlay-claude-desktop = final: prev: {
-        claude-desktop = inputs.claude-desktop.packages.${system}.claude-desktop-fhs;
-      };
     in
     {
       nixosConfigurations.nixos-pc = nixpkgs.lib.nixosSystem {
@@ -96,7 +92,7 @@
             nixpkgs.overlays = [
               overlay-cuda
               overlay-stable
-              overlay-claude-desktop
+              inputs.claude-desktop.overlays.default
               nix-matlab.overlay
               comfyui-nix.overlays.default
             ];
@@ -130,7 +126,7 @@
             nixpkgs.config = configNoCuda;
             nixpkgs.overlays = [
               overlay-stable
-              overlay-claude-desktop
+              inputs.claude-desktop.overlays.default
               nix-matlab.overlay
             ];
           }
