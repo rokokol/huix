@@ -36,7 +36,7 @@ notify -u low "Synchronized （´ω｀♡%）" "$(git log "$OLD_REV..$NEW_REV" -
 git add -u
 if ! git commit -m "sync $(date) from $HOST_NAME"; then
   notify -u low "Nothing to commit (((o(*ﾟ▽ﾟ*)o)))"
-  if [ "$(git rev-list @\{u\}..HEAD | wc -l)" -gt 0 ]; then
+  if [ "$(git rev-list --count @\{u\}..HEAD)" -gt 0 ]; then
     if ! timeout 90 git push; then
       notify -u critical "Push Error (*≧m≦*)"
     else

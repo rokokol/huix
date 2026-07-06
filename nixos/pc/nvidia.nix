@@ -22,6 +22,10 @@
   };
   hardware.nvidia-container-toolkit.enable = true;
 
+  # nix-ld needs the exact driver userspace this host runs; the shared list in
+  # nixos/services/system/nix-ld.nix stays GPU-agnostic.
+  programs.nix-ld.libraries = [ config.hardware.nvidia.package ];
+
   users.users.${rokokolName} = {
     extraGroups = [
       "video"

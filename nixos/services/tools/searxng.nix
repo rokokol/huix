@@ -5,6 +5,9 @@
   ...
 }:
 
+let
+  port = 9000;
+in
 {
   options.custom.searxng.enable = lib.mkEnableOption "SearxNG за nginx";
 
@@ -24,7 +27,7 @@
 
       settings = {
         server = {
-          port = 9000;
+          inherit port;
           bind_address = "127.0.0.1";
           secret_key = "9eb250a7fabc56fd385e058b2375ef4e42f42aa1cba587aa6a9821430fc59802";
           base_url = "http://localhost/";
@@ -45,10 +48,6 @@
         };
 
         engines = [
-          {
-            name = "aol";
-            disabled = true;
-          }
           {
             name = "aol";
             disabled = true;
@@ -102,10 +101,6 @@
             disabled = false;
           }
           {
-            name = "openlibrary";
-            disabled = false;
-          }
-          {
             name = "startpage";
             disabled = true;
           }
@@ -125,7 +120,7 @@
       enable = true;
       virtualHosts."localhost" = {
         locations."/" = {
-          proxyPass = "http://127.0.0.1:9000";
+          proxyPass = "http://127.0.0.1:${toString port}";
           proxyWebsockets = true;
 
           extraConfig = ''

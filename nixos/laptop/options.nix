@@ -8,5 +8,4 @@
 
   # --- Other ___
   powerManagement.powertop.enable = true;
-  nixpkgs.config.allowUnfree = true;
 }

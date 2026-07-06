@@ -122,7 +122,7 @@ feed_json() {
   {
     makoctl list -j
     makoctl history -j
-  } | jq -s '.[0] + .[1]'
+  } | jq -s add
 }
 
 silent_on() { makoctl mode -a silent >/dev/null; }

@@ -39,14 +39,14 @@
     expat
     pcre2
 
-    # Graphics / GL / Vulkan (incl. NVIDIA userspace for CUDA/GL binaries)
+    # Graphics / GL / Vulkan. NVIDIA userspace is appended per-host from
+    # nixos/pc/nvidia.nix so its version matches hardware.nvidia.package.
     libGL
     libglvnd
     libdrm
     mesa
     vulkan-loader
     libgbm
-    linuxPackages.nvidia_x11
 
     # GUI toolkits (GTK/Qt apps, Electron, browsers)
     glib

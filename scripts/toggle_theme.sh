@@ -74,9 +74,6 @@ read_current_scheme() {
   dconf read "$COLOR_SCHEME_KEY" 2>/dev/null || true
 }
 
-current_theme=$(read_current_theme)
-current_scheme=$(read_current_scheme)
-
 set_rofi_theme() {
   local theme_path="$1"
 
@@ -85,6 +82,9 @@ set_rofi_theme() {
 }
 
 detect_theme_state() {
+  local current_theme current_scheme
+  current_theme=$(read_current_theme)
+  current_scheme=$(read_current_scheme)
   if [[ "${current_theme,,}" == *"dark"* ]] || [[ "$current_scheme" == "'${DARK_SCHEME}'" ]]; then
     echo "dark"
   elif [[ "${current_theme,,}" == *"light"* ]] || [[ "$current_scheme" == "'${LIGHT_SCHEME}'" ]]; then
@@ -155,15 +155,20 @@ help | -h | --help)
   ;;
 esac
 
-sync_theme_state
-current_theme=$(read_current_theme)
-current_scheme=$(read_current_scheme)
+# Тоггл флипает относительно сохранённого выбора; повторно dconf не опрашиваем.
+# detect_theme_state нужен только на первом запуске, когда state-файла ещё нет
+# (unset → как и раньше через sync=light: net-результат dark).
+case "$(read_state)" in
+dark) current="dark" ;;
+light) current="light" ;;
+*) current="$(detect_theme_state)" ;;
+esac
 
-if [[ "$(detect_theme_state)" == "dark" ]]; then
-  set_theme light "Light theme set 🌕"
-elif [[ "$(detect_theme_state)" == "light" ]]; then
-  set_theme dark "Dark theme set 🌑"
-else
+case "$current" in
+dark) set_theme light "Light theme set 🌕" ;;
+light | unset) set_theme dark "Dark theme set 🌑" ;;
+*)
   notify_error "Cannot determine theme state ヽ(ﾟДﾟ)ﾉ"
   exit 1
-fi
+  ;;
+esac

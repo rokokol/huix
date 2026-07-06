@@ -12,6 +12,13 @@
         find $src -name "*.otf" -exec cp {} $out/share/fonts/opentype/ \;
       '';
     })
+    inter
   ];
+
+  fonts.fontconfig.defaultFonts = {
+    monospace = [ "DepartureMono Nerd Font Mono" ];
+    sansSerif = [ "Inter" ];
+    serif = [ "Inter" ];
+  };
 }
 

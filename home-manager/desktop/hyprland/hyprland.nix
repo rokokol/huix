@@ -1,4 +1,9 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  osConfig,
+  ...
+}:
 
 let
   cfg = config.custom.hyprland;
@@ -7,6 +12,7 @@ in
   imports = [
     ./services/wallpaper_collager.nix
     ./services/hyprland-packages.nix
+    ./services/wl-clip-persist.nix
     ./services/waybar
   ];
 
@@ -21,7 +27,8 @@ in
 
     kbOptions = lib.mkOption {
       type = lib.types.str;
-      description = "XKB-опции: переключение раскладки и прочее";
+      default = osConfig.services.xserver.xkb.options;
+      description = "XKB-опции; по умолчанию из системного services.xserver.xkb.options";
     };
 
     touchpadNaturalScroll = lib.mkEnableOption "natural scroll тачпада";
@@ -44,8 +51,8 @@ in
         ];
 
         input = {
-          kb_layout = "us,ru";
-          kb_variant = "";
+          kb_layout = osConfig.services.xserver.xkb.layout;
+          kb_variant = osConfig.services.xserver.xkb.variant;
           kb_options = cfg.kbOptions;
 
           follow_mouse = 1;
