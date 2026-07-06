@@ -93,7 +93,9 @@ in
         with pkgs;
         [
           # --- CLI & system tools ---
-          cuda.ffmpeg-headless
+          # NVENC/NVDEC работают в стоковом ffmpeg (nv-codec-headers в комплекте);
+          # cudaSupport нужен только для CUDA-фильтров (scale_cuda и т.п.).
+          ffmpeg-headless
           nvtopPackages.nvidia
 
           # --- Development ---
@@ -115,7 +117,7 @@ in
 
           # --- Creative & audio ---
           aseprite
-          cuda.obs-studio
+          obs-studio
           easyeffects
           stable.gimp
           stable.gimpPlugins.gmic

@@ -16,6 +16,7 @@ let
     gawk
     findutils
     coreutils
+    procps # pidof (проверка hyprlock)
   ];
 in
 {

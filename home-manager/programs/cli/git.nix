@@ -1,7 +1,7 @@
 {
+  config,
   pkgs,
   rokokolName,
-  govnoDir,
   ...
 }:
 
@@ -16,7 +16,7 @@
       core.editor = "nvim";
       core.quotepath = "false";
       safe = {
-        directory = "${govnoDir}/myWiki";
+        directory = "${config.custom.home.dataDir}/myWiki";
       };
     };
   };

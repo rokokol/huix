@@ -1,18 +1,14 @@
 {
-  pkgs,
   huixDir,
   rokokolName,
   ...
 }:
 
 {
-  programs.home-manager.enable = true;
   imports = [
     ./desktop/user.nix
     ./programs/default.nix
   ];
-
-  _module.args.btopPackage = pkgs.btop;
 
   custom = {
     home.dataDir = "/home/${rokokolName}";
@@ -22,7 +18,6 @@
     hyprland = {
       enable = true;
       monitorScale = "1.33";
-      kbOptions = "grp:shifts_toggle,ctrl:swapcaps";
       touchpadNaturalScroll = true;
       wallpaperImage = "${huixDir}/asssets/laptop_wallpaper.png";
     };

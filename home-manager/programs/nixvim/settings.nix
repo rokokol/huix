@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ ... }:
 
 {
   programs.nixvim = {
@@ -60,8 +60,6 @@
         };
       };
     };
-
-    extraPlugins = with pkgs.vimPlugins; [ gruvbox-nvim ];
 
     # --- Lua Config ---
     extraConfigLua = ''

@@ -13,12 +13,14 @@ get_normal() {
 
 WALLPAPER_DIR="$MY_WIKI/00. Вложения/01. Gallery"
 TEMP_COLLAGE="/tmp/awww_collage.jpg"
-CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/awww"
 BG_COLOR="#282828" # ImageMagick bg
 AWWW_BG="282828"   # awww bg (without #)
 TRANSITIONS=("left" "right")
 
-mkdir -p "$CACHE_DIR"
+# Под локскрином коллаж всё равно не виден — не жжём CPU/GPU впустую.
+if pidof hyprlock >/dev/null 2>&1; then
+  exit 0
+fi
 
 # Check awww
 if ! awww query >/dev/null 2>&1; then

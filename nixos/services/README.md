@@ -19,11 +19,11 @@
 | Каталог | Что там |
 | --- | --- |
 | `ai/` | `ollama` (на ПК подменяется на `ollama-cuda`), `comfyui`, `openwebui` |
-| `desktop/` | `amnezia-vpn`, `file-manager`, `sddm`, `ssh-askpass`, `wl-clip-persist` |
+| `desktop/` | `amnezia-vpn`, `file-manager`, `sddm`, `ssh-askpass` |
 | `devices/` | `printer`, `tablet`, `virtual-camera` |
 | `system/` | `appimage`, `cachix`, `nix-ld` |
 | `tools/` | `jupyter`, `libre-translate`, `searxng`, `syncthing` |
-| `utils/` | `docker`, `embedded`, `tor`, `virtualization`, `zapret` |
+| `utils/` | `docker`, `embedded`, `tor`, `virtualization` |
 
 ## Кто где включён
 

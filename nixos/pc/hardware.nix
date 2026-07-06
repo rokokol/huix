@@ -1,9 +1,6 @@
 { ... }:
 
 {
-  # Enable CUPS to print documents.
-  services.printing.enable = true;
-
   # CPU Governor
   powerManagement.cpuFreqGovernor = "performance";
 

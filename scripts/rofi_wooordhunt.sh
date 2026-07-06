@@ -189,7 +189,7 @@ if printf '%s' "$HTML" | grep -q 'class="sub_entry"'; then
     word=$(printf '%s' "$word" | xargs)
     [[ -z "$word" ]] && continue
     (fetch_transcription "$word" >"$TMPD/$(trans_key "$word")" 2>/dev/null || true) &
-  done < <(printf '%s' "$HTML" | pup 'section.sub_entry h3 a text{}' 2>/dev/null | sort -u)
+  done < <(cut -f1 <<<"$SECTIONS" | sed 's@ / @\n@g' | sort -u)
   wait
 
   while IFS=$'\t' read -r words gloss meaning; do

@@ -268,7 +268,10 @@ cmd_bright() {
   esac
   save_state
   apply
-  notify_info "Brightness" "Яркость: $(awk -v b="$bright" 'BEGIN{printf "%d", b*100}')% ☀"
+  # Синхронный тег: при удержании клавиши обновляется один попап, а не спамит лентой.
+  command -v notify-send >/dev/null 2>&1 && notify-send -u low \
+    -h string:x-canonical-private-synchronous:huix-bright \
+    "Brightness" "Яркость: $(awk -v b="$bright" 'BEGIN{printf "%d", b*100}')% ☀" || true
 }
 
 cmd_restore() {
