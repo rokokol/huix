@@ -20,11 +20,6 @@
     };
 
     freesmlauncher.url = "github:FreesmTeam/FreesmLauncher";
-
-    claude-desktop = {
-      url = "github:aaddrick/claude-desktop-debian";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs =
@@ -92,7 +87,6 @@
             nixpkgs.overlays = [
               overlay-cuda
               overlay-stable
-              inputs.claude-desktop.overlays.default
               nix-matlab.overlay
               comfyui-nix.overlays.default
             ];
@@ -126,7 +120,6 @@
             nixpkgs.config = configNoCuda;
             nixpkgs.overlays = [
               overlay-stable
-              inputs.claude-desktop.overlays.default
               nix-matlab.overlay
             ];
           }
