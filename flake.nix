@@ -72,71 +72,59 @@
           config = configCuda;
         };
       };
+      mkHost =
+        {
+          configuration,
+          home,
+          overlays,
+        }:
+        nixpkgs.lib.nixosSystem {
+          specialArgs = commonArgs;
+          modules = [
+            configuration
+
+            {
+              nixpkgs.hostPlatform = system;
+              nixpkgs.config = configNoCuda;
+              nixpkgs.overlays = overlays;
+            }
+
+            home-manager.nixosModules.home-manager
+            {
+              home-manager = {
+                useGlobalPkgs = true;
+                useUserPackages = true;
+                backupFileExtension = "bak-${toString inputs.self.lastModified}";
+                sharedModules = [
+                  inputs.zen-browser.homeModules.default
+                ];
+
+                extraSpecialArgs = commonArgs;
+
+                users.${rokokolName} = import home;
+              };
+            }
+          ];
+        };
     in
     {
-      nixosConfigurations.nixos-pc = nixpkgs.lib.nixosSystem {
-        specialArgs = commonArgs;
-        modules = [
-          ./nixos/configuration-pc.nix
-
-          {
-            nixpkgs.hostPlatform = system;
-            nixpkgs.config = configNoCuda;
-            nixpkgs.overlays = [
-              overlay-cuda
-              overlay-stable
-              nix-matlab.overlay
-              comfyui-nix.overlays.default
-            ];
-          }
-
-          home-manager.nixosModules.home-manager
-          {
-            home-manager = {
-              useGlobalPkgs = true;
-              useUserPackages = true;
-              backupFileExtension = "bak-${toString inputs.self.lastModified}";
-              sharedModules = [
-                inputs.zen-browser.homeModules.default
-              ];
-
-              extraSpecialArgs = commonArgs;
-
-              users.${rokokolName} = import ./home-manager/home-pc.nix;
-            };
-          }
+      nixosConfigurations.nixos-pc = mkHost {
+        configuration = ./nixos/configuration-pc.nix;
+        home = ./home-manager/home-pc.nix;
+        overlays = [
+          overlay-cuda
+          overlay-stable
+          nix-matlab.overlay
+          comfyui-nix.overlays.default
         ];
       };
 
-      nixosConfigurations.nixos-laptop = nixpkgs.lib.nixosSystem {
-        specialArgs = commonArgs;
-        modules = [
-          ./nixos/configuration-laptop.nix
-
-          {
-            nixpkgs.hostPlatform = system;
-            nixpkgs.config = configNoCuda;
-            nixpkgs.overlays = [
-              overlay-stable
-              nix-matlab.overlay
-            ];
-          }
-
-          home-manager.nixosModules.home-manager
-          {
-            home-manager = {
-              useGlobalPkgs = true;
-              useUserPackages = true;
-              backupFileExtension = "bak-${toString inputs.self.lastModified}";
-              sharedModules = [
-                inputs.zen-browser.homeModules.default
-              ];
-
-              extraSpecialArgs = commonArgs;
-
-              users.${rokokolName} = import ./home-manager/home-laptop.nix;
-            };
-          }
+      nixosConfigurations.nixos-laptop = mkHost {
+        configuration = ./nixos/configuration-laptop.nix;
+        home = ./home-manager/home-laptop.nix;
+        overlays = [
+          overlay-stable
+          nix-matlab.overlay
         ];
       };
     };
