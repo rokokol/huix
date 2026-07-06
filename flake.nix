@@ -53,12 +53,10 @@
         cuda.acceptLicense = true;
         cudaSupport = true;
         cudaCapabilities = [ "8.6" ];
-        permittedInsecurePackages = [ ];
       };
 
       configNoCuda = {
         allowUnfree = true;
-        permittedInsecurePackages = [ ];
       };
 
       overlay-stable = final: prev: {
