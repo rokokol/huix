@@ -54,82 +54,67 @@
           height = math.max(vim.api.nvim_win_get_height(preview_winid) - 2, 10)
         end
 
-        if is_image then
-          return {
+        -- Все ветки возвращают termopen-argv с одинаковым хвостом
+        -- (filepath/width/height); различается только bash-тело, audio добавляет mime.
+        local function preview_cmd(script, extra)
+          local cmd = {
             "bash",
             "-lc",
-            [[
-              tmp="$(mktemp -u)"
-              magick "$1[0]" -auto-orient "$tmp.png" >/dev/null 2>&1 && \
-                chafa --animate=off --center=on --clear --size "$2x$3" "$tmp.png"
-              rm -f "$tmp.png"
-            ]],
+            script,
             "telescope-preview",
             filepath,
             tostring(width),
             tostring(height),
           }
+          for _, arg in ipairs(extra or {}) do
+            table.insert(cmd, arg)
+          end
+          return cmd
+        end
+
+        if is_image then
+          return preview_cmd([[
+            tmp="$(mktemp -u)"
+            magick "$1[0]" -auto-orient "$tmp.png" >/dev/null 2>&1 && \
+              chafa --animate=off --center=on --clear --size "$2x$3" "$tmp.png"
+            rm -f "$tmp.png"
+          ]])
         end
 
         if is_pdf then
-          return {
-            "bash",
-            "-lc",
-            [[
-              tmp="$(mktemp -u)"
-              pdftoppm -png -singlefile -- "$1" "$tmp" >/dev/null 2>&1 && \
-                chafa --animate=off --center=on --clear --size "$2x$3" "$tmp.png"
-              rm -f "$tmp.png"
-            ]],
-            "telescope-preview",
-            filepath,
-            tostring(width),
-            tostring(height),
-          }
+          return preview_cmd([[
+            tmp="$(mktemp -u)"
+            pdftoppm -png -singlefile -- "$1" "$tmp" >/dev/null 2>&1 && \
+              chafa --animate=off --center=on --clear --size "$2x$3" "$tmp.png"
+            rm -f "$tmp.png"
+          ]])
         end
 
         if is_video then
-          return {
-            "bash",
-            "-lc",
-            [[
-              tmp="$(mktemp -u)"
-              ffmpegthumbnailer -i "$1" -o "$tmp.png" -s 0 -q 8 >/dev/null 2>&1 && \
-                chafa --animate=off --center=on --clear --size "$2x$3" "$tmp.png"
-              rm -f "$tmp.png"
-            ]],
-            "telescope-preview",
-            filepath,
-            tostring(width),
-            tostring(height),
-          }
+          return preview_cmd([[
+            tmp="$(mktemp -u)"
+            ffmpegthumbnailer -i "$1" -o "$tmp.png" -s 0 -q 8 >/dev/null 2>&1 && \
+              chafa --animate=off --center=on --clear --size "$2x$3" "$tmp.png"
+            rm -f "$tmp.png"
+          ]])
         end
 
         if is_audio then
-          return {
-            "bash",
-            "-lc",
-            [[
-              tmp="$(mktemp -u)"
-              ffmpeg -v error -i "$1" \
-                -filter_complex "showwavespic=s=$2x$3:colors=white" \
-                -frames:v 1 "$tmp.png" >/dev/null 2>&1 && \
-                chafa --animate=off --center=on --clear --size "$2x$3" "$tmp.png"
-              status=$?
-              if [ "$status" -ne 0 ]; then
-                printf 'Audio file\n\n'
-                printf 'Name: %s\n' "$(basename "$1")"
-                printf 'Type: %s\n' "$4"
-                printf '\nWaveform preview failed.\n'
-              fi
-              rm -f "$tmp.png"
-            ]],
-            "telescope-preview",
-            filepath,
-            tostring(width),
-            tostring(height),
-            mime,
-          }
+          return preview_cmd([[
+            tmp="$(mktemp -u)"
+            ffmpeg -v error -i "$1" \
+              -filter_complex "showwavespic=s=$2x$3:colors=white" \
+              -frames:v 1 "$tmp.png" >/dev/null 2>&1 && \
+              chafa --animate=off --center=on --clear --size "$2x$3" "$tmp.png"
+            status=$?
+            if [ "$status" -ne 0 ]; then
+              printf 'Audio file\n\n'
+              printf 'Name: %s\n' "$(basename "$1")"
+              printf 'Type: %s\n' "$4"
+              printf '\nWaveform preview failed.\n'
+            fi
+            rm -f "$tmp.png"
+          ]], { mime })
         end
 
         return nil
