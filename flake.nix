@@ -20,6 +20,11 @@
     };
 
     freesmlauncher.url = "github:FreesmTeam/FreesmLauncher";
+
+    claude-desktop = {
+      url = "github:aaddrick/claude-desktop-debian";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -74,6 +79,10 @@
           config = configCuda;
         };
       };
+
+      overlay-claude-desktop = final: prev: {
+        claude-desktop = inputs.claude-desktop.packages.${system}.claude-desktop-fhs;
+      };
     in
     {
       nixosConfigurations.nixos-pc = nixpkgs.lib.nixosSystem {
@@ -87,6 +96,7 @@
             nixpkgs.overlays = [
               overlay-cuda
               overlay-stable
+              overlay-claude-desktop
               nix-matlab.overlay
               comfyui-nix.overlays.default
             ];
@@ -120,6 +130,7 @@
             nixpkgs.config = configNoCuda;
             nixpkgs.overlays = [
               overlay-stable
+              overlay-claude-desktop
               nix-matlab.overlay
             ];
           }
