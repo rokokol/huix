@@ -25,7 +25,6 @@ in
         # --- Common desktop apps ---
         ayugram-desktop
         baobab
-        claude-desktop-fhs
         celluloid
         evince
         file-roller
