@@ -25,6 +25,7 @@ in
         # --- Common desktop apps ---
         ayugram-desktop
         baobab
+        claude-desktop
         celluloid
         evince
         file-roller
@@ -36,6 +37,7 @@ in
         tauon
 
         # --- CLI ---
+        antigravity-cli
         claude-code
         codex
         curl
