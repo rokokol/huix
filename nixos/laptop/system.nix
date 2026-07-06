@@ -1,67 +1,6 @@
-{ pkgs, rokokolName, ... }:
+{ rokokolName, ... }:
 
 {
   networking.hostName = "nixos-laptop";
-  networking.networkmanager.enable = true;
-
-  # Time and Locale
-  time.timeZone = "Europe/Moscow";
-  i18n.defaultLocale = "en_US.UTF-8";
-  i18n.extraLocaleSettings = {
-    LC_ADDRESS = "ru_RU.UTF-8";
-    LC_IDENTIFICATION = "ru_RU.UTF-8";
-    LC_MEASUREMENT = "ru_RU.UTF-8";
-    LC_MONETARY = "ru_RU.UTF-8";
-    LC_NAME = "ru_RU.UTF-8";
-    LC_NUMERIC = "ru_RU.UTF-8";
-    LC_PAPER = "ru_RU.UTF-8";
-    LC_TELEPHONE = "ru_RU.UTF-8";
-    LC_TIME = "ru_RU.UTF-8";
-  };
-
-  # User Configuration
-  users.users.${rokokolName} = {
-    isNormalUser = true;
-    description = rokokolName;
-    home = "/home/${rokokolName}";
-    shell = pkgs.zsh;
-    extraGroups = [
-      "networkmanager"
-      "wheel"
-      "video"
-      "render"
-      "audio"
-      "docker"
-      "input"
-    ];
-  };
-
-  # Nix Settings
-  nix = {
-    settings = {
-      experimental-features = [
-        "nix-command"
-        "flakes"
-      ];
-      auto-optimise-store = true;
-      trusted-users = [
-        "root"
-        "@wheel"
-      ];
-    };
-    gc = {
-      automatic = true;
-      dates = "daily";
-      options = "--delete-older-than 7d";
-    };
-  };
-
-  # Fonts
-  fonts.fontconfig.defaultFonts = {
-    monospace = [ "JetBrainsMono Nerd Font" ];
-    sansSerif = [ "Inter" ];
-    serif = [ "Inter" ];
-  };
-
-  services.xserver.desktopManager.runXdgAutostartIfNone = true;
+  users.users.${rokokolName}.description = rokokolName;
 }
