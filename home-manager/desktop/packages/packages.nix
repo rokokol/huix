@@ -25,7 +25,7 @@ in
         # --- Common desktop apps ---
         ayugram-desktop
         baobab
-        claude-desktop
+        claude-desktop-fhs
         celluloid
         evince
         file-roller
@@ -116,7 +116,6 @@ in
 
           # --- Creative & audio ---
           aseprite
-          cuda.darktable
           cuda.obs-studio
           easyeffects
           stable.gimp
