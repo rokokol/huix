@@ -13,12 +13,13 @@
       '';
     })
     inter
+    (google-fonts.override { fonts = [ "Spectral" ]; })
   ];
 
   fonts.fontconfig.defaultFonts = {
     monospace = [ "DepartureMono Nerd Font Mono" ];
-    sansSerif = [ "Inter" ];
-    serif = [ "Inter" ];
+    sansSerif = [ "Spectral" ];
+    serif = [ "Spectral" ];
   };
 }
 

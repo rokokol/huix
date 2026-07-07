@@ -12,11 +12,12 @@
 | --- | --- |
 | `configuration-pc.nix` | точка входа ПК: импорты, `ollama-cuda`, флаги `custom.*` (comfyui, openwebui, searxng, printer, tablet, virtualCamera, virtualization, jupyter+CUDA) |
 | `configuration-laptop.nix` | точка входа ноута: импорты, `ollama-cpu`, `custom.jupyter` |
-| `default.nix` | общий для обоих хостов слой — desktop + шрифты |
+| `default.nix` | общий для обоих хостов слой — импортирует `boot.nix`, `sound.nix`, `system.nix`, `desktop/`, шрифты |
+| `boot.nix` / `sound.nix` / `system.nix` | общий для обоих хостов baseline: загрузка (systemd-boot + tmpfs), звук (pipewire), система (сеть, locale, время) |
 | `desktop/` | core-options и xdg-портал |
 | `fonts/` | системные шрифты, см. [fonts/README.md](fonts/README.md) |
-| `pc/` | железо ПК: boot, hardware, nvidia, sound, keyboard, system, options |
-| `laptop/` | железо ноута: boot, hardware, keyboard, system, options |
+| `pc/` | железо ПК: hardware, nvidia, keyboard, system, options |
+| `laptop/` | железо ноута: hardware, keyboard, system, options |
 | `services/` | системные сервисы, см. [services/README.md](services/README.md) |
 
 ## Где что менять

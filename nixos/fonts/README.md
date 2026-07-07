@@ -8,6 +8,14 @@
 
 Помню как я сделал из эксперимента `DokiNerdFontMono-Regular.otf`. Нердфонтный моно `Doki` шрифт выглядиит абсолютно проклято. Поэтому оставил просто как артефакт и экспонат тут, хех
 
+Кроме файловых, пакетами тянутся `inter` и `Spectral` (через `google-fonts.override { fonts = [ "Spectral" ]; }`). Дефолты `fontconfig`:
+
+| Роль | Шрифт |
+| --- | --- |
+| `monospace` | DepartureMono Nerd Font Mono |
+| `sansSerif` | Spectral |
+| `serif` | Spectral |
+
 ## Применение
 
 Можно кинуть новый шрифт сюда файлом — и он сам подхватится сборкой, отдельно прописывать не надо. После — обычный `rebuild`

@@ -31,7 +31,7 @@
 
 - `ai/ollama` — локальные LLM (ПК тянет CUDA-сборку, ноут CPU-only)
 - `desktop/amnezia-vpn` — VPN-клиент
-- `desktop/file-manager`, `desktop/sddm`, `desktop/ssh-askpass`, `desktop/wl-clip-persist`
+- `desktop/file-manager`, `desktop/sddm`, `desktop/ssh-askpass`
 - `system/appimage` — прямой запуск *.AppImage (binfmt) + `steam-run` (FHS-песочница)
 - `system/cachix` — бинарные кэши
 - `system/nix-ld` — запуск динамических не-Nix бинарей (FHS-набор библиотек)
