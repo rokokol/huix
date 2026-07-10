@@ -173,9 +173,9 @@ if ((now_ms >= next_glitch_ms)); then
 fi
 
 if [[ -n "$start_glitch" ]]; then
-  glitch_until_ms=$((now_ms + $(awk -v s="$GLITCH_SEC" 'BEGIN { printf "%d", s * 1000 }')))
+  glitch_until_ms=$((now_ms + $(awk -v s="$GLITCH_TEXT_SEC" 'BEGIN { printf "%d", s * 1000 }')))
   # flash спит внутри — в фон и без наследования fd, иначе hyprlock ждёт EOF
-  ("$HUIX/scripts/screen-shader.sh" flash glitch "$GLITCH_SEC" >/dev/null 2>&1 &)
+  ("$HUIX/scripts/screen-shader.sh" flash glitch "$GLITCH_SHADER_SEC" >/dev/null 2>&1 &)
 fi
 
 # --- Машина состояний диалога ---
