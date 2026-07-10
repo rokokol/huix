@@ -19,14 +19,13 @@ let
   dokiFont = ../../../../nixos/fonts/doki.otf;
 
   # Бокс диалога: игровой ассет (обрезаем прозрачные поля, 2x для чёткости ->
-  # 2120x370) с впечённым именем на плашке. Обводка имени — дилатация альфы
+  # 1632x370) с впечённым именем на плашке. Обводка имени — дилатация альфы
   # того же рендера (один проход текста, идеальное совмещение заливки и
-  # контура). Текстовая область бокса (~1400px при size=360) согласована с
-  # WRAP/RULER в hyprlock-quote.sh и позицией лейбла ниже.
+  # контура). Текстовая область бокса согласована с WRAP/RULER в hyprlock-quote.sh.
   dialogBase =
     pkgs.runCommand "hyprlock-dialog-base.png" { nativeBuildInputs = [ pkgs.imagemagick ]; }
       ''
-        magick ${dialogAsset} -trim +repage -resize 260% \
+        magick ${dialogAsset} -trim +repage -resize 200% \
           \( -background none -font ${dokiFont} -pointsize 52 -fill white \
              label:"Monika" -bordercolor none -border 8 \
              \( +clone -channel A -morphology dilate disk:3.5 +channel \
@@ -69,7 +68,7 @@ in
         {
           monitor = "";
           path = "${dialogBase}";
-          size = 360; # меньшая сторона (высота) — шире для полноценного окна диалога
+          size = 280; # оригинальный размер диалогового окна
           rounding = 0;
           border_size = 0;
           zindex = 0; # сортировка по zindex нестабильная — фиксируем явно
@@ -113,7 +112,7 @@ in
         # прибитый левый верхний угол текста в боксе. Чёрная «обводка» — тень.
         {
           monitor = "";
-          text = "cmd[update:150] ${huixDir}/scripts/hyprlock-quote.sh";
+          text = "cmd[update:33] ${huixDir}/scripts/hyprlock-quote.sh";
           font_family = "Doki";
           font_size = 24;
           color = "rgba(ffffffff)";
@@ -122,7 +121,7 @@ in
           shadow_color = "rgba(000000ff)";
           text_align = "left";
           zindex = 1; # поверх бокса
-          position = "0, 112";
+          position = "0, 88";
           halign = "center";
           valign = "bottom";
         }
