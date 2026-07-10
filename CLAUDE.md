@@ -79,6 +79,7 @@ When in doubt where a change belongs:
 ## Editing gotchas
 
 - **`backupFileExtension = "bak-${inputs.self.lastModified}"`** in `flake.nix`. Every rebuild from a different flake revision gets a unique suffix, so old `.bak` files accumulate in `$HOME`. Periodically clean them.
+- **Commit your work yourself after each finished change** — a descriptive `git add <files> && git commit` per logical change. Do **not** leave changes for the hourly sync timer: it produces meaningless "sync …" messages and squashes unrelated edits together.
 - **The hourly sync timer pushes tracked changes automatically.** `home-manager/desktop/sync.nix` runs `scripts/sync.sh` hourly: `git pull --rebase --autostash` → `git add -u` → `git commit` → `git push`. Note `add -u` (tracked-only) — new untracked files are *not* picked up, so creating a new module and forgetting to `git add` it once will silently leave it out of upstream history. Pull before editing on the other host.
 - **`HUIX` env var** points at this repo and is consumed by scripts and aliases. Don't hardcode `/home/rokokol/huix` — use `$HUIX` in scripts and `huixDir` in Nix.
 - **PC user dirs depend on the `govno` NTFS mount** at `/home/rokokol/govno`. `xdg.userDirs` (Music/Documents/Pictures/Videos) point there. The mount has `nofail`, so boot survives without it but user paths break.
