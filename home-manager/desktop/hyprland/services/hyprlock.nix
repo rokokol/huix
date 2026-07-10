@@ -147,11 +147,6 @@ in
           dots_spacing = 0.2;
           fade_on_empty = false;
 
-          # Тени для поля ввода
-          shadow_passes = 3;
-          shadow_size = 8;
-          shadow_color = "rgba(00000066)";
-
           position = "0, -20";
           halign = "center";
           valign = "center";
