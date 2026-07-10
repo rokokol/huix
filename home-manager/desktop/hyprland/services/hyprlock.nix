@@ -137,7 +137,7 @@ in
           inner_color = "rgb(ffffff)";
           font_color = "rgb(b3487f)";
           font_family = "Doki";
-          placeholder_text = "<i>Скажи что-нибудь милое...</i>";
+          placeholder_text = "<i>Дай мне пароль...</i>";
           fail_text = "Это не то... ($ATTEMPTS)";
           # проверка пароля подсвечивается тем же красным, что и ошибка
           check_color = "rgb(d64d7a)";
@@ -146,6 +146,12 @@ in
           dots_text_format = "♥";
           dots_spacing = 0.2;
           fade_on_empty = false;
+
+          # Тени для поля ввода
+          shadow_passes = 3;
+          shadow_size = 8;
+          shadow_color = "rgba(00000066)";
+
           position = "0, -20";
           halign = "center";
           valign = "center";
