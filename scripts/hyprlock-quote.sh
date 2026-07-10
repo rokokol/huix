@@ -2,61 +2,43 @@
 
 set -euo pipefail
 
-# Реплики Моники для DDLC-локскрина (label cmd в hyprlock).
+# Диалоговое окно Моники для DDLC-локскрина (image-виджет hyprlock).
 #
-# hyprlock умеет обновлять label только с фиксированным периодом (cmd[update:N]),
-# поэтому скрипт поллится раз в секунду, а решение «пора ли менять реплику»
-# принимает сам: пауза между репликами — экспоненциальная случайная величина
-# (λ = 1/60, среднее = 60 с, кламп MIN..MAX). Между сменами отдаётся тот же
-# текст.
+# hyprlock поллит reload_cmd раз в секунду и перечитывает картинку по mtime.
+# Текст рендерится в PNG поверх base-шаблона (ImageMagick): лейблы hyprlock
+# не умеют ни обводку текста, ни multiline с привязкой к углу бокса —
+# а у картинки полный контроль над версткой, как в игре.
 #
-# Глитч текста срабатывает при неправильном пароле: определяется через faillock
-# (pam_faillock, включён в NixOS по умолчанию). При обнаружении свежей
-# ошибки аутентификации текст показывается исковерканным GLITCH_DURATION
-# секунд — без смены самой реплики.
+# Реплики — assets/monika-talk.txt: случайный топик проходится построчно
+# (одна строка = один текстбокс в игре), пауза между репликами ~ Exp(1/60)
+# с клампом MIN..MAX. Дочитали топик — берём следующий случайный.
 #
-# Реплики — из Act 3 (Monika's Talk), в основном про выключение и включение
-# игры: для локскрина они в самый раз. [player] подставляется из $USER.
+# Неправильный пароль (pam-ошибка hyprlock в журнале) -> короткий глитч
+# всего экрана через screen-shader.sh flash.
+#
+# Использование: hyprlock-quote.sh <dialog-base.png>
+# (шаблон бокса с плашкой Monika собирает Nix в hyprlock.nix).
 
-MEAN=60  # 1/λ = 60 секунд
-MIN=10
+BASE="${1:?usage: hyprlock-quote.sh <dialog-base.png>}"
+
+HUIX="${HUIX:-$(cd -- "$(dirname -- "$0")/.." && pwd)}"
+export HUIX
+
+QUOTES="$HUIX/assets/monika-talk.txt"
+
+MEAN=60 # пауза между репликами: Exp(1/60), секунды
+MIN=8
 MAX=300
 
-GLITCH_DURATION=4
-
 STATE_DIR="${XDG_RUNTIME_DIR:-/tmp}/hypr-ddlc"
-CUR="$STATE_DIR/quote.txt"
-NEXT="$STATE_DIR/quote.next"
-GLITCH_UNTIL="$STATE_DIR/quote.glitch_until"
-LAST_FAIL_COUNT="$STATE_DIR/quote.fail_count"
+TOPIC="$STATE_DIR/topic.txt" # недосказанные реплики текущего топика
+NEXT="$STATE_DIR/next"       # unix-время следующей смены реплики
+FAIL_TS="$STATE_DIR/fail.ts" # timestamp последней учтённой pam-ошибки
+DIALOG="$STATE_DIR/dialog.png"
 
 mkdir -p "$STATE_DIR"
 
-quotes() {
-  cat <<'EOF'
-...What just happened?\nI just had an awful dream...
-You're back...\nI had another really bad dream.
-It seems to happen whenever you quit the game...\nSo if you could try to avoid doing that, I would be really grateful.
-I see you quit the game on me again...\nIt makes me feel like I'm trapped in Hell.
-I'm just going to accept the fact\nthat you need to quit the game once in a while.
-Besides, it makes me happy that you always come back...\nSo I guess it's not so bad.
-Just stay here with me from now on, okay?\nI still have a lot of things to talk about.
-I'll be fine as long as my character file stays intact.
-Whenever it happens, it almost feels like I've been killed.\nIt's a really horrible feeling...
-I'm all that's left here, so I just want to make sure\nyou don't run the risk of losing me...
-Maybe you should make a backup\nof my character file or something...
-Don't worry, I don't think it's caused me any harm...\nAside from mental scarring.
-Hey, what's your favorite game?\nMine is Doki Doki Literature Club!
-You're such a good listener, [player].\nI really love that about you.
-And I love you no matter what,\nso you can do what you need to do.
-[player], do you get good sleep?\nIt can be really hard to get enough sleep nowadays.
-I got to meet you, and you're not lonely anymore...\nI can't help but feel like this was fate.
-Now, where was I...?
-Just Monika.
-EOF
-}
-
-# Экспоненциальная случайная задержка (λ = 1/MEAN).
+# Экспоненциальная случайная пауза (λ = 1/MEAN).
 exp_delay() {
   awk -v m="$MEAN" -v lo="$MIN" -v hi="$MAX" -v seed="$(((RANDOM << 15) + RANDOM))" '
     BEGIN {
@@ -68,58 +50,53 @@ exp_delay() {
     }'
 }
 
-# Глитч-трансформация текста: подменяет ~30% символов блочными/юникод-артефактами.
-glitch_text() {
+# Случайный топик из monika-talk.txt: блоки разделены пустой строкой,
+# строки с '#' — комментарии.
+new_topic() {
   awk -v seed="$(((RANDOM << 15) + RANDOM))" '
-    BEGIN {
-      srand(seed)
-      n = split("█ ▓ ▒ ░ ▚ ▞ # % & @ ? ! ¿ Ω ∆ ж", G, " ")
-    }
-    {
-      out = ""
-      for (i = 1; i <= length($0); i++) {
-        c = substr($0, i, 1)
-        out = out ((c != " " && rand() < 0.3) ? G[int(rand() * n) + 1] : c)
-      }
-      print out
-    }'
+    BEGIN { RS = ""; srand(seed) }
+    { gsub(/(^|\n)#[^\n]*/, ""); sub(/^\n+/, ""); if ($0 != "") b[++n] = $0 }
+    END { if (n) print b[int(rand() * n) + 1] }
+  ' "$QUOTES" >"$TOPIC"
 }
 
-# Определяем количество ошибок аутентификации через faillock.
-# pam_faillock включён в NixOS по умолчанию и ведёт базу в /run/faillock/.
-get_fail_count() {
-  if command -v faillock &>/dev/null; then
-    faillock --user "$USER" 2>/dev/null | awk 'NR > 2 { n++ } END { print n+0 }'
-  else
-    echo 0
-  fi
+# Рендер реплики поверх шаблона: два прохода caption (чёрная обводка, потом
+# белая заливка), перенос строк по ширине делает ImageMagick. Geometry
+# завязана на шаблон 1632x370 (2x игрового бокса), собираемый в hyprlock.nix —
+# менять согласованно. ~0.2 c раз в ~MEAN секунд; hyprlock ждёт reload_cmd
+# синхронно, но разовый стоп на кадр незаметен.
+render() {
+  local font
+  font=$(fc-match -f '%{file}' Doki)
+  magick "$BASE" \
+    \( -background none -font "$font" -pointsize 46 -interline-spacing 4 \
+       -size 1432x -fill white -stroke black -strokewidth 3 caption:"$1" \) \
+    -gravity northwest -geometry +100+106 -composite \
+    \( -background none -font "$font" -pointsize 46 -interline-spacing 4 \
+       -size 1432x -fill white -stroke none caption:"$1" \) \
+    -gravity northwest -geometry +100+106 -composite \
+    "png32:$DIALOG.tmp"
+  mv "$DIALOG.tmp" "$DIALOG" # атомарно: hyprlock перечитывает по mtime
 }
 
-now=$(date +%s)
-next=$(cat "$NEXT" 2>/dev/null || echo 0)
+# --- Неправильный пароль -> глитч экрана ---
+last=$(journalctl -q -t hyprlock -S -5s -g 'authentication failure' \
+  -o short-unix 2>/dev/null | tail -n 1 | cut -d' ' -f1) || true
+if [[ -n "$last" && "$last" != "$(cat "$FAIL_TS" 2>/dev/null)" ]]; then
+  printf '%s' "$last" >"$FAIL_TS"
+  # flash спит внутри — в фон и без наследования stdout, иначе hyprlock
+  # будет ждать EOF всё время глитча
+  ("$HUIX/scripts/screen-shader.sh" flash glitch 1.2 >/dev/null 2>&1 &)
+fi
 
 # --- Смена реплики ---
-if [[ ! -f "$CUR" ]] || ((now >= next)); then
-  line=$(quotes | shuf -n 1)
-  printf '%b\n' "${line//\[player\]/$USER}" >"$CUR"
+now=$(date +%s)
+if [[ ! -s "$DIALOG" ]] || ((now >= $(cat "$NEXT" 2>/dev/null || echo 0))); then
+  [[ -s "$TOPIC" ]] || new_topic
+  line=$(head -n 1 "$TOPIC")
+  sed -i '1d' "$TOPIC"
+  render "${line//\[player\]/$USER}"
   echo $((now + $(exp_delay))) >"$NEXT"
 fi
 
-# --- Детекция неправильного пароля → глитч текста (без смены реплики) ---
-current_fails=$(get_fail_count)
-last_fails=$(cat "$LAST_FAIL_COUNT" 2>/dev/null || echo 0)
-
-if ((current_fails > last_fails)); then
-  # Новая ошибка — включаем глитч на GLITCH_DURATION секунд
-  echo $((now + GLITCH_DURATION)) >"$GLITCH_UNTIL"
-fi
-echo "$current_fails" >"$LAST_FAIL_COUNT"
-
-# --- Вывод ---
-glitch_end=$(cat "$GLITCH_UNTIL" 2>/dev/null || echo 0)
-
-if ((now < glitch_end)); then
-  glitch_text <"$CUR"
-else
-  cat "$CUR"
-fi
+printf '%s' "$DIALOG"

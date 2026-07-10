@@ -1,25 +1,36 @@
 { pkgs, huixDir, ... }:
 
-# Экран блокировки в стиле DDLC. Фон — статичная картинка (не скриншот:
-# скриншотный фон hyprlock захватывает кадр с уже применённым screen_shader,
-# после чего компоситор прогоняет поверхность hyprlock через тот же шейдер
-# ещё раз — эффект и софт-яркость удваиваются).
+# Экран блокировки в стиле DDLC. Фон — картинка (не скриншот: скриншотный фон
+# hyprlock захватывает кадр с уже применённым screen_shader, после чего
+# компоситор прогоняет поверхность hyprlock через тот же шейдер ещё раз —
+# эффект и софт-яркость удваиваются).
 #
-# Макет: фон just_monika.png, внизу — диалоговое окно из PNG-ассета с плашкой
-# Monika и её репликами (scripts/hyprlock-quote.sh: экспоненциальные паузы
-# λ=1/60, глитч текста при неправильном пароле). Часы сверху, поле пароля
-# по центру. Появление плавное (fadeIn).
+# Диалоговое окно — один image-виджет: scripts/hyprlock-quote.sh рендерит
+# реплики Моники (assets/monika-talk.txt) поверх base-шаблона, собранного
+# здесь на этапе сборки. Он же коротко глитчит экран при неправильном пароле
+# (screen-shader.sh flash glitch).
 let
-  assetsDir = ../../../../assets/ddlc-stickers;
   backgroundImage = ../../../../assets/just_monika.png;
+  dialogAsset = ../../../../assets/ddlc-stickers/dialog_box.png;
+  dokiFont = ../../../../nixos/fonts/doki.otf;
 
-  # Диалоговое окно: оригинал 1280x720 RGBA (сам бокс внизу, остальное —
-  # прозрачность). Вырезаем непрозрачную область (trim) и масштабируем под
-  # ширину диалога. PNG уже содержит name plate и полоску меню.
-  dialogBox =
-    pkgs.runCommand "hyprlock-ddlc-dialog.png" { nativeBuildInputs = [ pkgs.imagemagick ]; }
+  # Base-шаблон диалога: игровой бокс (обрезаем прозрачные поля, 2x для
+  # чёткости -> 1632x370) с впечённым именем на плашке — белое с розовой
+  # обводкой, отцентровано (обводка = проход stroke + проход fill поверх).
+  # Geometry согласована с рендером текста в hyprlock-quote.sh.
+  dialogBase =
+    pkgs.runCommand "hyprlock-dialog-base.png" { nativeBuildInputs = [ pkgs.imagemagick ]; }
       ''
-        magick ${assetsDir}/dialog_box.png -trim +repage -resize "1400x" "$out"
+        magick ${dialogAsset} -trim +repage -resize 200% \
+          \( -background none -font ${dokiFont} -pointsize 52 \
+             -fill white -stroke "#e2679b" -strokewidth 4 label:"Monika" \
+             -gravity center -background none -extent 336x76 \) \
+          -gravity northwest -geometry +68+0 -composite \
+          \( -background none -font ${dokiFont} -pointsize 52 \
+             -fill white -stroke none label:"Monika" \
+             -gravity center -background none -extent 336x76 \) \
+          -gravity northwest -geometry +68+0 -composite \
+          "$out"
       '';
 
   # Сторожок: если hyprlock умер, не сняв лок (краш), Hyprland оставляет
@@ -65,16 +76,18 @@ in
         }
       ];
 
-      # Диалоговое окно (PNG-ассет из DDLC, содержит плашку и меню)
+      # Диалоговое окно. Стартуем с пустого шаблона; через секунду скрипт
+      # отдаёт кадр с первой репликой (reload по mtime/смене пути).
       image = [
         {
           monitor = "";
-          path = "${dialogBox}";
-          size = 280;
+          path = "${dialogBase}";
+          size = 280; # меньшая сторона (высота) — как пропорция бокса в игре на 1080p
           rounding = 0;
           border_size = 0;
-          zindex = 1;
-          position = "0, 10";
+          reload_time = 1;
+          reload_cmd = "${huixDir}/scripts/hyprlock-quote.sh ${dialogBase}";
+          position = "0, 30";
           halign = "center";
           valign = "bottom";
         }
@@ -109,40 +122,6 @@ in
           halign = "center";
           valign = "top";
         }
-        # Имя на плашке диалогового окна — белый текст с розовой обводкой
-        {
-          monitor = "";
-          text = "Monika";
-          font_family = "Doki";
-          font_size = 26;
-          color = "rgba(ffffffff)";
-          shadow_passes = 3;
-          shadow_size = 4;
-          shadow_color = "rgba(ff7fbfff)";
-          zindex = 2;
-          position = "-480, 280";
-          halign = "center";
-          valign = "bottom";
-        }
-        # Реплика в диалоговом окне — белый текст с чёрной обводкой.
-        # Скрипт поллится ежесекундно, но реплику меняет сам — по
-        # экспоненциальной паузе (λ=1/60). Глитч текста при неправильном
-        # пароле (определяется через faillock).
-        {
-          monitor = "";
-          text = "cmd[update:1000] ${huixDir}/scripts/hyprlock-quote.sh";
-          font_family = "Doki";
-          font_size = 28;
-          color = "rgba(ffffffff)";
-          shadow_passes = 3;
-          shadow_size = 4;
-          shadow_color = "rgba(000000ff)";
-          text_align = "center";
-          zindex = 2;
-          position = "0, 120";
-          halign = "center";
-          valign = "bottom";
-        }
       ];
 
       "input-field" = [
@@ -156,14 +135,14 @@ in
           font_color = "rgb(b3487f)";
           font_family = "Doki";
           placeholder_text = "<i>Скажи что-нибудь милое...</i>";
-          fail_text = "Это не то... ($ATTEMPTS)";
-          check_color = "rgb(6cbf6c)";
+          fail_text = "Это не то...";
+          # проверка пароля подсвечивается тем же красным, что и ошибка
+          check_color = "rgb(d64d7a)";
           fail_color = "rgb(d64d7a)";
           capslock_color = "rgb(ffb347)";
           dots_text_format = "♥";
           dots_spacing = 0.2;
           fade_on_empty = false;
-          zindex = 1;
           position = "0, -20";
           halign = "center";
           valign = "center";
