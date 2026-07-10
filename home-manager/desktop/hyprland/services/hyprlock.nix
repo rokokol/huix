@@ -88,7 +88,7 @@ in
           color = "rgba(ffffffff)";
           shadow_passes = 3;
           shadow_size = 6;
-          shadow_color = "rgba(ff64a6dd)";
+          shadow_color = "rgba(bf936edd)"; # тёплый медно-бежевый из фона
           position = "0, -70";
           halign = "center";
           valign = "top";
@@ -102,7 +102,7 @@ in
           color = "rgba(ffffffe6)";
           shadow_passes = 2;
           shadow_size = 3;
-          shadow_color = "rgba(e2679baa)";
+          shadow_color = "rgba(9f543caa)"; # тёмно-оранжевый из фона
           position = "0, -250";
           halign = "center";
           valign = "top";
