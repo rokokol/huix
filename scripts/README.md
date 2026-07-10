@@ -21,7 +21,7 @@
 | `toggle_theme.sh` | переключение light/dark: dconf `color-scheme`+`gtk-theme`, тема rofi, выбор в state-файле |
 | `screen-shader.sh` | менеджер полноэкранных шейдеров и софт-яркости, см. [shaders/README.md](shaders/README.md) |
 | `notify-center.sh` | центр уведомлений поверх mako: режим «не беспокоить», копирование текста уведомлений, очистка истории, JSON-статус для waybar |
-| `hyprlock-quote.sh` | диалог Моники для DDLC-локскрина: рендерит реплики (`assets/monika-talk.txt`) в PNG поверх игрового бокса, топик за топиком с паузами Exp(1/60); неверный пароль → глитч экрана через `screen-shader.sh flash` |
+| `hyprlock-quote.sh` | диалог Моники для DDLC-локскрина: pango-разметка для label hyprlock — побуквенная печать реплик (`assets/monika-talk.txt`) топик за топиком, паузы Exp(1/7) и Exp(1/60); глитчи экрана+текста по Пуассону и на неверный пароль |
 | `random_wallpaper.sh` | рандомные обои для Hyprland (выборка по нормальному распределению) |
 | `colorpicker.sh` | пипетка через `hyprpicker`, копирует HEX/RGB и шлёт превью в уведомление |
 | `pin-screen.sh` | закрепить выделенную область экрана поверх остальных окон |

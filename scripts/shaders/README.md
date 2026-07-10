@@ -45,6 +45,10 @@ screen-shader.sh effect off-or <name>  # есть эффект -> выкл; не
 screen-shader.sh effect next|prev      # листать по кругу
 screen-shader.sh bright up|down        # яркость ±0.10 (кламп 0.10..1.00)
 screen-shader.sh bright reset|set <v>  # сброс / точное значение
+screen-shader.sh flash [-k] <name> [sec] # эффект на N секунд (деф. 1.0) и вернуть
+                                       # как было; durable state не трогается;
+                                       # -k -- no-op при уже активном эффекте.
+                                       # Дёргает DDLC-локскрин (глитч экрана)
 screen-shader.sh restore               # перечитать состояние и применить (на reload)
 screen-shader.sh status                # JSON для waybar (эмодзи + %)
 screen-shader.sh menu                  # список "<эмодзи> <подпись>|<значение>"
