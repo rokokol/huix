@@ -20,7 +20,7 @@
 | `services/waybar/` | единый бар: база + файл на фичу, хост включает нужное опциями — см. [waybar/README](services/waybar/README.md) |
 | `services/mako.nix` | уведомления, цвета по `urgency`, меню по правому клику в rofi |
 | `services/hypridle.nix` | лок по таймауту 90 мин + перед сном, `hyprlock` |
-| `services/hyprlock.nix` | DDLC-локскрин: генерируемый из SVG анимированный фон (дрейф горошка через reload+кроссфейд), цитаты Моники, сердечки вместо точек пароля |
+| `services/hyprlock.nix` | DDLC-локскрин: анимированный фон (дрейф горошка через reload+кроссфейд), диалоговое окно с монологами Моники (`hyprlock-quote.sh`), бродящие стикеры (`hyprlock-stickers.sh`), сердечки вместо точек пароля |
 | `services/wallpaper_collager.nix` | systemd-user таймер: коллаж обоев через `random_wallpaper.sh` |
 
 > **Почему `source`, а не нативные `settings`.** Главный конфиг один на оба хоста и редактируется быстрее как текст; per-host через `hyprland.conf` `source = …` подтягивается из `${huixDir}`, а различия (монитор, раскладка, бар) задаются в `*-pc.nix`/`*-laptop.nix`. Пути не хардкодятся — везде `$HUIX` / `huixDir`

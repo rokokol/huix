@@ -155,7 +155,17 @@
       {
         mode = "n";
         key = "<leader>w";
-        action.__raw = "function() vim.lsp.buf.format({ async = false }) vim.cmd('w') end";
+        # Format only when a client can actually do it (avoids "no matching
+        # language servers" noise), with a timeout above the 1s default that
+        # large buffers overrun; save regardless of the format outcome.
+        action.__raw = ''
+          function()
+            if #vim.lsp.get_clients({ bufnr = 0, method = 'textDocument/formatting' }) > 0 then
+              vim.lsp.buf.format({ async = false, timeout_ms = 10000 })
+            end
+            vim.cmd('w')
+          end
+        '';
         options.desc = "Format & Save";
       }
       {
