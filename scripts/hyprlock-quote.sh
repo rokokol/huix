@@ -6,22 +6,21 @@ set -euo pipefail
 #
 # hyprlock умеет обновлять label только с фиксированным периодом (cmd[update:N]),
 # поэтому скрипт поллится раз в секунду, а решение «пора ли менять реплику»
-# принимает сам: пауза между репликами — гауссовская случайная величина
-# (Box-Muller: среднее MEAN, σ = SD, кламп MIN..MAX). Между сменами отдаётся
-# тот же текст.
+# принимает сам: пауза между репликами — экспоненциальная случайная величина
+# (λ = 1/60, среднее = 60 с, кламп MIN..MAX). Между сменами отдаётся тот же
+# текст.
 #
-# Глитч срабатывает при неправильном пароле: определяется через faillock
+# Глитч текста срабатывает при неправильном пароле: определяется через faillock
 # (pam_faillock, включён в NixOS по умолчанию). При обнаружении свежей
 # ошибки аутентификации текст показывается исковерканным GLITCH_DURATION
-# секунд.
+# секунд — без смены самой реплики.
 #
 # Реплики — из Act 3 (Monika's Talk), в основном про выключение и включение
 # игры: для локскрина они в самый раз. [player] подставляется из $USER.
 
-MEAN=8
-SD=3
-MIN=3
-MAX=25
+MEAN=60  # 1/λ = 60 секунд
+MIN=10
+MAX=300
 
 GLITCH_DURATION=4
 
@@ -57,15 +56,12 @@ Just Monika.
 EOF
 }
 
-# Гауссовская случайная задержка (Box-Muller transform).
-gauss_delay() {
-  awk -v m="$MEAN" -v s="$SD" -v lo="$MIN" -v hi="$MAX" -v seed="$(((RANDOM << 15) + RANDOM))" '
+# Экспоненциальная случайная задержка (λ = 1/MEAN).
+exp_delay() {
+  awk -v m="$MEAN" -v lo="$MIN" -v hi="$MAX" -v seed="$(((RANDOM << 15) + RANDOM))" '
     BEGIN {
       srand(seed)
-      u1 = 1 - rand()
-      u2 = rand()
-      g = sqrt(-2 * log(u1)) * cos(6.2831853 * u2)
-      d = m + s * g
+      d = -m * log(1 - rand())
       if (d < lo) d = lo
       if (d > hi) d = hi
       printf "%d", d
@@ -106,10 +102,10 @@ next=$(cat "$NEXT" 2>/dev/null || echo 0)
 if [[ ! -f "$CUR" ]] || ((now >= next)); then
   line=$(quotes | shuf -n 1)
   printf '%b\n' "${line//\[player\]/$USER}" >"$CUR"
-  echo $((now + $(gauss_delay))) >"$NEXT"
+  echo $((now + $(exp_delay))) >"$NEXT"
 fi
 
-# --- Детекция неправильного пароля → глитч ---
+# --- Детекция неправильного пароля → глитч текста (без смены реплики) ---
 current_fails=$(get_fail_count)
 last_fails=$(cat "$LAST_FAIL_COUNT" 2>/dev/null || echo 0)
 
