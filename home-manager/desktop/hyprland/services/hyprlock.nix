@@ -83,7 +83,7 @@ in
         {
           monitor = "";
           path = "${dialogBase}";
-          size = 480; # меньшая сторона (высота) — как пропорция бокса в игре на 1080p
+          size = 280; # меньшая сторона (высота) — как пропорция бокса в игре на 1080p
           rounding = 0;
           border_size = 0;
           zindex = 1; # сортировка по zindex нестабильная — фиксируем явно
@@ -131,7 +131,7 @@ in
           font_family = "Doki";
           font_size = 24;
           color = "rgba(ffffffff)";
-          shadow_passes = 3;
+          shadow_passes = 8;
           shadow_size = 2;
           shadow_color = "rgba(000000ff)";
           text_align = "left";
