@@ -28,7 +28,7 @@
               local node = state.tree:get_node()
               local path = node:get_id()
               vim.fn.setreg("+", path)
-              vim.notify("Path yanked: " .. path)
+              vim.api.nvim_echo({{"Path yanked: " .. path, "DiagnosticInfo"}}, false, {})
             end
           '';
         };
