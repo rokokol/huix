@@ -204,6 +204,7 @@ apply() { # $1 (опц.) = transient: не сохранять состояние
     printf 'uniform float time;\n'
     printf 'out vec4 fragColor;\n\n'
     printf '#define BRIGHTNESS %s\n\n' "$bright"
+    printf '#define GET_TEX(uv) texture(tex, uv).rgb\n\n'
     cat "$body"
     printf '\nvoid main() {\n'
     printf '    vec4 src = texture(tex, v_texcoord);\n'
@@ -315,13 +316,29 @@ cmd_flash() {
     printf 'uniform float time;\n'
     printf 'out vec4 fragColor;\n\n'
     printf '#define BRIGHTNESS %s\n\n' "$bright"
-    cat "$flash_body"
-    printf '\nvoid main() {\n'
-    printf '    vec4 src = texture(tex, v_texcoord);\n'
-    printf '    vec3 c = effect(src.rgb, v_texcoord);\n'
-    printf '    c *= BRIGHTNESS;\n'
-    printf '    fragColor = vec4(c, src.a);\n'
-    printf '}\n'
+    if [[ "$effect" != "none" && -f "$SHADER_DIR/$effect.frag" ]]; then
+      printf '#define GET_TEX(uv) texture(tex, uv).rgb\n'
+      sed 's/vec3 effect/vec3 active_effect/' "$SHADER_DIR/$effect.frag"
+      printf '\n#undef GET_TEX\n'
+      printf '#define GET_TEX(uv) active_effect(texture(tex, uv).rgb, uv)\n'
+      sed 's/vec3 effect/vec3 flash_effect/' "$flash_body"
+      printf '\nvoid main() {\n'
+      printf '    vec4 src = texture(tex, v_texcoord);\n'
+      printf '    vec3 c = active_effect(src.rgb, v_texcoord);\n'
+      printf '    c = flash_effect(c, v_texcoord);\n'
+      printf '    c *= BRIGHTNESS;\n'
+      printf '    fragColor = vec4(c, src.a);\n'
+      printf '}\n'
+    else
+      printf '#define GET_TEX(uv) texture(tex, uv).rgb\n'
+      cat "$flash_body"
+      printf '\nvoid main() {\n'
+      printf '    vec4 src = texture(tex, v_texcoord);\n'
+      printf '    vec3 c = effect(src.rgb, v_texcoord);\n'
+      printf '    c *= BRIGHTNESS;\n'
+      printf '    fragColor = vec4(c, src.a);\n'
+      printf '}\n'
+    fi
   } >"$flash_file"
   set_render_mode "$(render_mode_for "$flash_effect")"
   set_cursor_for "$flash_effect"
