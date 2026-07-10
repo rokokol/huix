@@ -131,7 +131,7 @@ in
           font_family = "Doki";
           font_size = 24;
           color = "rgba(ffffffff)";
-          shadow_passes = 8;
+          shadow_passes = 3;
           shadow_size = 2;
           shadow_color = "rgba(000000ff)";
           text_align = "left";
