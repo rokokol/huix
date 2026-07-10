@@ -16,10 +16,11 @@
 | --- | --- |
 | `hyprland.conf` | весь общий конфиг: autostart, env, look&feel, биндинги, window/layer-rules. Правится руками, не через Nix-опции |
 | `hyprland.nix` | единый Nix-модуль: опции `custom.hyprland.*` (масштаб монитора, XKB-опции, natural scroll, обои — статичные или коллаж); вход задают `home-pc.nix` / `home-laptop.nix` |
-| `services/hyprland-packages.nix` | общий пакетный набор (kitty, awww, hyprlock/hypridle, grim/slurp/satty, tesseract rus+eng, cliphist…), `source` главного конфига, конфиг swayimg |
+| `services/hyprland-packages.nix` | общий пакетный набор (kitty, awww, hypridle, grim/slurp/satty, tesseract rus+eng, cliphist…), `source` главного конфига, конфиг swayimg |
 | `services/waybar/` | единый бар: база + файл на фичу, хост включает нужное опциями — см. [waybar/README](services/waybar/README.md) |
 | `services/mako.nix` | уведомления, цвета по `urgency`, меню по правому клику в rofi |
 | `services/hypridle.nix` | лок по таймауту 90 мин + перед сном, `hyprlock` |
+| `services/hyprlock.nix` | DDLC-локскрин: генерируемый из SVG анимированный фон (дрейф горошка через reload+кроссфейд), цитаты Моники, сердечки вместо точек пароля |
 | `services/wallpaper_collager.nix` | systemd-user таймер: коллаж обоев через `random_wallpaper.sh` |
 
 > **Почему `source`, а не нативные `settings`.** Главный конфиг один на оба хоста и редактируется быстрее как текст; per-host через `hyprland.conf` `source = …` подтягивается из `${huixDir}`, а различия (монитор, раскладка, бар) задаются в `*-pc.nix`/`*-laptop.nix`. Пути не хардкодятся — везде `$HUIX` / `huixDir`
@@ -107,6 +108,7 @@
 - **тема свет/тьма — рантайм, не декларатив** — `SUPER+A` → `toggle_theme.sh` флипает dconf и пишет выбор в `~/.local/state/huix/theme`; на reload восстанавливается через `exec = toggle_theme.sh --sync`. Подробности и грабли — в [scripts/README](../../../scripts/README.md)
 - **шейдеры/софт-яркость** — единственный слот `decoration:screen_shader` менеджит `screen-shader.sh`; состояние в state, восстанавливается через `exec = screen-shader.sh restore`. Индикатор в waybar обновляется по RT-сигналу `SIGRTMIN+8` (`shaderSignal`); слать его до готовности waybar нельзя — RT-сигнал по умолчанию убивает процесс, поэтому `restore` сигнал подавляет
 - **swayimg** — навигация и копирование в буфер забиндены и на латинице, и на кириллице (`c/с`, `h/р`, …), чтобы работало при любой раскладке
+- **hyprlock: фон — картинка, не скриншот** — иначе эффект от шейдеров применяется дважды
 
 ## Применение
 
