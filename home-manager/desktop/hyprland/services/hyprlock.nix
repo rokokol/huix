@@ -1,10 +1,16 @@
-{ pkgs, ... }:
+{ pkgs, huixDir, ... }:
 
 # Экран блокировки в стиле DDLC. Фон — НЕ скриншот: скриншотный фон hyprlock
 # (дефолт) захватывает кадр уже с применённым decoration:screen_shader, после
 # чего компоситор прогоняет поверхность hyprlock через тот же шейдер ещё раз —
 # эффект и софт-яркость применялись дважды. Со статичной картинкой шейдер
 # применяется ровно один раз (ночной режим на локскрине сохраняется).
+#
+# Макет — как в игре: широкое «диалоговое окно» внизу с плашкой Monika и её
+# репликами из Act 3 (scripts/hyprlock-quote.sh: экспоненциальные паузы,
+# глитч с вероятностью 1/3), над ним бродят и прыгают стикеры персонажей
+# (scripts/hyprlock-stickers.sh: image-виджет с посекундным reload), под ним
+# полоска меню «History Skip Auto...». Часы сверху, поле пароля по центру.
 let
   # Фон в духе главного меню игры: розовый градиент, диагональный «горошек»
   # из кружочков, мягкое свечение по центру. Генерируется из SVG на этапе
@@ -16,17 +22,22 @@ let
   # диагонали). Кадры зациклены: тайл паттерна 128px, frameCount кадров по
   # (128/frameCount)px. @TX@ в SVG — подстановка сдвига.
   #
-  # ВАЖНО: кроссфейд (fadeIn) обязан быть сильно КОРОЧЕ reloadPeriod. Если
-  # новый кадр прилетает, пока предыдущий кроссфейд ещё идёт, CBackground::
+  # ВАЖНО: кроссфейд (fadeIn) обязан быть КОРОЧЕ reloadPeriod. Если новый
+  # кадр прилетает, пока предыдущий кроссфейд ещё идёт, CBackground::
   # onAssetUpdate перезаписывает pendingAsset и подменяет коллбек — старая
   # текстура повисает, и renderTextureMix падает по SIGSEGV (проверено
   # coredump-ами: fadeIn = периоду валил hyprlock за минуты). Плюс на случай
   # любого краша локера есть hyprlock-guard ниже.
-  frameCount = 16;
-  reloadPeriod = 2; # секунды между кадрами (fadeIn = 0.3s, перекрытий нет)
+  #
+  # GIF/видео hyprlock не умеет в принципе (только статичные текстуры),
+  # так что плавность добывается малым шагом: 4px раз в секунду, из которых
+  # 0.6s занимает растворение, — почти непрерывный дрейф с запасом 0.4s
+  # до следующего кадра.
+  frameCount = 32; # тайл 128px → шаг 4px
+  reloadPeriod = 1;
 
   backgroundSvg = pkgs.writeText "hyprlock-ddlc-bg.svg" ''
-    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2560" height="1440">
+    <svg xmlns="http://www.w3.org/2000/svg" width="2560" height="1440">
       <defs>
         <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stop-color="#ffe6f3"/>
@@ -39,8 +50,8 @@ let
           <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
         </radialGradient>
         <pattern id="dots" width="128" height="128" patternUnits="userSpaceOnUse" patternTransform="rotate(15) translate(-@TX@ 0)">
-          <circle cx="32" cy="32" r="9" fill="#ffffff" fill-opacity="0.32"/>
-          <circle cx="96" cy="96" r="6.5" fill="#ffffff" fill-opacity="0.32"/>
+          <circle cx="32" cy="32" r="24" fill="#ffffff" fill-opacity="0.30"/>
+          <circle cx="96" cy="96" r="24" fill="#ffffff" fill-opacity="0.30"/>
         </pattern>
       </defs>
       <rect width="2560" height="1440" fill="url(#bg)"/>
@@ -67,6 +78,15 @@ let
       $(( ( $(date +%s) / ${toString reloadPeriod} ) % ${toString frameCount} ))
   '';
 
+  # Стартовый (пустой прозрачный) кадр полосы стикеров: размер должен
+  # совпадать с канвой hyprlock-stickers.sh, иначе image-виджет отскейлит
+  # первый настоящий кадр.
+  stickersPlaceholder =
+    pkgs.runCommand "hyprlock-stickers-placeholder.png" { nativeBuildInputs = [ pkgs.librsvg ]; }
+      ''
+        rsvg-convert -w 1920 -h 340 ${pkgs.writeText "empty.svg" ''<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="340"/>''} -o "$out"
+      '';
+
   # Сторожок: если hyprlock умер, не сняв лок (краш), Hyprland оставляет
   # сессию залоченной «красным экраном», и без tty её не спасти. Ненулевой
   # выход hyprlock = краш → перезапускаем (allow_session_lock_restore в
@@ -77,36 +97,12 @@ let
       sleep 1
     done
   '';
-
-  # Реплики в «диалоговом окне» — новая при каждом обновлении лейбла.
-  monikaQuote = pkgs.writeShellScript "hyprlock-monika-quote" ''
-    exec shuf -n 1 <<'EOF'
-    Just Monika.
-    Doki Doki!~
-    Welcome to the Literature Club!
-    Can you hear me? ...Who are you?
-    Did you miss me? Ehehe~
-    I'll always be here for you. Always.
-    Every day, I imagine a future where I can be with you.
-    Let's write a poem together sometime.
-    It's just you and me now...
-    I know you're there. I can see the cursor moving.
-    Don't keep me waiting, okay?
-    You don't have to hide anything from me.
-    EOF
-  '';
-
-  # «Сердцебиение»: раз в секунду сердце переключается заливка/контур.
-  heartbeat = pkgs.writeShellScript "hyprlock-heartbeat" ''
-    if [ $(( $(date +%s) % 2 )) -eq 0 ]; then
-      printf '♥'
-    else
-      printf '♡'
-    fi
-  '';
 in
 {
-  home.packages = [ hyprlockGuard ]; # лок дёргает hypridle (lock_cmd)
+  home.packages = [
+    hyprlockGuard # лок дёргает hypridle (lock_cmd)
+    pkgs.imagemagick # композер кадров hyprlock-stickers.sh
+  ];
 
   programs.hyprlock = {
     enable = true;
@@ -118,13 +114,13 @@ in
       };
 
       # fadeIn управляет и появлением локскрина, и кроссфейдом фона при
-      # reload. 3 ds = 0.3s — сильно короче reloadPeriod, иначе кроссфейды
+      # reload. 6 ds = 0.6s — короче reloadPeriod, иначе кроссфейды
       # перекрываются и hyprlock падает (см. комментарий к reloadPeriod).
       animations = {
         enabled = true;
         bezier = "linear, 1, 1, 0, 0";
         animation = [
-          "fadeIn, 1, 3, linear"
+          "fadeIn, 1, 6, linear"
           "fadeOut, 1, 3, linear"
         ];
       };
@@ -139,47 +135,57 @@ in
         }
       ];
 
-      shape = [
-        # «Диалоговое окно» под репликой
+      # Бродящие стикеры позади диалогового окна. image-виджет меняет ассет
+      # мгновенно (без кроссфейда) и защищён от наслоения запросов, так что
+      # посекундный reload тут безопасен; сам кадр рисуется фоном (двойной
+      # буфер в скрипте), путь стабильный — hyprlock перечитывает по mtime.
+      # z-порядок: фон(-1) < стикеры(0) < плашки(1) < текст(2).
+      image = [
         {
           monitor = "";
-          size = "920, 230";
-          color = "rgba(ffffffdd)";
-          rounding = 24;
-          border_size = 4;
-          border_color = "rgba(ff7fbfff)";
-          position = "0, -140";
+          path = "${stickersPlaceholder}";
+          size = 340; # = меньшая сторона канвы 1920x340 → рендер 1:1
+          rounding = 0;
+          border_size = 0;
+          reload_time = 1;
+          reload_cmd = "${huixDir}/scripts/hyprlock-stickers.sh";
+          zindex = 0;
+          position = "0, 340";
           halign = "center";
-          valign = "center";
+          valign = "bottom";
         }
-        # Плашка с именем на верхнем крае окна
+      ];
+
+      shape = [
+        # «Диалоговое окно» внизу, как в игре
         {
           monitor = "";
-          size = "200, 54";
-          color = "rgb(ff8fc8)";
-          rounding = 14;
+          size = "1400, 230";
+          color = "rgba(ffffffe6)";
+          rounding = 18;
           border_size = 3;
-          border_color = "rgba(ffffffff)";
-          position = "-330, -25";
+          border_color = "rgba(ff7fbfff)";
+          zindex = 1;
+          position = "0, 150";
           halign = "center";
-          valign = "center";
+          valign = "bottom";
+        }
+        # Плашка с именем на верхнем левом краю окна
+        {
+          monitor = "";
+          size = "220, 60";
+          color = "rgba(ffffffee)";
+          rounding = 12;
+          border_size = 3;
+          border_color = "rgba(ff7fbfff)";
+          zindex = 1;
+          position = "-565, 350";
+          halign = "center";
+          valign = "bottom";
         }
       ];
 
       label = [
-        {
-          monitor = "";
-          text = "Doki Doki Literature Club!";
-          font_family = "Doki";
-          font_size = 40;
-          color = "rgba(ffffffee)";
-          shadow_passes = 2;
-          shadow_size = 4;
-          shadow_color = "rgba(e2679bff)";
-          position = "50, -40";
-          halign = "left";
-          valign = "top";
-        }
         # Часы
         {
           monitor = "";
@@ -190,9 +196,9 @@ in
           shadow_passes = 3;
           shadow_size = 6;
           shadow_color = "rgba(ff64a6dd)";
-          position = "0, 300";
+          position = "0, -70";
           halign = "center";
-          valign = "center";
+          valign = "top";
         }
         # Дата
         {
@@ -204,48 +210,46 @@ in
           shadow_passes = 2;
           shadow_size = 3;
           shadow_color = "rgba(e2679baa)";
-          position = "0, 195";
+          position = "0, -250";
           halign = "center";
-          valign = "center";
+          valign = "top";
         }
-        # Имя на плашке. zindex: hyprlock сортирует виджеты нестабильно, у
-        # label и shape дефолт одинаковый (0) — без явного zindex текст может
-        # оказаться ПОД плашкой.
+        # Имя на плашке
         {
           monitor = "";
           text = "Monika";
           font_family = "Doki";
-          font_size = 28;
-          color = "rgba(ffffffff)";
-          zindex = 1;
-          position = "-330, -25";
+          font_size = 26;
+          color = "rgb(d8559b)";
+          zindex = 2;
+          position = "-565, 362";
           halign = "center";
-          valign = "center";
+          valign = "bottom";
         }
-        # Реплика в диалоговом окне
+        # Реплика в диалоговом окне: скрипт поллится ежесекундно, но реплику
+        # меняет сам — по экспоненциальной паузе, с глитчем в 1/3 случаев
         {
           monitor = "";
-          text = "cmd[update:8000] ${monikaQuote}";
+          text = "cmd[update:1000] ${huixDir}/scripts/hyprlock-quote.sh";
           font_family = "Doki";
-          font_size = 30;
+          font_size = 28;
           color = "rgb(4a3547)";
-          zindex = 1; # над «диалоговым окном» (см. комментарий у имени)
-          position = "0, -155";
+          text_align = "center";
+          zindex = 2;
+          position = "0, 215";
           halign = "center";
-          valign = "center";
+          valign = "bottom";
         }
-        # Сердцебиение под полем ввода
+        # Полоска меню под окном, как в игре
         {
           monitor = "";
-          text = "cmd[update:1000] ${heartbeat}";
-          font_size = 36;
-          color = "rgb(ff5e9c)";
-          shadow_passes = 2;
-          shadow_size = 3;
-          shadow_color = "rgba(ffffff88)";
-          position = "0, -430";
+          text = "History    Skip    Auto    Save    Load    Settings";
+          font_family = "Doki";
+          font_size = 20;
+          color = "rgba(d8559bcc)";
+          position = "0, 85";
           halign = "center";
-          valign = "center";
+          valign = "bottom";
         }
         {
           monitor = "";
@@ -277,7 +281,8 @@ in
           dots_text_format = "♥";
           dots_spacing = 0.2;
           fade_on_empty = false;
-          position = "0, -330";
+          zindex = 1;
+          position = "0, -20";
           halign = "center";
           valign = "center";
         }
