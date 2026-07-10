@@ -11,8 +11,8 @@ vec3 effect(vec3 c, vec2 uv) {
     vec2 suv = vec2(uv.x + jitter, uv.y);
     // RGB-расщепление, пульсирующее во времени.
     float amt = 0.004 + 0.003 * sin(t * 6.0);
-    float r = GET_TEX(suv + vec2(amt, 0.0)).r;
-    float g = GET_TEX(suv).g;
-    float b = GET_TEX(suv - vec2(amt, 0.0)).b;
+    float r = texture(tex, suv + vec2(amt, 0.0)).r;
+    float g = texture(tex, suv).g;
+    float b = texture(tex, suv - vec2(amt, 0.0)).b;
     return vec3(r, g, b);
 }

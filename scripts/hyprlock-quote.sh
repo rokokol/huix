@@ -48,13 +48,14 @@ TOPIC_MAX=300
 GLITCH_MEAN=120 # спонтанные глитчи: интервалы Exp(1/120), сек
 GLITCH_MIN=15
 GLITCH_MAX=600
-GLITCH_SEC=3.6   # длительность глитча текста
+GLITCH_SHADER_SEC=1.2 # длительность визуального глитча шейдера
+GLITCH_TEXT_SEC=3.6   # длительность глитча текста
 
 FADE_MS=600 # длительность плавного исчезновения текста, мс
 
-# Невидимая линейка из подчеркиваний для фиксации ширины текстовой области бокса,
-# чтобы текст корректно выравнивался по левому краю и не появлялся из центра.
-RULER='<span foreground="#00000000">________________________________________________________________________________</span>'
+# Невидимая линейка: точка + letter_spacing в pango-юнитах (1/1024 pt,
+# px = юниты/768) даёт ~1180px — расширенную ширину текстовой области бокса.
+RULER='<span alpha="1" letter_spacing="906240">.</span>'
 
 STATE_DIR="${XDG_RUNTIME_DIR:-/tmp}/hypr-ddlc"
 STATE="$STATE_DIR/state"     # sourceable-переменные машины состояний
@@ -174,7 +175,7 @@ fi
 if [[ -n "$start_glitch" ]]; then
   glitch_until_ms=$((now_ms + $(awk -v s="$GLITCH_SEC" 'BEGIN { printf "%d", s * 1000 }')))
   # flash спит внутри — в фон и без наследования fd, иначе hyprlock ждёт EOF
-  ("$HUIX/scripts/screen-shader.sh" flash glitch 1.2 >/dev/null 2>&1 &)
+  ("$HUIX/scripts/screen-shader.sh" flash glitch "$GLITCH_SEC" >/dev/null 2>&1 &)
 fi
 
 # --- Машина состояний диалога ---
