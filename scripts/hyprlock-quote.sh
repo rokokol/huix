@@ -35,7 +35,10 @@ QUOTES="$HUIX/assets/monika-talk.txt"
 REENTRY="$HUIX/assets/monika-reentry.txt"
 
 CPS=30  # скорость печати, символов в секунду
-WRAP=64 # перенос строк, символов (~строка текстовой области бокса)
+
+# Ширина бокса при size=280 составляет ~1235px. 95% от 1235px = 1173px.
+# 1173px / 18px (ширина символа Doki 24pt) = ~65 символов.
+WRAP=65 # перенос строк, символов (~строка текстовой области бокса)
 
 LINE_MEAN=7 # пауза между репликами: Exp(1/7), сек
 LINE_MIN=2
@@ -54,8 +57,8 @@ GLITCH_TEXT_SEC=3.6   # длительность глитча текста
 FADE_MS=600 # длительность плавного исчезновения текста, мс
 
 # Невидимая линейка: точка + letter_spacing в pango-юнитах (1/1024 pt,
-# px = юниты/768) даёт ~1180px — расширенную ширину текстовой области бокса.
-RULER='<span alpha="1" letter_spacing="906240">.</span>'
+# px = юниты/768). 1173px * 768 = 900864.
+RULER='<span alpha="1" letter_spacing="900864">.</span>'
 
 STATE_DIR="${XDG_RUNTIME_DIR:-/tmp}/hypr-ddlc"
 STATE="$STATE_DIR/state"     # sourceable-переменные машины состояний
@@ -174,8 +177,8 @@ fi
 
 if [[ -n "$start_glitch" ]]; then
   glitch_until_ms=$((now_ms + $(awk -v s="$GLITCH_TEXT_SEC" 'BEGIN { printf "%d", s * 1000 }')))
-  # flash спит внутри — в фон и без наследования fd, иначе hyprlock ждёт EOF
-  ("$HUIX/scripts/screen-shader.sh" flash glitch "$GLITCH_SHADER_SEC" >/dev/null 2>&1 &)
+  # flash спит внутри — полностью отвязываем процесс, чтобы hyprlock не ждал завершения
+  nohup "$HUIX/scripts/screen-shader.sh" flash glitch "$GLITCH_SHADER_SEC" </dev/null >/dev/null 2>&1 & disown
 fi
 
 # --- Машина состояний диалога ---
