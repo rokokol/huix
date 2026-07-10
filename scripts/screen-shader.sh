@@ -327,8 +327,14 @@ cmd_flash() {
   load_state
   [[ -n "$keep" && "$effect" != "none" ]] && exit 0
 
+  # Эффекты, сэмплящие текстуру сами (wave, crt), затирают результат
+  # предыдущего в цепочке — честная композиция двух геометрий требует
+  # многопроходного рендера, а у Hyprland один слот шейдера. Такой базовый
+  # эффект на время flash не чейнится, а заменяется.
   local chain=""
-  [[ "$effect" == "none" ]] || chain="$SHADER_DIR/$effect.frag"
+  if [[ "$effect" != "none" ]] && ! grep -q 'texture(' "$SHADER_DIR/$effect.frag"; then
+    chain="$SHADER_DIR/$effect.frag"
+  fi
   local file="$STATE_DIR/flash.frag"
   emit_shader "$file" "$body" "$chain"
 
