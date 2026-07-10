@@ -1,70 +1,50 @@
-{ pkgs, huixDir, ... }:
+{ huixDir, ... }:
 
 # DDLC-локскрин. Фон — картинка, не скриншот: скриншотный фон ловит кадр с
 # уже применённым screen_shader, и компоситор прогоняет его через шейдер
 # второй раз (эффект и софт-яркость удваиваются).
 #
-# Диалог = статичный PNG-бокс + два label'а поверх (имя и реплики), оба
-# рисует scripts/hyprlock-quote.sh. Именно label, а не текст в PNG:
+# Диалог = игровой PNG-бокс как есть + два label'а поверх (имя и реплики),
+# оба рисует scripts/hyprlock-quote.sh. Именно label, а не текст в PNG:
 # image-виджет hyprlock перезагружается максимум раз в секунду и ждёт
 # reload_cmd синхронно, а label обновляется в мс и асинхронно — только так
-# возможна побуквенная печать. Вся геометрия — производные от размеров
-# игрового ассета (src ниже), таблица ширин глифов для пиксельного переноса
-# строк собирается на этапе сборки.
+# возможна побуквенная печать. Все пути — через huixDir (живой репозиторий,
+# ничего не печётся на сборке); геометрия — производные от размеров ассета
+# (src ниже); таблицу ширин глифов для пиксельного переноса строк скрипт
+# сам кэширует в рантайме (~/.cache/huix, перегенерация при смене шрифта).
 let
-  # Рантайм-пути — через huixDir (живой репозиторий). Входы деривации ниже
-  # обязаны быть nix-путями (копируются в стор на этапе сборки), поэтому
-  # для них — корень репо путём; huixDir-строка туда не годится.
-  huixSrc = ../../../..;
   backgroundImage = "${huixDir}/assets/just_monika.png";
-  dialogAsset = huixSrc + "/assets/ddlc-stickers/dialog_box.png";
-  dokiFont = huixSrc + "/nixos/fonts/doki.otf";
+  dialogAsset = "${huixDir}/assets/ddlc-stickers/dialog_box.png";
+  quoteScript = "${huixDir}/scripts/hyprlock-quote.sh";
 
-  # Исходник бокса после trim+2x (см. dialogAssets) и его внутренности, px.
+  # Геометрия ассета: холст 1280x720, видимый бокс на нём (по x центрирован,
+  # снизу прозрачный хвост) и его внутренности, px холста.
   src = {
-    w = 1632;
-    h = 370;
-    insetX = 100; # поля текстовой области слева/справа
-    menuH = 70; # полоска меню по низу бокса
-    plateCx = 236; # центр плашки имени
-    plateCy = 38;
+    w = 1280;
+    h = 720;
+    boxY = 527; # верх бокса на холсте
+    boxW = 816;
+    boxH = 185;
+    insetX = 50; # поля текстовой области внутри бокса
+    menuH = 35; # полоска меню по низу бокса
+    plateCx = 118; # центр плашки имени от левого верха бокса
+    plateCy = 19;
   };
 
   boxH = 280; # высота бокса на экране; остальное — производные
   bottom = 30; # отступ бокса от низа экрана
-  scale = boxH / (1.0 * src.h);
-  px = v: builtins.floor (v * scale + 0.5);
+  k = boxH / (1.0 * src.boxH);
+  px = v: builtins.floor (v * k + 0.5);
 
-  textW = px (src.w - 2 * src.insetX); # ширина текстовой области
+  imgSize = px src.h; # size виджета = меньшая сторона холста (высота)
+  imgY = bottom - px (src.h - src.boxY - src.boxH); # компенсация хвоста холста
+  textW = px (src.boxW - 2 * src.insetX); # ширина текстовой области
   quoteY = bottom + px src.menuH + 6; # низ лейбла реплики (над меню)
-  nameX = px (src.plateCx - src.w / 2); # центр плашки от центра экрана
-  nameY = bottom + px (src.h - src.plateCy) - 18; # низ лейбла имени
+  nameX = px (src.plateCx - src.boxW / 2); # центр плашки от центра экрана
+  nameY = bottom + px (src.boxH - src.plateCy) - 18; # низ лейбла имени
 
-  # Бокс (trim прозрачных полей, 2x для чёткости) + таблица ширин глифов
-  # Doki при кегле 24pt (32px @ 96dpi — так pango hyprlock его и рендерит):
-  # advance(c) = width("x"+c+"x") - width("xx").
-  dialogAssets =
-    pkgs.runCommand "hyprlock-ddlc-assets" { nativeBuildInputs = [ pkgs.imagemagick ]; }
-      ''
-        mkdir -p "$out"
-        magick ${dialogAsset} -trim +repage -resize 200% "$out/box.png"
-
-        xx=$(magick -background none -font ${dokiFont} -pointsize 32 \
-          label:"xx" -format "%w" info:)
-        for i in $(seq 32 126); do
-          c=$(printf "\\$(printf '%03o' "$i")")
-          case "$c" in
-            '%') s="x%%x" ;;
-            '\\') s="x\\\\x" ;;
-            *) s="x''${c}x" ;;
-          esac
-          w=$(magick -background none -font ${dokiFont} -pointsize 32 \
-            label:"$s" -format "%w" info:)
-          printf '%s %s\n' "$c" "$((w - xx))" >>"$out/advances.txt"
-        done
-      '';
-
-  quoteScript = "${huixDir}/scripts/hyprlock-quote.sh";
+  quoteFontSize = 24;
+  fontPx = quoteFontSize * 4 / 3; # pango pt -> px @ 96dpi, для таблицы ширин
 in
 {
   programs.hyprlock = {
@@ -92,7 +72,7 @@ in
       background = [
         {
           monitor = "";
-          path = "${backgroundImage}";
+          path = backgroundImage;
           color = "rgb(2a1a2e)"; # запасной цвет
         }
       ];
@@ -101,12 +81,12 @@ in
       image = [
         {
           monitor = "";
-          path = "${dialogAssets}/box.png";
-          size = boxH;
+          path = dialogAsset;
+          size = imgSize;
           rounding = 0;
           border_size = 0;
           zindex = 0; # сортировка по zindex нестабильная — фиксируем явно
-          position = "0, ${toString bottom}";
+          position = "0, ${toString imgY}";
           halign = "center";
           valign = "bottom";
         }
@@ -165,9 +145,9 @@ in
         # печать ~1 символ/кадр при CPS=30 (тёплый тик скрипта ~10 мс).
         {
           monitor = "";
-          text = "cmd[update:33] TEXT_W=${toString textW} ADVANCES=${dialogAssets}/advances.txt ${quoteScript} frame";
+          text = "cmd[update:33] TEXT_W=${toString textW} FONT_PX=${toString fontPx} ${quoteScript} frame";
           font_family = "Doki";
-          font_size = 24;
+          font_size = quoteFontSize;
           color = "rgba(ffffffff)";
           shadow_passes = 4;
           shadow_size = 2;

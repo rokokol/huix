@@ -23,8 +23,11 @@ hyprlock-quote.sh — диалог Моники для DDLC-локскрина
 
 Геометрию текста задаёт hyprlock.nix через окружение:
   TEXT_W    ширина текстовой области бокса, px (деф. 1084)
+  FONT_PX   кегль реплики в px (font_size * 4/3; деф. 32)
   ADVANCES  таблица ширин глифов "<символ> <px>" для пиксельного переноса
-            строк (собирается на этапе сборки; без неё — AVG_ADV на символ)
+            строк; по умолчанию кэш ~/.cache/huix — скрипт сам собирает её
+            ImageMagick'ом в фоне и перегенерирует при смене шрифта, а до
+            готовности считает AVG_ADV px на символ
 
 Состояние — $XDG_RUNTIME_DIR/hypr-ddlc; новый лок распознаётся по смене PID
 hyprlock и начинает диалог с реплики перезахода.
@@ -38,8 +41,9 @@ QUOTES="$HUIX/assets/monika-talk.txt"
 REENTRY="$HUIX/assets/monika-reentry.txt"
 
 TEXT_W="${TEXT_W:-1084}"
-ADVANCES="${ADVANCES:-}"
-AVG_ADV=15 # ширина глифа по умолчанию, px (нет в таблице / таблицы нет)
+FONT_PX="${FONT_PX:-32}"
+ADVANCES="${ADVANCES:-${XDG_CACHE_HOME:-$HOME/.cache}/huix/hyprlock-advances.txt}"
+AVG_ADV=15 # ширина глифа по умолчанию, px (нет в таблице / таблица не готова)
 
 CPS=30 # скорость печати, символов в секунду
 
@@ -139,13 +143,12 @@ wrap_px() {
 }
 
 # Снять первую реплику топика в $CUR (с переносами); 1 — топик пуст.
-# Реплики берутся в кавычках — как прямая речь в игре.
 next_line() {
   local line
   line=$(head -n 1 "$TOPIC" 2>/dev/null || true)
   [[ -n "$line" ]] || return 1
   sed -i '1d' "$TOPIC"
-  printf '"%s"\n' "${line//\[player\]/$USER}" | wrap_px >"$CUR"
+  printf '%s\n' "${line//\[player\]/$USER}" | wrap_px >"$CUR"
 }
 
 # «Сломанная кодировка»: ~30% символов подменяются mojibake-глифами;
@@ -188,6 +191,39 @@ ruler() {
   printf '<span alpha="1" letter_spacing="%d">.</span>' $(((TEXT_W - dot) * 768))
 }
 
+# Таблица ширин глифов: advance(c) = width("x"+c+"x") - width("xx") при
+# кегле FONT_PX (pango в hyprlock рендерит pt при 96dpi = px как у IM при
+# 72dpi). Генерится в фоне один раз, штамп — стор-путь шрифта: сменился
+# шрифт — сменился путь — таблица пересобирается.
+ensure_advances() {
+  local font stamp="$ADVANCES.stamp"
+  font=$(fc-match -f '%{file}' Doki 2>/dev/null) || return 0
+  [[ -f "$ADVANCES" && -f "$stamp" && "$(<"$stamp")" == "$font" ]] && return 0
+  command -v magick >/dev/null 2>&1 || return 0
+  (
+    flock -n 9 || exit 0
+    tmp="$ADVANCES.tmp"
+    mkdir -p "${ADVANCES%/*}"
+    xx=$(magick -background none -font "$font" -pointsize "$FONT_PX" \
+      label:"xx" -format "%w" info:)
+    : >"$tmp"
+    for i in $(seq 32 126); do
+      c=$(printf "\\$(printf '%03o' "$i")")
+      case "$c" in # % и \ ImageMagick интерпретирует внутри label:
+        '%') s="x%%x" ;;
+        '\') s='x\\x' ;;
+        *) s="x${c}x" ;;
+      esac
+      w=$(magick -background none -font "$font" -pointsize "$FONT_PX" \
+        label:"$s" -format "%w" info:)
+      printf '%s %s\n' "$c" "$((w - xx))" >>"$tmp"
+    done
+    mv "$tmp" "$ADVANCES"
+    printf '%s' "$font" >"$stamp"
+  ) 9>"$STATE_DIR/.advances.lock" </dev/null >/dev/null 2>&1 &
+  disown
+}
+
 # Глитч экрана и текста одним механизмом (пароль и пуассоновский поток).
 # flash спит внутри — отвязываем полностью, иначе hyprlock ждёт EOF.
 fire_glitch() {
@@ -226,9 +262,11 @@ cmd_frame() {
   state_in=$(state_snapshot)
   now_ms=$(now_ms)
 
-  # Тяжёлые проверки (скан /proc, журнал) — не чаще раза в секунду.
+  # Тяжёлые проверки (скан /proc, журнал, кэш глифов) — не чаще раза в секунду.
   if ((now_ms / 1000 > fail_chk)); then
     fail_chk=$((now_ms / 1000))
+
+    ensure_advances
 
     # Новый лок (смена PID hyprlock) -> диалог с реплики перезахода.
     local pid
