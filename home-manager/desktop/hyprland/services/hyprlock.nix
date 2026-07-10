@@ -86,7 +86,7 @@ in
           size = 280; # меньшая сторона (высота) — как пропорция бокса в игре на 1080p
           rounding = 0;
           border_size = 0;
-          zindex = 1; # сортировка по zindex нестабильная — фиксируем явно
+          zindex = 0; # сортировка по zindex нестабильная — фиксируем явно
           position = "0, 30";
           halign = "center";
           valign = "bottom";
