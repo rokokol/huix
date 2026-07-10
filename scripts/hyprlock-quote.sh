@@ -2,31 +2,34 @@
 
 set -euo pipefail
 
-# Диалог Моники для DDLC-локскрина: label в hyprlock поллит скрипт через
-# cmd[update:150], скрипт отдаёт pango-разметку текущего кадра диалога.
-#
-# Машина состояний (state в $XDG_RUNTIME_DIR, переживает разлочку):
-#   typing  -> реплика печатается побуквенно (CPS символов/сек);
-#   shown   -> реплика дочитана, пауза ~ Exp(1/LINE_MEAN) до следующей;
-#   fadeout -> текст плавно исчезает (FADE_MS мс), после чего -> typing/gap;
-#   gap     -> топик кончился: пустой бокс ~ Exp(1/TOPIC_MEAN), потом новый
-#              случайный топик из assets/monika-talk.txt (реплики идут
-#              по порядку, как в игре).
-#
-# Первый диалог: при свежем локе всегда проигрывается случайный блок из
-# monika-reentry.txt (Act 3 re-entry, "Quitting the Game"). Эти реплики
-# НЕ попадают в обычную случайную ротацию.
-#
-# Глитчи: спонтанные — пуассоновский поток (интервалы ~ Exp(1/GLITCH_MEAN)),
-# плюс на каждый неправильный пароль (pam-ошибка hyprlock в журнале, проверка
-# раз в секунду). Глитч = текст коверкается мусорной «сломанной кодировкой»
-# (случайные байты Latin-1/Cyrillic/CJK) на GLITCH_SEC.
-#
-# Верстка: у лейбла нет ни ширины, ни привязки к углу — поэтому в каждый кадр
-# подмешивается невидимая (alpha=1/65536) «линейка» фиксированной ширины
-# последней строкой, а непоказанный хвост реплики рендерится невидимым спаном.
-# Размер текстуры получается постоянным: halign center даёт фиксированный
-# левый край, valign bottom — фиксированный верх, буквы появляются на месте.
+usage() {
+  cat <<'EOF'
+hyprlock-quote.sh — диалог Моники для DDLC-локскрина
+
+Режимы (дёргаются label cmd[update:N] из hyprlock.nix):
+  frame   кадр диалога pango-разметкой: побуквенная печать реплик из
+          assets/monika-talk.txt топик за топиком, паузы Exp(1/7) между
+          репликами, плавное затухание, пустой бокс Exp(1/60) между
+          топиками. Первый топик при каждом локе — из monika-reentry.txt
+          (Act 3 re-entry), в случайную ротацию эти реплики не попадают
+  name    имя на плашке ("Monika")
+  help    эта справка
+
+Глитчи — единый механизм для неправильного пароля (pam-ошибка hyprlock в
+журнале) и спонтанных срабатываний (пуассоновский поток): экран глитчится
+через `screen-shader.sh flash glitch` (композиция поверх активного эффекта),
+одновременно текст и имя коверкаются «сломанной кодировкой»; текст глитчит
+дольше шейдера.
+
+Геометрию текста задаёт hyprlock.nix через окружение:
+  TEXT_W    ширина текстовой области бокса, px (деф. 1084)
+  ADVANCES  таблица ширин глифов "<символ> <px>" для пиксельного переноса
+            строк (собирается на этапе сборки; без неё — AVG_ADV на символ)
+
+Состояние — $XDG_RUNTIME_DIR/hypr-ddlc; новый лок распознаётся по смене PID
+hyprlock и начинает диалог с реплики перезахода.
+EOF
+}
 
 HUIX="${HUIX:-$(cd -- "$(dirname -- "$0")/.." && pwd)}"
 export HUIX
@@ -34,11 +37,11 @@ export HUIX
 QUOTES="$HUIX/assets/monika-talk.txt"
 REENTRY="$HUIX/assets/monika-reentry.txt"
 
-CPS=30  # скорость печати, символов в секунду
+TEXT_W="${TEXT_W:-1084}"
+ADVANCES="${ADVANCES:-}"
+AVG_ADV=15 # ширина глифа по умолчанию, px (нет в таблице / таблицы нет)
 
-# Ширина бокса при size=280 составляет ~1235px. 95% от 1235px = 1173px.
-# 1173px / 18px (ширина символа Doki 24pt) = ~65 символов.
-WRAP=65 # перенос строк, символов (~строка текстовой области бокса)
+CPS=30 # скорость печати, символов в секунду
 
 LINE_MEAN=7 # пауза между репликами: Exp(1/7), сек
 LINE_MIN=2
@@ -51,39 +54,35 @@ TOPIC_MAX=300
 GLITCH_MEAN=120 # спонтанные глитчи: интервалы Exp(1/120), сек
 GLITCH_MIN=15
 GLITCH_MAX=600
-GLITCH_SHADER_SEC=1.2 # длительность визуального глитча шейдера
-GLITCH_TEXT_SEC=3.6   # длительность глитча текста
+GLITCH_SHADER_SEC=1.2 # длительность глитч-шейдера
+GLITCH_TEXT_MS=3600   # текст глитчит дольше шейдера
 
-FADE_MS=600 # длительность плавного исчезновения текста, мс
-
-# Невидимая линейка: точка + letter_spacing в pango-юнитах (1/1024 pt,
-# px = юниты/768). 1173px * 768 = 900864.
-RULER='<span alpha="1" letter_spacing="900864">.</span>'
+FADE_MS=600 # плавное исчезновение реплики
 
 STATE_DIR="${XDG_RUNTIME_DIR:-/tmp}/hypr-ddlc"
 STATE="$STATE_DIR/state"     # sourceable-переменные машины состояний
 TOPIC="$STATE_DIR/topic.txt" # несказанные реплики текущего топика
 CUR="$STATE_DIR/cur.txt"     # текущая реплика, уже с переносами
 
-mkdir -p "$STATE_DIR"
-
-now_ms=$(date +%s%3N)
-
-# Дефолты (первый запуск): reentry-фаза — сразу проиграть приветствие.
+# Дефолты состояния (первый запуск = сразу реплика перезахода).
 phase=reentry
 until_ms=0
 reveal_ms=0
-fade_start_ms=0
 next_glitch_ms=0
 glitch_until_ms=0
 fail_chk=0
 fail_ts=""
-# shellcheck disable=SC1090
-[[ -f "$STATE" ]] && source "$STATE"
+last_pid=""
+
+load_state() {
+  # shellcheck disable=SC1090
+  [[ -f "$STATE" ]] && source "$STATE" || true
+}
 
 save_state() {
-  printf 'phase=%s\nuntil_ms=%s\nreveal_ms=%s\nfade_start_ms=%s\nnext_glitch_ms=%s\nglitch_until_ms=%s\nfail_chk=%s\nfail_ts=%q\n' \
-    "$phase" "$until_ms" "$reveal_ms" "$fade_start_ms" "$next_glitch_ms" "$glitch_until_ms" "$fail_chk" "$fail_ts" >"$STATE.tmp"
+  printf 'phase=%s\nuntil_ms=%s\nreveal_ms=%s\nnext_glitch_ms=%s\nglitch_until_ms=%s\nfail_chk=%s\nfail_ts=%q\nlast_pid=%q\n' \
+    "$phase" "$until_ms" "$reveal_ms" "$next_glitch_ms" "$glitch_until_ms" \
+    "$fail_chk" "$fail_ts" "$last_pid" >"$STATE.tmp"
   mv "$STATE.tmp" "$STATE"
 }
 
@@ -99,23 +98,44 @@ exp_ms() {
     }'
 }
 
-# Случайный топик из monika-talk.txt: блоки разделены пустой строкой,
+# Случайный топик из файла $1 -> $TOPIC. Блоки разделены пустой строкой,
 # строки с '#' — комментарии.
 new_topic() {
   awk -v seed="$(((RANDOM << 15) + RANDOM))" '
     BEGIN { RS = ""; srand(seed) }
     { gsub(/(^|\n)#[^\n]*/, ""); sub(/^\n+/, ""); if ($0 != "") b[++n] = $0 }
     END { if (n) print b[int(rand() * n) + 1] }
-  ' "$QUOTES" >"$TOPIC"
+  ' "$1" >"$TOPIC"
 }
 
-# Случайный топик из monika-reentry.txt (re-entry приветствия).
-new_reentry_topic() {
-  awk -v seed="$(((RANDOM << 15) + RANDOM))" '
-    BEGIN { RS = ""; srand(seed) }
-    { gsub(/(^|\n)#[^\n]*/, ""); sub(/^\n+/, ""); if ($0 != "") b[++n] = $0 }
-    END { if (n) print b[int(rand() * n) + 1] }
-  ' "$REENTRY" >"$TOPIC"
+# Пиксельный перенос строк по таблице ширин глифов — строки заполняют
+# текстовую область целиком независимо от ширины конкретных символов.
+wrap_px() {
+  awk -v W="$TEXT_W" -v AVG="$AVG_ADV" -v tbl="$ADVANCES" '
+    BEGIN {
+      if (tbl != "")
+        while ((getline l < tbl) > 0) adv[substr(l, 1, 1)] = substr(l, 3) + 0
+      sp = (" " in adv) ? adv[" "] : AVG
+    }
+    function wpx(w,  i, s, ch) {
+      s = 0
+      for (i = 1; i <= length(w); i++) {
+        ch = substr(w, i, 1)
+        s += (ch in adv) ? adv[ch] : AVG
+      }
+      return s
+    }
+    {
+      n = split($0, ws, " ")
+      cur = ""; cw = 0
+      for (i = 1; i <= n; i++) {
+        w = wpx(ws[i])
+        if (cur == "") { cur = ws[i]; cw = w }
+        else if (cw + sp + w > W) { print cur; cur = ws[i]; cw = w }
+        else { cur = cur " " ws[i]; cw += sp + w }
+      }
+      if (cur != "") print cur
+    }'
 }
 
 # Снять первую реплику топика в $CUR (с переносами); 1 — топик пуст.
@@ -124,19 +144,16 @@ next_line() {
   line=$(head -n 1 "$TOPIC" 2>/dev/null || true)
   [[ -n "$line" ]] || return 1
   sed -i '1d' "$TOPIC"
-  printf '%s' "${line//\[player\]/$USER}" | fold -s -w "$WRAP" | sed 's/ *$//' >"$CUR"
+  printf '%s\n' "${line//\[player\]/$USER}" | wrap_px >"$CUR"
 }
 
-# Глитч-трансформация: «сломанная кодировка» — случайные глифы, имитирующие
-# артефакты битой charset-конверсии (mojibake); ~30% символов подменяются.
-# Перегенерируется каждый тик — мусор «живёт».
+# «Сломанная кодировка»: ~30% символов подменяются mojibake-глифами;
+# перегенерируется на каждый вызов — мусор «живёт».
 glitch_text() {
   awk -v seed="$(((RANDOM << 15) + RANDOM))" '
     BEGIN {
       srand(seed)
-      # Набор «мусорных» символов, имитирующих сломанную кодировку:
-      # блочные элементы, кириллица, Latin-1, математические, спецсимволы.
-      n = split("█ ▓ ▒ ░ ö ä ü é § ¿ Ж Щ Ф Ю ъ « » † ‡ ß ƒ ¤ ∆ Ω ¶ × ¬ ‰ £ ¥", G, " ")
+      n = split("Ã Ð Ñ Â Ø Þ ß ð þ ¤ ¥ § ¶ ¿ ¬ Œ ž Æ é ö ъ Ж �", G, " ")
     }
     {
       out = ""
@@ -156,112 +173,160 @@ esc() {
   printf '%s' "$s"
 }
 
-# --- Неправильный пароль -> глитч (журнал поллим раз в секунду) ---
-start_glitch=""
-if ((now_ms / 1000 > fail_chk)); then
-  fail_chk=$((now_ms / 1000))
-  last=$(journalctl -q -t hyprlock -S -5s -g 'authentication failure' \
-    -o short-unix 2>/dev/null | tail -n 1 | cut -d' ' -f1) || true
-  if [[ -n "$last" && "$last" != "$fail_ts" ]]; then
-    fail_ts="$last"
-    start_glitch=1
+# Невидимая (alpha=1/65536) линейка шириной TEXT_W последней строкой кадра:
+# у label нет ни ширины, ни привязки к углу, а постоянный размер текстуры
+# даёт фиксированный левый верх при halign center + valign bottom.
+# letter_spacing в pango-юнитах: px * 768 (1/1024 pt, 96 dpi).
+ruler() {
+  local dot=$AVG_ADV line
+  if [[ -n "$ADVANCES" && -r "$ADVANCES" ]]; then
+    while IFS= read -r line; do
+      [[ "$line" == ". "* ]] && { dot=${line#. }; break; }
+    done <"$ADVANCES"
   fi
-fi
+  printf '<span alpha="1" letter_spacing="%d">.</span>' $(((TEXT_W - dot) * 768))
+}
 
-# --- Спонтанные глитчи: пуассоновский поток ---
-((next_glitch_ms > 0)) || next_glitch_ms=$((now_ms + $(exp_ms "$GLITCH_MEAN" "$GLITCH_MIN" "$GLITCH_MAX")))
-if ((now_ms >= next_glitch_ms)); then
-  start_glitch=1
-  next_glitch_ms=$((now_ms + $(exp_ms "$GLITCH_MEAN" "$GLITCH_MIN" "$GLITCH_MAX")))
-fi
+# Глитч экрана и текста одним механизмом (пароль и пуассоновский поток).
+# flash спит внутри — отвязываем полностью, иначе hyprlock ждёт EOF.
+fire_glitch() {
+  glitch_until_ms=$((now_ms + GLITCH_TEXT_MS))
+  nohup "$HUIX/scripts/screen-shader.sh" flash glitch "$GLITCH_SHADER_SEC" \
+    </dev/null >/dev/null 2>&1 &
+  disown
+}
 
-if [[ -n "$start_glitch" ]]; then
-  glitch_until_ms=$((now_ms + $(awk -v s="$GLITCH_TEXT_SEC" 'BEGIN { printf "%d", s * 1000 }')))
-  # flash спит внутри — полностью отвязываем процесс, чтобы hyprlock не ждал завершения
-  nohup "$HUIX/scripts/screen-shader.sh" flash glitch "$GLITCH_SHADER_SEC" </dev/null >/dev/null 2>&1 & disown
-fi
+# Миллисекунды без спавна date: EPOCHREALTIME = "sec.usec" (bash >= 5;
+# разделитель зависит от локали — срезаем и точку, и запятую).
+now_ms() {
+  local t=${EPOCHREALTIME//[.,]/}
+  printf '%s' "${t:0:-3}"
+}
 
-# --- Машина состояний диалога ---
+cmd_name() {
+  load_state
+  if (($(now_ms) < glitch_until_ms)); then
+    printf '%s' "$(glitch_text <<<"Monika")"
+  else
+    printf 'Monika'
+  fi
+}
 
-# Первый запуск (reentry): проиграть приветствие из monika-reentry.txt.
-if [[ "$phase" == "reentry" ]]; then
-  new_reentry_topic
-  next_line
-  phase=typing
-  reveal_ms=$now_ms
-fi
+cmd_frame() {
+  [[ -d "$STATE_DIR" ]] || mkdir -p "$STATE_DIR"
+  load_state
+  now_ms=$(now_ms)
 
-# Fadeout завершён -> переход к следующей реплике или gap.
-if [[ "$phase" == "fadeout" ]] && ((now_ms >= until_ms)); then
-  if next_line; then
+  # Тяжёлые проверки (скан /proc, журнал) — не чаще раза в секунду.
+  if ((now_ms / 1000 > fail_chk)); then
+    fail_chk=$((now_ms / 1000))
+
+    # Новый лок (смена PID hyprlock) -> диалог с реплики перезахода.
+    local pid
+    pid=$(pidof hyprlock 2>/dev/null) || pid=""
+    pid=${pid%% *}
+    if [[ -n "$pid" && "$pid" != "$last_pid" ]]; then
+      last_pid="$pid"
+      phase=reentry
+    fi
+
+    # Неправильный пароль (pam-ошибка hyprlock в журнале) -> глитч.
+    local last
+    last=$(journalctl -q -t hyprlock -S -5s -g 'authentication failure' \
+      -o short-unix 2>/dev/null | tail -n 1 | cut -d' ' -f1) || true
+    if [[ -n "$last" && "$last" != "$fail_ts" ]]; then
+      fail_ts="$last"
+      fire_glitch
+    fi
+  fi
+
+  # --- Спонтанные глитчи: пуассоновский поток ---
+  ((next_glitch_ms > 0)) || next_glitch_ms=$((now_ms + $(exp_ms "$GLITCH_MEAN" "$GLITCH_MIN" "$GLITCH_MAX")))
+  if ((now_ms >= next_glitch_ms)); then
+    next_glitch_ms=$((now_ms + $(exp_ms "$GLITCH_MEAN" "$GLITCH_MIN" "$GLITCH_MAX")))
+    fire_glitch
+  fi
+
+  # --- Машина состояний: reentry -> typing -> shown -> fadeout -> typing|gap ---
+  if [[ "$phase" == "reentry" ]]; then
+    new_topic "$REENTRY"
+    next_line
     phase=typing
     reveal_ms=$now_ms
-  else
-    phase=gap
-    until_ms=$((now_ms + $(exp_ms "$TOPIC_MEAN" "$TOPIC_MIN" "$TOPIC_MAX")))
   fi
-fi
 
-# Shown -> начать fadeout вместо мгновенного перехода.
-if [[ "$phase" == "shown" ]] && ((now_ms >= until_ms)); then
-  phase=fadeout
-  fade_start_ms=$now_ms
-  until_ms=$((now_ms + FADE_MS))
-fi
-
-if [[ "$phase" == "gap" ]] && ((now_ms >= until_ms)); then
-  new_topic
-  next_line
-  phase=typing
-  reveal_ms=$now_ms
-fi
-
-# --- Кадр ---
-shown=""
-hidden=""
-fade_alpha=65535  # полная непрозрачность (pango alpha 1..65535)
-if [[ "$phase" != "gap" ]]; then
-  full=$(<"$CUR")
-  if [[ "$phase" == "typing" ]]; then
-    n=$(((now_ms - reveal_ms) * CPS / 1000))
-    if ((n >= ${#full})); then
-      phase=shown
-      until_ms=$((now_ms + $(exp_ms "$LINE_MEAN" "$LINE_MIN" "$LINE_MAX")))
-      shown="$full"
+  if [[ "$phase" == "fadeout" ]] && ((now_ms >= until_ms)); then
+    if next_line; then
+      phase=typing
+      reveal_ms=$now_ms
     else
-      shown="${full:0:n}"
-      hidden="${full:n}"
+      phase=gap
+      until_ms=$((now_ms + $(exp_ms "$TOPIC_MEAN" "$TOPIC_MIN" "$TOPIC_MAX")))
     fi
-  elif [[ "$phase" == "fadeout" ]]; then
-    shown="$full"
-    # Линейно уменьшаем альфу от 65535 до 0 за FADE_MS.
-    elapsed=$((now_ms - fade_start_ms))
-    if ((elapsed >= FADE_MS)); then
-      fade_alpha=0
-    else
-      fade_alpha=$(( 65535 - 65535 * elapsed / FADE_MS ))
-    fi
-  else
-    shown="$full"
   fi
-fi
 
-((now_ms < glitch_until_ms)) && [[ -n "$shown" ]] && shown=$(glitch_text <<<"$shown")
+  if [[ "$phase" == "shown" ]] && ((now_ms >= until_ms)); then
+    phase=fadeout
+    reveal_ms=$now_ms # старт затухания
+    until_ms=$((now_ms + FADE_MS))
+  fi
 
-# Добиваем до 3 строк, чтобы высота текстуры не плясала (текст растёт вниз
-# от фиксированного верха), последней строкой — линейка ширины.
-lines=1
-[[ "$phase" != "gap" ]] && lines=$(wc -l <<<"$full")
-pad=""
-for ((i = lines; i < 3; i++)); do pad+=$'\n'; done
+  if [[ "$phase" == "gap" ]] && ((now_ms >= until_ms)); then
+    new_topic "$QUOTES"
+    next_line
+    phase=typing
+    reveal_ms=$now_ms
+  fi
 
-# Оборачиваем видимый текст в span с альфой для fadeout.
-if ((fade_alpha < 65535)); then
-  printf '<span alpha="%d">%s</span><span alpha="1">%s</span>%s\n%s' \
-    "$fade_alpha" "$(esc "$shown")" "$(esc "$hidden")" "$pad" "$RULER"
-else
-  printf '%s<span alpha="1">%s</span>%s\n%s' \
-    "$(esc "$shown")" "$(esc "$hidden")" "$pad" "$RULER"
-fi
+  # --- Кадр ---
+  local full="" shown="" fade_alpha=65535 n
+  if [[ "$phase" != "gap" ]]; then
+    full=$(<"$CUR")
+    case "$phase" in
+      typing)
+        n=$(((now_ms - reveal_ms) * CPS / 1000))
+        if ((n >= ${#full})); then
+          phase=shown
+          until_ms=$((now_ms + $(exp_ms "$LINE_MEAN" "$LINE_MIN" "$LINE_MAX")))
+          shown="$full"
+        else
+          shown="${full:0:n}"
+        fi
+        ;;
+      fadeout)
+        shown="$full"
+        fade_alpha=$((65535 - 65535 * (now_ms - reveal_ms) / FADE_MS))
+        ((fade_alpha >= 1)) || fade_alpha=1
+        ;;
+      *)
+        shown="$full"
+        ;;
+    esac
+  fi
 
-save_state
+  ((now_ms < glitch_until_ms)) && [[ -n "$shown" ]] && shown=$(glitch_text <<<"$shown")
+
+  # Постоянная высота: реплика (<=3 строк) добивается пустыми строками до 3,
+  # четвёртой идёт линейка. Требует general:text_trim=false в hyprlock.
+  local nl lines pad=""
+  nl=${full//[!$'\n']/}
+  lines=$((${#nl} + 1))
+  for ((i = lines; i < 3; i++)); do pad+=$'\n'; done
+
+  local body
+  body=$(esc "$shown")
+  ((fade_alpha < 65535)) && body="<span alpha=\"$fade_alpha\">$body</span>"
+  printf '%s%s\n%s' "$body" "$pad" "$(ruler)"
+
+  save_state
+}
+
+case "${1:-frame}" in
+  frame) cmd_frame ;;
+  name) cmd_name ;;
+  help | -h | --help) usage ;;
+  *)
+    usage >&2
+    exit 1
+    ;;
+esac

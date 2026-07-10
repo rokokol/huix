@@ -1,39 +1,66 @@
 { pkgs, huixDir, ... }:
 
-# Экран блокировки в стиле DDLC. Фон — картинка (не скриншот: скриншотный фон
-# hyprlock захватывает кадр с уже применённым screen_shader, после чего
-# компоситор прогоняет поверхность hyprlock через тот же шейдер ещё раз —
-# эффект и софт-яркость удваиваются).
+# DDLC-локскрин. Фон — картинка, не скриншот: скриншотный фон ловит кадр с
+# уже применённым screen_shader, и компоситор прогоняет его через шейдер
+# второй раз (эффект и софт-яркость удваиваются).
 #
-# Диалоговое окно = статичный PNG-бокс (собирается здесь) + label с репликами
-# Моники: scripts/hyprlock-quote.sh отдаёт pango-разметку кадра раз в 150 мс —
-# побуквенная печать, паузы Exp(1/7) между репликами и Exp(1/60) между
-# топиками, глитчи текста со «сломанной кодировкой» (спонтанные по Пуассону и
-# на каждый неправильный пароль). Первый диалог — случайный блок из
-# monika-reentry.txt (Act 3 re-entry). Текст — именно label, а не рендер в
-# PNG: image-виджет перезагружается максимум раз в секунду и к тому же ждёт
-# reload_cmd синхронно, а label обновляется в мс и асинхронно.
+# Диалог = статичный PNG-бокс + два label'а поверх (имя и реплики), оба
+# рисует scripts/hyprlock-quote.sh. Именно label, а не текст в PNG:
+# image-виджет hyprlock перезагружается максимум раз в секунду и ждёт
+# reload_cmd синхронно, а label обновляется в мс и асинхронно — только так
+# возможна побуквенная печать. Вся геометрия — производные от размеров
+# игрового ассета (src ниже), таблица ширин глифов для пиксельного переноса
+# строк собирается на этапе сборки.
 let
   backgroundImage = ../../../../assets/just_monika.png;
   dialogAsset = ../../../../assets/ddlc-stickers/dialog_box.png;
   dokiFont = ../../../../nixos/fonts/doki.otf;
 
-  # Бокс диалога: игровой ассет (обрезаем прозрачные поля, 2x для чёткости ->
-  # 1632x370) с впечённым именем на плашке. Обводка имени — дилатация альфы
-  # того же рендера (один проход текста, идеальное совмещение заливки и
-  # контура). Текстовая область бокса согласована с WRAP/RULER в hyprlock-quote.sh.
-  dialogBase =
-    pkgs.runCommand "hyprlock-dialog-base.png" { nativeBuildInputs = [ pkgs.imagemagick ]; }
+  # Исходник бокса после trim+2x (см. dialogAssets) и его внутренности, px.
+  src = {
+    w = 1632;
+    h = 370;
+    insetX = 100; # поля текстовой области слева/справа
+    menuH = 70; # полоска меню по низу бокса
+    plateCx = 236; # центр плашки имени
+    plateCy = 38;
+  };
+
+  boxH = 280; # высота бокса на экране; остальное — производные
+  bottom = 30; # отступ бокса от низа экрана
+  scale = boxH / (1.0 * src.h);
+  px = v: builtins.floor (v * scale + 0.5);
+
+  textW = px (src.w - 2 * src.insetX); # ширина текстовой области
+  quoteY = bottom + px src.menuH + 6; # низ лейбла реплики (над меню)
+  nameX = px (src.plateCx - src.w / 2); # центр плашки от центра экрана
+  nameY = bottom + px (src.h - src.plateCy) - 18; # низ лейбла имени
+
+  # Бокс (trim прозрачных полей, 2x для чёткости) + таблица ширин глифов
+  # Doki при кегле 24pt (32px @ 96dpi — так pango hyprlock его и рендерит):
+  # advance(c) = width("x"+c+"x") - width("xx").
+  dialogAssets =
+    pkgs.runCommand "hyprlock-ddlc-assets" { nativeBuildInputs = [ pkgs.imagemagick ]; }
       ''
-        magick ${dialogAsset} -trim +repage -resize 200% \
-          \( -background none -font ${dokiFont} -pointsize 52 -fill white \
-             label:"Monika" -bordercolor none -border 8 \
-             \( +clone -channel A -morphology dilate disk:3.5 +channel \
-                -fill "#e2679b" -channel RGB -colorize 100 +channel \) \
-             +swap -composite -gravity center -background none -extent 336x76 \) \
-          -gravity northwest -geometry +68+0 -composite \
-          "$out"
+        mkdir -p "$out"
+        magick ${dialogAsset} -trim +repage -resize 200% "$out/box.png"
+
+        xx=$(magick -background none -font ${dokiFont} -pointsize 32 \
+          label:"xx" -format "%w" info:)
+        for i in $(seq 32 126); do
+          c=$(printf "\\$(printf '%03o' "$i")")
+          case "$c" in
+            '%') s="x%%x" ;;
+            '\\') s="x\\\\x" ;;
+            *) s="x''${c}x" ;;
+          esac
+          w=$(magick -background none -font ${dokiFont} -pointsize 32 \
+            label:"$s" -format "%w" info:)
+          printf '%s %s\n' "$c" "$((w - xx))" >>"$out/advances.txt"
+        done
       '';
+
+  quoteScript = "${huixDir}/scripts/hyprlock-quote.sh";
 in
 {
   programs.hyprlock = {
@@ -43,6 +70,9 @@ in
       general = {
         hide_cursor = true;
         ignore_empty_input = true;
+        # cmd-лейблы отдают кадры с ведущими переносами строк (пустой бокс)
+        # — обрезка схлопнула бы высоту текстуры и текст прыгал бы.
+        text_trim = false;
       };
 
       # Плавное появление локскрина.
@@ -63,16 +93,16 @@ in
         }
       ];
 
-      # Бокс диалога — статичный, текст живёт в лейбле поверх.
+      # Бокс диалога — статичный, текст живёт в лейблах поверх.
       image = [
         {
           monitor = "";
-          path = "${dialogBase}";
-          size = 280; # оригинальный размер диалогового окна
+          path = "${dialogAssets}/box.png";
+          size = boxH;
           rounding = 0;
           border_size = 0;
           zindex = 0; # сортировка по zindex нестабильная — фиксируем явно
-          position = "0, 30";
+          position = "0, ${toString bottom}";
           halign = "center";
           valign = "bottom";
         }
@@ -93,10 +123,10 @@ in
           halign = "center";
           valign = "top";
         }
-        # Дата
+        # Дата (tr -d: text_trim выключен, хвостовой \n стал бы второй строкой)
         {
           monitor = "";
-          text = ''cmd[update:60000] date +"%A, %B %-d"'';
+          text = ''cmd[update:60000] date +"%A, %B %-d" | tr -d '\n' '';
           font_family = "Doki";
           font_size = 30;
           color = "rgba(ffffffe6)";
@@ -107,23 +137,56 @@ in
           halign = "center";
           valign = "top";
         }
-        # Реплика: скрипт держит размер текстуры постоянным (невидимая линейка
-        # + скрытый хвост реплики), поэтому halign center + valign bottom дают
-        # прибитый левый верхний угол текста в боксе. Чёрная «обводка» — тень.
+        # Имя на плашке: отдельный лейбл (не впечён в PNG), чтобы глитчиться
+        # вместе с текстом. Розовая «обводка» — тень.
         {
           monitor = "";
-          text = "cmd[update:33] ${huixDir}/scripts/hyprlock-quote.sh";
+          text = "cmd[update:1000] ${quoteScript} name";
+          font_family = "Doki";
+          font_size = 26;
+          color = "rgba(ffffffff)";
+          shadow_passes = 3;
+          shadow_size = 3;
+          shadow_boost = 1.6;
+          shadow_color = "rgba(e2679bff)";
+          zindex = 2;
+          position = "${toString nameX}, ${toString nameY}";
+          halign = "center";
+          valign = "bottom";
+        }
+        # Реплика: скрипт держит размер текстуры постоянным (невидимая
+        # линейка шириной textW + добивка до 3 строк), поэтому halign center
+        # + valign bottom дают прибитый левый верх текста ровно у поля
+        # текстовой области. Чёрная «обводка» — тень.
+        {
+          monitor = "";
+          text = "cmd[update:100] TEXT_W=${toString textW} ADVANCES=${dialogAssets}/advances.txt ${quoteScript} frame";
           font_family = "Doki";
           font_size = 24;
           color = "rgba(ffffffff)";
-          shadow_passes = 3;
+          shadow_passes = 4;
           shadow_size = 2;
+          shadow_boost = 1.6;
           shadow_color = "rgba(000000ff)";
           text_align = "left";
           zindex = 1; # поверх бокса
-          position = "0, 88";
+          position = "0, ${toString quoteY}";
           halign = "center";
           valign = "bottom";
+        }
+        # Раскладка справа от поля ввода ($LAYOUT обновляется сам)
+        {
+          monitor = "";
+          text = "$LAYOUT[EN,RU]";
+          font_family = "Doki";
+          font_size = 20;
+          color = "rgba(ffffffdd)";
+          shadow_passes = 2;
+          shadow_size = 3;
+          shadow_color = "rgba(e2679baa)";
+          position = "260, -20";
+          halign = "center";
+          valign = "center";
         }
       ];
 
@@ -146,7 +209,6 @@ in
           dots_text_format = "♥";
           dots_spacing = 0.2;
           fade_on_empty = false;
-
           position = "0, -20";
           halign = "center";
           valign = "center";
