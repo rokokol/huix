@@ -5,7 +5,9 @@
     enable = true;
     settings = {
       general = {
-        lock_cmd = "pidof hyprlock || hyprlock"; # start hyprlock
+        # hyprlock-guard (см. hyprlock.nix) перезапускает hyprlock при краше,
+        # чтобы залоченная сессия не оставалась без локера
+        lock_cmd = "pidof hyprlock || hyprlock-guard";
         before_sleep_cmd = "loginctl lock-session"; # block until the sleep
         after_sleep_cmd = "hyprctl dispatch dpms on"; # turn on the screen on wakeup
       };
