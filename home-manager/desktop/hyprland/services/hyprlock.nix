@@ -7,16 +7,23 @@
 # применяется ровно один раз (ночной режим на локскрине сохраняется).
 let
   # Фон в духе главного меню игры: розовый градиент, диагональный «горошек»
-  # из точек и сердечек, мягкое свечение по центру. Генерируется из SVG на
-  # этапе сборки — в репо не лежит ни одного бинарного ассета.
+  # из кружочков, мягкое свечение по центру. Генерируется из SVG на этапе
+  # сборки — в репо не лежит ни одного бинарного ассета.
   #
-  # Горошек ДВИЖЕТСЯ: reload_time у hyprlock — целые секунды (быстрее 1 fps
-  # нельзя), но каждая смена картинки идёт через кроссфейд по анимации fadeIn.
-  # Поэтому раз в секунду подставляется следующий кадр цикла (паттерн сдвинут
-  # на шаг вдоль своей диагонали), а fadeIn растянут на ту же секунду — сумма
-  # даёт непрерывный медленный дрейф. Кадры зациклены: тайл паттерна 128px,
-  # frameCount кадров по (128/frameCount)px. @TX@ в SVG — подстановка сдвига.
+  # Горошек ДВИЖЕТСЯ: reload_time у hyprlock — целые секунды, каждая смена
+  # картинки идёт через кроссфейд по анимации fadeIn. Раз в reloadPeriod
+  # подставляется следующий кадр цикла (паттерн сдвинут на шаг вдоль своей
+  # диагонали). Кадры зациклены: тайл паттерна 128px, frameCount кадров по
+  # (128/frameCount)px. @TX@ в SVG — подстановка сдвига.
+  #
+  # ВАЖНО: кроссфейд (fadeIn) обязан быть сильно КОРОЧЕ reloadPeriod. Если
+  # новый кадр прилетает, пока предыдущий кроссфейд ещё идёт, CBackground::
+  # onAssetUpdate перезаписывает pendingAsset и подменяет коллбек — старая
+  # текстура повисает, и renderTextureMix падает по SIGSEGV (проверено
+  # coredump-ами: fadeIn = периоду валил hyprlock за минуты). Плюс на случай
+  # любого краша локера есть hyprlock-guard ниже.
   frameCount = 16;
+  reloadPeriod = 2; # секунды между кадрами (fadeIn = 0.3s, перекрытий нет)
 
   backgroundSvg = pkgs.writeText "hyprlock-ddlc-bg.svg" ''
     <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2560" height="1440">
@@ -31,21 +38,14 @@ let
           <stop offset="0.7" stop-color="#ffffff" stop-opacity="0.12"/>
           <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
         </radialGradient>
-        <path id="heart" d="M40 68 C14 48 4 32 4 20 C4 9 13 1 24 1 C31 1 37 5 40 11 C43 5 49 1 56 1 C67 1 76 9 76 20 C76 32 66 48 40 68 Z"/>
         <pattern id="dots" width="128" height="128" patternUnits="userSpaceOnUse" patternTransform="rotate(15) translate(-@TX@ 0)">
           <circle cx="32" cy="32" r="9" fill="#ffffff" fill-opacity="0.32"/>
-          <use xlink:href="#heart" transform="translate(64 62) scale(0.42)" fill="#ffffff" fill-opacity="0.32"/>
+          <circle cx="96" cy="96" r="6.5" fill="#ffffff" fill-opacity="0.32"/>
         </pattern>
       </defs>
       <rect width="2560" height="1440" fill="url(#bg)"/>
       <rect width="2560" height="1440" fill="url(#dots)"/>
       <ellipse cx="1280" cy="660" rx="980" ry="600" fill="url(#glow)"/>
-      <g fill="#ffffff">
-        <use xlink:href="#heart" transform="translate(180 960) scale(2.6) rotate(-14)" opacity="0.16"/>
-        <use xlink:href="#heart" transform="translate(2120 180) scale(3.2) rotate(12)" opacity="0.14"/>
-        <use xlink:href="#heart" transform="translate(2240 1100) scale(2.2) rotate(-8)" opacity="0.18"/>
-        <use xlink:href="#heart" transform="translate(320 170) scale(1.8) rotate(10)" opacity="0.15"/>
-      </g>
     </svg>
   '';
 
@@ -60,9 +60,22 @@ let
         done
       '';
 
-  # Кадр цикла по текущей секунде — reload_cmd раз в секунду отдаёт новый путь.
+  # Кадр цикла по текущему времени — reload_cmd отдаёт новый путь раз в
+  # reloadPeriod секунд.
   nextFrame = pkgs.writeShellScript "hyprlock-ddlc-bg-frame" ''
-    printf '%s/frame-%02d.png' ${backgroundFrames} $(( $(date +%s) % ${toString frameCount} ))
+    printf '%s/frame-%02d.png' ${backgroundFrames} \
+      $(( ( $(date +%s) / ${toString reloadPeriod} ) % ${toString frameCount} ))
+  '';
+
+  # Сторожок: если hyprlock умер, не сняв лок (краш), Hyprland оставляет
+  # сессию залоченной «красным экраном», и без tty её не спасти. Ненулевой
+  # выход hyprlock = краш → перезапускаем (allow_session_lock_restore в
+  # hyprland.conf разрешает новому инстансу перехватить лок); нормальный
+  # unlock = выход 0 → цикл завершается.
+  hyprlockGuard = pkgs.writeShellScriptBin "hyprlock-guard" ''
+    while ! hyprlock "$@"; do
+      sleep 1
+    done
   '';
 
   # Реплики в «диалоговом окне» — новая при каждом обновлении лейбла.
@@ -93,6 +106,8 @@ let
   '';
 in
 {
+  home.packages = [ hyprlockGuard ]; # лок дёргает hypridle (lock_cmd)
+
   programs.hyprlock = {
     enable = true;
 
@@ -103,14 +118,14 @@ in
       };
 
       # fadeIn управляет и появлением локскрина, и кроссфейдом фона при
-      # reload — линейная секунда (10 ds) смыкает секундные тики reload_time
-      # в непрерывный дрейф горошка.
+      # reload. 3 ds = 0.3s — сильно короче reloadPeriod, иначе кроссфейды
+      # перекрываются и hyprlock падает (см. комментарий к reloadPeriod).
       animations = {
         enabled = true;
         bezier = "linear, 1, 1, 0, 0";
         animation = [
-          "fadeIn, 1, 10, linear"
-          "fadeOut, 1, 5, linear"
+          "fadeIn, 1, 3, linear"
+          "fadeOut, 1, 3, linear"
         ];
       };
 
@@ -118,7 +133,7 @@ in
         {
           monitor = "";
           path = "${backgroundFrames}/frame-00.png";
-          reload_time = 1;
+          reload_time = reloadPeriod;
           reload_cmd = "${nextFrame}";
           color = "rgb(ffa7d6)"; # запасной цвет, если картинка не загрузится
         }
