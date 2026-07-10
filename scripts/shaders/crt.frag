@@ -23,10 +23,10 @@ vec3 effect(vec3 c, vec2 uv) {
 
     // 2x2 суперсэмплинг (повёрнутая сетка) — сглаживает зубцы от кривизны.
     vec3 col = 0.25 * (
-        texture(tex, wuv + 0.25 * dx + 0.25 * dy).rgb +
-        texture(tex, wuv - 0.25 * dx + 0.25 * dy).rgb +
-        texture(tex, wuv + 0.25 * dx - 0.25 * dy).rgb +
-        texture(tex, wuv - 0.25 * dx - 0.25 * dy).rgb
+        GET_TEX(wuv + 0.25 * dx + 0.25 * dy) +
+        GET_TEX(wuv - 0.25 * dx + 0.25 * dy) +
+        GET_TEX(wuv + 0.25 * dx - 0.25 * dy) +
+        GET_TEX(wuv - 0.25 * dx - 0.25 * dy)
     );
 
     // Плотность строк в пикселях через производные — не зависит от разрешения.
