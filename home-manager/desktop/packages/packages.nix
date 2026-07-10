@@ -36,7 +36,6 @@ in
         tauon
 
         # --- CLI ---
-        antigravity-cli
         claude-code
         codex
         curl
