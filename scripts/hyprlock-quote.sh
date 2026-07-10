@@ -139,12 +139,13 @@ wrap_px() {
 }
 
 # Снять первую реплику топика в $CUR (с переносами); 1 — топик пуст.
+# Реплики берутся в кавычках — как прямая речь в игре.
 next_line() {
   local line
   line=$(head -n 1 "$TOPIC" 2>/dev/null || true)
   [[ -n "$line" ]] || return 1
   sed -i '1d' "$TOPIC"
-  printf '%s\n' "${line//\[player\]/$USER}" | wrap_px >"$CUR"
+  printf '"%s"\n' "${line//\[player\]/$USER}" | wrap_px >"$CUR"
 }
 
 # «Сломанная кодировка»: ~30% символов подменяются mojibake-глифами;
@@ -212,9 +213,17 @@ cmd_name() {
   fi
 }
 
+state_snapshot() {
+  printf '%s|%s|%s|%s|%s|%s|%s|%s' \
+    "$phase" "$until_ms" "$reveal_ms" "$next_glitch_ms" "$glitch_until_ms" \
+    "$fail_chk" "$fail_ts" "$last_pid"
+}
+
 cmd_frame() {
   [[ -d "$STATE_DIR" ]] || mkdir -p "$STATE_DIR"
   load_state
+  local state_in
+  state_in=$(state_snapshot)
   now_ms=$(now_ms)
 
   # Тяжёлые проверки (скан /proc, журнал) — не чаще раза в секунду.
@@ -306,10 +315,12 @@ cmd_frame() {
 
   ((now_ms < glitch_until_ms)) && [[ -n "$shown" ]] && shown=$(glitch_text <<<"$shown")
 
-  # Постоянная высота: реплика (<=3 строк) добивается пустыми строками до 3,
-  # четвёртой идёт линейка. Требует general:text_trim=false в hyprlock.
+  # Постоянная высота кадра: ПОКАЗАННАЯ часть добивается пустыми строками
+  # до 3, четвёртой идёт линейка — считать нужно именно по shown, иначе
+  # многострочная реплика при печати начинается ниже и прыгает вверх на
+  # каждом переносе. Требует general:text_trim=false в hyprlock.
   local nl lines pad=""
-  nl=${full//[!$'\n']/}
+  nl=${shown//[!$'\n']/}
   lines=$((${#nl} + 1))
   for ((i = lines; i < 3; i++)); do pad+=$'\n'; done
 
@@ -318,7 +329,9 @@ cmd_frame() {
   ((fade_alpha < 65535)) && body="<span alpha=\"$fade_alpha\">$body</span>"
   printf '%s%s\n%s' "$body" "$pad" "$(ruler)"
 
-  save_state
+  # Во время печати кадр — функция от reveal_ms: состояние не меняется,
+  # и на частом опросе писать его каждый тик незачем.
+  [[ -f "$STATE" && "$state_in" == "$(state_snapshot)" ]] || save_state
 }
 
 case "${1:-frame}" in

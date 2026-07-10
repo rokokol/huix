@@ -12,9 +12,13 @@
 # игрового ассета (src ниже), таблица ширин глифов для пиксельного переноса
 # строк собирается на этапе сборки.
 let
-  backgroundImage = ../../../../assets/just_monika.png;
-  dialogAsset = ../../../../assets/ddlc-stickers/dialog_box.png;
-  dokiFont = ../../../../nixos/fonts/doki.otf;
+  # Рантайм-пути — через huixDir (живой репозиторий). Входы деривации ниже
+  # обязаны быть nix-путями (копируются в стор на этапе сборки), поэтому
+  # для них — корень репо путём; huixDir-строка туда не годится.
+  huixSrc = ../../../..;
+  backgroundImage = "${huixDir}/assets/just_monika.png";
+  dialogAsset = huixSrc + "/assets/ddlc-stickers/dialog_box.png";
+  dokiFont = huixSrc + "/nixos/fonts/doki.otf";
 
   # Исходник бокса после trim+2x (см. dialogAssets) и его внутренности, px.
   src = {
@@ -157,10 +161,11 @@ in
         # Реплика: скрипт держит размер текстуры постоянным (невидимая
         # линейка шириной textW + добивка до 3 строк), поэтому halign center
         # + valign bottom дают прибитый левый верх текста ровно у поля
-        # текстовой области. Чёрная «обводка» — тень.
+        # текстовой области. Чёрная «обводка» — тень. Опрос 33 мс = плавная
+        # печать ~1 символ/кадр при CPS=30 (тёплый тик скрипта ~10 мс).
         {
           monitor = "";
-          text = "cmd[update:100] TEXT_W=${toString textW} ADVANCES=${dialogAssets}/advances.txt ${quoteScript} frame";
+          text = "cmd[update:33] TEXT_W=${toString textW} ADVANCES=${dialogAssets}/advances.txt ${quoteScript} frame";
           font_family = "Doki";
           font_size = 24;
           color = "rgba(ffffffff)";
