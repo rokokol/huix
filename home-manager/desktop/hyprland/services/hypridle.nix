@@ -5,9 +5,8 @@
     enable = true;
     settings = {
       general = {
-        # hyprlock-guard (см. hyprlock.nix) перезапускает hyprlock при краше,
-        # чтобы залоченная сессия не оставалась без локера
-        lock_cmd = "pidof hyprlock || hyprlock-guard";
+        # Сброс состояния диалога при каждом локе: первый диалог = re-entry
+        lock_cmd = ''pidof hyprlock || (rm -f ''${XDG_RUNTIME_DIR:-/tmp}/hypr-ddlc/state && hyprlock)'';
         before_sleep_cmd = "loginctl lock-session"; # block until the sleep
         after_sleep_cmd = "hyprctl dispatch dpms on"; # turn on the screen on wakeup
       };
