@@ -8,24 +8,25 @@
 # Диалоговое окно = статичный PNG-бокс (собирается здесь) + label с репликами
 # Моники: scripts/hyprlock-quote.sh отдаёт pango-разметку кадра раз в 150 мс —
 # побуквенная печать, паузы Exp(1/7) между репликами и Exp(1/60) между
-# топиками, глитчи экрана и текста (спонтанные по Пуассону и на каждый
-# неправильный пароль). Текст — именно label, а не рендер в PNG: image-виджет
-# перезагружается максимум раз в секунду и к тому же ждёт reload_cmd синхронно,
-# а label обновляется в мс и асинхронно.
+# топиками, глитчи текста со «сломанной кодировкой» (спонтанные по Пуассону и
+# на каждый неправильный пароль). Первый диалог — случайный блок из
+# monika-reentry.txt (Act 3 re-entry). Текст — именно label, а не рендер в
+# PNG: image-виджет перезагружается максимум раз в секунду и к тому же ждёт
+# reload_cmd синхронно, а label обновляется в мс и асинхронно.
 let
   backgroundImage = ../../../../assets/just_monika.png;
   dialogAsset = ../../../../assets/ddlc-stickers/dialog_box.png;
   dokiFont = ../../../../nixos/fonts/doki.otf;
 
   # Бокс диалога: игровой ассет (обрезаем прозрачные поля, 2x для чёткости ->
-  # 1632x370) с впечённым именем на плашке. Обводка имени — дилатация альфы
+  # 2120x370) с впечённым именем на плашке. Обводка имени — дилатация альфы
   # того же рендера (один проход текста, идеальное совмещение заливки и
-  # контура). Текстовая область бокса (~1084px при size=280) согласована с
+  # контура). Текстовая область бокса (~1400px при size=360) согласована с
   # WRAP/RULER в hyprlock-quote.sh и позицией лейбла ниже.
   dialogBase =
     pkgs.runCommand "hyprlock-dialog-base.png" { nativeBuildInputs = [ pkgs.imagemagick ]; }
       ''
-        magick ${dialogAsset} -trim +repage -resize 200% \
+        magick ${dialogAsset} -trim +repage -resize 260% \
           \( -background none -font ${dokiFont} -pointsize 52 -fill white \
              label:"Monika" -bordercolor none -border 8 \
              \( +clone -channel A -morphology dilate disk:3.5 +channel \
@@ -34,23 +35,8 @@ let
           -gravity northwest -geometry +68+0 -composite \
           "$out"
       '';
-
-  # Сторожок: если hyprlock умер, не сняв лок (краш), Hyprland оставляет
-  # сессию залоченной «красным экраном», и без tty её не спасти. Ненулевой
-  # выход hyprlock = краш → перезапускаем (allow_session_lock_restore в
-  # hyprland.conf разрешает новому инстансу перехватить лок); нормальный
-  # unlock = выход 0 → цикл завершается.
-  hyprlockGuard = pkgs.writeShellScriptBin "hyprlock-guard" ''
-    while ! hyprlock "$@"; do
-      sleep 1
-    done
-  '';
 in
 {
-  home.packages = [
-    hyprlockGuard # лок дёргает hypridle (lock_cmd)
-  ];
-
   programs.hyprlock = {
     enable = true;
 
@@ -83,7 +69,7 @@ in
         {
           monitor = "";
           path = "${dialogBase}";
-          size = 280; # меньшая сторона (высота) — как пропорция бокса в игре на 1080p
+          size = 360; # меньшая сторона (высота) — шире для полноценного окна диалога
           rounding = 0;
           border_size = 0;
           zindex = 0; # сортировка по zindex нестабильная — фиксируем явно
@@ -136,7 +122,7 @@ in
           shadow_color = "rgba(000000ff)";
           text_align = "left";
           zindex = 1; # поверх бокса
-          position = "0, 88";
+          position = "0, 112";
           halign = "center";
           valign = "bottom";
         }

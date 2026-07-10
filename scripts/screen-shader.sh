@@ -282,6 +282,11 @@ cmd_bright() {
 # портит, restore/rebuild видят прежний выбор. Повторный flash во время
 # активного — no-op (flock), чтобы конкурентные вызовы не дрались за слот.
 # -k (keep): выйти молча, если сейчас активен какой-то эффект.
+#
+# Flash пишет шейдер в отдельный файл (flash.frag), не трогая слоты
+# active-0/active-1. Когда flash завершается и восстанавливает основной
+# шейдер через load_state + apply, путь гарантированно отличается от
+# flash.frag — Hyprland перечитывает шейдер.
 cmd_flash() {
   SHADER_NO_SIGNAL=1
   local keep=""
@@ -294,8 +299,33 @@ cmd_flash() {
   local dur="${2:-1.0}"
   load_state
   [[ -n "$keep" && "$effect" != "none" ]] && exit 0
-  effect="${1:?effect name required}"
-  apply transient
+  local flash_effect="${1:?effect name required}"
+  local flash_body="$SHADER_DIR/$flash_effect.frag"
+  if [[ ! -f "$flash_body" ]]; then
+    notify_error "Shader not found: $flash_body"
+    exit 1
+  fi
+  # Пишем flash-шейдер в отдельный файл, не трогая active-*/slot.
+  local flash_file="$STATE_DIR/flash.frag"
+  {
+    printf '#version 300 es\n'
+    printf 'precision highp float;\n\n'
+    printf 'in vec2 v_texcoord;\n'
+    printf 'uniform sampler2D tex;\n'
+    printf 'uniform float time;\n'
+    printf 'out vec4 fragColor;\n\n'
+    printf '#define BRIGHTNESS %s\n\n' "$bright"
+    cat "$flash_body"
+    printf '\nvoid main() {\n'
+    printf '    vec4 src = texture(tex, v_texcoord);\n'
+    printf '    vec3 c = effect(src.rgb, v_texcoord);\n'
+    printf '    c *= BRIGHTNESS;\n'
+    printf '    fragColor = vec4(c, src.a);\n'
+    printf '}\n'
+  } >"$flash_file"
+  set_render_mode "$(render_mode_for "$flash_effect")"
+  set_cursor_for "$flash_effect"
+  hyprctl keyword decoration:screen_shader "$flash_file" >/dev/null
   sleep "$dur"
   load_state
   apply
