@@ -12,6 +12,7 @@ in
   imports = [
     ./services/wallpaper_collager.nix
     ./services/hyprland-packages.nix
+    ./services/hyprlock.nix
     ./services/wl-clip-persist.nix
     ./services/waybar
   ];

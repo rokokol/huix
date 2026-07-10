@@ -13,7 +13,6 @@
     awww
     dex
     hypridle
-    hyprlock
     hyprpolkitagent
     hyprpicker
     libnotify

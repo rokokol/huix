@@ -2,6 +2,7 @@
 
 {
   imports = [
+    ./colorizer.nix
     ./mini.nix
     ./neo-tree.nix
     ./telescope.nix

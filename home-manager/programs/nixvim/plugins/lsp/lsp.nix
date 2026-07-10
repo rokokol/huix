@@ -11,6 +11,10 @@
       bashls.enable = true;
       html.enable = true;
       cssls.enable = true;
+      ts_ls.enable = true;
+      eslint.enable = true;
+      jsonls.enable = true;
+      emmet_language_server.enable = true;
       marksman.enable = true;
       hyprls.enable = true;
       texlab.enable = true;
