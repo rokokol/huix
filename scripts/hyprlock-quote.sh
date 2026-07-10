@@ -6,23 +6,30 @@ set -euo pipefail
 #
 # hyprlock умеет обновлять label только с фиксированным периодом (cmd[update:N]),
 # поэтому скрипт поллится раз в секунду, а решение «пора ли менять реплику»
-# принимает сам: пауза между репликами — экспоненциальная случайная величина
-# (среднее MEAN, кламп MIN..MAX). Между сменами отдаётся тот же текст.
+# принимает сам: пауза между репликами — гауссовская случайная величина
+# (Box-Muller: среднее MEAN, σ = SD, кламп MIN..MAX). Между сменами отдаётся
+# тот же текст.
 #
-# С вероятностью 1/3 смена начинается с глитча: один тик реплика показывается
-# исковерканной (в духе поломанного DDLC), следующий тик — нормальной.
+# Глитч срабатывает при неправильном пароле: определяется через faillock
+# (pam_faillock, включён в NixOS по умолчанию). При обнаружении свежей
+# ошибки аутентификации текст показывается исковерканным GLITCH_DURATION
+# секунд.
 #
 # Реплики — из Act 3 (Monika's Talk), в основном про выключение и включение
 # игры: для локскрина они в самый раз. [player] подставляется из $USER.
 
-MEAN=45
-MIN=12
-MAX=240
+MEAN=8
+SD=3
+MIN=3
+MAX=25
+
+GLITCH_DURATION=4
 
 STATE_DIR="${XDG_RUNTIME_DIR:-/tmp}/hypr-ddlc"
 CUR="$STATE_DIR/quote.txt"
 NEXT="$STATE_DIR/quote.next"
-GLITCH="$STATE_DIR/quote.glitch"
+GLITCH_UNTIL="$STATE_DIR/quote.glitch_until"
+LAST_FAIL_COUNT="$STATE_DIR/quote.fail_count"
 
 mkdir -p "$STATE_DIR"
 
@@ -50,17 +57,22 @@ Just Monika.
 EOF
 }
 
-exp_delay() {
-  awk -v m="$MEAN" -v lo="$MIN" -v hi="$MAX" -v seed="$(((RANDOM << 15) + RANDOM))" '
+# Гауссовская случайная задержка (Box-Muller transform).
+gauss_delay() {
+  awk -v m="$MEAN" -v s="$SD" -v lo="$MIN" -v hi="$MAX" -v seed="$(((RANDOM << 15) + RANDOM))" '
     BEGIN {
       srand(seed)
-      d = -m * log(1 - rand())
+      u1 = 1 - rand()
+      u2 = rand()
+      g = sqrt(-2 * log(u1)) * cos(6.2831853 * u2)
+      d = m + s * g
       if (d < lo) d = lo
       if (d > hi) d = hi
       printf "%d", d
     }'
 }
 
+# Глитч-трансформация текста: подменяет ~30% символов блочными/юникод-артефактами.
 glitch_text() {
   awk -v seed="$(((RANDOM << 15) + RANDOM))" '
     BEGIN {
@@ -77,18 +89,40 @@ glitch_text() {
     }'
 }
 
+# Определяем количество ошибок аутентификации через faillock.
+# pam_faillock включён в NixOS по умолчанию и ведёт базу в /run/faillock/.
+get_fail_count() {
+  if command -v faillock &>/dev/null; then
+    faillock --user "$USER" 2>/dev/null | awk 'NR > 2 { n++ } END { print n+0 }'
+  else
+    echo 0
+  fi
+}
+
 now=$(date +%s)
 next=$(cat "$NEXT" 2>/dev/null || echo 0)
 
+# --- Смена реплики ---
 if [[ ! -f "$CUR" ]] || ((now >= next)); then
   line=$(quotes | shuf -n 1)
   printf '%b\n' "${line//\[player\]/$USER}" >"$CUR"
-  echo $((now + $(exp_delay))) >"$NEXT"
-  ((RANDOM % 3 == 0)) && touch "$GLITCH" || true
+  echo $((now + $(gauss_delay))) >"$NEXT"
 fi
 
-if [[ -f "$GLITCH" ]]; then
-  rm -f "$GLITCH"
+# --- Детекция неправильного пароля → глитч ---
+current_fails=$(get_fail_count)
+last_fails=$(cat "$LAST_FAIL_COUNT" 2>/dev/null || echo 0)
+
+if ((current_fails > last_fails)); then
+  # Новая ошибка — включаем глитч на GLITCH_DURATION секунд
+  echo $((now + GLITCH_DURATION)) >"$GLITCH_UNTIL"
+fi
+echo "$current_fails" >"$LAST_FAIL_COUNT"
+
+# --- Вывод ---
+glitch_end=$(cat "$GLITCH_UNTIL" 2>/dev/null || echo 0)
+
+if ((now < glitch_end)); then
   glitch_text <"$CUR"
 else
   cat "$CUR"
