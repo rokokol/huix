@@ -9,6 +9,10 @@ Item {
 
     property url calmSource
     property url excitedSource
+    // Искажённые спрайты (для Юри со 2-й неудачи); если distorted — берутся они
+    property url distortedCalmSource
+    property url distortedExcitedSource
+    property bool distorted: false
     property real xMin: 0
     property real xMax: 200
     property int driftDuration: 9000
@@ -85,7 +89,9 @@ Item {
     Image {
         id: img
 
-        source: sprite.excitedNow ? sprite.excitedSource : sprite.calmSource
+        source: sprite.distorted
+                ? (sprite.excitedNow ? sprite.distortedExcitedSource : sprite.distortedCalmSource)
+                : (sprite.excitedNow ? sprite.excitedSource : sprite.calmSource)
         height: sprite.height
         width: sourceSize.height > 0 ? height * sourceSize.width / sourceSize.height : height
         fillMode: Image.PreserveAspectFit

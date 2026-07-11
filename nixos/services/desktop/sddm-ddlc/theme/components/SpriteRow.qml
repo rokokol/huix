@@ -7,7 +7,8 @@ import QtQuick
 Item {
     id: row
 
-    property bool justMonika: false
+    property int failCount: 0
+    readonly property bool justMonika: failCount >= 3
     // Ширина зон нижних углов (кнопки сессии слева, питания справа)
     property real sideReserve: 240
 
@@ -25,13 +26,19 @@ Item {
 
             calmSource: "../assets/" + modelData + "-sticker-calm.png"
             excitedSource: "../assets/" + modelData + "-sticker-excited.png"
+            // Юри со 2-й неудачи переключается на искажённые спрайты
+            distortedCalmSource: modelData === "yuri" ? "../assets/yuri-sticker-distorted-calm.png" : ""
+            distortedExcitedSource: modelData === "yuri" ? "../assets/yuri-sticker-distorted-excited.png" : ""
+            distorted: modelData === "yuri" && row.failCount >= 2
             isMonika: modelData === "monika"
             xMin: row.sideReserve + index * bandW + 10
             xMax: Math.max(xMin + 10, row.sideReserve + (index + 1) * bandW - width - 10)
             driftDuration: 4800 + index * 1100
             frozen: row.justMonika
             centerTo: (row.width - width) / 2
-            gone: row.justMonika && modelData !== "monika"
+            // Сайори уходит после 1-й неудачи; при пасхалке остаётся одна Моника
+            gone: (modelData === "sayori" && row.failCount >= 1)
+                  || (row.justMonika && modelData !== "monika")
         }
     }
 

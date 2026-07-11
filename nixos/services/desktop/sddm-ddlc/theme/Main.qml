@@ -36,6 +36,14 @@ Rectangle {
         anchors.fill: parent
         z: 0
         corrupted: root.justMonika
+        rough: root.failCount >= 2
+    }
+
+    // Зернистость фона с 1-й неудачи
+    GrainOverlay {
+        anchors.fill: parent
+        z: 1
+        active: root.failCount >= 1
     }
 
     // Часы
@@ -68,7 +76,7 @@ Rectangle {
         anchors.bottom: parent.bottom
         // Спрайты стоят над нижними кнопками и не пересекаются с ними
         anchors.bottomMargin: 88
-        justMonika: root.justMonika
+        failCount: root.failCount
         sideReserve: Math.max(leftControls.width, rightControls.width) + 40
     }
 

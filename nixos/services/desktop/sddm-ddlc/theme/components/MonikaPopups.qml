@@ -71,34 +71,39 @@ Item {
             smooth: true
             mipmap: true
             source: "../assets/just-monika-ok.png"
+            transformOrigin: Item.Center
 
             // Появление с лёгким «выпрыгиванием»
             scale: 0
-            Component.onCompleted: scale = 1
-            Behavior on scale {
-                NumberAnimation {
-                    duration: 260
-                    easing.type: Easing.OutBack
-                }
+            NumberAnimation on scale {
+                id: appear
+
+                from: 0
+                to: 1
+                duration: 260
+                easing.type: Easing.OutBack
             }
 
-            // Плавное исчезновение по клику: затухание, потом удаление из модели
+            // Закрытие по клику: окошко сжимается обратно и удаляется
             NumberAnimation {
-                id: fade
+                id: shrink
 
                 target: card
-                property: "opacity"
+                property: "scale"
                 to: 0
-                duration: 550
-                easing.type: Easing.InOutQuad
+                duration: 320
+                easing.type: Easing.InBack
                 onFinished: popups.closeCid(card.cid)
             }
 
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
-                enabled: !fade.running
-                onClicked: fade.start()
+                enabled: !shrink.running
+                onClicked: {
+                    appear.stop()
+                    shrink.start()
+                }
             }
         }
     }
