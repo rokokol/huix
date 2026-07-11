@@ -40,10 +40,11 @@ export HUIX
 QUOTES="$HUIX/assets/monika-talk.txt"
 REENTRY="$HUIX/assets/monika-reentry.txt"
 
-TEXT_W="${TEXT_W:-1084}"
-AVG_ADV=15                                   # средняя ширина глифа, px
-WRAP_CHARS=$((TEXT_W * 9 / (AVG_ADV * 10)))  # перенос с запасом ~10%
-BOX_LINES=3                                  # строк в текстовой области
+TEXT_W="${TEXT_W:-1114}"
+AVG_ADV=15                                  # средняя ширина глифа, px
+SPACE_ADV=8                                 # ширина пробела Doki, px
+WRAP_CHARS=$((TEXT_W * 9 / (AVG_ADV * 10))) # перенос с запасом ~10%
+BOX_LINES=3                                 # строк в текстовой области
 
 CPS=30 # скорость печати, символов в секунду
 
@@ -183,13 +184,14 @@ start_topic() {
   start_typing
 }
 
+# Мojibake-глифы рендерятся fallback-шрифтом с другими метриками строки —
+# без якорей глитч менял бы высоту текстуры и имя прыгало бы. Невидимые
+# крайние глифы держат метрики (и, симметрично, центровку) постоянными.
 cmd_name() {
   load_state
-  if (($(now_ms) < glitch_until_ms)); then
-    glitch_text <<<"Monika"
-  else
-    printf 'Monika'
-  fi
+  local name="Monika" anchor='<span alpha="1">�Жð</span>'
+  (($(now_ms) < glitch_until_ms)) && name=$(glitch_text <<<"$name")
+  printf '%s%s%s' "$anchor" "$name" "$anchor"
 }
 
 cmd_frame() {
@@ -289,17 +291,15 @@ cmd_frame() {
   ((n < ${#full})) && body+="<span alpha=\"1\">$(esc "${full:n}")</span>"
   ((fade_alpha < 65535)) && body="<span alpha=\"$fade_alpha\">$body</span>"
 
-  # Кадр всегда BOX_LINES строк + невидимая строка-ширина: добивка пустыми
-  # строками держит высоту текстуры постоянной (требует text_trim=false),
-  # строка-ширина — её ширину: у label нет ни width, ни привязки к углу,
-  # но при постоянном размере текстуры halign center + valign bottom дают
-  # фиксированный левый верх. letter_spacing в pango-юнитах: px * 768
-  # (1/1024 pt при 96 dpi).
+  # Кадр всегда BOX_LINES строк + строка-ширина из пробелов: добивка
+  # пустыми строками держит высоту текстуры постоянной, пробельная строка
+  # — её ширину (у label нет ни width, ни привязки к углу, но при
+  # постоянном размере текстуры halign center + valign bottom дают
+  # фиксированный левый верх). Требует text_trim=false в hyprlock.
   local nl pad=""
   nl=${full//[!$'\n']/}
   for ((i = ${#nl} + 1; i < BOX_LINES; i++)); do pad+=$'\n'; done
-  printf '%s%s\n<span alpha="1" letter_spacing="%d">.</span>' \
-    "$body" "$pad" $((TEXT_W * 768))
+  printf '%s%s\n%*s' "$body" "$pad" $((TEXT_W / SPACE_ADV)) ''
 
   # Во время печати кадр — функция от reveal_ms: состояние не меняется,
   # и на частом опросе писать его каждый тик незачем.
