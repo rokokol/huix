@@ -28,8 +28,14 @@ stdenvNoCC.mkDerivation {
       magick "$f" "$theme/assets/$(basename "$f" .webp).png"
     done
 
+    # Искажённые спрайты Юри уже в PNG — просто копируем
+    cp ${stickers}/*-distorted-*.png "$theme/assets/"
+
     # Картинка меню «Just Monika» из игры — для окошек пасхалки
     cp ${stickers}/just-monika-ok.png "$theme/assets/"
+
+    # Тайл серого шума для зернистости фона
+    magick -size 240x240 xc:gray50 +noise Random -colorspace Gray "$theme/assets/noise.png"
 
     runHook postInstall
   '';
