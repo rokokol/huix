@@ -31,6 +31,7 @@ in
         freecad
         gnome-disk-utility
         gnome-text-editor
+        obs-studio
         obsidian
         super-productivity
         tauon
@@ -116,7 +117,6 @@ in
 
           # --- Creative & audio ---
           aseprite
-          obs-studio
           easyeffects
           stable.gimp
           stable.gimpPlugins.gmic
@@ -131,7 +131,6 @@ in
       home.packages = with pkgs; [
         brightnessctl
         cheese
-        obs-studio
         powertop
       ];
     })

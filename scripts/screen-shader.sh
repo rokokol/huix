@@ -77,7 +77,7 @@ STATE_DIR="${XDG_RUNTIME_DIR:-/tmp}/hypr-shader"
 STATE="${XDG_STATE_HOME:-$HOME/.local/state}/huix/shader"
 
 # Порядок для листания (effect next/prev). none первым — это "выключено".
-EFFECTS=(none grayscale sepia invert warm cool vignette crt matrix posterize wave glitch)
+EFFECTS=(none grayscale sepia invert warm cool vignette sharpen crt matrix posterize wave glitch jpeg)
 
 # Анимированные эффекты (используют uniform time). Им нужен выключенный
 # damage tracking, иначе Hyprland не перерисовывает кадр.
@@ -87,7 +87,7 @@ ANIMATED=(wave glitch matrix)
 # При точном damage tracking (2) они читают непереисованные соседние области и
 # "ломаются" на быстрых изменениях экрана. Им нужна перерисовка ВСЕГО монитора
 # при любом изменении (damage_tracking 1), но в простое можно спать — анимации нет.
-OFFSET=(crt)
+OFFSET=(crt jpeg sharpen)
 
 # Эффекты, которые двигают пиксели ГЕОМЕТРИЧЕСКИ (кривизна/искажение). Для них
 # включаем ПРОГРАММНЫЙ курсор, чтобы он проходил через шейдер вместе с экраном:
@@ -98,13 +98,14 @@ WARP=(crt wave glitch)
 # Эмодзи и подписи для индикатора в waybar (status) — один источник правды.
 declare -A EMOJI=(
   [none]="🌈" [grayscale]="⚫" [sepia]="🟤" [invert]="🔄" [warm]="🌅"
-  [cool]="❄️" [vignette]="🎯" [crt]="📺" [matrix]="🟢" [posterize]="🎨"
-  [wave]="🌊" [glitch]="📡"
+  [cool]="❄️" [vignette]="🎯" [sharpen]="🔪" [crt]="📺" [matrix]="🟢"
+  [posterize]="🎨" [wave]="🌊" [glitch]="📡" [jpeg]="💾"
 )
 declare -A LABEL=(
   [none]="Обычный" [grayscale]="Чёрно-белый" [sepia]="Сепия" [invert]="Негатив"
-  [warm]="Тёплый (ночь)" [cool]="Холодный" [vignette]="Виньетка" [crt]="Кинескоп"
-  [matrix]="Матрица" [posterize]="Постеризация" [wave]="Волна" [glitch]="Глитч"
+  [warm]="Тёплый (ночь)" [cool]="Холодный" [vignette]="Виньетка" [sharpen]="Резкость"
+  [crt]="Кинескоп" [matrix]="Матрица" [posterize]="Постеризация" [wave]="Волна"
+  [glitch]="Глитч" [jpeg]="JPEG"
 )
 
 mkdir -p "$STATE_DIR"
