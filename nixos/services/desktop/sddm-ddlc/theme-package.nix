@@ -28,6 +28,9 @@ stdenvNoCC.mkDerivation {
       magick "$f" "$theme/assets/$(basename "$f" .webp).png"
     done
 
+    # Картинка меню «Just Monika» из игры — для окошек пасхалки
+    cp ${stickers}/just-monika-ok.png "$theme/assets/"
+
     runHook postInstall
   '';
 }

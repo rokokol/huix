@@ -93,7 +93,7 @@ Item {
     Text {
         id: corrupt
 
-        readonly property var pool: ["W̷r̸o̶n̵g̷ ̸p̶a̵s̷s̸w̶o̵r̷d̸", "░▒▓ ACCESS DENIED ▓▒░", "W̶r̸0̷n̵g̶ ̷p̸4̵s̶s̷w̸0̵r̶d̷", "̷̛͘͝?̸?̵?̶?̷?̸?̵?̶?̷", "err0r"]
+        readonly property var pool: ["░▒▓ ACCESS DENIED ▓▒░", "̷̛͘͝?̸?̵?̶?̷?̸?̵?̶?̷", "err0r", "▓▒░ 01000101 ░▒▓", "n̷u̸l̶l̵"]
 
         function reseed() {
             if (Math.random() < 0.25)

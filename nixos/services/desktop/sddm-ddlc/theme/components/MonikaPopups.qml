@@ -37,8 +37,7 @@ Item {
             // Не залезаем на нижнюю полосу со спрайтами и кнопками
             cards.append({
                 px: 30 + Math.random() * Math.max(1, popups.width - 290),
-                py: 30 + Math.random() * Math.max(1, popups.height - 420),
-                rot: (Math.random() - 0.5) * 12
+                py: 30 + Math.random() * Math.max(1, popups.height - 420)
             })
             spawned++
         }
@@ -47,18 +46,16 @@ Item {
     Repeater {
         model: cards
 
-        Rectangle {
+        Image {
             id: card
 
             x: px
             y: py
-            width: 230
-            height: 110
-            radius: 8
-            rotation: rot
-            color: config.panelColor
-            border.color: config.panelBorder
-            border.width: 4
+            width: 240
+            fillMode: Image.PreserveAspectFit
+            smooth: true
+            mipmap: true
+            source: "../assets/just-monika-ok.png"
 
             // Появление с лёгким «выпрыгиванием»
             scale: 0
@@ -68,38 +65,6 @@ Item {
                     duration: 260
                     easing.type: Easing.OutBack
                 }
-            }
-
-            // Полоска заголовка с крестиком, как у окна
-            Rectangle {
-                id: titleBar
-
-                width: parent.width - 8
-                height: 26
-                x: 4
-                y: 4
-                radius: 5
-                color: config.panelBorder
-
-                Text {
-                    anchors.right: parent.right
-                    anchors.rightMargin: 8
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: "✕"
-                    font.pixelSize: 14
-                    font.bold: true
-                    color: "white"
-                }
-            }
-
-            Text {
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.top: titleBar.bottom
-                anchors.topMargin: 18
-                text: "Just Monika."
-                font.family: config.font
-                font.pixelSize: 22
-                color: config.textDark
             }
 
             MouseArea {
