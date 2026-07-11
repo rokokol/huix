@@ -30,8 +30,9 @@ Item {
             y: (btn.height - implicitHeight) / 2 + modelData[1]
             text: btn.label
             font.family: config.font
-            font.pixelSize: 44
+            font.pixelSize: 36
             font.bold: true
+            font.letterSpacing: 6
             color: btn.outline
         }
     }
@@ -42,8 +43,9 @@ Item {
         anchors.centerIn: parent
         text: btn.label
         font.family: config.font
-        font.pixelSize: 44
+        font.pixelSize: 36
         font.bold: true
+        font.letterSpacing: 6
         color: "white"
     }
 

@@ -23,14 +23,14 @@ Item {
         loginRequested(userField.text, passwordField.text)
     }
 
-    width: 400
+    width: 420
     height: box.height
 
     Rectangle {
         id: box
 
         width: parent.width
-        height: content.height + 56
+        height: content.height + 76
         radius: 10
         color: config.panelColor
         border.color: config.panelBorder
@@ -41,17 +41,8 @@ Item {
         id: content
 
         anchors.centerIn: box
-        width: panel.width - 72
-        spacing: 14
-
-        Text {
-            width: parent.width
-            horizontalAlignment: Text.AlignHCenter
-            text: "Doki Doki Literature Club!"
-            font.family: config.font
-            font.pixelSize: 26
-            color: config.deepPink
-        }
+        width: panel.width - 108
+        spacing: 16
 
         DdlcTextField {
             id: userField

@@ -31,7 +31,7 @@ Item {
     }
 
     width: img.width
-    height: 120
+    height: 150
 
     opacity: gone ? 0 : 1
     Behavior on opacity {

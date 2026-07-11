@@ -11,7 +11,7 @@ Item {
     // Ширина зон нижних углов (кнопки сессии слева, питания справа)
     property real sideReserve: 240
 
-    height: 120
+    height: 150
 
     readonly property var girls: ["sayori", "monika", "natsuki", "yuri"]
 
@@ -28,7 +28,7 @@ Item {
             isMonika: modelData === "monika"
             xMin: row.sideReserve + index * bandW + 10
             xMax: Math.max(xMin + 10, row.sideReserve + (index + 1) * bandW - width - 10)
-            driftDuration: 7000 + index * 1700
+            driftDuration: 4800 + index * 1100
             frozen: row.justMonika
             centerTo: (row.width - width) / 2
             gone: row.justMonika && modelData !== "monika"
