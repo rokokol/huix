@@ -31,9 +31,9 @@ BRIGHT_DOWN="__bright_down__"
 # у активных и уровень яркости обновятся. Escape закроет.
 if [[ -n "${ROFI_INFO:-}" ]]; then
   case "$ROFI_INFO" in
-  "$BRIGHT_UP")   "$SS" bright up ;;
+  "$BRIGHT_UP") "$SS" bright up ;;
   "$BRIGHT_DOWN") "$SS" bright down ;;
-  *)              "$SS" effect toggle "$ROFI_INFO" ;;
+  *) "$SS" effect toggle "$ROFI_INFO" ;;
   esac
 fi
 
@@ -51,7 +51,7 @@ printf '\0message\x1fЭффект на весь экран · яркость %s%
 while IFS='|' read -r label value; do
   printf '%s\0info\x1f%s\n' "$label" "$value"
   if [[ "$value" == "none" ]]; then
-    printf '☀️ Яркость +\0info\x1f%s\n' "$BRIGHT_UP"
+    printf '🌕 Яркость +\0info\x1f%s\n' "$BRIGHT_UP"
     printf '🌑 Яркость −\0info\x1f%s\n' "$BRIGHT_DOWN"
   fi
 done < <("$SS" menu)
