@@ -44,6 +44,9 @@ let
   nameX = px (src.plateCx - src.boxW / 2); # центр плашки от центра экрана
   nameY = bottom + px (src.boxH - src.plateCy) - 18; # низ лейбла имени
 
+  quoteFontSize = 24;
+  fontPx = quoteFontSize * 4 / 3; # pango pt -> px @ 96dpi: метрики переноса
+
   # Все лейблы — на всех мониторах и одним шрифтом.
   mkLabel = l: { monitor = ""; font_family = "Doki"; } // l;
 in
@@ -122,7 +125,7 @@ in
         # вместе с текстом и с той же частотой. Розовая «обводка» — тень.
         {
           text = "cmd[update:33] ${quoteScript} name";
-          font_size = 26;
+          font_size = 28;
           color = "rgba(ffffffff)";
           shadow_passes = 3;
           shadow_size = 3;
@@ -138,8 +141,8 @@ in
         # текстовой области. Чёрная «обводка» — тень. Опрос 33 мс = плавная
         # печать ~1 символ/кадр при CPS=30.
         {
-          text = "cmd[update:33] TEXT_W=${toString textW} ${quoteScript} frame";
-          font_size = 24;
+          text = "cmd[update:33] TEXT_W=${toString textW} FONT_PX=${toString fontPx} ${quoteScript} frame";
+          font_size = quoteFontSize;
           color = "rgba(ffffffff)";
           shadow_passes = 4;
           shadow_size = 2;
@@ -154,12 +157,12 @@ in
         # Раскладка справа от поля ввода ($LAYOUT обновляется сам)
         {
           text = "$LAYOUT[EN,RU]";
-          font_size = 20;
+          font_size = 24;
           color = "rgba(ffffffdd)";
           shadow_passes = 2;
           shadow_size = 3;
           shadow_color = "rgba(e2679baa)";
-          position = "260, -20";
+          position = "240, -20";
           halign = "center";
           valign = "center";
         }
