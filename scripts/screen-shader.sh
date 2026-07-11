@@ -147,13 +147,17 @@ save_state() {
 effect_index() {
   local i
   for i in "${!EFFECTS[@]}"; do
-    [[ "${EFFECTS[$i]}" == "$1" ]] && { printf '%s' "$i"; return; }
+    [[ "${EFFECTS[$i]}" == "$1" ]] && {
+      printf '%s' "$i"
+      return
+    }
   done
   printf '%s' -1
 }
 
 in_list() {
-  local item="$1"; shift
+  local item="$1"
+  shift
   local x
   for x in "$@"; do
     [[ "$item" == "$x" ]] && return 0
@@ -166,7 +170,10 @@ in_list() {
 stack_position() {
   local i=1 x
   for x in "${stack[@]}"; do
-    [[ "$x" == "$1" ]] && { printf '%s' "$i"; return 0; }
+    [[ "$x" == "$1" ]] && {
+      printf '%s' "$i"
+      return 0
+    }
     i=$((i + 1))
   done
   return 1
@@ -186,16 +193,22 @@ samples_texture() {
 #   default    — только попиксельные эффекты: дефолт damage 2 + VFR (частичный ok).
 set_render_mode() {
   case "$1" in
-    animated)   hyprctl --batch "keyword debug:damage_tracking 0 ; keyword debug:vfr 0" >/dev/null ;;
-    fullstatic) hyprctl --batch "keyword debug:damage_tracking 1 ; keyword debug:vfr 1" >/dev/null ;;
-    *)          hyprctl --batch "keyword debug:damage_tracking 2 ; keyword debug:vfr 1" >/dev/null ;;
+  animated) hyprctl --batch "keyword debug:damage_tracking 0 ; keyword debug:vfr 0" >/dev/null ;;
+  fullstatic) hyprctl --batch "keyword debug:damage_tracking 1 ; keyword debug:vfr 1" >/dev/null ;;
+  *) hyprctl --batch "keyword debug:damage_tracking 2 ; keyword debug:vfr 1" >/dev/null ;;
   esac
 }
 
 render_mode_for() { # $@ = имена эффектов
   local n
-  for n in "$@"; do in_list "$n" "${ANIMATED[@]}" && { printf 'animated'; return; }; done
-  for n in "$@"; do in_list "$n" "${OFFSET[@]}"   && { printf 'fullstatic'; return; }; done
+  for n in "$@"; do in_list "$n" "${ANIMATED[@]}" && {
+    printf 'animated'
+    return
+  }; done
+  for n in "$@"; do in_list "$n" "${OFFSET[@]}" && {
+    printf 'fullstatic'
+    return
+  }; done
   printf 'default'
 }
 
@@ -203,14 +216,15 @@ render_mode_for() { # $@ = имена эффектов
 # идёт мимо шейдера. На NVIDIA "программный курсор" = воркэраунд аппаратного, так
 # что это безопасная сторона; аппаратный (false) — текущий дефолт.
 set_cursor_for() { # $@ = имена эффектов
-  local n
-  for n in "$@"; do
-    if in_list "$n" "${WARP[@]}"; then
-      hyprctl keyword cursor:no_hardware_cursors true >/dev/null
-      return
-    fi
-  done
-  hyprctl keyword cursor:no_hardware_cursors false >/dev/null
+  echo
+  # local n
+  # for n in "$@"; do
+  #   if in_list "$n" "${WARP[@]}"; then
+  #     hyprctl keyword cursor:no_hardware_cursors true >/dev/null
+  #     return
+  #   fi
+  # done
+  # hyprctl keyword cursor:no_hardware_cursors false >/dev/null
 }
 
 # Переименовать все топ-уровневые определения тела эффекта (effect, hash, …)
@@ -234,7 +248,8 @@ rename_defs() { # $1 = файл, $2 = суффикс
 # предыдущего. time в секундах от старта: если хоть один эффект его использует,
 # Hyprland перерисовывает кадр непрерывно; иначе uniform вычищается компилятором.
 emit_shader() {
-  local out="$1"; shift
+  local out="$1"
+  shift
   local bodies=("$@") b i=0
   {
     printf '#version 300 es\n'
@@ -292,7 +307,10 @@ apply() { # $1 (опц.) = transient: не сохранять состояние
     bodies=("$SHADER_DIR/none.frag")
   else
     while IFS= read -r e; do
-      [[ -f "$SHADER_DIR/$e.frag" ]] || { notify_error "Shader not found: $e"; exit 1; }
+      [[ -f "$SHADER_DIR/$e.frag" ]] || {
+        notify_error "Shader not found: $e"
+        exit 1
+      }
       bodies+=("$SHADER_DIR/$e.frag")
     done < <(ordered_stack)
   fi
@@ -375,19 +393,22 @@ clear_stack() {
 cmd_effect() {
   load_state
   case "${1:-}" in
-    push | add) push_effect "${2:?effect name required}" ;;
-    set)        set_single "${2:?effect name required}" ;;
-    toggle | off-or) toggle_effect "${2:?effect name required}" ;;
-    clear | off | none) clear_stack ;;
-    next | prev)
-      local cur="none" idx step n
-      [[ ${#stack[@]} -gt 0 ]] && cur="${stack[-1]}"
-      idx=$(effect_index "$cur")
-      n=${#EFFECTS[@]}
-      if [[ "$1" == "next" ]]; then step=1; else step=$((n - 1)); fi
-      set_single "${EFFECTS[$(((idx + step) % n))]}"
-      ;;
-    *) notify_error "Usage: effect push|set|toggle|clear|next|prev <name>"; exit 1 ;;
+  push | add) push_effect "${2:?effect name required}" ;;
+  set) set_single "${2:?effect name required}" ;;
+  toggle | off-or) toggle_effect "${2:?effect name required}" ;;
+  clear | off | none) clear_stack ;;
+  next | prev)
+    local cur="none" idx step n
+    [[ ${#stack[@]} -gt 0 ]] && cur="${stack[-1]}"
+    idx=$(effect_index "$cur")
+    n=${#EFFECTS[@]}
+    if [[ "$1" == "next" ]]; then step=1; else step=$((n - 1)); fi
+    set_single "${EFFECTS[$(((idx + step) % n))]}"
+    ;;
+  *)
+    notify_error "Usage: effect push|set|toggle|clear|next|prev <name>"
+    exit 1
+    ;;
   esac
 }
 
@@ -395,12 +416,18 @@ cmd_bright() {
   load_state
   local step="0.10"
   case "${1:-}" in
-    up)    bright=$(awk -v b="$bright" -v s="$step" 'BEGIN{v=b+s; if(v>1)v=1;    printf "%.2f", v}') ;;
-    down)  bright=$(awk -v b="$bright" -v s="$step" 'BEGIN{v=b-s; if(v<0.1)v=0.1; printf "%.2f", v}') ;;
-    reset) bright="1.00" ;;
-    set)   bright=$(awk -v b="${2:?value required}" 'BEGIN{v=b; if(v>1)v=1; if(v<0.1)v=0.1; printf "%.2f", v}') ;;
-    get)   awk -v b="$bright" 'BEGIN{printf "%d", b*100}'; return 0 ;;
-    *) notify_error "Usage: bright up|down|reset|set <0.10..1.00> | get"; exit 1 ;;
+  up) bright=$(awk -v b="$bright" -v s="$step" 'BEGIN{v=b+s; if(v>1)v=1;    printf "%.2f", v}') ;;
+  down) bright=$(awk -v b="$bright" -v s="$step" 'BEGIN{v=b-s; if(v<0.1)v=0.1; printf "%.2f", v}') ;;
+  reset) bright="1.00" ;;
+  set) bright=$(awk -v b="${2:?value required}" 'BEGIN{v=b; if(v>1)v=1; if(v<0.1)v=0.1; printf "%.2f", v}') ;;
+  get)
+    awk -v b="$bright" 'BEGIN{printf "%d", b*100}'
+    return 0
+    ;;
+  *)
+    notify_error "Usage: bright up|down|reset|set <0.10..1.00> | get"
+    exit 1
+    ;;
   esac
   apply
   # Синхронный тег: при удержании клавиши обновляется один попап, а не спамит лентой.
@@ -502,16 +529,25 @@ cmd_menu() {
 }
 
 case "${1:-}" in
-  effect)  shift; cmd_effect "$@" ;;
-  bright)  shift; cmd_bright "$@" ;;
-  flash)   shift; cmd_flash "$@" ;;
-  restore) cmd_restore ;;
-  status)  cmd_status ;;
-  menu)    cmd_menu ;;
-  help | -h | --help) usage ;;
-  *)
-    usage >&2
-    notify_error "Usage: screen-shader.sh effect|bright|restore|status|menu|help"
-    exit 1
-    ;;
+effect)
+  shift
+  cmd_effect "$@"
+  ;;
+bright)
+  shift
+  cmd_bright "$@"
+  ;;
+flash)
+  shift
+  cmd_flash "$@"
+  ;;
+restore) cmd_restore ;;
+status) cmd_status ;;
+menu) cmd_menu ;;
+help | -h | --help) usage ;;
+*)
+  usage >&2
+  notify_error "Usage: screen-shader.sh effect|bright|restore|status|menu|help"
+  exit 1
+  ;;
 esac
