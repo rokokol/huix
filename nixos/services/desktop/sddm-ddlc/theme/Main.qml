@@ -10,7 +10,14 @@ Rectangle {
     // Размеры по умолчанию для test-mode; в реальном greeter их задаёт SDDM
     width: 1280
     height: 720
-    color: config.bgColor
+
+    // Фон реагирует на неудачи: 1-я и 2-я слегка затемняют, 3-я — чёрный
+    color: justMonika ? "black" : Qt.darker(config.bgColor, 1 + failCount * 0.13)
+    Behavior on color {
+        ColorAnimation {
+            duration: 3000
+        }
+    }
 
     property int failCount: 0
     readonly property bool justMonika: failCount >= 3
@@ -28,19 +35,7 @@ Rectangle {
     DotsBackground {
         anchors.fill: parent
         z: 0
-    }
-
-    // Лёгкое затемнение, когда остаётся одна Моника
-    Rectangle {
-        anchors.fill: parent
-        z: 1
-        color: "#1A0A12"
-        opacity: root.justMonika ? 0.22 : 0
-        Behavior on opacity {
-            NumberAnimation {
-                duration: 1500
-            }
-        }
+        corrupted: root.justMonika
     }
 
     // Часы
