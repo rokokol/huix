@@ -1,13 +1,13 @@
-{ huixDir, ... }:
+{ ... }:
 
 {
   services.hypridle = {
     enable = true;
     settings = {
       general = {
-        # Обёртка lock: готовит первый кадр диалога (пустой бокс) и exec
-        # hyprlock; реплику перезахода скрипт запускает сам по смене PID.
-        lock_cmd = "pidof hyprlock || ${huixDir}/scripts/hyprlock-quote.sh lock";
+        # Реплику перезахода при новом локе hyprlock-quote.sh определяет сам
+        # по смене PID hyprlock — hypridle ничего сбрасывать не должен.
+        lock_cmd = "pidof hyprlock || hyprlock";
         before_sleep_cmd = "loginctl lock-session"; # block until the sleep
         after_sleep_cmd = "hyprctl dispatch dpms on"; # turn on the screen on wakeup
       };

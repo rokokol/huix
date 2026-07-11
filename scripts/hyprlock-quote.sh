@@ -6,32 +6,31 @@ usage() {
   cat <<'EOF'
 hyprlock-quote.sh — диалог Моники для DDLC-локскрина
 
-Скрипт рендерит диалоговый бокс (фон + имя + реплика) целиком в PNG
-ImageMagick'ом; hyprlock показывает его image-виджетом с reload_time=1.
-
-Режимы:
-  frame   тик машины состояний (дёргается reload_cmd раз в секунду):
-          реплики из assets/monika-talk.txt топик за топиком, длительность
-          реплики = время чтения + Exp(1/7), пустой бокс Exp(1/60) между
+Режимы (дёргаются label cmd[update:N] из hyprlock.nix):
+  frame   кадр диалога pango-разметкой: побуквенная печать реплик из
+          assets/monika-talk.txt топик за топиком, пауза Exp(1/7) после
+          реплики, плавное затухание, пустой бокс Exp(1/60) между
           топиками. Первый топик при каждом локе — из monika-reentry.txt
-          (Act 3 re-entry), в случайную ротацию эти реплики не попадают.
-          Печатает путь к текущему PNG; сам рендер уходит в фон, чтобы
-          не блокировать hyprlock (reload_cmd синхронный)
-  lock    обёртка для hypridle lock_cmd: подготовить первый кадр и exec
-          hyprlock
-  render  <имя> <текст> — внутренний фоновой рендер кадра
+          (Act 3 re-entry), в случайную ротацию эти реплики не попадают
+  name    имя на плашке ("Monika")
   help    эта справка
+
+Печать — приём Ren'Py: каждый кадр рендерится вся реплика целиком, а ещё
+не «напечатанный» хвост прячется в прозрачный span. Размер текстуры от
+этого постоянен всю жизнь реплики, и текст прибит к месту без всяких
+измерений шрифта; перенос строк — просто fold по числу символов.
 
 Глитчи — единый механизм для неправильного пароля (pam-ошибка hyprlock в
 журнале) и спонтанных срабатываний (пуассоновский поток): экран глитчится
 через `screen-shader.sh flash glitch` (композиция поверх активного эффекта),
 одновременно имя и текст коверкаются «сломанной кодировкой»; текст глитчит
-дольше шейдера и перерисовывается каждый тик — мусор «живёт».
+дольше шейдера.
 
-Шрифт берётся из системы (fc-match Doki — с fallback'ом, если Doki нет).
-Состояние — $XDG_RUNTIME_DIR/hypr-ddlc; кадр и кэш подложки —
-~/.cache/huix (путь к кадру стабилен: его знает hyprlock.nix). Новый лок
-распознаётся по смене PID hyprlock и начинает диалог с реплики перезахода.
+Геометрию задаёт hyprlock.nix через окружение:
+  TEXT_W  ширина текстовой области бокса, px (деф. 1084)
+
+Состояние — $XDG_RUNTIME_DIR/hypr-ddlc; новый лок распознаётся по смене
+PID hyprlock и начинает диалог с реплики перезахода.
 EOF
 }
 
@@ -40,11 +39,15 @@ export HUIX
 
 QUOTES="$HUIX/assets/monika-talk.txt"
 REENTRY="$HUIX/assets/monika-reentry.txt"
-BOX_ASSET="$HUIX/assets/ddlc-stickers/dialog_box.png"
 
-CPS=30 # скорость чтения, символов в секунду (доля показа реплики)
+TEXT_W="${TEXT_W:-1084}"
+AVG_ADV=15                                   # средняя ширина глифа, px
+WRAP_CHARS=$((TEXT_W * 9 / (AVG_ADV * 10)))  # перенос с запасом ~10%
+BOX_LINES=3                                  # строк в текстовой области
 
-LINE_MEAN=7 # пауза после прочтения реплики: Exp(1/7), сек
+CPS=30 # скорость печати, символов в секунду
+
+LINE_MEAN=7 # пауза после реплики: Exp(1/7), сек
 LINE_MIN=2
 LINE_MAX=40
 
@@ -58,46 +61,41 @@ GLITCH_MAX=600
 GLITCH_SHADER_SEC=1.2 # длительность глитч-шейдера
 GLITCH_TEXT_MS=3600   # текст глитчит дольше шейдера
 
-# Геометрия кадра: подложка = бокс из ассета, -trim + 200% -> 1632x370.
-# Плашка имени и текстовая область — координаты на этом холсте.
-NAME_PT=52
-NAME_BOX=336x76
-NAME_XY=+68+0
-NAME_OUTLINE='#e2679b' # розовая обводка имени
-TEXT_PT=46
-TEXT_W=1432
-TEXT_XY=+100+106
-TEXT_OUTLINE='#000000ff' # обводка реплик
-TEXT_STROKE=1            # её толщина, px холста
-
-CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/huix"
-OUT="$CACHE_DIR/hyprlock-dialog.png" # путь стабильный — прошит в hyprlock.nix
-BASE="$CACHE_DIR/hyprlock-dialog-base.png"
+FADE_MS=600 # плавное исчезновение реплики
 
 STATE_DIR="${XDG_RUNTIME_DIR:-/tmp}/hypr-ddlc"
-STATE="$STATE_DIR/state"       # sourceable-переменные машины состояний
-TOPIC="$STATE_DIR/topic.txt"   # несказанные реплики текущего топика
-CUR="$STATE_DIR/cur.txt"       # текущая реплика
-RENDERED="$STATE_DIR/rendered" # ключ (cksum) последнего отрендеренного кадра
+STATE="$STATE_DIR/state"     # sourceable-переменные машины состояний
+TOPIC="$STATE_DIR/topic.txt" # несказанные реплики текущего топика
+CUR="$STATE_DIR/cur.txt"     # текущая реплика, уже с переносами
 
 # Дефолты состояния (первый запуск = сразу реплика перезахода).
 phase=reentry
 until_ms=0
+reveal_ms=0
 next_glitch_ms=0
 glitch_until_ms=0
+fail_chk=0
 fail_ts=""
 last_pid=""
 
+# Единый список полей машины состояний: save/snapshot не разъезжаются
+# при добавлении поля.
+STATE_VARS=(phase until_ms reveal_ms next_glitch_ms glitch_until_ms fail_chk fail_ts last_pid)
+
 load_state() {
   # shellcheck disable=SC1090
-  [[ -f "$STATE" ]] && source "$STATE" || true
+  [[ ! -f "$STATE" ]] || source "$STATE"
 }
 
 save_state() {
-  printf 'phase=%s\nuntil_ms=%s\nnext_glitch_ms=%s\nglitch_until_ms=%s\nfail_ts=%q\nlast_pid=%q\n' \
-    "$phase" "$until_ms" "$next_glitch_ms" "$glitch_until_ms" \
-    "$fail_ts" "$last_pid" >"$STATE.tmp"
+  local v
+  for v in "${STATE_VARS[@]}"; do printf '%s=%q\n' "$v" "${!v}"; done >"$STATE.tmp"
   mv "$STATE.tmp" "$STATE"
+}
+
+state_snapshot() {
+  local v
+  for v in "${STATE_VARS[@]}"; do printf '%s|' "${!v}"; done
 }
 
 # Экспоненциальная случайная пауза в мс: $1 = mean, $2 = min, $3 = max (сек).
@@ -122,28 +120,18 @@ new_topic() {
   ' "$1" >"$TOPIC"
 }
 
-# Снять первую реплику топика в $CUR; 1 — топик пуст.
+# Снять первую реплику топика в $CUR (с переносами); 1 — топик пуст.
 next_line() {
   local line
   line=$(head -n 1 "$TOPIC" 2>/dev/null || true)
   [[ -n "$line" ]] || return 1
   sed -i '1d' "$TOPIC"
-  printf '%s' "${line//\[player\]/$USER}" >"$CUR"
+  printf '%s\n' "${line//\[player\]/$USER}" |
+    fold -s -w "$WRAP_CHARS" | sed 's/ *$//' >"$CUR"
 }
 
-# Показать текущую реплику: висит время чтения (len/CPS) + Exp(1/7).
-show_line() {
-  phase=shown
-  until_ms=$((now_ms + $(wc -m <"$CUR") * 1000 / CPS + $(exp_ms "$LINE_MEAN" "$LINE_MIN" "$LINE_MAX")))
-}
-
-start_topic() {
-  new_topic "$1"
-  next_line
-  show_line
-}
-
-# «Сломанная кодировка»: ~30% символов подменяются mojibake-глифами.
+# «Сломанная кодировка»: ~30% символов подменяются mojibake-глифами;
+# перегенерируется на каждый вызов — мусор «живёт».
 glitch_text() {
   awk -v seed="$(((RANDOM << 15) + RANDOM))" '
     BEGIN {
@@ -176,104 +164,87 @@ now_ms() {
   printf '%s' "${t:0:-3}"
 }
 
-frame_key() {
-  printf '%s\x1f%s' "$1" "$2" | cksum
+esc() {
+  local s="$1"
+  s=${s//&/&amp;}
+  s=${s//</&lt;}
+  s=${s//>/&gt;}
+  printf '%s' "$s"
 }
 
-# Подложка кадра: бокс из ассета без прозрачных полей, 2x для чёткости.
-ensure_base() {
-  [[ -f "$BASE" && "$BASE" -nt "$BOX_ASSET" ]] && return 0
-  mkdir -p "$CACHE_DIR"
-  magick "$BOX_ASSET" -trim +repage -resize 200% "$BASE.tmp.png"
-  mv "$BASE.tmp.png" "$BASE"
+start_typing() {
+  phase=typing
+  reveal_ms=$now_ms
 }
 
-# Рендер кадра: подложка + имя (белое с розовой обводкой через morphology
-# dilate альфы) + реплика (двухпроходный caption: обводка цветом игры,
-# затем белая заливка — раскладка проходов идентична, stroke не меняет
-# метрики).
-# Однокадровый фоновой процесс: очередной тик frame его перезапустит, если
-# желаемый кадр успел смениться. label:/caption:@файл — чтобы % и \ в
-# тексте не интерпретировались ImageMagick'ом.
-cmd_render() {
-  local name="$1" text="$2"
-  mkdir -p "$STATE_DIR" "$CACHE_DIR"
-  exec 9>"$STATE_DIR/.render.lock"
-  flock -n 9 || exit 0
+start_topic() {
+  new_topic "$1"
+  next_line
+  start_typing
+}
 
-  ensure_base
-  local font
-  font=$(fc-match -f '%{file}' Doki)
-  tmpd=$(mktemp -d "$STATE_DIR/render.XXXXXX")
-  trap 'rm -rf "${tmpd:-}"' EXIT
-  printf '%s' "$name" >"$tmpd/name"
-
-  local args=(
-    "$BASE"
-    \( -background none -font "$font" -pointsize "$NAME_PT"
-    -fill white label:@"$tmpd/name"
-    \( +clone -channel A -morphology dilate disk:3.5 +channel
-    -fill "$NAME_OUTLINE" -channel RGB -colorize 100 +channel \)
-    +swap -composite -bordercolor none -border 8
-    -gravity center -extent "$NAME_BOX" \)
-    -gravity northwest -geometry "$NAME_XY" -composite
-  )
-  if [[ -n "$text" ]]; then
-    printf '%s' "$text" >"$tmpd/text"
-    local pass
-    for pass in "-fill $TEXT_OUTLINE -stroke $TEXT_OUTLINE -strokewidth $TEXT_STROKE" "-fill white"; do
-      # shellcheck disable=SC2206
-      args+=(
-        \( -background none -font "$font" -pointsize "$TEXT_PT"
-        -interline-spacing 4 -size "${TEXT_W}x" $pass caption:@"$tmpd/text" \)
-        -geometry "$TEXT_XY" -composite
-      )
-    done
+cmd_name() {
+  load_state
+  if (($(now_ms) < glitch_until_ms)); then
+    glitch_text <<<"Monika"
+  else
+    printf 'Monika'
   fi
-  args+=("$tmpd/out.png")
-
-  magick "${args[@]}"
-  mv "$tmpd/out.png" "$OUT"
-  frame_key "$name" "$text" >"$RENDERED"
 }
 
 cmd_frame() {
   [[ -d "$STATE_DIR" ]] || mkdir -p "$STATE_DIR"
   load_state
+  local state_in
+  state_in=$(state_snapshot)
   now_ms=$(now_ms)
 
-  # Новый лок (смена PID hyprlock) -> диалог с реплики перезахода.
-  local pid
-  pid=$(pidof hyprlock 2>/dev/null) || pid=""
-  pid=${pid%% *}
-  if [[ -n "$pid" && "$pid" != "$last_pid" ]]; then
-    last_pid="$pid"
-    phase=reentry
+  # Тяжёлые проверки (скан /proc, журнал) — не чаще раза в секунду.
+  if ((now_ms / 1000 > fail_chk)); then
+    fail_chk=$((now_ms / 1000))
+
+    # Новый лок (смена PID hyprlock) -> диалог с реплики перезахода.
+    local pid
+    pid=$(pidof hyprlock 2>/dev/null) || pid=""
+    pid=${pid%% *}
+    if [[ -n "$pid" && "$pid" != "$last_pid" ]]; then
+      last_pid="$pid"
+      phase=reentry
+    fi
+
+    # Неправильный пароль (pam-ошибка hyprlock в журнале) -> глитч.
+    local last
+    last=$(journalctl -q -t hyprlock -S -5s -g 'authentication failure' \
+      -o short-unix 2>/dev/null | tail -n 1 | cut -d' ' -f1) || true
+    if [[ -n "$last" && "$last" != "$fail_ts" ]]; then
+      fail_ts="$last"
+      fire_glitch
+    fi
   fi
 
-  # Неправильный пароль (pam-ошибка hyprlock в журнале) -> глитч.
-  local last
-  last=$(journalctl -q -t hyprlock -S -5s -g 'authentication failure' \
-    -o short-unix 2>/dev/null | tail -n 1 | cut -d' ' -f1) || true
-  if [[ -n "$last" && "$last" != "$fail_ts" ]]; then
-    fail_ts="$last"
-    fire_glitch
-  fi
-
-  # Спонтанные глитчи: пуассоновский поток.
-  ((next_glitch_ms > 0)) || next_glitch_ms=$((now_ms + $(exp_ms "$GLITCH_MEAN" "$GLITCH_MIN" "$GLITCH_MAX")))
+  # Спонтанные глитчи: пуассоновский поток. 0 — ещё не запланирован,
+  # тогда только назначаем первый интервал, без срабатывания.
   if ((now_ms >= next_glitch_ms)); then
+    ((next_glitch_ms > 0)) && fire_glitch
     next_glitch_ms=$((now_ms + $(exp_ms "$GLITCH_MEAN" "$GLITCH_MIN" "$GLITCH_MAX")))
-    fire_glitch
   fi
 
-  # Машина состояний: reentry -> shown -> ... -> gap -> shown -> ...
+  # Машина состояний: reentry -> typing -> shown -> fadeout -> typing|gap.
   case "$phase" in
-    reentry) start_topic "$REENTRY" ;;
+    reentry)
+      start_topic "$REENTRY"
+      ;;
     shown)
       if ((now_ms >= until_ms)); then
+        phase=fadeout
+        reveal_ms=$now_ms # старт затухания
+        until_ms=$((now_ms + FADE_MS))
+      fi
+      ;;
+    fadeout)
+      if ((now_ms >= until_ms)); then
         if next_line; then
-          show_line
+          start_typing
         else
           phase=gap
           until_ms=$((now_ms + $(exp_ms "$TOPIC_MEAN" "$TOPIC_MIN" "$TOPIC_MAX")))
@@ -287,43 +258,60 @@ cmd_frame() {
       ;;
   esac
 
-  # Желаемый кадр; во время глитча имя и текст коверкаются заново каждый
-  # тик — ключ кадра меняется сам собой, рендер перезапускается.
-  local name="Monika" text=""
-  [[ "$phase" == "gap" ]] || text=$(<"$CUR")
-  if ((now_ms < glitch_until_ms)); then
-    name=$(glitch_text <<<"$name")
-    [[ -n "$text" ]] && text=$(glitch_text <<<"$text")
+  # Кадр: вся реплика целиком, ненапечатанный хвост — прозрачным span'ом
+  # (приём Ren'Py). Размер текстуры постоянен всю жизнь реплики.
+  local full="" n=0 fade_alpha=65535
+  if [[ "$phase" != "gap" ]]; then
+    full=$(<"$CUR")
+    case "$phase" in
+      typing)
+        n=$(((now_ms - reveal_ms) * CPS / 1000))
+        if ((n >= ${#full})); then
+          phase=shown
+          until_ms=$((now_ms + $(exp_ms "$LINE_MEAN" "$LINE_MIN" "$LINE_MAX")))
+          n=${#full}
+        fi
+        ;;
+      fadeout)
+        n=${#full}
+        fade_alpha=$((65535 - 65535 * (now_ms - reveal_ms) / FADE_MS))
+        ((fade_alpha >= 1)) || fade_alpha=1
+        ;;
+      *)
+        n=${#full}
+        ;;
+    esac
+    ((now_ms < glitch_until_ms)) && full=$(glitch_text <<<"$full")
   fi
 
-  # Рендер в фоне: reload_cmd синхронный, блокировать hyprlock на время
-  # magick нельзя. hyprlock подхватит кадр по mtime на следующем тике.
-  if [[ "$(frame_key "$name" "$text")" != "$(cat "$RENDERED" 2>/dev/null)" ]]; then
-    nohup "$0" render "$name" "$text" </dev/null >/dev/null 2>&1 &
-    disown
-  fi
+  local body
+  body=$(esc "${full:0:n}")
+  ((n < ${#full})) && body+="<span alpha=\"1\">$(esc "${full:n}")</span>"
+  ((fade_alpha < 65535)) && body="<span alpha=\"$fade_alpha\">$body</span>"
 
-  save_state
-  printf '%s' "$OUT"
-}
+  # Кадр всегда BOX_LINES строк + невидимая строка-ширина: добивка пустыми
+  # строками держит высоту текстуры постоянной (требует text_trim=false),
+  # строка-ширина — её ширину: у label нет ни width, ни привязки к углу,
+  # но при постоянном размере текстуры halign center + valign bottom дают
+  # фиксированный левый верх. letter_spacing в pango-юнитах: px * 768
+  # (1/1024 pt при 96 dpi).
+  local nl pad=""
+  nl=${full//[!$'\n']/}
+  for ((i = ${#nl} + 1; i < BOX_LINES; i++)); do pad+=$'\n'; done
+  printf '%s%s\n<span alpha="1" letter_spacing="%d">.</span>' \
+    "$body" "$pad" $((TEXT_W * 768))
 
-# Обёртка hypridle lock_cmd: первый кадр (пустой бокс вместо реплики
-# прошлого лока) готовится в фоне и успевает до первой отрисовки.
-cmd_lock() {
-  mkdir -p "$STATE_DIR"
-  rm -f "$RENDERED"
-  nohup "$0" render "Monika" "" </dev/null >/dev/null 2>&1 &
-  disown
-  exec hyprlock
+  # Во время печати кадр — функция от reveal_ms: состояние не меняется,
+  # и на частом опросе писать его каждый тик незачем.
+  [[ -f "$STATE" && "$state_in" == "$(state_snapshot)" ]] || save_state
 }
 
 case "${1:-frame}" in
-frame) cmd_frame ;;
-lock) cmd_lock ;;
-render) cmd_render "${2:-Monika}" "${3:-}" ;;
-help | -h | --help) usage ;;
-*)
-  usage >&2
-  exit 1
-  ;;
+  frame) cmd_frame ;;
+  name) cmd_name ;;
+  help | -h | --help) usage ;;
+  *)
+    usage >&2
+    exit 1
+    ;;
 esac
