@@ -44,12 +44,14 @@ printf '\0keep-selection\x1ftrue\n'
 # Текущий уровень софт-яркости — в message над списком, обновляется на каждый тык.
 printf '\0message\x1fЭффект на весь экран · яркость %s%%\n' "$("$SS" bright get)"
 
-# Кнопки регулировки софт-яркости (сверху списка, чтобы удобно жать подряд).
-printf '🔆 Яркость +\0info\x1f%s\n' "$BRIGHT_UP"
-printf '🔅 Яркость −\0info\x1f%s\n' "$BRIGHT_DOWN"
-
 # Печатаем эффекты: видимая подпись + скрытое значение (info). Активные помечены
-# номером применения (01. 02. …) — см. cmd_menu в screen-shader.sh.
+# номером применения (01. 02. …) — см. cmd_menu в screen-shader.sh. Сразу после
+# «Обычный» (сброс) вставляем кнопки регулировки софт-яркости — разные эмодзи
+# (☀️ ярче / 🌑 темнее) для наглядности; вместе с keep-selection удобно жать подряд.
 while IFS='|' read -r label value; do
   printf '%s\0info\x1f%s\n' "$label" "$value"
+  if [[ "$value" == "none" ]]; then
+    printf '☀️ Яркость +\0info\x1f%s\n' "$BRIGHT_UP"
+    printf '🌑 Яркость −\0info\x1f%s\n' "$BRIGHT_DOWN"
+  fi
 done < <("$SS" menu)
