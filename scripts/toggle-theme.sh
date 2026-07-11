@@ -4,13 +4,13 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-toggle_theme.sh — тумблер light/dark темы (бинд SUPER+A)
+toggle-theme.sh — тумблер light/dark темы (бинд SUPER+A)
 
 Использование:
-  toggle_theme.sh           переключить тему на противоположную
-  toggle_theme.sh --sync    только привести систему к сохранённому выбору
+  toggle-theme.sh           переключить тему на противоположную
+  toggle-theme.sh --sync    только привести систему к сохранённому выбору
                             (exec на каждом reload Hyprland)
-  toggle_theme.sh --help    эта справка
+  toggle-theme.sh --help    эта справка
 
 Тема живёт в рантайме, не в Nix: скрипт флипает color-scheme + gtk-theme в
 dconf и подменяет симлинк темы rofi. Выбор хранится durable в

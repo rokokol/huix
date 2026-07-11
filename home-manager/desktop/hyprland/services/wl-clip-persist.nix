@@ -1,8 +1,9 @@
 { pkgs, ... }:
 
-# Persistent Wayland clipboard daemon. A user-session service, so it lives in
-# HM alongside the other graphical-session units (mako, hypridle, swayosd),
-# not in nixos/. wl-clipboard (wl-copy/wl-paste) comes from other HM modules.
+# Демон персистентного буфера обмена Wayland. Сервис пользовательской сессии,
+# поэтому живёт в HM рядом с остальными graphical-session юнитами (mako,
+# hypridle, swayosd), а не в nixos/. wl-clipboard (wl-copy/wl-paste) приходит
+# из других HM-модулей.
 {
   home.packages = [ pkgs.wl-clip-persist ];
 

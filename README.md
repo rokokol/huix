@@ -67,7 +67,7 @@ sudo nixos-generate-config --show-hardware-config > nixos/<host>/hardware-config
 - **Ежечасный sync-таймер сам пушит изменения** — `home-manager/desktop/sync.nix` гоняет `scripts/sync.sh`: `pull --rebase` → `add -u` → `commit` → `push`. Из-за `add -u` новый файл без `git add` тихо не уедет в upstream. Пуллься перед правкой на другом хосте
 - **Осмысленные правки коммить руками** (и агентам — тоже): отдельный коммит с нормальным сообщением на каждое логическое изменение, не дожидаясь sync-таймера — он лепит всё подряд в безликие «sync …»
 - **`HUIX`** указывает на этот репо и читается скриптами и алиасами — не хардкодь `/home/rokokol/huix`, бери `$HUIX` в скриптах и `huixDir` в Nix
-- **Тема свет/тьма — рантайм, не декларатив** — `scripts/toggle_theme.sh` (`SUPER+A`) флипает dconf и пишет выбор в state. Не клади `color-scheme`/`gtk-theme` в HM, иначе `dconf load` на ребилде сбивает выбор
+- **Тема свет/тьма — рантайм, не декларатив** — `scripts/toggle-theme.sh` (`SUPER+A`) флипает dconf и пишет выбор в state. Не клади `color-scheme`/`gtk-theme` в HM, иначе `dconf load` на ребилде сбивает выбор
 - **Все сервисы биндятся на `127.0.0.1`** — наружу firewall ничего не открывает, см. [таблицу портов](nixos/services/README.md#порты-и-биндинги)
 - **`backupFileExtension = "bak-${lastModified}"`** — старые `.bak` копятся в `$HOME` после каждого ребилда с новой ревизии, периодически чисти
 

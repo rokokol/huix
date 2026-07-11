@@ -1,21 +1,21 @@
 { pkgs, ... }:
 
-# nix-ld provides an ld.so for non-Nix dynamically linked binaries: anything
-# downloaded outside Nix (vendor SDKs, prebuilt CLIs, IDE servers, MATLAB,
-# workshop tarballs) finds its shared libs via NIX_LD instead of dying with
-# "No such file or directory". The library list below is the FHS-ish baseline
-# that makes a NixOS box behave "like Debian/Mint" for foreign binaries.
+# nix-ld даёт ld.so для не-Nix динамически слинкованных бинарников: всё, что
+# скачано вне Nix (вендорские SDK, пребилт-CLI, IDE-серверы, MATLAB, тарболлы с
+# воркшопов), находит свои shared-либы через NIX_LD, а не умирает с
+# "No such file or directory". Список ниже — FHS-подобная база, из-за которой
+# NixOS-машина ведёт себя «как Debian/Mint» для чужих бинарников.
 #
-# If a specific binary still complains about a missing `lib*.so`, find the
-# providing package and add it here — that is the whole maintenance loop.
-# For the heavy/edge cases prefer wrapping the binary: `steam-run ./foo`
-# (see ./appimage.nix), which gives it a full FHS sandbox.
+# Если конкретный бинарник всё ещё жалуется на отсутствующий `lib*.so`, найди
+# пакет, который его даёт, и добавь сюда — в этом весь цикл поддержки.
+# Для тяжёлых/краевых случаев лучше оборачивать бинарник: `steam-run ./foo`
+# (см. ./appimage.nix), это даёт ему полный FHS-песочник.
 
 {
   programs.nix-ld.enable = true;
 
   programs.nix-ld.libraries = with pkgs; [
-    # Core C/C++ runtime + system glue
+    # Ядро C/C++ рантайма + системный клей
     stdenv.cc.cc
     stdenv.cc.cc.lib
     zlib
@@ -39,8 +39,8 @@
     expat
     pcre2
 
-    # Graphics / GL / Vulkan. NVIDIA userspace is appended per-host from
-    # nixos/pc/nvidia.nix so its version matches hardware.nvidia.package.
+    # Графика / GL / Vulkan. Userspace NVIDIA домешивается per-host из
+    # nixos/pc/nvidia.nix, чтобы его версия совпадала с hardware.nvidia.package.
     libGL
     libglvnd
     libdrm
@@ -48,7 +48,7 @@
     vulkan-loader
     libgbm
 
-    # GUI toolkits (GTK/Qt apps, Electron, browsers)
+    # GUI-тулкиты (GTK/Qt приложения, Electron, браузеры)
     glib
     gtk3
     gdk-pixbuf
@@ -70,7 +70,7 @@
     libappindicator-gtk3
     librsvg
 
-    # X11 / Wayland client libs (xorg.* set is deprecated → top-level lib* names)
+    # Клиентские либы X11 / Wayland (набор xorg.* устарел → имена lib* верхнего уровня)
     libx11
     libxext
     libxrender
@@ -88,12 +88,12 @@
     libxkbcommon
     wayland
 
-    # Audio
+    # Звук
     alsa-lib
     libpulseaudio
     pipewire
 
-    # Media / misc commonly-linked
+    # Медиа / прочее часто линкуемое
     ffmpeg
     libusb1
     libuv

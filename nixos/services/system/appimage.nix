@@ -1,15 +1,15 @@
 { pkgs, ... }:
 
-# Run foreign binaries the "just works" way, two complementary tools:
+# Запуск чужих бинарников «чтобы просто работало», два дополняющих инструмента:
 #
-#   * programs.appimage.binfmt — registers a binfmt_misc handler so you can run
-#     any *.AppImage directly (./Foo.AppImage), no chmod-and-pray, no extractor.
-#     This is the typical workshop/master-class delivery format.
+#   * programs.appimage.binfmt — регистрирует обработчик binfmt_misc, чтобы
+#     запускать любой *.AppImage напрямую (./Foo.AppImage), без chmod-and-pray и
+#     распаковки. Типичный формат раздачи на воркшопах/мастер-классах.
 #
-#   * steam-run — wraps an arbitrary command in a full FHS sandbox (real /usr,
-#     /lib, ld.so). When ./appimage.nix's nix-ld baseline is not enough for a
-#     stubborn prebuilt binary: `steam-run ./installer` and it behaves like a
-#     normal distro. The heavier hammer; reach for it second.
+#   * steam-run — оборачивает произвольную команду в полноценный FHS-песочник
+#     (настоящие /usr, /lib, ld.so). Когда базы nix-ld из ./nix-ld.nix не хватает
+#     упрямому пребилту: `steam-run ./installer` — и он ведёт себя как в обычном
+#     дистрибутиве. Более тяжёлый молоток; берём во вторую очередь.
 
 {
   programs.appimage = {

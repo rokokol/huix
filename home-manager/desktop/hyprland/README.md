@@ -21,13 +21,13 @@
 | `services/mako.nix`               | уведомления, цвета по `urgency`, меню по правому клику в rofi                                                                                                                                                                                                                                                       |
 | `services/hypridle.nix`           | лок по таймауту 90 мин + перед сном, `hyprlock`                                                                                                                                                                                                                                                                     |
 | `services/hyprlock.nix`           | DDLC-локскрин: фон just-monika, диалог как в игре — `hyprlock-quote.sh` печатает реплики побуквенно (первая при локе — про «перезаход в игру»), имя и текст глитчатся вместе с экраном (по Пуассону и на неверный пароль), индикатор раскладки у поля ввода, сердечки вместо точек пароля; все пути через `huixDir` |
-| `services/wallpaper_collager.nix` | systemd-user таймер: коллаж обоев через `random_wallpaper.sh`                                                                                                                                                                                                                                                       |
+| `services/wallpaper-collager.nix` | systemd-user таймер: коллаж обоев через `random-wallpaper.sh`                                                                                                                                                                                                                                                       |
 
 > **Почему `source`, а не нативные `settings`.** Главный конфиг один на оба хоста и редактируется быстрее как текст; per-host через `hyprland.conf` `source = …` подтягивается из `${huixDir}`, а различия (монитор, раскладка, бар) задаются в `*-pc.nix`/`*-laptop.nix`. Пути не хардкодятся — везде `$HUIX` / `huixDir`
 
 ## Стек компонентов
 
-- **`awww`** вместо `hyprpaper` — демон обоев, на PC обои генерятся коллажем по нормальному распределению (`random_wallpaper.sh`)
+- **`awww`** вместо `hyprpaper` — демон обоев, на PC обои генерятся коллажем по нормальному распределению (`random-wallpaper.sh`)
 - **`mako`** вместо `dunst`/`swaync` — минималистичные уведомления с цветовыми темами по urgency
 - **`swayosd`** — OSD громкости/яркости/раскладки (systemd-user сервис)
 - **`rofi`** как швейцарский нож — не только launcher, но и буфер (`cliphist`), эмодзи/математика/каомодзи (`rofimoji`), словарь wooordhunt, перевод через LibreTranslate, пикер шейдеров
@@ -83,7 +83,7 @@
 
 | Бинд                 | Действие                                                    |
 | -------------------- | ----------------------------------------------------------- |
-| `SUPER + A`          | переключить light/dark тему (`toggle_theme.sh`)             |
+| `SUPER + A`          | переключить light/dark тему (`toggle-theme.sh`)             |
 | `SUPER + B`          | история буфера (cliphist в rofi)                            |
 | `SUPER SHIFT + B`    | эмодзи/математика/символы/каомодзи (rofimoji)               |
 | `SUPER + Y`          | словарь wooordhunt в rofi                                   |
@@ -105,7 +105,7 @@
 - **`hyprland-run`** — окно лаунчера фиксируется внизу монитора (`move = 20 monitor_h-120`, `float`)
 - **планшет Gaomon S630** прибит к выходу `DP-1` (PC), иначе мапится на оба монитора
 - **зум** — `cursor:zoom_factor` живой
-- **тема свет/тьма — рантайм, не декларатив** — `SUPER+A` → `toggle_theme.sh` флипает dconf и пишет выбор в `~/.local/state/huix/theme`; на reload восстанавливается через `exec = toggle_theme.sh --sync`. Подробности и грабли — в [scripts/README](../../../scripts/README.md)
+- **тема свет/тьма — рантайм, не декларатив** — `SUPER+A` → `toggle-theme.sh` флипает dconf и пишет выбор в `~/.local/state/huix/theme`; на reload восстанавливается через `exec = toggle-theme.sh --sync`. Подробности и грабли — в [scripts/README](../../../scripts/README.md)
 - **шейдеры/софт-яркость** — единственный слот `decoration:screen_shader` менеджит `screen-shader.sh`; состояние в state, восстанавливается через `exec = screen-shader.sh restore`. Индикатор в waybar обновляется по RT-сигналу `SIGRTMIN+8` (`shaderSignal`); слать его до готовности waybar нельзя — RT-сигнал по умолчанию убивает процесс, поэтому `restore` сигнал подавляет
 - **swayimg** — навигация и копирование в буфер забиндены и на латинице, и на кириллице (`c/с`, `h/р`, …), чтобы работало при любой раскладке
 - **hyprlock: фон — картинка, не скриншот** — иначе эффект от шейдеров применяется дважды

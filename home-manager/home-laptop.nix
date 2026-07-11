@@ -30,10 +30,10 @@
     };
   };
 
-  # Files
+  # Файлы
   home.file.".octaverc".text = ''
     PS1('>> ');
-    # to disable octave warn
+    # отключить предупреждение octave
     warning('off', 'Octave:graphics-toolkit-gnuplot');
   '';
 }
