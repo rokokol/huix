@@ -133,8 +133,8 @@ in
           text = "cmd[update:33] ${quoteScript} name";
           font_size = 28;
           color = "rgba(ffffffff)";
-          shadow_passes = 3;
-          shadow_size = 3;
+          shadow_passes = 6;
+          shadow_size = 4;
           shadow_boost = 1.6;
           shadow_color = "rgba(e2679bff)";
           zindex = 2;
@@ -184,8 +184,8 @@ in
           inner_color = "rgb(ffffff)";
           font_color = "rgb(b3487f)";
           font_family = "Doki";
-          placeholder_text = "<i>Дай мне пароль...</i>";
-          fail_text = "Это не то... ($ATTEMPTS)";
+          placeholder_text = "<i>Give me it...~</i>";
+          fail_text = "This isn't it... ($ATTEMPTS)";
           # проверка пароля подсвечивается тем же красным, что и ошибка
           check_color = "rgb(d64d7a)";
           fail_color = "rgb(d64d7a)";
