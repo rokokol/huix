@@ -133,7 +133,7 @@ in
           text = "cmd[update:33] ${quoteScript} name";
           font_size = 28;
           color = "rgba(ffffffff)";
-          shadow_passes = 4;
+          shadow_passes = 2;
           shadow_size = 6;
           shadow_boost = 1.6;
           shadow_color = "rgba(e2679bff)";
