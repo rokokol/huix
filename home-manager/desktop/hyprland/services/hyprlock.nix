@@ -135,7 +135,7 @@ in
           color = "rgba(ffffffff)";
           shadow_passes = 2;
           shadow_size = 6;
-          shadow_boost = 1.6;
+          shadow_boost = 2;
           shadow_color = "rgba(e2679bff)";
           zindex = 2;
           position = "${toString nameX}, ${toString nameY}";
