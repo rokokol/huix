@@ -42,7 +42,7 @@ let
   textW = px (src.boxW - 2 * src.insetX); # ширина текстовой области
   quoteY = bottom + px src.menuH - 6; # низ лейбла реплики (над меню)
   nameX = px (src.plateCx - src.boxW / 2); # центр плашки от центра экрана
-  nameY = bottom + px (src.boxH - src.plateCy) - 22; # низ лейбла имени
+  nameY = bottom + px (src.boxH - src.plateCy) - 24; # низ лейбла имени
 
   quoteFontSize = 24;
   fontPx = quoteFontSize * 4 / 3; # pango pt -> px @ 96dpi: метрики переноса
