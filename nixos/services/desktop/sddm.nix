@@ -1,25 +1,28 @@
 { pkgs, ... }:
 
+let
+  # DDLC-тема для SDDM и курсор-голова Сайори — только для экрана логина,
+  # в сессии остаётся Bibata (home-manager/desktop/theme/cursor.nix)
+  ddlcTheme = pkgs.callPackage ./sddm-ddlc/theme-package.nix { };
+  sayoriCursors = pkgs.callPackage ./sddm-ddlc/sayori-cursor.nix { };
+in
 {
   services.displayManager.sddm = {
     enable = true;
     wayland.enable = true;
     wayland.compositor = "weston";
-    theme = "catppuccin-mocha-maroon";
+    theme = "ddlc";
 
     settings = {
       Theme = {
-        CursorTheme = "catppuccin-mocha-maroon-cursors";
-        CursorSize = 24;
+        CursorTheme = "sayori-cursors";
+        CursorSize = 32;
       };
     };
   };
 
-  environment.systemPackages = with pkgs; [
-    catppuccin-cursors.mochaMaroon
-    (pkgs.catppuccin-sddm.override {
-      flavor = "mocha";
-      accent = "maroon";
-    })
+  environment.systemPackages = [
+    ddlcTheme
+    sayoriCursors
   ];
 }

@@ -1,0 +1,10 @@
+[SddmGreeterTheme]
+Name=DDLC
+Description=Тема SDDM в стиле Doki Doki Literature Club
+Type=sddm-theme
+Version=1.0
+MainScript=Main.qml
+ConfigFile=theme.conf
+Theme-Id=ddlc
+Theme-API=2.0
+QtVersion=6
