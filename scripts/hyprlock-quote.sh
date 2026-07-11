@@ -63,12 +63,15 @@ GLITCH_TEXT_MS=3600   # текст глитчит дольше шейдера
 NAME_PT=52
 NAME_BOX=336x76
 NAME_XY=+68+0
+NAME_OUTLINE='#e2679b' # розовая обводка имени
 TEXT_PT=46
 TEXT_W=1432
 TEXT_XY=+100+106
+TEXT_OUTLINE='#000000ff' # обводка реплик
+TEXT_STROKE=1            # её толщина, px холста
 
 CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/huix"
-OUT="$CACHE_DIR/hyprlock-dialog.png"  # путь стабильный — прошит в hyprlock.nix
+OUT="$CACHE_DIR/hyprlock-dialog.png" # путь стабильный — прошит в hyprlock.nix
 BASE="$CACHE_DIR/hyprlock-dialog-base.png"
 
 STATE_DIR="${XDG_RUNTIME_DIR:-/tmp}/hypr-ddlc"
@@ -128,6 +131,18 @@ next_line() {
   printf '%s' "${line//\[player\]/$USER}" >"$CUR"
 }
 
+# Показать текущую реплику: висит время чтения (len/CPS) + Exp(1/7).
+show_line() {
+  phase=shown
+  until_ms=$((now_ms + $(wc -m <"$CUR") * 1000 / CPS + $(exp_ms "$LINE_MEAN" "$LINE_MIN" "$LINE_MAX")))
+}
+
+start_topic() {
+  new_topic "$1"
+  next_line
+  show_line
+}
+
 # «Сломанная кодировка»: ~30% символов подменяются mojibake-глифами.
 glitch_text() {
   awk -v seed="$(((RANDOM << 15) + RANDOM))" '
@@ -174,8 +189,9 @@ ensure_base() {
 }
 
 # Рендер кадра: подложка + имя (белое с розовой обводкой через morphology
-# dilate альфы) + реплика (двухпроходный caption: чёрная обводка, затем
-# белая заливка — раскладка проходов идентична, stroke не меняет метрики).
+# dilate альфы) + реплика (двухпроходный caption: обводка цветом игры,
+# затем белая заливка — раскладка проходов идентична, stroke не меняет
+# метрики).
 # Однокадровый фоновой процесс: очередной тик frame его перезапустит, если
 # желаемый кадр успел смениться. label:/caption:@файл — чтобы % и \ в
 # тексте не интерпретировались ImageMagick'ом.
@@ -197,7 +213,7 @@ cmd_render() {
     \( -background none -font "$font" -pointsize "$NAME_PT"
     -fill white label:@"$tmpd/name"
     \( +clone -channel A -morphology dilate disk:3.5 +channel
-    -fill '#e2679b' -channel RGB -colorize 100 +channel \)
+    -fill "$NAME_OUTLINE" -channel RGB -colorize 100 +channel \)
     +swap -composite -bordercolor none -border 8
     -gravity center -extent "$NAME_BOX" \)
     -gravity northwest -geometry "$NAME_XY" -composite
@@ -205,7 +221,7 @@ cmd_render() {
   if [[ -n "$text" ]]; then
     printf '%s' "$text" >"$tmpd/text"
     local pass
-    for pass in "-fill black -stroke black -strokewidth 3" "-fill white"; do
+    for pass in "-fill $TEXT_OUTLINE -stroke $TEXT_OUTLINE -strokewidth $TEXT_STROKE" "-fill white"; do
       # shellcheck disable=SC2206
       args+=(
         \( -background none -font "$font" -pointsize "$TEXT_PT"
@@ -251,30 +267,25 @@ cmd_frame() {
     fire_glitch
   fi
 
-  # Машина состояний: reentry -> shown -> shown|gap -> ...
-  # Реплика висит время чтения (len/CPS) + Exp(1/7).
-  if [[ "$phase" == "reentry" ]]; then
-    new_topic "$REENTRY"
-    next_line
-    phase=shown
-    until_ms=$((now_ms + $(wc -m <"$CUR") * 1000 / CPS + $(exp_ms "$LINE_MEAN" "$LINE_MIN" "$LINE_MAX")))
-  fi
-
-  if [[ "$phase" == "shown" ]] && ((now_ms >= until_ms)); then
-    if next_line; then
-      until_ms=$((now_ms + $(wc -m <"$CUR") * 1000 / CPS + $(exp_ms "$LINE_MEAN" "$LINE_MIN" "$LINE_MAX")))
-    else
-      phase=gap
-      until_ms=$((now_ms + $(exp_ms "$TOPIC_MEAN" "$TOPIC_MIN" "$TOPIC_MAX")))
-    fi
-  fi
-
-  if [[ "$phase" == "gap" ]] && ((now_ms >= until_ms)); then
-    new_topic "$QUOTES"
-    next_line
-    phase=shown
-    until_ms=$((now_ms + $(wc -m <"$CUR") * 1000 / CPS + $(exp_ms "$LINE_MEAN" "$LINE_MIN" "$LINE_MAX")))
-  fi
+  # Машина состояний: reentry -> shown -> ... -> gap -> shown -> ...
+  case "$phase" in
+    reentry) start_topic "$REENTRY" ;;
+    shown)
+      if ((now_ms >= until_ms)); then
+        if next_line; then
+          show_line
+        else
+          phase=gap
+          until_ms=$((now_ms + $(exp_ms "$TOPIC_MEAN" "$TOPIC_MIN" "$TOPIC_MAX")))
+        fi
+      fi
+      ;;
+    gap)
+      if ((now_ms >= until_ms)); then
+        start_topic "$QUOTES"
+      fi
+      ;;
+  esac
 
   # Желаемый кадр; во время глитча имя и текст коверкаются заново каждый
   # тик — ключ кадра меняется сам собой, рендер перезапускается.
@@ -307,12 +318,12 @@ cmd_lock() {
 }
 
 case "${1:-frame}" in
-  frame) cmd_frame ;;
-  lock) cmd_lock ;;
-  render) cmd_render "${2:-Monika}" "${3:-}" ;;
-  help | -h | --help) usage ;;
-  *)
-    usage >&2
-    exit 1
-    ;;
+frame) cmd_frame ;;
+lock) cmd_lock ;;
+render) cmd_render "${2:-Monika}" "${3:-}" ;;
+help | -h | --help) usage ;;
+*)
+  usage >&2
+  exit 1
+  ;;
 esac
