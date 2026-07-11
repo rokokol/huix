@@ -50,7 +50,7 @@ SPACE_ADV=$((FONT_PX / 4))
 WRAP_CHARS=$((TEXT_W * 9 / (AVG_ADV * 10))) # перенос с запасом ~10%
 BOX_LINES=3                                 # строк в текстовой области
 
-CPS=30 # скорость печати, символов в секунду
+CPS=10 # скорость печати, символов в секунду
 
 LINE_MEAN=7 # пауза после реплики: Exp(1/7), сек
 LINE_MIN=2
@@ -237,31 +237,31 @@ cmd_frame() {
 
   # Машина состояний: reentry -> typing -> shown -> fadeout -> typing|gap.
   case "$phase" in
-    reentry)
-      start_topic "$REENTRY"
-      ;;
-    shown)
-      if ((now_ms >= until_ms)); then
-        phase=fadeout
-        reveal_ms=$now_ms # старт затухания
-        until_ms=$((now_ms + FADE_MS))
+  reentry)
+    start_topic "$REENTRY"
+    ;;
+  shown)
+    if ((now_ms >= until_ms)); then
+      phase=fadeout
+      reveal_ms=$now_ms # старт затухания
+      until_ms=$((now_ms + FADE_MS))
+    fi
+    ;;
+  fadeout)
+    if ((now_ms >= until_ms)); then
+      if next_line; then
+        start_typing
+      else
+        phase=gap
+        until_ms=$((now_ms + $(exp_ms "$TOPIC_MEAN" "$TOPIC_MIN" "$TOPIC_MAX")))
       fi
-      ;;
-    fadeout)
-      if ((now_ms >= until_ms)); then
-        if next_line; then
-          start_typing
-        else
-          phase=gap
-          until_ms=$((now_ms + $(exp_ms "$TOPIC_MEAN" "$TOPIC_MIN" "$TOPIC_MAX")))
-        fi
-      fi
-      ;;
-    gap)
-      if ((now_ms >= until_ms)); then
-        start_topic "$QUOTES"
-      fi
-      ;;
+    fi
+    ;;
+  gap)
+    if ((now_ms >= until_ms)); then
+      start_topic "$QUOTES"
+    fi
+    ;;
   esac
 
   # Кадр: вся реплика целиком, ненапечатанный хвост — прозрачным span'ом
@@ -270,22 +270,22 @@ cmd_frame() {
   if [[ "$phase" != "gap" ]]; then
     full=$(<"$CUR")
     case "$phase" in
-      typing)
-        n=$(((now_ms - reveal_ms) * CPS / 1000))
-        if ((n >= ${#full})); then
-          phase=shown
-          until_ms=$((now_ms + $(exp_ms "$LINE_MEAN" "$LINE_MIN" "$LINE_MAX")))
-          n=${#full}
-        fi
-        ;;
-      fadeout)
+    typing)
+      n=$(((now_ms - reveal_ms) * CPS / 1000))
+      if ((n >= ${#full})); then
+        phase=shown
+        until_ms=$((now_ms + $(exp_ms "$LINE_MEAN" "$LINE_MIN" "$LINE_MAX")))
         n=${#full}
-        fade_alpha=$((65535 - 65535 * (now_ms - reveal_ms) / FADE_MS))
-        ((fade_alpha >= 1)) || fade_alpha=1
-        ;;
-      *)
-        n=${#full}
-        ;;
+      fi
+      ;;
+    fadeout)
+      n=${#full}
+      fade_alpha=$((65535 - 65535 * (now_ms - reveal_ms) / FADE_MS))
+      ((fade_alpha >= 1)) || fade_alpha=1
+      ;;
+    *)
+      n=${#full}
+      ;;
     esac
     ((now_ms < glitch_until_ms)) && full=$(glitch_text <<<"$full")
   fi
@@ -311,11 +311,11 @@ cmd_frame() {
 }
 
 case "${1:-frame}" in
-  frame) cmd_frame ;;
-  name) cmd_name ;;
-  help | -h | --help) usage ;;
-  *)
-    usage >&2
-    exit 1
-    ;;
+frame) cmd_frame ;;
+name) cmd_name ;;
+help | -h | --help) usage ;;
+*)
+  usage >&2
+  exit 1
+  ;;
 esac
