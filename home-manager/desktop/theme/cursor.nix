@@ -20,6 +20,6 @@ in
     x11.enable = true;
     package = sayori-cursor;
     name = "Sayori-Cursor-V2";
-    size = 20;
+    size = 24;
   };
 }
