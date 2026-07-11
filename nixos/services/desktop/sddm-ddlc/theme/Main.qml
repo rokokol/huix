@@ -22,7 +22,6 @@ Rectangle {
         root.failCount++
         forgiveTimer.restart()
         panel.clearPassword()
-        panel.showError("Wrong password!")
         glitch.trigger()
     }
 
