@@ -19,7 +19,7 @@ EOF
 )
 
 choice=$(printf '%s\n' "$options" | cut -d'|' -f1 |
-  rofi -dmenu -i -p "Питание" -mesg "Что делаем?" \
+  rofi -dmenu -i -p "Питание" -mesg "Что делаем? (⊃‿⊂)" \
     -theme-str 'window { width: 300px; }') || exit 0
 
 [[ -n "$choice" ]] || exit 0
@@ -28,10 +28,10 @@ choice=$(printf '%s\n' "$options" | cut -d'|' -f1 |
 action=$(printf '%s\n' "$options" | grep -F "$choice" | head -n1 | cut -d'|' -f2)
 
 case "$action" in
-lock)     loginctl lock-session ;;
-suspend)  systemctl suspend ;;
-reboot)   systemctl reboot ;;
-logout)   hyprctl dispatch exit ;;
+lock) loginctl lock-session ;;
+suspend) systemctl suspend ;;
+reboot) systemctl reboot ;;
+logout) hyprctl dispatch exit ;;
 poweroff) systemctl poweroff ;;
-*)        exit 0 ;;
+*) exit 0 ;;
 esac
