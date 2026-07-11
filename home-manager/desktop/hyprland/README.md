@@ -12,16 +12,16 @@
 
 Конфиг намеренно **гибридный**: декларативная часть в Nix + один большой императивный `hyprland.conf`, который Nix просто `source`-ит
 
-| Файл | Что внутри |
-| --- | --- |
-| `hyprland.conf` | весь общий конфиг: autostart, env, look&feel, биндинги, window/layer-rules. Правится руками, не через Nix-опции |
-| `hyprland.nix` | единый Nix-модуль: опции `custom.hyprland.*` (масштаб монитора, XKB-опции, natural scroll, обои — статичные или коллаж); вход задают `home-pc.nix` / `home-laptop.nix` |
-| `services/hyprland-packages.nix` | общий пакетный набор (kitty, awww, hypridle, grim/slurp/satty, tesseract rus+eng, cliphist…), `source` главного конфига, конфиг swayimg |
-| `services/waybar/` | единый бар: база + файл на фичу, хост включает нужное опциями — см. [waybar/README](services/waybar/README.md) |
-| `services/mako.nix` | уведомления, цвета по `urgency`, меню по правому клику в rofi |
-| `services/hypridle.nix` | лок по таймауту 90 мин + перед сном, `hyprlock` |
-| `services/hyprlock.nix` | DDLC-локскрин: фон just_monika, диалог как в игре — `hyprlock-quote.sh` печатает реплики побуквенно приёмом Ren'Py (первая при локе — про «перезаход в игру»), имя и текст глитчатся вместе с экраном (по Пуассону и на неверный пароль), индикатор раскладки у поля ввода, сердечки вместо точек пароля; все пути через `huixDir`, геометрия — производные от ассета |
-| `services/wallpaper_collager.nix` | systemd-user таймер: коллаж обоев через `random_wallpaper.sh` |
+| Файл                              | Что внутри                                                                                                                                                                                                                                                                                                          |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `hyprland.conf`                   | весь общий конфиг: autostart, env, look&feel, биндинги, window/layer-rules. Правится руками, не через Nix-опции                                                                                                                                                                                                     |
+| `hyprland.nix`                    | единый Nix-модуль: опции `custom.hyprland.*` (масштаб монитора, XKB-опции, natural scroll, обои — статичные или коллаж); вход задают `home-pc.nix` / `home-laptop.nix`                                                                                                                                              |
+| `services/hyprland-packages.nix`  | общий пакетный набор (kitty, awww, hypridle, grim/slurp/satty, tesseract rus+eng, cliphist…), `source` главного конфига, конфиг swayimg                                                                                                                                                                             |
+| `services/waybar/`                | единый бар: база + файл на фичу, хост включает нужное опциями — см. [waybar/README](services/waybar/README.md)                                                                                                                                                                                                      |
+| `services/mako.nix`               | уведомления, цвета по `urgency`, меню по правому клику в rofi                                                                                                                                                                                                                                                       |
+| `services/hypridle.nix`           | лок по таймауту 90 мин + перед сном, `hyprlock`                                                                                                                                                                                                                                                                     |
+| `services/hyprlock.nix`           | DDLC-локскрин: фон just_monika, диалог как в игре — `hyprlock-quote.sh` печатает реплики побуквенно (первая при локе — про «перезаход в игру»), имя и текст глитчатся вместе с экраном (по Пуассону и на неверный пароль), индикатор раскладки у поля ввода, сердечки вместо точек пароля; все пути через `huixDir` |
+| `services/wallpaper_collager.nix` | systemd-user таймер: коллаж обоев через `random_wallpaper.sh`                                                                                                                                                                                                                                                       |
 
 > **Почему `source`, а не нативные `settings`.** Главный конфиг один на оба хоста и редактируется быстрее как текст; per-host через `hyprland.conf` `source = …` подтягивается из `${huixDir}`, а различия (монитор, раскладка, бар) задаются в `*-pc.nix`/`*-laptop.nix`. Пути не хардкодятся — везде `$HUIX` / `huixDir`
 
@@ -43,56 +43,56 @@
 
 ### Окна и фокус
 
-| Бинд | Действие |
-| --- | --- |
-| `SUPER + Q` | терминал (kitty) |
-| `SUPER + W` | launcher (rofi drun) |
-| `SUPER + E` | файловый менеджер (thunar) |
-| `SUPER + C` | закрыть окно |
-| `SUPER + V` | toggle floating |
-| `SUPER + F` | фулскрин (полный), `SUPER+P` — pseudo, `SUPER+T` — togglesplit |
-| `SUPER + H/J/K/L` | фокус ←↓↑→ (и стрелки) |
-| `SUPER SHIFT + H/J/K/L` | двигать окно ←↓↑→ |
-| `SUPER CTRL + H/J/K/L` | точное смещение floating-окна на 80px |
-| `SUPER ALT + H/J/K/L` | resize активного окна |
-| `SUPER + ЛКМ/ПКМ` | перетащить / ресайз окна мышью |
+| Бинд                    | Действие                                                       |
+| ----------------------- | -------------------------------------------------------------- |
+| `SUPER + Q`             | терминал (kitty)                                               |
+| `SUPER + W`             | launcher (rofi drun)                                           |
+| `SUPER + E`             | файловый менеджер (thunar)                                     |
+| `SUPER + C`             | закрыть окно                                                   |
+| `SUPER + V`             | toggle floating                                                |
+| `SUPER + F`             | фулскрин (полный), `SUPER+P` — pseudo, `SUPER+T` — togglesplit |
+| `SUPER + H/J/K/L`       | фокус ←↓↑→ (и стрелки)                                         |
+| `SUPER SHIFT + H/J/K/L` | двигать окно ←↓↑→                                              |
+| `SUPER CTRL + H/J/K/L`  | точное смещение floating-окна на 80px                          |
+| `SUPER ALT + H/J/K/L`   | resize активного окна                                          |
+| `SUPER + ЛКМ/ПКМ`       | перетащить / ресайз окна мышью                                 |
 
 ### Воркспейсы
 
-| Бинд | Действие |
-| --- | --- |
-| `SUPER + 1…9` | на воркспейс N |
-| `SUPER SHIFT + 1…0` | перенести окно на воркспейс N |
-| `SUPER + S` / `SUPER SHIFT + S` | scratchpad `magic` / закинуть туда окно |
-| `SUPER + колесо` | следующий/предыдущий воркспейс по кругу (4 «таба») |
-| `SUPER SHIFT + колесо` | перенести окно на соседний воркспейс по кругу |
+| Бинд                            | Действие                                           |
+| ------------------------------- | -------------------------------------------------- |
+| `SUPER + 1…9`                   | на воркспейс N                                     |
+| `SUPER SHIFT + 1…0`             | перенести окно на воркспейс N                      |
+| `SUPER + S` / `SUPER SHIFT + S` | scratchpad `magic` / закинуть туда окно            |
+| `SUPER + колесо`                | следующий/предыдущий воркспейс по кругу (4 «таба») |
+| `SUPER SHIFT + колесо`          | перенести окно на соседний воркспейс по кругу      |
 
 ### Скриншоты, OCR, экран
 
-| Бинд | Действие |
-| --- | --- |
-| `SUPER ALT + S` | скриншот области → редактор satty |
-| `SUPER ALT + C` | скриншот области → буфер |
-| `SUPER ALT + M` | скриншот всего монитора → буфер |
-| `SUPER ALT + T/R/E` | OCR области (rus+eng / rus / eng) → буфер |
-| `SUPER ALT + A` | закрепить область экрана поверх окон (`pin-screen.sh`) |
-| `SUPER ALT + P` | пипетка цвета (`colorpicker.sh` / hyprpicker) |
+| Бинд                 | Действие                                                               |
+| -------------------- | ---------------------------------------------------------------------- |
+| `SUPER ALT + S`      | скриншот области → редактор satty                                      |
+| `SUPER ALT + C`      | скриншот области → буфер                                               |
+| `SUPER ALT + M`      | скриншот всего монитора → буфер                                        |
+| `SUPER ALT + T/R/E`  | OCR области (rus+eng / rus / eng) → буфер                              |
+| `SUPER ALT + A`      | закрепить область экрана поверх окон (`pin-screen.sh`)                 |
+| `SUPER ALT + P`      | пипетка цвета (`colorpicker.sh` / hyprpicker)                          |
 | `SUPER ALT + колесо` | живая лупа вокруг курсора (`zoom.sh`), `SUPER ALT + Backspace` — сброс |
 
 ### Утилиты и тема
 
-| Бинд | Действие |
-| --- | --- |
-| `SUPER + A` | переключить light/dark тему (`toggle_theme.sh`) |
-| `SUPER + B` | история буфера (cliphist в rofi) |
-| `SUPER SHIFT + B` | эмодзи/математика/символы/каомодзи (rofimoji) |
-| `SUPER + Y` | словарь wooordhunt в rofi |
-| `SUPER + U` | перевод ru↔en через LibreTranslate |
-| `SUPER + G` | toggle grayscale-шейдер, `SUPER SHIFT + G` — пикер шейдеров |
-| `SUPER CTRL + [ / ]` | софт-яркость через шейдер вниз/вверх, `Backspace` — сброс |
-| `SUPER + Z` | toggle waybar |
-| `SUPER + F12` | лок сессии |
-| медиа/яркость | `XF86Audio*` / `XF86MonBrightness*` → swayosd + playerctl |
+| Бинд                 | Действие                                                    |
+| -------------------- | ----------------------------------------------------------- |
+| `SUPER + A`          | переключить light/dark тему (`toggle_theme.sh`)             |
+| `SUPER + B`          | история буфера (cliphist в rofi)                            |
+| `SUPER SHIFT + B`    | эмодзи/математика/символы/каомодзи (rofimoji)               |
+| `SUPER + Y`          | словарь wooordhunt в rofi                                   |
+| `SUPER + U`          | перевод ru↔en через LibreTranslate                          |
+| `SUPER + G`          | toggle grayscale-шейдер, `SUPER SHIFT + G` — пикер шейдеров |
+| `SUPER CTRL + [ / ]` | софт-яркость через шейдер вниз/вверх, `Backspace` — сброс   |
+| `SUPER + Z`          | toggle waybar                                               |
+| `SUPER + F12`        | лок сессии                                                  |
+| медиа/яркость        | `XF86Audio*` / `XF86MonBrightness*` → swayosd + playerctl   |
 
 ## Фиксы и тонкости
 

@@ -27,7 +27,9 @@ hyprlock-quote.sh — диалог Моники для DDLC-локскрина
 дольше шейдера.
 
 Геометрию задаёт hyprlock.nix через окружение:
-  TEXT_W  ширина текстовой области бокса, px (деф. 1084)
+  TEXT_W   ширина текстовой области бокса, px (деф. 1114)
+  FONT_PX  кегль реплики, px (font_size * 4/3; деф. 32) — от него
+           считаются метрики переноса и пробельной строки-ширины
 
 Состояние — $XDG_RUNTIME_DIR/hypr-ddlc; новый лок распознаётся по смене
 PID hyprlock и начинает диалог с реплики перезахода.
@@ -41,8 +43,10 @@ QUOTES="$HUIX/assets/monika-talk.txt"
 REENTRY="$HUIX/assets/monika-reentry.txt"
 
 TEXT_W="${TEXT_W:-1114}"
-AVG_ADV=15                                  # средняя ширина глифа, px
-SPACE_ADV=8                                 # ширина пробела Doki, px
+FONT_PX="${FONT_PX:-32}"
+# Метрики Doki относительно кегля: при 32px глиф в среднем 15px, пробел 8px.
+AVG_ADV=$((FONT_PX * 15 / 32))
+SPACE_ADV=$((FONT_PX / 4))
 WRAP_CHARS=$((TEXT_W * 9 / (AVG_ADV * 10))) # перенос с запасом ~10%
 BOX_LINES=3                                 # строк в текстовой области
 

@@ -22,7 +22,7 @@ in
       format = "{}";
       signal = shaderSignal;
       on-click = "${huixDir}/scripts/rofi-shader.sh";
-      on-click-right = "${huixDir}/scripts/screen-shader.sh effect set none";
+      on-click-right = "${huixDir}/scripts/screen-shader.sh effect clear";
       on-scroll-up = "${huixDir}/scripts/screen-shader.sh bright up";
       on-scroll-down = "${huixDir}/scripts/screen-shader.sh bright down";
     };
