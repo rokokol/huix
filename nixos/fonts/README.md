@@ -6,15 +6,15 @@
 
 Системные шрифты, которые лежат прямо в репо файлами, а не тянутся пакетом. `fonts.nix` собирает крошечную `stdenv.mkDerivation`, которая раскладывает `*.ttf` в `truetype/`, а `*.otf` в `opentype/` и отдаёт всё в `fonts.packages`
 
-Помню как я сделал из эксперимента `DokiNerdFontMono-Regular.otf`. Нердфонтный моно `Doki` шрифт выглядиит абсолютно проклято. Поэтому оставил просто как артефакт и экспонат тут, хех
+Помню как я сделал из эксперимента `DokiNerdFontMono-Regular.otf`. Нердфонтный моно `Doki` шрифт выглядиит абсолютно проклято и был создан по приколу. Поэтому оставил просто как артефакт и экспонат тут, хех
 
 Кроме файловых, пакетами тянутся `inter` и `Spectral` (через `google-fonts.override { fonts = [ "Spectral" ]; }`). Дефолты `fontconfig`:
 
-| Роль | Шрифт |
-| --- | --- |
+| Роль        | Шрифт                        |
+| ----------- | ---------------------------- |
 | `monospace` | DepartureMono Nerd Font Mono |
-| `sansSerif` | Spectral |
-| `serif` | Spectral |
+| `sansSerif` | Spectral                     |
+| `serif`     | Spectral                     |
 
 ## Применение
 

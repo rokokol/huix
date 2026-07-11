@@ -19,7 +19,7 @@
 | Каталог | Что там |
 | --- | --- |
 | `ai/` | `ollama` (на ПК подменяется на `ollama-cuda`), `comfyui`, `openwebui` |
-| `desktop/` | `amnezia-vpn`, `file-manager`, `sddm`, `ssh-askpass` |
+| `desktop/` | `amnezia-vpn`, `file-manager`, `sddm` (+ [DDLC-тема](desktop/sddm-ddlc/README.md)), `ssh-askpass` |
 | `devices/` | `printer`, `tablet`, `virtual-camera` |
 | `system/` | `appimage`, `cachix`, `nix-ld` |
 | `tools/` | `jupyter`, `libre-translate`, `searxng`, `syncthing` |
@@ -31,7 +31,7 @@
 
 - `ai/ollama` — локальные LLM (ПК тянет CUDA-сборку, ноут CPU-only)
 - `desktop/amnezia-vpn` — VPN-клиент
-- `desktop/file-manager`, `desktop/sddm`, `desktop/ssh-askpass`
+- `desktop/file-manager`, `desktop/sddm` — экран логина в стиле DDLC ([подробнее](desktop/sddm-ddlc/README.md)), `desktop/ssh-askpass`
 - `system/appimage` — прямой запуск *.AppImage (binfmt) + `steam-run` (FHS-песочница)
 - `system/cachix` — бинарные кэши
 - `system/nix-ld` — запуск динамических не-Nix бинарей (FHS-набор библиотек)

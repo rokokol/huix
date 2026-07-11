@@ -20,7 +20,7 @@
 
 ## Карта репозитория
 
-Конфиг разбит на слои, у каждого свой README — путешествуй по кнопкам:
+Конфиг разбит на слои, у каждого свой README:
 
 [![nixos](https://img.shields.io/badge/nixos-системный_слой-5277C3?style=for-the-badge&logo=nixos&logoColor=white)](nixos/README.md)
 [![services](https://img.shields.io/badge/services-сервисы-0E7C7B?style=for-the-badge)](nixos/services/README.md)
@@ -44,14 +44,15 @@
 
 ## Хосты
 
-| Host | Точка входа | Чем выделяется |
-| --- | --- | --- |
-| `nixos-pc` | `nixos/configuration-pc.nix` + `home-manager/home-pc.nix` | NVIDIA/CUDA, `ollama-cuda`, ComfyUI, Open WebUI, Docker, виртуализация, SearxNG, печать, планшет, Arduino, NTFS-маунт `govno`, Steam, тяжёлый creative-стек |
-| `nixos-laptop` | `nixos/configuration-laptop.nix` + `home-manager/home-laptop.nix` | CPU-only `ollama-cpu`, Bluetooth, powertop, Tor через webtunnel, более лёгкий desktop |
+| Host           | Точка входа                                                       | Чем выделяется                                                                                                                                              |
+| -------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `nixos-pc`     | `nixos/configuration-pc.nix` + `home-manager/home-pc.nix`         | NVIDIA/CUDA, `ollama-cuda`, ComfyUI, Open WebUI, Docker, виртуализация, SearxNG, печать, планшет, Arduino, NTFS-маунт `govno`, Steam, тяжёлый creative-стек |
+| `nixos-laptop` | `nixos/configuration-laptop.nix` + `home-manager/home-laptop.nix` | CPU-only `ollama-cpu`, Bluetooth, powertop, Tor через webtunnel, более лёгкий desktop                                                                       |
 
-## Всякое 
+## Всякое
 
 Алиасы: rebuild — обычная сборка, rebuilds — зеркало только от Яндекса, если проблемы с сетью
+
 ```sh
 rebuild
 ```
@@ -74,6 +75,7 @@ sudo nixos-generate-config --show-hardware-config > nixos/<host>/hardware-config
 ## MATLAB
 
 Как-то позволяет скачать матлаб на комп (★^O^★)
+
 ```sh
 nix run gitlab:doronbehar/nix-matlab#matlab-shell
 nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHWORKS_R2025A/install
@@ -115,4 +117,3 @@ nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHW
 <sub>❄️ made with declarative love · NixOS ❄️</sub>
 
 </div>
-
