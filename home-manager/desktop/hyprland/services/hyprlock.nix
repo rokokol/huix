@@ -26,7 +26,7 @@ let
     boxY = 527; # верх бокса на холсте
     boxW = 816;
     boxH = 185;
-    insetX = 50; # поля текстовой области внутри бокса
+    insetX = 40; # поля текстовой области внутри бокса
     menuH = 35; # полоска меню по низу бокса
     plateCx = 118; # центр плашки имени от левого верха бокса
     plateCy = 19;
@@ -40,7 +40,7 @@ let
   imgSize = px src.h; # size виджета = меньшая сторона холста (высота)
   imgY = bottom - px (src.h - src.boxY - src.boxH); # компенсация хвоста холста
   textW = px (src.boxW - 2 * src.insetX); # ширина текстовой области
-  quoteY = bottom + px src.menuH + 6; # низ лейбла реплики (над меню)
+  quoteY = bottom + px src.menuH - 6; # низ лейбла реплики (над меню)
   nameX = px (src.plateCx - src.boxW / 2); # центр плашки от центра экрана
   nameY = bottom + px (src.boxH - src.plateCy) - 18; # низ лейбла имени
 
@@ -119,9 +119,9 @@ in
           valign = "top";
         }
         # Имя на плашке: отдельный лейбл (не впечён в PNG), чтобы глитчиться
-        # вместе с текстом. Розовая «обводка» — тень.
+        # вместе с текстом и с той же частотой. Розовая «обводка» — тень.
         {
-          text = "cmd[update:1000] ${quoteScript} name";
+          text = "cmd[update:33] ${quoteScript} name";
           font_size = 26;
           color = "rgba(ffffffff)";
           shadow_passes = 3;
