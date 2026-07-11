@@ -18,8 +18,20 @@ Item {
         }
     }
 
+    property int nextId: 0
+
     ListModel {
         id: cards
+    }
+
+    // Удаление по уникальному id — индексы в модели съезжают при закрытии
+    function closeCid(cid) {
+        for (var i = 0; i < cards.count; i++) {
+            if (cards.get(i).cid === cid) {
+                cards.remove(i)
+                break
+            }
+        }
     }
 
     Timer {
@@ -36,8 +48,9 @@ Item {
             }
             // Не залезаем на нижнюю полосу со спрайтами и кнопками
             cards.append({
-                px: 30 + Math.random() * Math.max(1, popups.width - 290),
-                py: 30 + Math.random() * Math.max(1, popups.height - 420)
+                cid: popups.nextId++,
+                px: 30 + Math.random() * Math.max(1, popups.width - 260),
+                py: 30 + Math.random() * Math.max(1, popups.height - 400)
             })
             spawned++
         }
@@ -49,9 +62,11 @@ Item {
         Image {
             id: card
 
+            readonly property int cid: model.cid
+
             x: px
             y: py
-            width: 240
+            width: 190
             fillMode: Image.PreserveAspectFit
             smooth: true
             mipmap: true
@@ -67,10 +82,23 @@ Item {
                 }
             }
 
+            // Плавное исчезновение по клику: затухание, потом удаление из модели
+            NumberAnimation {
+                id: fade
+
+                target: card
+                property: "opacity"
+                to: 0
+                duration: 550
+                easing.type: Easing.InOutQuad
+                onFinished: popups.closeCid(card.cid)
+            }
+
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
-                onClicked: cards.remove(index)
+                enabled: !fade.running
+                onClicked: fade.start()
             }
         }
     }
