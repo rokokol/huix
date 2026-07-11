@@ -14,8 +14,8 @@
 # измерений шрифта. Все пути — через huixDir (живой репозиторий, ничего не
 # печётся на сборке); геометрия — производные от размеров ассета (src ниже).
 let
-  backgroundImage = "${huixDir}/assets/just_monika.png";
-  dialogAsset = "${huixDir}/assets/ddlc-stickers/dialog_box.png";
+  backgroundImage = "${huixDir}/assets/just-monika.png";
+  dialogAsset = "${huixDir}/assets/ddlc-stickers/dialog-box.png";
   quoteScript = "${huixDir}/scripts/hyprlock-quote.sh";
 
   # Геометрия ассета: холст 1280x720, видимый бокс на нём (по x центрирован,
