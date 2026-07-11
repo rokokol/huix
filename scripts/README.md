@@ -29,7 +29,7 @@
 | `rofi-clipboard.sh` | история буфера через `cliphist` в rofi с превью |
 | `rofi-libre.sh` | перевод выделенного через LibreTranslate в rofi |
 | `rofi-notify.sh` | лента уведомлений в rofi: клик копирует текст, очистить всё, тумблер DND |
-| `rofi-shader.sh` | пикер эффектов как rofi script-modi (выбор — тумблер: добавить/убрать из стопки) |
+| `rofi-shader.sh` | пикер эффектов как rofi script-modi (выбор — тумблер: добавить/убрать из стопки) + кнопки софт-яркости ±, текущий уровень в шапке |
 | `rofi-power.sh` | меню питания как rofi script-modi «power»: блокировка, сон, перезагрузка, выход, выключение (кнопка питания / `SUPER+Delete`) |
 | `rofi-wooordhunt.sh` | словарь wooordhunt в rofi |
 | `virtual-cam.sh` | виртуальная камера на повторе через `v4l2loopback` |
