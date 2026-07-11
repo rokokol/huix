@@ -88,25 +88,27 @@ Item {
         }
     }
 
-    // Мигающий искажённый текст в духе «глитчей» игры
+    // Мигающий искажённый текст: обычный глитч неверного пароля,
+    // без «Just Monika» — это отдано пасхалке с окошками
     Text {
         id: corrupt
 
-        readonly property var pool: ["J̷u̷s̸t̶ ̸M̵o̷n̸i̵k̷a̶.", "Ĵ̶͔u̸̥͠s̵̼̆t̷̠̕ ̶̙͝M̶̼̚o̸͙͐n̷̙͋i̶͖͛k̵̳̎a̷͉͝", "░▒▓ JUST M0N1KA ▓▒░", "no password. only monika.", "̷̛͘͝?̸?̵?̶?̷?̸?̵?̶?̷"]
+        readonly property var pool: ["W̷r̸o̶n̵g̷ ̸p̶a̵s̷s̸w̶o̵r̷d̸", "░▒▓ ACCESS DENIED ▓▒░", "W̶r̸0̷n̵g̶ ̷p̸4̵s̶s̷w̸0̵r̶d̷", "̷̛͘͝?̸?̵?̶?̷?̸?̵?̶?̷", "err0r"]
 
         function reseed() {
             if (Math.random() < 0.25)
                 text = pool[Math.floor(Math.random() * pool.length)]
-            visible = Math.random() < 0.8
+            visible = Math.random() < 0.7
             anchors.horizontalCenterOffset = Math.round((Math.random() - 0.5) * 30)
         }
 
         anchors.horizontalCenter: parent.horizontalCenter
-        y: parent.height * 0.2
+        y: parent.height * 0.24
         text: pool[0]
         font.family: config.font
-        font.pixelSize: 34
-        color: config.errorRed
+        font.pixelSize: 26
+        opacity: 0.75
+        color: config.deepPink
         style: Text.Outline
         styleColor: "#40000000"
     }

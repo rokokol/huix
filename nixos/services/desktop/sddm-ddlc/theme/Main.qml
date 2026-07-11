@@ -15,16 +15,16 @@ Rectangle {
     property int failCount: 0
     readonly property bool justMonika: failCount >= 3
 
-    readonly property var quotes: [
-        "Every day, I imagine a future where I can be with you.",
-        "The Literature Club is truly a place where no bad thing has ever happened.",
-        "Don't judge a book by its cover!",
-        "It's time to work on your poem!",
-        "Poems are like a vessel for expressing your feelings.",
-        "Ehehe~",
-        "Okay, everyone! It's time to make today's poem!",
-        "Doki Doki!"
-    ]
+    // Реакция на неверный пароль. Вызывается из onLoginFailed и по F8:
+    // в test-mode демона нет и sddm.loginFailed не приходит в принципе,
+    // так что глитч и пасхалку иначе не проверить
+    function showFail() {
+        root.failCount++
+        forgiveTimer.restart()
+        panel.clearPassword()
+        panel.showError("Wrong password!")
+        glitch.trigger()
+    }
 
     DotsBackground {
         anchors.fill: parent
@@ -44,32 +44,18 @@ Rectangle {
         }
     }
 
-    // Часы и случайная цитата из игры
-    Column {
+    // Часы
+    Text {
+        id: clockText
+
         z: 2
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
         anchors.topMargin: 30
-        spacing: 6
-
-        Text {
-            id: clockText
-
-            anchors.horizontalCenter: parent.horizontalCenter
-            font.family: config.font
-            font.pixelSize: 44
-            color: config.deepPink
-            text: Qt.formatTime(new Date(), "hh:mm")
-        }
-
-        Text {
-            anchors.horizontalCenter: parent.horizontalCenter
-            font.family: config.font
-            font.pixelSize: 17
-            color: config.textDark
-            opacity: 0.8
-            text: root.quotes[Math.floor(Math.random() * root.quotes.length)]
-        }
+        font.family: config.font
+        font.pixelSize: 44
+        color: config.deepPink
+        text: Qt.formatTime(new Date(), "hh:mm")
     }
 
     Timer {
@@ -90,24 +76,6 @@ Rectangle {
         anchors.bottomMargin: 88
         justMonika: root.justMonika
         sideReserve: Math.max(leftControls.width, rightControls.width) + 40
-    }
-
-    // Надпись пасхалки над Моникой
-    Text {
-        z: 2
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: sprites.top
-        anchors.bottomMargin: 20
-        text: "Just Monika."
-        font.family: config.font
-        font.pixelSize: 40
-        color: config.textDark
-        opacity: root.justMonika ? 1 : 0
-        Behavior on opacity {
-            NumberAnimation {
-                duration: 1800
-            }
-        }
     }
 
     LoginPanel {
@@ -134,23 +102,41 @@ Rectangle {
             id: sessions
         }
 
-        // Индикатор текущей раскладки клавиатуры
+        // Переключатель раскладки: клик листает по кругу.
+        // Прячется, если раскладок нет (например, в test-mode)
         Rectangle {
+            readonly property bool hasLayouts: typeof keyboard !== "undefined" && keyboard.layouts.length > 0
+
+            visible: hasLayouts
             width: 44
             height: 44
             radius: width / 2
-            color: "white"
+            color: layoutArea.containsMouse ? config.accentPink : "white"
             border.color: config.accentPink
             border.width: 2
+            Behavior on color {
+                ColorAnimation {
+                    duration: 150
+                }
+            }
 
             Text {
                 anchors.centerIn: parent
                 font.family: config.font
                 font.pixelSize: 14
-                color: config.deepPink
-                text: (typeof keyboard !== "undefined" && keyboard.layouts.length > 0)
+                color: layoutArea.containsMouse ? "white" : config.deepPink
+                text: parent.hasLayouts
                       ? keyboard.layouts[keyboard.currentLayout].shortName.toUpperCase()
-                      : "?"
+                      : ""
+            }
+
+            MouseArea {
+                id: layoutArea
+
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: keyboard.currentLayout = (keyboard.currentLayout + 1) % keyboard.layouts.length
             }
         }
     }
@@ -182,6 +168,13 @@ Rectangle {
         }
     }
 
+    // Окошки Just Monika поверх всего, кроме глитча
+    MonikaPopups {
+        z: 6
+        anchors.fill: parent
+        active: root.justMonika
+    }
+
     GlitchOverlay {
         id: glitch
 
@@ -202,15 +195,18 @@ Rectangle {
         target: sddm
 
         function onLoginFailed() {
-            root.failCount++
-            forgiveTimer.restart()
-            panel.clearPassword()
-            panel.showError(root.justMonika ? "Just Monika." : "Wrong password!")
-            glitch.trigger()
+            root.showFail()
         }
 
         function onLoginSucceeded() {
             root.failCount = 0
         }
+    }
+
+    // F8 — предпросмотр глитча (три нажатия — пасхалка)
+    Shortcut {
+        sequence: "F8"
+        context: Qt.ApplicationShortcut
+        onActivated: root.showFail()
     }
 }

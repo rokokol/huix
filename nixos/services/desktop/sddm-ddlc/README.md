@@ -31,7 +31,8 @@
 | `dotColor` | `#FFDCEE` | цвет кружочков |
 | `dotSpacing` / `dotRadius` | `120` / `16` | шаг решётки и радиус кружка |
 | `scrollDuration` | `14000` | период дрейфа фона, мс |
-| `panelColor` / `panelBorder` | `#FFEBF4` / `#FFBDE1` | панель логина (цвета из just-monika-ok.png) |
+| `panelColor` / `panelBorder` | `#FFEBF4` / `#FFBDE1` | панель логина (цвета из игры) |
+| `okOutline` | `#BA5297` | обводка кнопки OK |
 | `textDark` / `errorRed` | `#4A2B3A` / `#D6244A` | текст и ошибки |
 | `glitchRgbSplit` | `true` | выключить, если RGB-split глючит на конкретном железе |
 
@@ -44,4 +45,4 @@ nix shell nixpkgs#sddm -c sddm-greeter-qt6 --test-mode \
   --theme "$theme/share/sddm/themes/ddlc"
 ```
 
-В test-mode логин всегда «неудачный», так что глитч и пасхалку удобно проверять именно там
+В test-mode нет демона SDDM, поэтому настоящий `loginFailed` не приходит — для предпросмотра глитча жми F8, три нажатия подряд включают пасхалку

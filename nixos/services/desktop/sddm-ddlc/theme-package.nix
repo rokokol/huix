@@ -27,7 +27,6 @@ stdenvNoCC.mkDerivation {
     for f in ${stickers}/*-sticker-*.webp; do
       magick "$f" "$theme/assets/$(basename "$f" .webp).png"
     done
-    cp ${stickers}/just-monika-ok.png "$theme/assets/"
 
     runHook postInstall
   '';
