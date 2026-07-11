@@ -40,20 +40,28 @@ Hyprland держит **только один** слот шейдера (`decora
 ## Команды менеджера
 
 ```sh
-screen-shader.sh effect set <name>     # поставить эффект
-screen-shader.sh effect off-or <name>  # есть эффект -> выкл; нет -> включить <name>
-screen-shader.sh effect next|prev      # листать по кругу
+screen-shader.sh effect push <name>    # ДОБАВИТЬ эффект в стопку (композиция)
+screen-shader.sh effect set <name>     # заменить стопку одним эффектом
+screen-shader.sh effect toggle <name>  # есть в стопке -> убрать; нет -> добавить
+screen-shader.sh effect clear          # очистить стопку
+screen-shader.sh effect next|prev      # листать по кругу (заменяет стопку)
 screen-shader.sh bright up|down        # яркость ±0.10 (кламп 0.10..1.00)
 screen-shader.sh bright reset|set <v>  # сброс / точное значение
 screen-shader.sh flash [-k] <name> [sec] # эффект на N секунд (деф. 1.0) и вернуть
-                                       # как было; КОМПОЗИЦИЯ поверх активного
-                                       # эффекта (тот не теряется); durable state
-                                       # не трогается; -k -- no-op при активном
-                                       # эффекте. Дёргает DDLC-локскрин (глитч)
+                                       # как было; КОМПОЗИЦИЯ поверх стопки (та
+                                       # не теряется); durable state не трогается;
+                                       # -k -- no-op при непустой стопке.
+                                       # Дёргает DDLC-локскрин (глитч)
 screen-shader.sh restore               # перечитать состояние и применить (на reload)
-screen-shader.sh status                # JSON для waybar (эмодзи + %)
-screen-shader.sh menu                  # список "<эмодзи> <подпись>|<значение>"
+screen-shader.sh status                # JSON для waybar (эмодзи стопки + %)
+screen-shader.sh menu                  # строки "<эмодзи> <подпись>|<имя>", ✓ = в стопке
 ```
+
+Эффекты **стакаются**: `effect push` (его шлёт rofi-пикер) добавляет фильтр
+поверх текущих, вся стопка компонуется в один GLSL. Геометрические (сэмплят
+текстуру: crt/wave/glitch) идут в цепочке первыми, цветовые — после; два
+геометрических честно не сложить — последний перекрывает (один слот, один
+проход)
 
 ## Эффекты
 

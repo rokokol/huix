@@ -335,14 +335,22 @@ set_single() {
 
 toggle_effect() {
   local name="$1" e new=()
+  # «Обычный» = сброс всей стопки, а не добавление none в цепочку.
+  if [[ "$name" == "none" ]]; then
+    clear_stack
+    return
+  fi
   require_effect "$name"
   if in_list "$name" "${stack[@]}"; then
     for e in "${stack[@]}"; do [[ "$e" == "$name" ]] || new+=("$e"); done
     stack=("${new[@]}")
+    apply
+    notify_info "Shader" "Убран: ${LABEL[$name]} · в стопке ${#stack[@]} (・_・)"
   else
     stack+=("$name")
+    apply
+    notify_info "Shader" "Добавлен: ${LABEL[$name]} · в стопке ${#stack[@]} （-＾〇＾-）"
   fi
-  apply
 }
 
 clear_stack() {
