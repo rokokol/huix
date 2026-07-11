@@ -20,7 +20,7 @@ let
   ];
 in
 {
-  options.custom.hyprland.wallpaperCollage = lib.mkEnableOption "коллаж обоев по таймеру (random_wallpaper.sh)";
+  options.custom.hyprland.wallpaperCollage = lib.mkEnableOption "коллаж обоев по таймеру (random-wallpaper.sh)";
 
   config = lib.mkIf config.custom.hyprland.wallpaperCollage {
     systemd.user.services = {
@@ -32,7 +32,7 @@ in
         };
         Service = {
           Type = "oneshot";
-          ExecStart = "${pkgs.bash}/bin/bash ${scriptsDir}/random_wallpaper.sh";
+          ExecStart = "${pkgs.bash}/bin/bash ${scriptsDir}/random-wallpaper.sh";
           Environment = "PATH=${lib.makeBinPath wallpaperDeps}";
         };
       };

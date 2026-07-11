@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="../assets/laptop_wallpaper.png" alt="обои ноута" width="380"/>
+<img src="../assets/laptop-wallpaper.png" alt="обои ноута" width="380"/>
 
 <em>тут живёт всё, что делает рабочий стол крутым</em>
 
@@ -40,7 +40,7 @@ HM подключён не отдельным потоком, а как NixOS-м
 
 ## Тонкости
 
-- **тема свет/тьма управляется в рантайме, не декларативно** — `scripts/toggle_theme.sh` (бинд `SUPER+A`) флипает `color-scheme`+`gtk-theme` в dconf и пишет выбор в `~/.local/state/huix/theme`. Не клади `color-scheme`/`gtk-theme` в `theme.nix` `dconf.settings` и не ставь `gtk.theme` — иначе `dconf load` на каждом ребилде будет сбивать рантайм-выбор обратно в светлую
+- **тема свет/тьма управляется в рантайме, не декларативно** — `scripts/toggle-theme.sh` (бинд `SUPER+A`) флипает `color-scheme`+`gtk-theme` в dconf и пишет выбор в `~/.local/state/huix/theme`. Не клади `color-scheme`/`gtk-theme` в `theme.nix` `dconf.settings` и не ставь `gtk.theme` — иначе `dconf load` на каждом ребилде будет сбивать рантайм-выбор обратно в светлую
 - `home.stateVersion` зафиксирован на `25.11` — не трогай без явной миграции
 - `backupFileExtension = "bak-${lastModified}"` — каждый ребилд с новой ревизии флейка плодит свой `.bak` в `$HOME`, периодически чисти
 

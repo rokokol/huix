@@ -87,11 +87,12 @@ in
         return
       end
 
-      -- langmapper's built-in RU layout maps the physical `/?` key to `.`/`,`.
-      -- With `hack_keymap` that makes every plugin `/` mapping silently create a
-      -- twin on `.`, which overwrites real `.` mappings (e.g. neo-tree's
-      -- `.` = set_root). Make that key identity so no `.`/`,` twins are produced;
-      -- this matches the native `langmap` above, which also omits that pair.
+      -- Встроенная RU-раскладка langmapper мапит физическую клавишу `/?` на `.`/`,`.
+      -- С `hack_keymap` это заставляет каждый плагинный маппинг `/` молча создавать
+      -- двойника на `.`, который перезатирает настоящие маппинги `.` (например
+      -- `.` = set_root у neo-tree). Делаем эту клавишу тождественной, чтобы
+      -- двойники `.`/`,` не плодились; это совпадает с нативным `langmap` выше,
+      -- который эту пару тоже опускает.
       local ru_layout = require('langmapper.config').config.layouts.ru.layout
       ru_layout = ru_layout:gsub(',ё', '?ё'):gsub('%.$', '/')
 
@@ -103,15 +104,15 @@ in
 
       lm.automapping({ global = true, buffer = true })
 
-      -- Command-line mode is not covered by `langmap`/langmapper (only n/v/x/s
-      -- modes are). So `:` enters cmdline via the langmap (Ж -> :), but the
-      -- command itself is typed in the active layout: `:q` becomes `:й`.
+      -- Режим командной строки не покрывается `langmap`/langmapper (только режимы
+      -- n/v/x/s). Так что `:` входит в cmdline через langmap (Ж -> :), но сама
+      -- команда набирается в активной раскладке: `:q` превращается в `:й`.
       --
-      -- Translate Cyrillic -> Latin, but ONLY while the cursor is still inside
-      -- the command *name* of a `:` ex-command (nothing but command-name chars
-      -- typed yet). Once a space, `/`, `%` or `#` appears, or for `/`?` search
-      -- prompts, characters are left untouched so Cyrillic search patterns and
-      -- arguments (`:e файл`, `:s/foo/привет/`) keep working.
+      -- Переводим кириллицу -> латиницу, но ТОЛЬКО пока курсор ещё внутри *имени*
+      -- команды `:` ex-команды (набраны только символы имени команды). Как только
+      -- появляется пробел, `/`, `%` или `#`, а также для поисковых промптов `/`?`,
+      -- символы оставляем как есть, чтобы кириллические паттерны поиска и аргументы
+      -- (`:e файл`, `:s/foo/привет/`) продолжали работать.
       local cmd_layout = {
         ["й"] = "q", ["ц"] = "w", ["у"] = "e", ["к"] = "r", ["е"] = "t",
         ["н"] = "y", ["г"] = "u", ["ш"] = "i", ["щ"] = "o", ["з"] = "p",

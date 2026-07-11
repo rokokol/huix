@@ -8,7 +8,7 @@ let
   darkColorScheme = "prefer-dark";
 in
 {
-  # gtk-theme переключает toggle_theme.sh в рантайме, поэтому имя темы декларативно
+  # gtk-theme переключает toggle-theme.sh в рантайме, поэтому имя темы декларативно
   # не фиксируем — только ставим пакет (gruvbox-gtk-theme ниже даёт обе вариации).
   gtk = {
     enable = true;

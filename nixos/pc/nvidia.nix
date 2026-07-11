@@ -1,7 +1,7 @@
 { config, rokokolName, ... }:
 
 {
-  # OpenGL on (Hardware Graphics)
+  # OpenGL (аппаратная графика)
   hardware.graphics = {
     enable = true;
     enable32Bit = true;
@@ -17,13 +17,13 @@
     open = false;
     nvidiaSettings = true;
 
-    # Stable kernel
+    # Стабильное ядро
     package = config.boot.kernelPackages.nvidiaPackages.latest;
   };
   hardware.nvidia-container-toolkit.enable = true;
 
-  # nix-ld needs the exact driver userspace this host runs; the shared list in
-  # nixos/services/system/nix-ld.nix stays GPU-agnostic.
+  # nix-ld нужен userspace ровно того драйвера, что стоит на этом хосте; общий
+  # список в nixos/services/system/nix-ld.nix остаётся GPU-агностичным.
   programs.nix-ld.libraries = [ config.hardware.nvidia.package ];
 
   users.users.${rokokolName} = {

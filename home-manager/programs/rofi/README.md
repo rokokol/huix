@@ -17,7 +17,7 @@
 - `config.rasi` подключает `base.rasi` и активную тему
 - активная тема выбирается через `themes/active.rasi`
 - если `active.rasi` ещё не существует, модуль создаёт его как ссылку на `light.rasi`
-- `scripts/toggle_theme.sh` переключает `active.rasi` между light и dark
+- `scripts/toggle-theme.sh` переключает `active.rasi` между light и dark
 
 ## Где что менять
 - Nix-слой и раскладка файлов — `home-manager/programs/rofi/default.nix`

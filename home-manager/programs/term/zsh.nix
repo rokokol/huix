@@ -49,12 +49,12 @@
     defaultKeymap = "viins";
 
     initContent = ''
-      # Enable selection menu
+      # Меню выбора при автодополнении
       zstyle ':completion:*' menu select
-      # Add colors to the list
+      # Цвета в списке автодополнения
       zstyle ':completion:*' list-colors "''${(s.:.)LS_COLORS}" 
 
-      # Word jumping (Ctrl + Arrows)
+      # Прыжки по словам (Ctrl + стрелки)
       bindkey "^[[1;5C" forward-word
       bindkey "^[[1;5D" backward-word
     '';

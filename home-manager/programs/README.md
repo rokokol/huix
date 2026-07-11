@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="../../assets/Say_sketch2.webp" alt="say sketch" width="280"/>
+<img src="../../assets/say-sketch2.webp" alt="say sketch" width="280"/>
 
 </div>
 
