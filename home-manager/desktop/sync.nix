@@ -16,12 +16,11 @@ let
   ];
 in
 {
-  # sync.sh больше не гоняется по таймеру: он запускается на старте графической
-  # сессии (загрузка/логин) и после каждого nixos-rebuild (хук активации ниже).
   systemd.user.services = {
     "sync" = {
       Unit = {
-        Description = "Синхронизация huix-репозитория с upstream (sync.sh)";
+        Description = "huix-repo sync (sync.sh)";
+
         After = [
           "graphical-session.target"
           "ssh-agent.service"
