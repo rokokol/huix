@@ -58,7 +58,7 @@ Item {
 
             width: parent.width
             echoMode: TextInput.Password
-            placeholderText: "Password test"
+            placeholderText: "Password"
             onAccepted: panel.submit()
         }
 

@@ -26,6 +26,7 @@ in
     };
   };
 
+  security.pam.services.login.nodelay = true;
   environment.systemPackages = [
     ddlcTheme
     sayoriCursors

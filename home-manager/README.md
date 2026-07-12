@@ -24,7 +24,7 @@ HM подключён не отдельным потоком, а как NixOS-м
 | --- | --- |
 | `home-pc.nix` / `home-laptop.nix` | точки входа per-host: весь вход `custom.*` (hyprland, waybar, packages, dataDir) + btop-пакет |
 | `desktop/user.nix` | XDG-директории, закладки, tmpfiles, env; база данных хоста — опция `custom.home.dataDir` |
-| `desktop/sync.nix` | systemd-таймер авто-синка конфига (`scripts/sync.sh`, ежечасно) |
+| `desktop/sync.nix` | systemd-сервис авто-синка конфига (`scripts/sync.sh`, на старте сессии и после `nixos-rebuild`) |
 | [`desktop/hyprland/`](desktop/hyprland/README.md) | `hyprland.conf`, единый `hyprland.nix` с опциями `custom.hyprland.*`, `services/`: waybar, mako, hypridle, обои-коллажер |
 | `desktop/packages/` | `packages.nix`: общие пакеты + группы с флагами `custom.packages.{pc,laptop}` + `mime-apps` |
 | `desktop/theme/` | курсор, GTK/qt-тема, дефолты |
