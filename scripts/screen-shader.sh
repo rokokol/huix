@@ -89,12 +89,6 @@ ANIMATED=(wave glitch matrix)
 # при любом изменении (damage_tracking 1), но в простое можно спать — анимации нет.
 OFFSET=(crt jpeg sharpen)
 
-# Эффекты, которые двигают пиксели ГЕОМЕТРИЧЕСКИ (кривизна/искажение). Для них
-# включаем ПРОГРАММНЫЙ курсор, чтобы он проходил через шейдер вместе с экраном:
-# аппаратный курсор рисуется оверлеем мимо шейдера и не совпадает с искажённым
-# контентом (из-за чего клики у краёв уезжают). Для остальных — аппаратный (быстрее).
-WARP=(crt wave glitch)
-
 # Эмодзи и подписи для индикатора в waybar (status) — один источник правды.
 declare -A EMOJI=(
   [none]="🌈" [grayscale]="⚫" [sepia]="🟤" [invert]="🔄" [warm]="🌅"
@@ -212,20 +206,6 @@ render_mode_for() { # $@ = имена эффектов
   printf 'default'
 }
 
-# Программный курсор для искажающих эффектов (см. WARP) — иначе аппаратный курсор
-# идёт мимо шейдера. На NVIDIA "программный курсор" = воркэраунд аппаратного, так
-# что это безопасная сторона; аппаратный (false) — текущий дефолт.
-set_cursor_for() { # $@ = имена эффектов
-  local n
-  for n in "$@"; do
-    if in_list "$n" "${WARP[@]}"; then
-      hyprctl keyword cursor:no_hardware_cursors true >/dev/null
-      return
-    fi
-  done
-  hyprctl keyword cursor:no_hardware_cursors false >/dev/null
-}
-
 # Переименовать все топ-уровневые определения тела эффекта (effect, hash, …)
 # суффиксом $2 — для композиции нескольких тел в одном шейдере без конфликтов.
 rename_defs() { # $1 = файл, $2 = суффикс
@@ -293,7 +273,6 @@ apply() { # $1 (опц.) = transient: не сохранять состояние
   # Полностью убираем шейдер, если ни эффектов, ни затемнения нет.
   if [[ ${#stack[@]} -eq 0 && "$bright" == "1.00" ]]; then
     set_render_mode default
-    set_cursor_for none
     hyprctl keyword decoration:screen_shader "[[EMPTY]]" >/dev/null
     [[ "${1:-}" == "transient" ]] || save_state
     signal_waybar
@@ -320,7 +299,6 @@ apply() { # $1 (опц.) = transient: не сохранять состояние
   emit_shader "$active" "${bodies[@]}"
 
   set_render_mode "$(render_mode_for "${stack[@]}")"
-  set_cursor_for "${stack[@]}"
   hyprctl keyword decoration:screen_shader "$active" >/dev/null
   [[ "${1:-}" == "transient" ]] || save_state
   signal_waybar
@@ -469,7 +447,6 @@ cmd_flash() {
 
   # Режим отрисовки/курсор — по всей паре (flash + стопка).
   set_render_mode "$(render_mode_for "$name" "${stack[@]}")"
-  set_cursor_for "$name" "${stack[@]}"
 
   hyprctl keyword decoration:screen_shader "$file" >/dev/null
   sleep "$dur"

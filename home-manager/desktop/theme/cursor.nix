@@ -4,32 +4,15 @@
 { pkgs, inputs, ... }:
 
 let
+  # Тема лежит в двух форматах сразу: cursors/ (XCursor) и hyprcursors/ (hyprcursor,
+  # manifest.hl). Просто раскладываем её в share/icons — оба варианта нужны, см. ниже.
   sayori-cursor = pkgs.stdenv.mkDerivation {
     name = "sayori-cursor-v2";
     src = "${inputs.self}/assets/sayori-cursor-v2";
     dontUnpack = true;
-    nativeBuildInputs = [
-      pkgs.zip
-      pkgs.unzip
-    ];
     installPhase = ''
-      out_theme=$out/share/icons/Sayori-Cursor-V2
-      mkdir -p $out_theme
-      cp -a $src/* $out_theme/
-      chmod -R u+w $out_theme
-      #
-      # # Тема нарисована в единственном размере (32) с resize_algorithm = none.
-      # # На мониторе с дробным scale (у ноута eDP-1 scale = 1.33) компоситору нужен
-      # # битмап 32*1.33 ≈ 43px, а «none» запрещает масштабирование → hyprcursor
-      # # отдаёт 32px и курсор выглядит не того размера / мерцает. Перепаковываем
-      # # каждый .hlc с bilinear, чтобы hyprcursor мог отдать нужный дробный размер.
-      # for hlc in $out_theme/hyprcursors/*.hlc; do
-      #   work=$(mktemp -d)
-      #   unzip -oq "$hlc" -d "$work"
-      #   sed -i 's/^resize_algorithm = none/resize_algorithm = bilinear/' "$work/meta.hl"
-      #   rm "$hlc"
-      #   ( cd "$work" && zip -qr "$hlc" . )
-      # done
+      mkdir -p $out/share/icons/Sayori-Cursor-V2
+      cp -a $src/* $out/share/icons/Sayori-Cursor-V2/
     '';
   };
 
@@ -38,17 +21,27 @@ let
 in
 {
   home.pointerCursor = {
-    gtk.enable = true;
-    x11.enable = true;
-    # # hyprcursor выставляет HYPRCURSOR_THEME/HYPRCURSOR_SIZE — без них нативные
-    # # Wayland-приложения (и cursor-shape-клиенты вроде slurp) рендерят hyprcursor
-    # # в дефолтном размере, а не в заданном 32.
-    # hyprcursor = {
-    #   enable = true;
-    #   size = cursorSize;
-    # };
     package = sayori-cursor;
     name = cursorName;
     size = cursorSize;
+
+    # Три канала ниже — не дубли, они обслуживают РАЗНЫЕ группы приложений и
+    # дополняют друг друга (стандартная связка для Hyprland):
+    #
+    #   x11        — XCURSOR_THEME/SIZE + ~/.icons/default. Универсальный XCursor-путь:
+    #                XWayland-приложения и нативные Wayland на libwayland-cursor
+    #                (GTK3/Tauon, старые тулкиты). Базовый, убирать нельзя.
+    #   gtk        — gtk-cursor-theme-name/size в настройках GTK, чтобы GTK-приложения
+    #                не откатывались на курсор Adwaita.
+    #   hyprcursor — HYPRCURSOR_THEME/SIZE. Родной формат Hyprland: им компоситор рисует
+    #                сам курсор и обслуживает cursor-shape-v1 клиентов (slurp и почти все
+    #                современные Wayland-приложения). Самый чёткий путь на Hyprland.
+    #
+    # Нужен ли hyprcursor, если есть XCursor? Да: без него Hyprland рисовал бы курсор
+    # из XCursor-варианта (сработает, но это фолбэк, не родной путь). XCursor при этом
+    # тоже нельзя выкинуть — на нём держатся XWayland и легаси-приложения. Поэтому оба.
+    x11.enable = true;
+    gtk.enable = true;
+    hyprcursor.enable = true;
   };
 }
