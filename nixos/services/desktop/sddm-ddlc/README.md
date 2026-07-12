@@ -4,9 +4,9 @@
 
 <div align="center">
 
-<img src="../../../../assets/ddlc-stickers/sayori-sticker-calm.png" alt="Сайори" width="130"/>
 <img src="../../../../assets/ddlc-stickers/natsuki-sticker-calm.png" alt="Нацуки" width="130"/>
 <img src="../../../../assets/ddlc-stickers/yuri-sticker-calm.png" alt="Юри" width="130"/>
+<img src="../../../../assets/ddlc-stickers/sayori-sticker-calm.png" alt="Сайори" width="130"/>
 <img src="../../../../assets/ddlc-stickers/monika-sticker-calm.png" alt="Моника" width="130"/>
 
 </div>
