@@ -124,7 +124,10 @@ Item {
                 y: row * bg.step - bg.step * 2
                 width: bg.dotR * 2
                 height: bg.dotR * 2
-                preferredRendererType: Shape.CurveRenderer
+                // GeometryRenderer вместо CurveRenderer: контур из прямых
+                // сегментов, кривые не нужны — это в разы дешевле на ~100 фигур
+                // и убирает подтормаживание фона
+                preferredRendererType: Shape.GeometryRenderer
                 antialiasing: true
 
                 function buildPath() {
