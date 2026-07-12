@@ -6,9 +6,16 @@ import QtQuick.Controls.Basic
 TextField {
     id: field
 
-    // Фиксированная высота: иначе поле пароля меняет размер при вводе
-    // (метрики точек echoMode отличаются от плейсхолдера) и дёргает подложку
-    height: 46
+    // Высота считается от метрик шрифта, а не от контента: иначе поле пароля
+    // меняет размер при вводе (у точек echoMode другие метрики, чем у
+    // плейсхолдера) и дёргает подложку. Так высота стабильна и сама
+    // подстраивается под смену шрифта/кегля
+    FontMetrics {
+        id: fm
+
+        font: field.font
+    }
+    height: Math.ceil(fm.height) + topPadding + bottomPadding
 
     font.family: config.font
     font.pixelSize: 19
