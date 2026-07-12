@@ -27,6 +27,7 @@
     # Meshtastic (LoRa-mesh: Heltec / LILYGO и прочие ESP32-платы) — CLI
     # для прошивки конфигурации и доступа к ноде по serial/BLE.
     meshtastic
+    meshtastic-web
 
     # STM32 / ARM (SWD/JTAG + DFU)
     openocd
