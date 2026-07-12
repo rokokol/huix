@@ -15,17 +15,6 @@
     platformio-core.udev
   ];
 
-  # Web Serial API в Chromium требует uaccess/seat-теги на устройстве, иначе
-  # port.open() виснет навечно (sandbox проверяет не только file permissions).
-  # platformio-core.udev ставит MODE=0666, но uaccess не всегда — добавляем
-  # явно для типичных Meshtastic / ESP32-плат (CP210x, CH34x, ESP32-S3 native USB).
-  services.udev.extraRules = ''
-    SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", MODE="0666", TAG+="uaccess", TAG+="udev-acl"
-    SUBSYSTEM=="tty", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", MODE="0666", TAG+="uaccess", TAG+="udev-acl"
-    SUBSYSTEM=="tty", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="55d4", MODE="0666", TAG+="uaccess", TAG+="udev-acl"
-    SUBSYSTEM=="tty", ATTRS{idVendor}=="303a", MODE="0666", TAG+="uaccess", TAG+="udev-acl"
-  '';
-
   environment.systemPackages = with pkgs; [
     # Arduino / AVR
     platformio
