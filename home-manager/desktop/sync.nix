@@ -19,8 +19,7 @@ in
   systemd.user.services = {
     "sync" = {
       Unit = {
-        Description = "huix-repo sync (sync.sh)";
-
+        Description = "Синхронизация huix-репозитория с upstream (sync.sh)";
         After = [
           "graphical-session.target"
           "ssh-agent.service"

@@ -12,6 +12,5 @@
 
   custom = {
     jupyter.enable = true;
-    meshtastic.enable = true;
   };
 }

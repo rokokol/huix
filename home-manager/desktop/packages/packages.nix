@@ -26,6 +26,7 @@ in
         ayugram-desktop
         baobab
         celluloid
+        chromium
         evince
         file-roller
         freecad
