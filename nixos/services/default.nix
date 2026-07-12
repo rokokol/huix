@@ -9,7 +9,6 @@
     ./desktop/file-manager.nix
     ./desktop/sddm.nix
     ./desktop/ssh-askpass.nix
-    ./devices/meshtastic.nix
     ./devices/printer.nix
     ./devices/tablet.nix
     ./devices/virtual-camera.nix
