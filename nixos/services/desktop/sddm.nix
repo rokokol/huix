@@ -1,9 +1,6 @@
 { pkgs, inputs, ... }:
 
 let
-  # DDLC-тема для SDDM и курсор-голова Сайори — только для экрана логина,
-  # в сессии остаётся Bibata (home-manager/desktop/theme/cursor.nix)
-  # inputs пробрасываем, чтобы модули брали ассеты через ${inputs.self}
   ddlcTheme = pkgs.callPackage ./sddm-ddlc/theme-package.nix { inherit inputs; };
   sayoriCursors = pkgs.callPackage ./sddm-ddlc/sayori-cursor.nix { inherit inputs; };
 in
@@ -14,13 +11,14 @@ in
     wayland.compositor = "kwin";
     theme = "ddlc";
 
-    # DotsBackground использует QtQuick.Shapes, а глитч/сшакаливание —
-    # QtQuick.Effects. В дефолтном QML-пути greeter'а этих модулей нет
-    # (стандартным темам они не нужны), поэтому докидываем qtdeclarative —
-    # иначе тема падает с «module QtQuick.Shapes is not installed»
-    # extraPackages = [ pkgs.qt6.qtdeclarative ];
-
     settings = {
+      # Greeter грузит тему по стабильному пути /run/current-system/…, а все
+      # файлы в /nix/store имеют mtime=1970 → Qt-кэш QML считает тему
+      # неизменной и отдаёт устаревший скомпилированный QML: правки не видны
+      # на реальном логине (в test-mode путь уникальный — там всё свежее).
+      # Отключаем дисковый кэш QML у greeter, он короткоживущий и кэш ему не нужен.
+      General.GreeterEnvironment = "QT_WAYLAND_SHELL_INTEGRATION=layer-shell,QML_DISABLE_DISK_CACHE=1";
+
       Theme = {
         CursorTheme = "sayori-cursors";
         CursorSize = 32;
