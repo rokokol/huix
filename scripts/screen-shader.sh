@@ -216,15 +216,14 @@ render_mode_for() { # $@ = имена эффектов
 # идёт мимо шейдера. На NVIDIA "программный курсор" = воркэраунд аппаратного, так
 # что это безопасная сторона; аппаратный (false) — текущий дефолт.
 set_cursor_for() { # $@ = имена эффектов
-  echo
-  # local n
-  # for n in "$@"; do
-  #   if in_list "$n" "${WARP[@]}"; then
-  #     hyprctl keyword cursor:no_hardware_cursors true >/dev/null
-  #     return
-  #   fi
-  # done
-  # hyprctl keyword cursor:no_hardware_cursors false >/dev/null
+  local n
+  for n in "$@"; do
+    if in_list "$n" "${WARP[@]}"; then
+      hyprctl keyword cursor:no_hardware_cursors true >/dev/null
+      return
+    fi
+  done
+  hyprctl keyword cursor:no_hardware_cursors false >/dev/null
 }
 
 # Переименовать все топ-уровневые определения тела эффекта (effect, hash, …)
