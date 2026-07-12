@@ -19,7 +19,7 @@
       enable = true;
       monitorScale = "1.33";
       touchpadNaturalScroll = true;
-      wallpaperImage = "${huixDir}/assets/laptop-wallpaper.png";
+      wallpaperImage = "${huixDir}/assets/say-sketch2.webp";
     };
 
     waybar = {
