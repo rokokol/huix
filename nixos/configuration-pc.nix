@@ -21,6 +21,7 @@
     searxng.enable = true;
 
     printer.enable = true;
+    meshtastic.enable = true;
     tablet.enable = true;
     virtualCamera.enable = true;
     virtualization.enable = true;
