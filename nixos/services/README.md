@@ -11,6 +11,7 @@
 [![huix](https://img.shields.io/badge/huix-наверх-222222?style=for-the-badge&logo=nixos&logoColor=white)](../../README.md)
 [![nixos](https://img.shields.io/badge/nixos-системный_слой-5277C3?style=for-the-badge&logo=nixos&logoColor=white)](../README.md)
 [![fonts](https://img.shields.io/badge/fonts-шрифты-EA4AAA?style=for-the-badge&logo=googlefonts&logoColor=white)](../fonts/README.md)
+[![DDLC](https://img.shields.io/badge/DDLC-тема_логина-FF80C0?style=for-the-badge&logo=qt&logoColor=white)](desktop/sddm-ddlc/README.md)
 
 Системные сервисы, разложенные по категориям. Каждый сервис — отдельный модуль; `default.nix` — единый агрегатор, импортирующий всё на обоих хостах. Общие сервисы включены безусловно, хост-специфичные гейтятся опцией `custom.<имя>.enable` внутри своего модуля, а *вход* — какие флаги подняты — объявляет `configuration-<host>.nix`. Чтобы добавить/убрать сервис с хоста — щёлкай флаг там, а не правь модуль
 
