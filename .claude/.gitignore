@@ -1,0 +1,8 @@
+# В git тащим только память Claude Code (.claude/memory/) и репо-скиллы (.claude/skills/).
+# Локальные настройки, транскрипты сессий и локи — мимо репозитория.
+*
+!.gitignore
+!memory/
+!memory/**
+!skills/
+!skills/**
