@@ -21,10 +21,6 @@ in
   home.pointerCursor = {
     gtk.enable = true;
     x11.enable = true;
-    hyprcursor = {
-      enable = true;
-      size = cursorSize;
-    };
     package = sayori-cursor;
     name = cursorName;
     size = cursorSize;

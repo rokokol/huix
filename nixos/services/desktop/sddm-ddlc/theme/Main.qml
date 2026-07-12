@@ -24,9 +24,10 @@ Rectangle {
 
     // Реакция на неверный пароль. Вызывается из onLoginFailed и по F8:
     // в test-mode демона нет и sddm.loginFailed не приходит в принципе,
-    // так что глитч и пасхалку иначе не проверить
+    // так что глитч и пасхалку иначе не проверить.
+    // failCount++ живёт в glitch.onFinished — фазовые изменения (зерно,
+    // деформация кружков, Юри -cut/-distorted) наступают после глитча
     function showFail() {
-        root.failCount++
         forgiveTimer.restart()
         panel.clearPassword()
         glitch.trigger()
@@ -183,6 +184,9 @@ Rectangle {
         z: 10
         anchors.fill: parent
         target: panel
+        // Фазовые изменения (failCount++) наступают после глитч-анимации,
+        // чтобы порча фона / смена спрайтов не перекрывались с глитчем
+        onFinished: root.failCount++
     }
 
     // Пасхалка сбрасывается сама через минуту тишины
