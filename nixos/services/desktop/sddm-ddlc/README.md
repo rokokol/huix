@@ -24,28 +24,25 @@
 
 ## Ключи theme.conf ([General])
 
-| Ключ | Дефолт | Что делает |
-| --- | --- | --- |
-| `font` | `Doki` | основной шрифт (из nixos/fonts) |
-| `iconFont` | `DepartureMono Nerd Font` | глифы кнопок питания |
-| `bgColor` | `#FFF5FA` | цвет фона |
-| `accentPink` / `deepPink` | `#FF80C0` / `#D667A0` | рамки и акценты |
-| `dotColor` | `#FFDCEE` | цвет кружочков |
-| `corruptDot` | `#FF1030` | цвет кружочков в режиме пасхалки |
-| `dotSpacing` / `dotRadius` | `120` / `16` | шаг решётки и радиус кружка |
-| `scrollDuration` | `14000` | период дрейфа фона, мс |
-| `panelColor` / `panelBorder` | `#FFEBF4` / `#FFBDE1` | панель логина (цвета из игры) |
-| `okOutline` | `#BA5297` | обводка кнопки OK |
-| `textDark` / `errorRed` | `#4A2B3A` / `#D6244A` | текст и ошибки |
-| `glitchRgbSplit` | `true` | выключить, если RGB-split глючит на конкретном железе |
+| Ключ                         | Дефолт                    | Что делает                                            |
+| ---------------------------- | ------------------------- | ----------------------------------------------------- |
+| `font`                       | `Doki`                    | основной шрифт (из nixos/fonts)                       |
+| `iconFont`                   | `DepartureMono Nerd Font` | глифы кнопок питания                                  |
+| `bgColor`                    | `#FFF5FA`                 | цвет фона                                             |
+| `accentPink` / `deepPink`    | `#FF80C0` / `#D667A0`     | рамки и акценты                                       |
+| `dotColor`                   | `#FFDCEE`                 | цвет кружочков                                        |
+| `corruptDot`                 | `#FF1030`                 | цвет кружочков в режиме пасхалки                      |
+| `dotSpacing` / `dotRadius`   | `120` / `16`              | шаг решётки и радиус кружка                           |
+| `scrollDuration`             | `14000`                   | период дрейфа фона, мс                                |
+| `panelColor` / `panelBorder` | `#FFEBF4` / `#FFBDE1`     | панель логина (цвета из игры)                         |
+| `okOutline`                  | `#BA5297`                 | обводка кнопки OK                                     |
+| `textDark` / `errorRed`      | `#4A2B3A` / `#D6244A`     | текст и ошибки                                        |
+| `glitchRgbSplit`             | `true`                    | выключить, если RGB-split глючит на конкретном железе |
 
 ## Оконный тест без выхода из сессии
 
 ```sh
-nix build .#nixosConfigurations.nixos-laptop.config.system.build.toplevel
-theme=$(nix path-info -r ./result | grep sddm-ddlc-theme)
-nix shell nixpkgs#sddm -c sddm-greeter-qt6 --test-mode \
-  --theme "$theme/share/sddm/themes/ddlc"
+nix build .#nixosConfigurations.nixos-laptop.config.system.build.toplevel && env -u QML2_IMPORT_PATH -u QML_IMPORT_PATH -u QT_PLUGIN_PATH "$(nix-store -qR ./result | grep -m1 'sddm-wrapped$')/bin/sddm-greeter-qt6" --test-mode --theme "$(nix-store -qR ./result | grep -m1 sddm-ddlc-theme)/share/sddm/themes/ddlc"
 ```
 
 В test-mode нет демона SDDM, поэтому настоящий `loginFailed` не приходит — для предпросмотра глитча жми F8, три нажатия подряд включают пасхалку

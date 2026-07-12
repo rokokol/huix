@@ -32,8 +32,4 @@ in
     ddlcTheme
     sayoriCursors
   ];
-
-  # PAM по умолчанию ждёт 2 с перед возвратом ошибки (защита от брутфорса).
-  # На физическом greeter'е это бессмысленно и задерживает глитч-анимацию
-  security.pam.services.sddm.failDelay.delay = 0;
 }
