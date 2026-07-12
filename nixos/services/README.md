@@ -21,7 +21,7 @@
 | --- | --- |
 | `ai/` | `ollama` (на ПК подменяется на `ollama-cuda`), `comfyui`, `openwebui` |
 | `desktop/` | `amnezia-vpn`, `file-manager`, `sddm` (+ [DDLC-тема](desktop/sddm-ddlc/README.md)), `ssh-askpass` |
-| `devices/` | `printer`, `tablet`, `virtual-camera` |
+| `devices/` | `meshtastic`, `printer`, `tablet`, `virtual-camera` |
 | `system/` | `appimage`, `cachix`, `nix-ld` |
 | `tools/` | `jupyter`, `libre-translate`, `searxng`, `syncthing` |
 | `utils/` | `docker`, `embedded`, `tor`, `virtualization` |
@@ -37,6 +37,7 @@
 - `system/cachix` — бинарные кэши
 - `system/nix-ld` — запуск динамических не-Nix бинарей (FHS-набор библиотек)
 - `tools/jupyter` (на ПК с CUDA), `tools/libre-translate`, `tools/syncthing`
+- `devices/meshtastic` — нативная Meshtastic-нода (`meshtasticd` + веб-интерфейс) — `custom.meshtastic.enable`
 - `utils/docker`
 - `utils/embedded` — тулчейны AVR/ESP/STM32/RP2040 + udev (platformio)
 - `utils/tor` — Tor через webtunnel-мосты
@@ -61,13 +62,14 @@
 | SearxNG (ПК, за nginx) | 9000 |
 | Jupyter Lab | 8888 |
 | LibreTranslate | 5000 |
+| Meshtastic Web | 9443 |
 | Syncthing GUI | 8384 |
 
-Порты экспортятся как session variables (`OPEN_WEBUI_PORT`, `COMFYUI_PORT`, `SYNCTHING_PORT`, `LIBRE_TRANSLATE_PORT`) — удобно дёргать из скриптов и алиасов
+Порты экспортятся как session variables (`OPEN_WEBUI_PORT`, `COMFYUI_PORT`, `SYNCTHING_PORT`, `LIBRE_TRANSLATE_PORT`, `MESHTASTIC_PORT`) — удобно дёргать из скриптов и алиасов
 
 ## Тонкости
 
-- кастомные опции живут под `custom.*`: `custom.jupyter.{enable,withCuda}` плюс enable-флаги хост-специфичных сервисов (`comfyui`, `openwebui`, `searxng`, `printer`, `tablet`, `virtualCamera`, `virtualization`). Опция объявляется в самом модуле, включается в `configuration-<host>.nix`. Не гейти поведение через `mkIf config.services.foo.enable` из чужого модуля — заводи свою опцию
+- кастомные опции живут под `custom.*`: `custom.jupyter.{enable,withCuda}` плюс enable-флаги хост-специфичных сервисов (`comfyui`, `openwebui`, `searxng`, `meshtastic`, `printer`, `tablet`, `virtualCamera`, `virtualization`). Опция объявляется в самом модуле, включается в `configuration-<host>.nix`. Не гейти поведение через `mkIf config.services.foo.enable` из чужого модуля — заводи свою опцию
 - Jupyter на ПК берёт `pkgs.stable.python3` с бинарными `torch*`, чтобы не собирать ML-стек из исходников
 - тяжёлые сборки ускоряются кэшами `cuda-maintainers` (ПК, объявлен в `nixos/pc/nvidia.nix`) и `comfyui` (ПК) — при добавлении тяжёлого билда лучше дописать substituter, чем пересобирать
 
