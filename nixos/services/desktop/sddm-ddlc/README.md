@@ -4,7 +4,7 @@
 
 ## Что где
 
-`theme-package.nix` — деривация темы: копирует QML и конвертирует стикеры из `assets/ddlc-stickers` в PNG, потому что Qt6 в greeter не читает webp
+`theme-package.nix` — деривация темы: копирует QML и стикеры из `assets/ddlc-stickers` (все в PNG — Qt6 в greeter без qtimageformats не читает webp) и генерирует тайл шума для зернистости фона
 
 `sayori-cursor.nix` — X-курсор из `assets/sddm-cursor`: обычная голова Сайори по умолчанию, глитчнутая — над кликабельными элементами, как менялась иконка в самой игре
 

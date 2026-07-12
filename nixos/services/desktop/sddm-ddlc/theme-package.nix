@@ -22,14 +22,9 @@ stdenvNoCC.mkDerivation {
     mkdir -p "$theme/assets"
     cp -r ./. "$theme/"
 
-    # Qt6 в greeter без qtimageformats не читает webp —
-    # конвертируем стикеры в PNG прямо на этапе сборки
-    for f in ${stickers}/*-sticker-*.webp; do
-      magick "$f" "$theme/assets/$(basename "$f" .webp).png"
-    done
-
-    # Искажённые спрайты Юри уже в PNG — просто копируем
-    cp ${stickers}/*-distorted-*.png "$theme/assets/"
+    # Все стикеры лежат в PNG (Qt6 в greeter без qtimageformats не читает
+    # webp) — просто копируем: обычные, обрезанные (-cut) и искажённые
+    cp ${stickers}/*-sticker-*.png "$theme/assets/"
 
     # Картинка меню «Just Monika» из игры — для окошек пасхалки
     cp ${stickers}/just-monika-ok.png "$theme/assets/"
