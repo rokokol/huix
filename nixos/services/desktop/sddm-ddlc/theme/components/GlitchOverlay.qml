@@ -9,6 +9,8 @@ Item {
     readonly property bool rgbSplit: String(config.glitchRgbSplit) === "true"
     property bool active: false
 
+    signal finished()
+
     visible: active
 
     function trigger() {
@@ -43,6 +45,7 @@ Item {
                 overlay.target.anchors.horizontalCenterOffset = 0
                 overlay.target.anchors.verticalCenterOffset = 0
             }
+            overlay.finished()
         }
     }
 
