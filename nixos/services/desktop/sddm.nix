@@ -18,7 +18,7 @@ in
     # QtQuick.Effects. В дефолтном QML-пути greeter'а этих модулей нет
     # (стандартным темам они не нужны), поэтому докидываем qtdeclarative —
     # иначе тема падает с «module QtQuick.Shapes is not installed»
-    extraPackages = [ pkgs.qt6.qtdeclarative ];
+    # extraPackages = [ pkgs.qt6.qtdeclarative ];
 
     settings = {
       Theme = {
