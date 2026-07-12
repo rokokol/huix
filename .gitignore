@@ -8,8 +8,5 @@ result-*
 # Codex CLI temporary files
 .codex
 
-# Claude Code local state
-.claude/settings.local.json
-
 # VIM
 .nvimlog
