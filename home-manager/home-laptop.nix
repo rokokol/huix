@@ -17,8 +17,6 @@
 
     hyprland = {
       enable = true;
-      # monitorScale = "1.33";
-      monitorScale = "1";
       touchpadNaturalScroll = true;
       wallpaperImage = "${huixDir}/assets/laptop-wallpaper.png";
     };
