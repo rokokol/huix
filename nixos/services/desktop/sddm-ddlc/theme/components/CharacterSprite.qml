@@ -9,6 +9,10 @@ Item {
 
     property url calmSource
     property url excitedSource
+    // Обрезанные (-cut) спрайты — для Юри с 1-й неудачи
+    property url cutCalmSource
+    property url cutExcitedSource
+    property bool cut: false
     // Искажённые спрайты (для Юри со 2-й неудачи); если distorted — берутся они
     property url distortedCalmSource
     property url distortedExcitedSource
@@ -35,7 +39,7 @@ Item {
     }
 
     width: img.width
-    height: 150
+    height: 172
 
     opacity: gone ? 0 : 1
     Behavior on opacity {
@@ -91,7 +95,9 @@ Item {
 
         source: sprite.distorted
                 ? (sprite.excitedNow ? sprite.distortedExcitedSource : sprite.distortedCalmSource)
-                : (sprite.excitedNow ? sprite.excitedSource : sprite.calmSource)
+                : sprite.cut
+                  ? (sprite.excitedNow ? sprite.cutExcitedSource : sprite.cutCalmSource)
+                  : (sprite.excitedNow ? sprite.excitedSource : sprite.calmSource)
         height: sprite.height
         width: sourceSize.height > 0 ? height * sourceSize.width / sourceSize.height : height
         fillMode: Image.PreserveAspectFit

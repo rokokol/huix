@@ -12,7 +12,7 @@ Item {
     // Ширина зон нижних углов (кнопки сессии слева, питания справа)
     property real sideReserve: 240
 
-    height: 150
+    height: 172
 
     readonly property var girls: ["sayori", "monika", "natsuki", "yuri"]
 
@@ -22,10 +22,14 @@ Item {
         model: row.girls
 
         CharacterSprite {
-            readonly property real bandW: Math.max(150, (row.width - 2 * row.sideReserve) / row.girls.length)
+            readonly property real bandW: Math.max(172, (row.width - 2 * row.sideReserve) / row.girls.length)
 
             calmSource: "../assets/" + modelData + "-sticker-calm.png"
             excitedSource: "../assets/" + modelData + "-sticker-excited.png"
+            // Юри с 1-й неудачи переключается на обрезанные (-cut) спрайты
+            cutCalmSource: modelData === "yuri" ? "../assets/yuri-sticker-calm-cut.png" : ""
+            cutExcitedSource: modelData === "yuri" ? "../assets/yuri-sticker-excited-cut.png" : ""
+            cut: modelData === "yuri" && row.failCount >= 1
             // Юри со 2-й неудачи переключается на искажённые спрайты
             distortedCalmSource: modelData === "yuri" ? "../assets/yuri-sticker-distorted-calm.png" : ""
             distortedExcitedSource: modelData === "yuri" ? "../assets/yuri-sticker-distorted-excited.png" : ""
