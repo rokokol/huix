@@ -1,11 +1,12 @@
 # X-курсор для экрана логина: голова Сайори. Обычная — курсор по умолчанию,
 # глитчнутая — когда курсор наведён на кликабельный элемент (pointer/hand),
 # как менялась иконка в самой игре во время глитчей.
-{ stdenvNoCC, xcursorgen, imagemagick }:
+{ stdenvNoCC, xcursorgen, imagemagick, inputs }:
 
 let
-  head = ../../../../assets/sddm-cursor/sayori-head.png;
-  headGlitch = ../../../../assets/sddm-cursor/sayori-head-glitch.png;
+  # Ассеты — из корня флейка в сторе (см. ${inputs.self} в README)
+  head = "${inputs.self}/assets/sddm-cursor/sayori-head.png";
+  headGlitch = "${inputs.self}/assets/sddm-cursor/sayori-head-glitch.png";
 in
 stdenvNoCC.mkDerivation {
   pname = "sayori-cursors";

@@ -1,11 +1,11 @@
 # Деривация DDLC-темы для SDDM (Qt6, Theme-API 2.0).
 # QML-файлы именуются в CamelCase — это требование QML (имя файла задаёт имя
 # типа), сознательное исключение из общего правила kebab-case в репозитории.
-{ stdenvNoCC, imagemagick }:
+{ stdenvNoCC, imagemagick, inputs }:
 
 let
-  # Стикеры берутся из общих ассетов репозитория
-  stickers = ../../../../assets/ddlc-stickers;
+  # Стикеры берутся из общих ассетов репозитория (корень флейка в сторе)
+  stickers = "${inputs.self}/assets/ddlc-stickers";
 in
 stdenvNoCC.mkDerivation {
   pname = "sddm-ddlc-theme";
