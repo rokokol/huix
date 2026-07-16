@@ -25,5 +25,11 @@
       shader = true;
       temperatureHwmon = "/sys/class/hwmon/hwmon0/temp1_input";
     };
+
+    startupArgs = [
+      "dex -a"
+      "super-productivity"
+      "tauon"
+    ];
   };
 }
