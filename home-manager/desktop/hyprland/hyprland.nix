@@ -39,6 +39,12 @@ in
       default = null;
       description = "статичные обои через awww; null — без них (см. wallpaperCollage)";
     };
+
+    startupArgs = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ ];
+      description = "приложения на автозапуск";
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -70,7 +76,8 @@ in
         exec-once = [
           "awww init"
           "awww img ${cfg.wallpaperImage}"
-        ];
+        ]
+        ++ cfg.startupArgs;
       };
     };
   };
