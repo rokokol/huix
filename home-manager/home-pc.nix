@@ -17,6 +17,11 @@
       enable = true;
       monitorScale = "1";
       wallpaperCollage = true;
+      startupArgs = [
+        "dex -a"
+        "super-productivity"
+        "tauon"
+      ];
     };
 
     waybar = {
@@ -25,11 +30,5 @@
       shader = true;
       temperatureHwmon = "/sys/class/hwmon/hwmon0/temp1_input";
     };
-
-    startupArgs = [
-      "dex -a"
-      "super-productivity"
-      "tauon"
-    ];
   };
 }
