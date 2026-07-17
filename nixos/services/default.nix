@@ -9,6 +9,7 @@
     ./desktop/file-manager.nix
     ./desktop/sddm.nix
     ./desktop/ssh-askpass.nix
+    ./desktop/throne.nix
     ./devices/printer.nix
     ./devices/tablet.nix
     ./devices/virtual-camera.nix
