@@ -63,6 +63,7 @@
   # больше не читается, поэтому и info-оверлей, и биндинги задаём здесь.
   home.file.".config/swayimg/init.lua".text = ''
     swayimg.set_mode("viewer")
+    swayimg.viewer.set_scale("fit")
 
     -- По умолчанию никакого текстового оверлея: пустые схемы для всех углов.
     swayimg.viewer.set_text("topleft", {})
