@@ -22,7 +22,6 @@
     ./tools/syncthing.nix
     ./utils/docker.nix
     ./utils/embedded.nix
-    ./utils/tor.nix
     ./utils/virtualization.nix
   ];
 }
