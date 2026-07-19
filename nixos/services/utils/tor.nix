@@ -8,7 +8,8 @@
       UseBridges = true;
       ClientTransportPlugin = [
         "webtunnel exec ${pkgs.webtunnel}/bin/client"
-        "obfs4 exec ${pkgs.obfs4}/bin/obfs4proxy"
+        # бинарник в пакете obfs4 переименован апстримом в lyrebird
+        "obfs4 exec ${pkgs.obfs4}/bin/lyrebird"
       ];
       Bridge = [
         "webtunnel [2001:db8:11d3:d5e7:2939:8453:7baf:868f]:443 531640559965FB7501EB5C006018F61D1E9FA1BB url=https://cdn-34.triplebit.dev/Aec3euCh4ux3deij ver=0.0.2"
