@@ -517,6 +517,15 @@ cmd_menu() {
   done
 }
 
+# Полный сброс: эффекты + яркость одним apply (для ПКМ waybar).
+cmd_reset_all() {
+  load_state
+  stack=()
+  bright="1.00"
+  apply
+  notify_info "Shader" "Эффекты и яркость сброшены (★^O^★)"
+}
+
 case "${1:-}" in
 effect)
   shift
@@ -531,12 +540,13 @@ flash)
   cmd_flash "$@"
   ;;
 restore) cmd_restore ;;
+reset-all) cmd_reset_all ;;
 status) cmd_status ;;
 menu) cmd_menu ;;
 help | -h | --help) usage ;;
 *)
   usage >&2
-  notify_error "Usage: screen-shader.sh effect|bright|restore|status|menu|help"
+  notify_error "Usage: screen-shader.sh effect|bright|reset-all|restore|status|menu|help"
   exit 1
   ;;
 esac
