@@ -230,6 +230,9 @@ emit_shader() {
   local out="$1"
   shift
   local bodies=("$@") b i=0
+  # Атомарная запись: пишем во временный файл, потом mv — Hyprland не увидит
+  # наполовину записанный шейдер при конкурентных вызовах.
+  local tmp="${out}.tmp.$$"
   {
     printf '#version 300 es\n'
     printf 'precision highp float;\n\n'
@@ -258,7 +261,8 @@ emit_shader() {
     printf '    c *= BRIGHTNESS;\n'
     printf '    fragColor = vec4(c, src.a);\n'
     printf '}\n'
-  } >"$out"
+  } >"$tmp"
+  mv -f "$tmp" "$out"
 }
 
 # Упорядочить стопку для цепочки: геометрические (сэмплят текстуру) — первыми,
@@ -390,6 +394,12 @@ cmd_effect() {
 }
 
 cmd_bright() {
+  # flock: при быстром скролле waybar шлёт десятки вызовов параллельно —
+  # без блокировки конкурентные процессы читают/пишут один state и один .frag
+  # одновременно, Hyprland получает наполовину записанный шейдер и падает
+  # с «fragment shader lacks main».
+  exec 8>"$STATE_DIR/bright.lock"
+  flock 8
   load_state
   local step="0.05"
   case "${1:-}" in
