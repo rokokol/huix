@@ -17,6 +17,7 @@ in
         "🌖"
         "🌕"
       ];
+      on-click = "brightnessctl set 100%";
       on-scroll-up = "brightnessctl set 1%+";
       on-scroll-down = "brightnessctl set 1%-";
     };
