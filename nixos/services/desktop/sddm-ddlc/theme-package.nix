@@ -4,8 +4,11 @@
 { stdenvNoCC, imagemagick, inputs }:
 
 let
-  # Стикеры берутся из общих ассетов репозитория (корень флейка в сторе)
-  stickers = "${inputs.self}/assets/ddlc-stickers";
+  # Стикеры берутся из общих ассетов репозитория (через builtins.path для изоляции хеша)
+  stickers = builtins.path {
+    name = "ddlc-stickers";
+    path = "${inputs.self}/assets/ddlc-stickers";
+  };
 in
 stdenvNoCC.mkDerivation {
   pname = "sddm-ddlc-theme";
