@@ -4,9 +4,14 @@
 { stdenvNoCC, xcursorgen, imagemagick, inputs }:
 
 let
-  # Ассеты — из корня флейка в сторе (см. ${inputs.self} в README)
-  head = "${inputs.self}/assets/sddm-cursor/sayori-head.png";
-  headGlitch = "${inputs.self}/assets/sddm-cursor/sayori-head-glitch.png";
+  # Ассеты — через builtins.path, чтобы хеш зависел только от папки курсора,
+  # а не от всего репозитория (inputs.self меняется при каждом коммите)
+  assetDir = builtins.path {
+    name = "sddm-cursor-assets";
+    path = "${inputs.self}/assets/sddm-cursor";
+  };
+  head = "${assetDir}/sayori-head.png";
+  headGlitch = "${assetDir}/sayori-head-glitch.png";
 in
 stdenvNoCC.mkDerivation {
   pname = "sayori-cursors";

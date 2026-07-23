@@ -6,7 +6,10 @@
 let
   sayori-cursor = pkgs.stdenv.mkDerivation {
     name = "sayori-cursor-v2";
-    src = "${inputs.self}/assets/sayori-cursor-v2";
+    src = builtins.path {
+      name = "sayori-cursor-v2-src";
+      path = "${inputs.self}/assets/sayori-cursor-v2";
+    };
     dontUnpack = true;
     installPhase = ''
       mkdir -p $out/share/icons/Sayori-Cursor-V2
