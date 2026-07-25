@@ -54,7 +54,7 @@ in
         pup
         python3Packages.huggingface-hub
         ripgrep
-        texlive.combined.scheme-full
+        texliveFull
         tree
         unzip
         usbutils
