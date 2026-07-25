@@ -26,7 +26,10 @@
 
     # Meshtastic (LoRa-mesh: Heltec / LILYGO и прочие ESP32-платы) — CLI
     # для прошивки конфигурации и доступа к ноде по serial/BLE.
-    meshtastic
+    # stable: в unstable meshtastic тянет python3.14-pandas-stubs, чьи тесты
+    # падают под pytest 9 (deprecation → error). На stable (python 3.13,
+    # старый pytest) собирается нормально.
+    stable.meshtastic
 
     # STM32 / ARM (SWD/JTAG + DFU)
     openocd

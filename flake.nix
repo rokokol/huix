@@ -23,7 +23,10 @@
       inputs.nixpkgs.follows = "nixpkgs-stable";
     };
 
-    freesmlauncher.url = "github:FreesmTeam/FreesmLauncher";
+    freesmlauncher = {
+      url = "github:FreesmTeam/FreesmLauncher";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =

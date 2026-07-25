@@ -22,6 +22,7 @@ let
 in
 {
   home.pointerCursor = {
+    enable = true;
     package = sayori-cursor;
     name = cursorName;
     size = cursorSize;
