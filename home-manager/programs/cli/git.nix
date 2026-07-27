@@ -11,7 +11,7 @@
     settings = {
       user = {
         Name = rokokolName;
-        Email = "mailofilyusha@gmail.com";
+        Email = "git@rokokol.art";
       };
       core.editor = "nvim";
       core.quotepath = "false";
