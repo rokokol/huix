@@ -11,7 +11,8 @@ hyprlock-quote.sh — диалог Моники для DDLC-локскрина
           assets/monika-talk.txt топик за топиком, пауза Exp(1/7) после
           реплики, плавное затухание, пустой бокс Exp(1/60) между
           топиками. Первый топик при каждом локе — из monika-reentry.txt
-          (Act 3 re-entry), в случайную ротацию эти реплики не попадают
+          (Act 3 re-entry), в случайную ротацию эти реплики не попадают.
+          Топик никогда не повторяет предыдущий из того же файла
   name    имя на плашке ("Monika")
   help    эта справка
 
@@ -82,10 +83,12 @@ glitch_until_ms=0
 fail_chk=0
 fail_ts=""
 last_pid=""
+last_talk=0    # номер прошлого топика monika-talk.txt (0 = не было)
+last_reentry=0 # то же для monika-reentry.txt
 
 # Единый список полей машины состояний: save/snapshot не разъезжаются
 # при добавлении поля.
-STATE_VARS=(phase until_ms reveal_ms next_glitch_ms glitch_until_ms fail_chk fail_ts last_pid)
+STATE_VARS=(phase until_ms reveal_ms next_glitch_ms glitch_until_ms fail_chk fail_ts last_pid last_talk last_reentry)
 
 load_state() {
   # shellcheck disable=SC1090
@@ -115,14 +118,28 @@ exp_ms() {
     }'
 }
 
-# Случайный топик из файла $1 -> $TOPIC. Блоки разделены пустой строкой,
-# строки с '#' — комментарии.
+# Случайный топик из файла $1 -> $TOPIC; $2 — номер прошлого топика этого
+# файла (0 = нет), он из жребия исключается, чтобы одна и та же цитата не
+# выпадала дважды подряд. Печатает номер выбранного блока. Блоки разделены
+# пустой строкой, строки с '#' — комментарии.
 new_topic() {
-  awk -v seed="$(((RANDOM << 15) + RANDOM))" '
+  : >"$TOPIC"
+  awk -v seed="$(((RANDOM << 15) + RANDOM))" -v skip="${2:-0}" -v out="$TOPIC" '
     BEGIN { RS = ""; srand(seed) }
     { gsub(/(^|\n)#[^\n]*/, ""); sub(/^\n+/, ""); if ($0 != "") b[++n] = $0 }
-    END { if (n) print b[int(rand() * n) + 1] }
-  ' "$1" >"$TOPIC"
+    END {
+      if (!n) exit
+      # жребий по n-1 вариантам со сдвигом мимо прошлого блока
+      if (n > 1 && skip >= 1 && skip <= n) {
+        i = int(rand() * (n - 1)) + 1
+        if (i >= skip) i++
+      } else {
+        i = int(rand() * n) + 1
+      }
+      print b[i] > out
+      print i
+    }
+  ' "$1"
 }
 
 # Снять первую реплику топика в $CUR (с переносами); 1 — топик пуст.
@@ -182,8 +199,12 @@ start_typing() {
   reveal_ms=$now_ms
 }
 
+# $1 — файл топиков, $2 — имя переменной состояния с номером прошлого топика
+# этого файла (обновляется выбранным).
 start_topic() {
-  new_topic "$1"
+  local idx
+  idx=$(new_topic "$1" "${!2}")
+  [[ -z "$idx" ]] || printf -v "$2" '%s' "$idx"
   next_line
   start_typing
 }
@@ -238,7 +259,7 @@ cmd_frame() {
   # Машина состояний: reentry -> typing -> shown -> fadeout -> typing|gap.
   case "$phase" in
   reentry)
-    start_topic "$REENTRY"
+    start_topic "$REENTRY" last_reentry
     ;;
   shown)
     if ((now_ms >= until_ms)); then
@@ -259,7 +280,7 @@ cmd_frame() {
     ;;
   gap)
     if ((now_ms >= until_ms)); then
-      start_topic "$QUOTES"
+      start_topic "$QUOTES" last_talk
     fi
     ;;
   esac
