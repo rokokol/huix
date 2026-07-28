@@ -18,9 +18,12 @@ grim -g "$X,$Y ${W}x${H}" "$FILE"
 
 (
   # LC_NUMERIC=C: иначе локаль с запятой ломает разбор координат
+  # set_default_scale("fill"): картинка заполняет окно без рамок — при дробном
+  # масштабе монитора округление иначе оставляет тонкое пустое поле по краю.
   LC_NUMERIC=C swayimg \
     --appid="desktop-pin" \
     --size="$W,$H" \
+    -e 'swayimg.viewer.set_default_scale("fill")' \
     "$FILE" &
   SWPID=$!
 
