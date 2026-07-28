@@ -15,7 +15,7 @@ grim -g "$X,$Y ${W}x${H}" "$FILE"
 (
   # LC_NUMERIC=C: иначе локаль с запятой ломает разбор координат
   LC_NUMERIC=C swayimg \
-    --class="desktop-pin" \
+    --appid="desktop-pin" \
     --position="$X,$Y" \
     --size="$W,$H" \
     "$FILE"
