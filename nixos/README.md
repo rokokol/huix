@@ -17,7 +17,7 @@
 | `desktop/` | core-options и xdg-портал |
 | `fonts/` | системные шрифты, см. [fonts/README.md](fonts/README.md) |
 | `pc/` | железо ПК: hardware, nvidia, keyboard, system, options |
-| `laptop/` | железо ноута: hardware, keyboard, system, options |
+| `laptop/` | железо ноута: hardware, keyboard, system, options, logind (крышка) |
 | `services/` | системные сервисы, см. [services/README.md](services/README.md) |
 
 ## Где что менять

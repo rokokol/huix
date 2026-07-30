@@ -19,6 +19,7 @@
       enable = true;
       monitorScale = "1.33";
       touchpadNaturalScroll = true;
+      lidNoSleep = true;
       wallpaperImage = "${huixDir}/assets/say-sketch2.webp";
     };
 
