@@ -5,7 +5,7 @@ set -euo pipefail
 INPUT="$*"
 SENTINEL_NOOP="__wooordhunt_noop__"
 # Ширины переноса (в символах) под окно 720px: WRAP_WIDTH — для строк-пояснений
-# с отступом, HEAD_MAX — для строки «слово+глосса» до её переноса ниже.
+# с отступом, HEAD_MAX — для строки "слово+глосса" до её переноса ниже.
 WRAP_WIDTH=54
 HEAD_MAX=58
 
@@ -51,7 +51,7 @@ fi
 ORIGINAL_INPUT=$(printf '%s\n' "$INPUT" | xargs)
 PARSED_INPUT="${ORIGINAL_INPUT,,}"
 # wooordhunt использует подчёркивания для фраз из нескольких слов (например
-# give_up); голый пробел в URL валит curl, поэтому схлопываем пробелы в «_».
+# give_up); голый пробел в URL валит curl, поэтому схлопываем пробелы в "_".
 URL_SLUG="${PARSED_INPUT// /_}"
 
 fetch_html() {
@@ -151,7 +151,7 @@ fi
 
 if printf '%s' "$HTML" | grep -q 'class="sub_entry"'; then
   # Каждый sub_entry — одна группа значений: одно или несколько слов-синонимов
-  # (например "exam / examination") с общим списком «— глоссы» и одним пояснением.
+  # (например "exam / examination") с общим списком "— глоссы" и одним пояснением.
   # Разбираем посекционно через JSON, чтобы слова, глоссы и значения не съезжали —
   # плоский текст съезжает, когда в секции несколько слов или нет значения.
   SECTIONS=$(printf '%s' "$HTML" | pup 'section.sub_entry json{}' 2>/dev/null | jq -r '

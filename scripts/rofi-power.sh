@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Меню питания в rofi (script-modi «power»): блокировка, спящий режим,
+# Меню питания в rofi (script-modi "power"): блокировка, спящий режим,
 # перезагрузка, выход из сессии, выключение. Вешается на кнопку питания
 # (XF86PowerOff) и на бинд в hyprland.conf. Эмодзи режима (⚡) задаётся в
 # home-manager/programs/rofi/default.nix (display-power) — единый источник
@@ -8,7 +8,7 @@
 
 set -euo pipefail
 
-# Пункты списка: «подпись|действие». Действие — ключ из case ниже.
+# Пункты списка: "подпись|действие". Действие — ключ из case ниже.
 list_options() {
   cat <<'EOF'
 🔒 Блокировка|lock
@@ -19,7 +19,7 @@ list_options() {
 EOF
 }
 
-# Вне rofi — лаунчер: режим «power», эмодзи-подпись берётся из конфига rofi.
+# Вне rofi — лаунчер: режим "power", эмодзи-подпись берётся из конфига rofi.
 if [[ -z "${ROFI_RETV:-}" ]]; then
   exec rofi -show power -modi "power:$0" -mesg "Что делаем? (⊃‿⊂)"
 fi

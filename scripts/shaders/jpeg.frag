@@ -53,7 +53,7 @@ vec3 effect(vec3 c, vec2 uv) {
     ycbcr.y = floor(ycbcr.y * 6.0  + 0.5) / 6.0;
     ycbcr.z = floor(ycbcr.z * 6.0  + 0.5) / 6.0;
 
-    // Деградация насыщенности — хрома при сильном сжатии «вымывается».
+    // Деградация насыщенности — хрома при сильном сжатии "вымывается".
     ycbcr.y *= 0.75;
     ycbcr.z *= 0.75;
 
@@ -65,7 +65,7 @@ vec3 effect(vec3 c, vec2 uv) {
     float edge  = clamp(edgeX + edgeY, 0.0, 1.0);
     blk *= mix(1.0, 0.92, edge);
 
-    // Gibbs ringing — «звон» на контрастных переходах (ореолы вокруг текста/линий).
+    // Gibbs ringing — "звон" на контрастных переходах (ореолы вокруг текста/линий).
     float origLum = toYCbCr(c).x;
     float diff    = abs(origLum - ycbcr.x);
     float ring    = sin(lumaPos.x * 25.13) * sin(lumaPos.y * 25.13);

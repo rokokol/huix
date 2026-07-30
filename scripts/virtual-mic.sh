@@ -91,8 +91,8 @@ module_id="$(pactl load-module module-pipe-source \
   format=s16le rate="$rate" channels="$channels" \
   source_properties="device.description=$name")"
 
-echo "virtual-mic: $file → микрофон «$name» (в наушниках тишина, вывод не создаётся)"
-echo "virtual-mic: выбери микрофон «$name» в приложении (Ctrl+C — стоп)"
+echo "virtual-mic: $file → микрофон \"$name\" (в наушниках тишина, вывод не создаётся)"
+echo "virtual-mic: выбери микрофон \"$name\" в приложении (Ctrl+C — стоп)"
 
 ffmpeg -hide_banner -loglevel error -y \
   -stream_loop -1 -re -i "$file" \

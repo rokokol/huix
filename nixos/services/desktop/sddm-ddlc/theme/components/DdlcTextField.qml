@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls.Basic
 
-// Поле ввода в стиле DDLC: белая «пилюля» с розовой рамкой,
+// Поле ввода в стиле DDLC: белая "пилюля" с розовой рамкой,
 // при фокусе рамка темнеет.
 TextField {
     id: field
