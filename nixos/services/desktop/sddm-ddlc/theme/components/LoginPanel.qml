@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls.Basic
 
 // Панель логина: бледно-розовый бокс с рамкой в стиле just-monika-ok.png,
-// поля логина/пароля и картинка-кнопка «Just Monika. OK».
+// поля логина/пароля и картинка-кнопка "Just Monika. OK".
 Item {
     id: panel
 

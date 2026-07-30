@@ -10,7 +10,7 @@ Item {
 
     clip: true
 
-    // Режим «Just Monika»: чёрный фон, красные кружки, разворот движения
+    // Режим "Just Monika": чёрный фон, красные кружки, разворот движения
     property bool corrupted: false
     // Со 2-й неудачи ровная граница кружка расходится в колючий рваный контур
     property bool rough: false
@@ -111,7 +111,7 @@ Item {
                     return a;
                 }
 
-                // Степень «колючести»: 0 — окружность, 1 — рваный контур
+                // Степень "колючести": 0 — окружность, 1 — рваный контур
                 property real spikiness: bg.rough ? 1 : 0
                 Behavior on spikiness {
                     NumberAnimation {

@@ -29,7 +29,7 @@ stdenvNoCC.mkDerivation {
     # webp) — просто копируем: обычные, обрезанные (-cut) и искажённые
     cp ${stickers}/*-sticker-*.png "$theme/assets/"
 
-    # Картинка меню «Just Monika» из игры — для окошек пасхалки
+    # Картинка меню "Just Monika" из игры — для окошек пасхалки
     cp ${stickers}/just-monika-ok.png "$theme/assets/"
 
     # Тайл серого шума для зернистости фона

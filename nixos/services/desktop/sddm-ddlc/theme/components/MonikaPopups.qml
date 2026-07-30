@@ -1,7 +1,7 @@
 import QtQuick
 
 // Пасхалка: после трёх неверных паролей по экрану одно за другим
-// появляются маленькие «окошки» Just Monika. Каждое закрывается кликом
+// появляются маленькие "окошки" Just Monika. Каждое закрывается кликом
 Item {
     id: popups
 
@@ -73,7 +73,7 @@ Item {
             source: "../assets/just-monika-ok.png"
             transformOrigin: Item.Center
 
-            // Появление с лёгким «выпрыгиванием»
+            // Появление с лёгким "выпрыгиванием"
             scale: 0
             NumberAnimation on scale {
                 id: appear
