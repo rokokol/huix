@@ -41,12 +41,15 @@
         };
       }
     ))
-    swayosd
-    swayimg
+    jq
+    curl
+    imagemagick
     lm_sensors
     pup
-    jq
     rofimoji
+    swayimg
+    swayosd
+    wl-clipboard
     (tesseract5.override {
       enableLanguages = [
         "rus"
