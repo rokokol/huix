@@ -18,7 +18,7 @@
 | Файл / каталог | Что это |
 | --- | --- |
 | `alarm.nix` | будильник: обёртка над `scripts/alarm.sh`, кладёт зависимости в PATH и звук из freedesktop-темы |
-| `cli/` | шелл-утилиты: `btop`, `git`, `ssh`, `direnv` |
+| `cli/` | шелл-утилиты: `btop`, `git`, `ssh`, `direnv`, `claude/` (два аккаунта Claude Code на одной машине) |
 | `term/` | терминал и шелл: `kitty`, `starship`, `zsh` |
 | `nixvim/` | Neovim через Nixvim, см. [nixvim/README.md](nixvim/README.md) |
 | `rofi/` | лаунчер rofi с темами, см. [rofi/README.md](rofi/README.md) |
@@ -29,6 +29,7 @@
 ## Тонкости
 
 - `alarm.nix` и `virtual-mic.nix` — тонкие Nix-обёртки, вся логика живёт в [`scripts/`](../../scripts/README.md), Nix только собирает PATH и прокидывает аргументы
+- `cli/claude/` подменяет `pkgs.claude-code` обёрткой `claude`, которая выставляет `CLAUDE_CONFIG_DIR` активного профиля — поэтому самого `claude-code` в [пакетах](../desktop/packages) быть не должно, иначе два `bin/claude` подерутся за один путь. Декларативны там только `commands/` и `agents/`: в `settings.json`, `CLAUDE.md` и `plugins/` пишет сам Claude Code, store-симлинк был бы read-only
 - `*-pc`/`*-laptop` разводки здесь нет — программы общие для обоих хостов, host-специфика уезжает в [пакеты desktop-слоя](../desktop/packages)
 - `term/zsh.nix` содержит алиасы для терминала
 

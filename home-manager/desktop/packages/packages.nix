@@ -38,7 +38,6 @@ in
         tauon
 
         # --- CLI ---
-        claude-code
         codex
         curl
         exiftool
