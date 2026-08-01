@@ -14,10 +14,16 @@ claude-account.sh — переключалка профилей Claude Code (о�
   claude-account path          CLAUDE_CONFIG_DIR активного профиля (для обёртки)
   claude-account --help        эта справка
 
-Профиль — это отдельный CLAUDE_CONFIG_DIR: свои креды, история, projects/ и память.
-Общее (settings.json, CLAUDE.md, plugins/, skills/, commands/, agents/) лежит в
-~/.local/share/claude-shared и симлинчится в каждый профиль: Claude Code умеет
-писать сквозь симлинк, поэтому /config и /memory связь не разрывают.
+Профиль изолирует только аккаунт: .credentials.json (OAuth-токен) и .claude.json
+(в нём oauthAccount и userID — привязка токена к аккаунту). Всё остальное общее и
+симлинчится из ~/.local/share/claude-shared: settings.json, CLAUDE.md, plugins/,
+skills/, commands/, agents/, а также чаты и история — projects/ и history.jsonl.
+Claude Code пишет сквозь симлинк, поэтому /config, /memory и /resume связь не рвут.
+
+.claude.json держим на профиль осознанно: там oauthAccount, и держать его вместе с
+токеном обязательно, иначе две параллельные сессии перетирали бы личность друг друга.
+Побочный эффект: MCP/интеграции user-scope и trust-флаги папок в нём не расшариваются
+(это про .claude.json, а не про проекты) — общий MCP заводи через .mcp.json в проекте.
 
 Выбор durable, в ~/.local/state/huix/claude-account — как тема и шейдер. Уже
 запущенные сессии он не трогает: CLAUDE_CONFIG_DIR фиксируется на старте claude.
@@ -32,7 +38,8 @@ DEFAULT_PROFILE="rokokol"
 
 # Что общее на оба аккаунта. commands/ и agents/ раскладывает home-manager,
 # поэтому до первого rebuild их может не быть — это не ошибка, а ещё рано.
-SHARED_ENTRIES=(settings.json CLAUDE.md plugins skills commands agents)
+# projects/ и history.jsonl — общие чаты и история команд: у нас одна работа на двоих.
+SHARED_ENTRIES=(settings.json CLAUDE.md plugins skills commands agents projects history.jsonl)
 
 die() {
   printf 'claude-account: %s\n' "$1" >&2
@@ -56,11 +63,12 @@ read_state() {
 
 # Общий каталог должен существовать раньше, чем на него делают симлинки.
 ensure_shared() {
-  mkdir -p "$SHARED_DIR" "$SHARED_DIR/plugins" "$SHARED_DIR/skills"
+  mkdir -p "$SHARED_DIR" "$SHARED_DIR/plugins" "$SHARED_DIR/skills" "$SHARED_DIR/projects"
 
   # Пустой settings.json обязан быть валидным JSON, иначе Claude Code падает на парсе.
   [[ -e "$SHARED_DIR/settings.json" ]] || printf '{}\n' >"$SHARED_DIR/settings.json"
   [[ -e "$SHARED_DIR/CLAUDE.md" ]] || : >"$SHARED_DIR/CLAUDE.md"
+  [[ -e "$SHARED_DIR/history.jsonl" ]] || : >"$SHARED_DIR/history.jsonl"
 }
 
 # Идемпотентно: каталог профиля + симлинки на общее. Ничего не перезаписывает —
