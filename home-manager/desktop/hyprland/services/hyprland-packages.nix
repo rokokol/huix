@@ -67,6 +67,9 @@
   home.file.".config/swayimg/init.lua".text = ''
     swayimg.set_mode("viewer")
     swayimg.viewer.set_default_scale("fit")
+    -- Прозрачно-заблюренный фон из самой картинки (как в старых версиях),
+    -- а не чёрная заливка. "auto" = extend/mirror по соотношению сторон.
+    swayimg.viewer.set_window_background("auto")
 
     -- По умолчанию никакого текстового оверлея: пустые схемы для всех углов.
     swayimg.viewer.set_text("topleft", {})
@@ -95,36 +98,37 @@
       end
     end
 
-    -- Копирование содержимого файла в буфер (как раньше: wl-copy < файл).
+    -- Копирование содержимого файла в буфер (как раньше: wl-copy < файл),
+    -- но без шелла — чтобы не ломаться на путях со спецсимволами ($, `, \).
     local function copy_to_clipboard()
       local img = swayimg.viewer.get_image()
-      if img and img.path then
-        os.execute(("wl-copy < %q"):format(img.path))
+      if not (img and img.path) then return end
+      local f = io.open(img.path, "rb")
+      if not f then return end
+      local data = f:read("*a")
+      f:close()
+      local p = io.popen("wl-copy", "w")
+      if p then
+        p:write(data)
+        p:close()
       end
     end
 
-    local function bind(key, fn) swayimg.viewer.on_key(key, fn) end
-
-    bind("Escape", function() swayimg.exit() end)
-
-    -- Латиница
-    bind("Ctrl-c", copy_to_clipboard)
-    bind("c", copy_to_clipboard)
-    bind("i", toggle_info)
-    bind("Left", function() swayimg.viewer.switch_image("prev") end)
-    bind("Right", function() swayimg.viewer.switch_image("next") end)
-    bind("h", function() swayimg.viewer.switch_image("prev") end)
-    bind("l", function() swayimg.viewer.switch_image("next") end)
-    bind("r", function() swayimg.viewer.rotate(90) end)
-    bind("m", function() swayimg.viewer.flip_horizontal() end)
-
-    -- Кириллица (та же раскладка клавиш)
-    bind("Ctrl-с", copy_to_clipboard)
-    bind("с", copy_to_clipboard)
-    bind("ш", toggle_info)
-    bind("р", function() swayimg.viewer.switch_image("prev") end)
-    bind("д", function() swayimg.viewer.switch_image("next") end)
-    bind("к", function() swayimg.viewer.rotate(90) end)
-    bind("ь", function() swayimg.viewer.flip_horizontal() end)
+    -- Латиница и кириллица (одна физическая раскладка) → общие обработчики.
+    local function switch(dir) return function() swayimg.viewer.switch_image(dir) end end
+    local function rotate() swayimg.viewer.rotate(90) end
+    local function flip() swayimg.viewer.flip_horizontal() end
+    local keymap = {
+      Escape = function() swayimg.exit() end,
+      Left = switch("prev"), Right = switch("next"),
+      ["Ctrl-c"] = copy_to_clipboard, ["Ctrl-с"] = copy_to_clipboard,
+      c = copy_to_clipboard, ["с"] = copy_to_clipboard,
+      i = toggle_info,       ["ш"] = toggle_info,
+      h = switch("prev"),    ["р"] = switch("prev"),
+      l = switch("next"),    ["д"] = switch("next"),
+      r = rotate,            ["к"] = rotate,
+      m = flip,              ["ь"] = flip,
+    }
+    for key, fn in pairs(keymap) do swayimg.viewer.on_key(key, fn) end
   '';
 }
