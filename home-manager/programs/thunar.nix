@@ -1,4 +1,8 @@
-{ pkgs, ... }:
+{
+  pkgs,
+  huixDir,
+  ...
+}:
 
 {
   home.packages = with pkgs; [ thunar ];
@@ -21,6 +25,18 @@
     	<unique-id>1770663018404627-1</unique-id>
     	<command>kitty --working-directory %f</command>
     	<description>Declarative Thunar action for opening kitty in the selected directory.</description>
+    	<range></range>
+    	<patterns>*</patterns>
+    	<startup-notify/>
+    	<directories/>
+    </action>
+    <action>
+    	<icon>edit-paste</icon>
+    	<name>Paste as File</name>
+    	<submenu></submenu>
+    	<unique-id>1770663018404627-2</unique-id>
+    	<command>${huixDir}/scripts/thunar-smart-paste.sh %f</command>
+    	<description>Paste clipboard text/image as a file into the current folder.</description>
     	<range></range>
     	<patterns>*</patterns>
     	<startup-notify/>
