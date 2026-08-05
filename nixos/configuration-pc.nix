@@ -8,7 +8,7 @@
   ];
 
   system.stateVersion = "25.11";
-  services.ollama.package = pkgs.ollama-cuda;
+  services.ollama.package = pkgs.stable.ollama-cuda;
 
   custom = {
     jupyter.enable = true;
