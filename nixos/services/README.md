@@ -69,5 +69,6 @@
 
 - кастомные опции живут под `custom.*`: `custom.jupyter.{enable,withCuda}` плюс enable-флаги хост-специфичных сервисов (`comfyui`, `openwebui`, `searxng`, `printer`, `tablet`, `virtualCamera`, `virtualization`). Опция объявляется в самом модуле, включается в `configuration-<host>.nix`. Не гейти поведение через `mkIf config.services.foo.enable` из чужого модуля — заводи свою опцию
 - Jupyter на ПК берёт `pkgs.stable.python3` с бинарными `torch*`, чтобы не собирать ML-стек из исходников
+- LibreTranslate стартует на локальных моделях (`updateModels = false`), иначе оффлайн сервис висит до сетевого таймаута. Модели обновляет отдельный юнит `libretranslate-update-models` (недельный таймер, без сети запуск пропускается); вручную — `sudo systemctl start libretranslate-update-models`
 - тяжёлые сборки ускоряются кэшами `cuda-maintainers` (ПК, объявлен в `nixos/pc/nvidia.nix`) и `comfyui` (ПК) — при добавлении тяжёлого билда лучше дописать substituter, чем пересобирать
 
