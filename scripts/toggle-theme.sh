@@ -4,18 +4,18 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-toggle-theme.sh — тумблер light/dark темы (бинд SUPER+A)
+toggle-theme.sh — light/dark theme toggle (bind SUPER+A)
 
-Использование:
-  toggle-theme.sh           переключить тему на противоположную
-  toggle-theme.sh --sync    только привести систему к сохранённому выбору
-                            (exec на каждом reload Hyprland)
-  toggle-theme.sh --help    эта справка
+Usage:
+  toggle-theme.sh           switch the theme to the opposite one
+  toggle-theme.sh --sync    only bring the system to the saved choice
+                            (exec on every Hyprland reload)
+  toggle-theme.sh --help    this help
 
-Тема живёт в рантайме, не в Nix: скрипт флипает color-scheme + gtk-theme в
-dconf и подменяет симлинк темы rofi. Выбор хранится durable в
-~/.local/state/huix/theme — dconf load на nixos-rebuild сбрасывает тему,
---sync возвращает её обратно. Имена тем/ключей приходят из env (Nix-обёртка).
+The theme lives at runtime, not in Nix: the script flips color-scheme + gtk-theme
+in dconf and swaps the rofi theme symlink. The choice is stored durably in
+~/.local/state/huix/theme — dconf load on nixos-rebuild resets the theme, --sync
+brings it back. Theme/key names come from the env (Nix wrapper).
 EOF
 }
 
@@ -96,8 +96,8 @@ detect_theme_state() {
   fi
 }
 
-# Применить тему по имени состояния (dark|light): dconf + символлинк темы rofi и
-# фиксация выбора в state-файле. Без уведомления — это "тихое" применение.
+# Apply a theme by state name (dark|light): dconf + the rofi theme symlink and
+# committing the choice to the state file. No notification — this is a "silent" apply.
 apply_state() {
   case "$1" in
   dark)
@@ -126,8 +126,8 @@ set_theme() {
   notify-send -u low "$message"
 }
 
-# Привести систему к сохранённому выбору. Источник правды — state-файл; если его
-# ещё нет (первый запуск), берём текущее состояние dconf и фиксируем его.
+# Bring the system to the saved choice. The source of truth is the state file; if
+# it doesn't exist yet (first run), take the current dconf state and commit it.
 sync_theme_state() {
   local want
   want=$(read_state)
@@ -155,9 +155,9 @@ help | -h | --help)
   ;;
 esac
 
-# Тоггл флипает относительно сохранённого выбора; повторно dconf не опрашиваем.
-# detect_theme_state нужен только на первом запуске, когда state-файла ещё нет
-# (unset → как и раньше через sync=light: net-результат dark).
+# The toggle flips relative to the saved choice; we don't re-query dconf.
+# detect_theme_state is needed only on the first run, when the state file doesn't
+# exist yet (unset → as before via sync=light: net result dark).
 case "$(read_state)" in
 dark) current="dark" ;;
 light) current="light" ;;

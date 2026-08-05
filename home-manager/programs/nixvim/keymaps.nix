@@ -3,7 +3,7 @@
 {
   programs.nixvim = {
     keymaps = [
-      # --- Интерфейс ---
+      # --- Interface ---
       {
         mode = "n";
         key = "<leader>uw";
@@ -35,7 +35,7 @@
         options.desc = "Clear Images";
       }
 
-      # --- Поиск (Telescope) ---
+      # --- Search (Telescope) ---
       {
         mode = "n";
         key = "<leader>ff";
@@ -61,7 +61,7 @@
         options.desc = "Grep Word under cursor";
       }
       {
-        # bufnr=0 — искать только в текущем файле
+        # bufnr=0 — search only in the current file
         mode = "n";
         key = "<leader>fe";
         action = "<cmd>Telescope diagnostics bufnr=0<CR>";
@@ -155,9 +155,9 @@
       {
         mode = "n";
         key = "<leader>w";
-        # Форматируем только если клиент это реально умеет (глушим шум "no
-        # matching language servers"), с таймаутом выше дефолтной 1с, которую
-        # большие буферы не укладываются; сохраняем независимо от исхода форматирования.
+        # Format only if a client actually supports it (silences the "no
+        # matching language servers" noise), with a timeout above the default 1s
+        # that large buffers overrun; save regardless of the formatting outcome
         action.__raw = ''
           function()
             if #vim.lsp.get_clients({ bufnr = 0, method = 'textDocument/formatting' }) > 0 then
@@ -209,7 +209,7 @@
         options.desc = "Toggle Blame";
       }
 
-      # --- Терминалы ---
+      # --- Terminals ---
       {
         mode = "n";
         key = "<leader>tf";
@@ -229,7 +229,7 @@
         options.desc = "Horizontal Term";
       }
 
-      # --- Управление буферами ---
+      # --- Buffer management ---
       {
         mode = "n";
         key = "<leader>c";
@@ -271,7 +271,7 @@
         };
       }
 
-      # --- Редактирование и навигация ---
+      # --- Editing and navigation ---
       {
         mode = "n";
         key = "<A-j>";
@@ -338,7 +338,7 @@
         key = "<S-Tab>";
         action = ":bprev<CR>";
       }
-      # Изменение размера окон
+      # Resizing windows
       {
         mode = "n";
         key = "<C-M-h>";
@@ -363,7 +363,7 @@
         action = ":vertical resize +2<CR>";
         options.desc = "Increase window width";
       }
-      # Навигация по окнам
+      # Window navigation
       {
         mode = "n";
         key = "<C-h>";

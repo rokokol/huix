@@ -17,7 +17,7 @@ BG_COLOR="#282828" # ImageMagick bg
 AWWW_BG="282828"   # awww bg (without #)
 TRANSITIONS=("left" "right")
 
-# Под локскрином коллаж всё равно не виден — не жжём CPU/GPU впустую.
+# Under the lock screen the collage isn't visible anyway — don't burn CPU/GPU for nothing
 if pidof hyprlock >/dev/null 2>&1; then
   exit 0
 fi
@@ -39,7 +39,7 @@ NUM_PICS=$((RANDOM % IMAGES_NUM + 1))
 # Search all subdirectories, but always skip spicy
 FIND_OPTS=("-type" "d" "-name" "Spicy" "-prune" "-o")
 
-# Только статичные изображения
+# Static images only
 mapfile -d $'\0' SELECTED_PICS < <(find "$WALLPAPER_DIR" "${FIND_OPTS[@]}" -type f \( -iname "*.jpg" -o -iname "*.JPG" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" -o -iname "*.ico" \) -print0 | shuf -z -n "$NUM_PICS")
 
 if [ ${#SELECTED_PICS[@]} -eq 0 ]; then

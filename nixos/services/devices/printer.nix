@@ -7,7 +7,7 @@
 }:
 
 {
-  options.custom.printer.enable = lib.mkEnableOption "печать (CUPS + gutenprint)";
+  options.custom.printer.enable = lib.mkEnableOption "printing (CUPS + gutenprint)";
 
   config = lib.mkIf config.custom.printer.enable {
     programs.system-config-printer.enable = true;

@@ -8,8 +8,8 @@ let
   darkColorScheme = "prefer-dark";
 in
 {
-  # gtk-theme переключает toggle-theme.sh в рантайме, поэтому имя темы декларативно
-  # не фиксируем — только ставим пакет (gruvbox-gtk-theme ниже даёт обе вариации).
+  # gtk-theme is toggled by toggle-theme.sh at runtime, so we don't pin the theme
+  # name declaratively — we only install the package (gruvbox-gtk-theme below ships both variants)
   gtk = {
     enable = true;
 
@@ -18,8 +18,8 @@ in
       package = pkgs.mint-y-icons;
     };
 
-    # gtk-theme-name пишем ТОЛЬКО в settings.ini (через extraConfig), но НЕ в dconf.
-    # Это базовая тема для приложений, которые не цепляются к dconf-мосту GtkSettings
+    # We write gtk-theme-name ONLY to settings.ini (via extraConfig), NOT to dconf.
+    # This is the baseline theme for apps that don't hook into the GtkSettings↔dconf bridge
     gtk3.extraConfig = {
       gtk-application-prefer-dark-theme = 0;
       gtk-theme-name = gtkThemeName;

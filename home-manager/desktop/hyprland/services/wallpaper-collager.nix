@@ -16,11 +16,11 @@ let
     gawk
     findutils
     coreutils
-    procps # pidof (проверка hyprlock)
+    procps # pidof (hyprlock check)
   ];
 in
 {
-  options.custom.hyprland.wallpaperCollage = lib.mkEnableOption "коллаж обоев по таймеру (random-wallpaper.sh)";
+  options.custom.hyprland.wallpaperCollage = lib.mkEnableOption "timed wallpaper collage (random-wallpaper.sh)";
 
   config = lib.mkIf config.custom.hyprland.wallpaperCollage {
     systemd.user.services = {

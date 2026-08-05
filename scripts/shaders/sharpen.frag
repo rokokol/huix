@@ -1,4 +1,4 @@
-// Резкое усиление чёткости — ядро 3×3: вес 9 в центре, −1 у каждого из 8 соседей.
+// Aggressive sharpening — 3×3 kernel: weight 9 at the centre, −1 for each of the 8 neighbours
 vec3 effect(vec3 c, vec2 uv) {
     vec2 px = vec2(fwidth(uv.x), fwidth(uv.y));
     vec3 n  = texture(tex, uv + vec2( 0.0,  px.y)).rgb;

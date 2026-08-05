@@ -9,7 +9,7 @@ let
   port = 9000;
 in
 {
-  options.custom.searxng.enable = lib.mkEnableOption "SearxNG за nginx";
+  options.custom.searxng.enable = lib.mkEnableOption "SearxNG behind nginx";
 
   config = lib.mkIf config.custom.searxng.enable {
     services.searx = {

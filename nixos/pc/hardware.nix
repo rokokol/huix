@@ -1,20 +1,20 @@
 { ... }:
 
 {
-  # Управление частотой CPU
+  # CPU frequency control
   powerManagement.cpuFreqGovernor = "performance";
 
-  # Поддержка железа Deepcool
+  # Deepcool hardware support
   services.hardware.deepcool-digital-linux.enable = true;
 
-  # Поддержка тачпада; выключить ради графического планшета
+  # Touchpad support; disable for the sake of the graphics tablet
   # services.xserver.libinput.enable = true;
 
   services.udev.extraRules = ''
-    # Для корректной работы Vial
+    # For Vial to work correctly
     KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{serial}=="*vial:f64c2b3c*", MODE="0660", TAG+="uaccess", TAG+="udev-acl"
 
-    # Запрещаем звуковой карте засыпать
+    # Prevent the sound card from going to sleep
     ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="0d8c", ATTR{idProduct}=="0268", ATTR{power/control}="on"
   '';
 }

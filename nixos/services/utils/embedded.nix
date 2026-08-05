@@ -1,14 +1,14 @@
 { pkgs, rokokolName, ... }:
 
-# Тулчейн для embedded / ковыряния железа на обоих хостах. Покрывает то, что
-# реально прошиваешь на воркшопах: Arduino/AVR, ESP32/ESP8266, STM32/ARM
-# (SWD/JTAG + DFU) и RP2040/Pico.
+# Toolchain for embedded / hardware tinkering on both hosts. Covers what you
+# actually flash at workshops: Arduino/AVR, ESP32/ESP8266, STM32/ARM
+# (SWD/JTAG + DFU) and RP2040/Pico
 #
-# udev: platformio-core.udev несёт канонический набор правил на кучу плат
-# (CP210x, CH340, FTDI, ST-Link 0483:*, RP2040 2e8a:*, DFU-загрузчики, AVR-
-# программаторы) с MODE=0666, так что пробники и загрузчики работают без root и
-# без лишних правил. Группа dialout даёт общий доступ к /dev/ttyUSB*
-# /dev/ttyACM* (Serial Monitor, esptool, avrdude по UART).
+# udev: platformio-core.udev ships a canonical set of rules for a pile of boards
+# (CP210x, CH340, FTDI, ST-Link 0483:*, RP2040 2e8a:*, DFU bootloaders, AVR
+# programmers) with MODE=0666, so probes and bootloaders work without root and
+# without extra rules. The dialout group gives shared access to /dev/ttyUSB*
+# /dev/ttyACM* (Serial Monitor, esptool, avrdude over UART)
 
 {
   services.udev.packages = with pkgs; [
@@ -24,11 +24,11 @@
     # ESP32 / ESP8266
     esptool
 
-    # Meshtastic (LoRa-mesh: Heltec / LILYGO и прочие ESP32-платы) — CLI
-    # для прошивки конфигурации и доступа к ноде по serial/BLE.
-    # stable: в unstable meshtastic тянет python3.14-pandas-stubs, чьи тесты
-    # падают под pytest 9 (deprecation → error). На stable (python 3.13,
-    # старый pytest) собирается нормально.
+    # Meshtastic (LoRa-mesh: Heltec / LILYGO and other ESP32 boards) — a CLI
+    # for flashing configuration and accessing the node over serial/BLE.
+    # stable: on unstable meshtastic pulls in python3.14-pandas-stubs, whose
+    # tests fail under pytest 9 (deprecation → error). On stable (python 3.13,
+    # old pytest) it builds fine
     stable.meshtastic
 
     # STM32 / ARM (SWD/JTAG + DFU)
@@ -40,7 +40,7 @@
     # RP2040 / Raspberry Pi Pico
     picotool
 
-    # Serial-консоль + осмотр USB (универсальное)
+    # Serial console + USB inspection (general-purpose)
     picocom
     usbutils
   ];

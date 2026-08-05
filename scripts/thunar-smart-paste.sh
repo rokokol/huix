@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
-# Вставка содержимого буфера обмена как файла в текущую папку Thunar.
-# Вызывается из custom action (Ctrl+Shift+V) с %f первым аргументом.
-# Картинка -> img.png (расширение по MIME), текст (в т.ч. строка-путь) -> text.txt.
-# Файловые операции Thunar (Ctrl+V/Ctrl+C/Ctrl+X) этот скрипт не трогает.
+# Paste the clipboard contents as a file into the current Thunar folder.
+# Invoked from a custom action (Ctrl+Shift+V) with %f as the first argument.
+# Image -> img.png (extension by MIME), text (incl. a path string) -> text.txt.
+# Thunar's file operations (Ctrl+V/Ctrl+C/Ctrl+X) are not touched by this script.
 set -euo pipefail
 
 dir="${1:-$PWD}"
-# если Thunar передал выделенный файл, а не папку — берём его директорию
+# if Thunar passed a selected file rather than a folder — take its directory
 [ -d "$dir" ] || dir="$(dirname "$dir")"
 
 types="$(wl-paste --list-types 2>/dev/null || true)"
 
-# ищем mime картинки; расширение выводим из subtype
+# look for an image mime; derive the extension from the subtype
 img_mime=""
 while IFS= read -r t; do
   case "$t" in
@@ -41,16 +41,16 @@ elif grep -qx 'text/plain' <<<"$types"; then
   ext="txt"
   mime="text/plain"
 elif grep -qx 'text/uri-list' <<<"$types"; then
-  # буфер = копия файла; по требованию пишем путь как текстовый файл, а не копируем файл
+  # clipboard = a file copy; on purpose we write the path as a text file rather than copying the file
   base="text"
   ext="txt"
   mime="text/uri-list"
 else
-  # буфер пуст или тип не поддерживается — молча выходим, без уведомлений
+  # clipboard is empty or the type is unsupported — exit silently, no notifications
   exit 0
 fi
 
-# уникальное имя: img.png, img-1.png, img-2.png, ...
+# unique name: img.png, img-1.png, img-2.png, ...
 name="$base.$ext"
 i=1
 while [ -e "$dir/$name" ]; do

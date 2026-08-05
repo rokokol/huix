@@ -13,7 +13,7 @@
       enable = true;
       settings.defaults =
         let
-          # i и n делят один набор скролл-биндов превью.
+          # i and n share one set of preview scroll binds
           scrollMappings = {
             "<M-k>".__raw = "require('telescope.actions').preview_scrolling_up";
             "<M-j>".__raw = "require('telescope.actions').preview_scrolling_down";

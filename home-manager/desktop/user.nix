@@ -25,7 +25,7 @@ in
   options.custom.home = {
     dataDir = lib.mkOption {
       type = lib.types.str;
-      description = "база пользовательских данных: Documents/Pictures/Videos и myWiki";
+      description = "user data root: Documents/Pictures/Videos and myWiki";
     };
   };
 

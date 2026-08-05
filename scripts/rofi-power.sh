@@ -1,31 +1,31 @@
 #!/usr/bin/env bash
 
-# Меню питания в rofi (script-modi "power"): блокировка, спящий режим,
-# перезагрузка, выход из сессии, выключение. Вешается на кнопку питания
-# (XF86PowerOff) и на бинд в hyprland.conf. Эмодзи режима (⚡) задаётся в
-# home-manager/programs/rofi/default.nix (display-power) — единый источник
-# эмодзи режимов, здесь его нет. Логику делают systemctl/loginctl/hyprctl.
+# Power menu in rofi (script-modi "power"): lock, suspend, reboot, log out of the
+# session, power off. Bound to the power key (XF86PowerOff) and to a bind in
+# hyprland.conf. The mode emoji (⚡) is set in
+# home-manager/programs/rofi/default.nix (display-power) — the single source of
+# mode emojis, it isn't here. The logic is done by systemctl/loginctl/hyprctl.
 
 set -euo pipefail
 
-# Пункты списка: "подпись|действие". Действие — ключ из case ниже.
+# List items: "label|action". The action is a key from the case below.
 list_options() {
   cat <<'EOF'
-🔒 Блокировка|lock
-😴 Спящий режим|suspend
-🔁 Перезагрузка|reboot
-🚪 Выход из сессии|logout
-⏻ Выключение|poweroff
+🔒 Lock|lock
+😴 Suspend|suspend
+🔁 Reboot|reboot
+🚪 Log out|logout
+⏻ Power off|poweroff
 EOF
 }
 
-# Вне rofi — лаунчер: режим "power", эмодзи-подпись берётся из конфига rofi.
+# Outside rofi it's a launcher: mode "power", the emoji label comes from the rofi config.
 if [[ -z "${ROFI_RETV:-}" ]]; then
-  exec rofi -show power -modi "power:$0" -mesg "Что делаем? (⊃‿⊂)"
+  exec rofi -show power -modi "power:$0" -mesg "What are we doing? (⊃‿⊂)"
 fi
 
-# Выбран пункт — действие rofi кладёт в ROFI_INFO. Пустой ROFI_INFO — первый
-# вызов: печатаем пункты (видимая подпись + скрытое действие в info).
+# On selection rofi puts the action in ROFI_INFO. An empty ROFI_INFO is the first
+# call: print the items (visible label + hidden action in info).
 case "${ROFI_INFO:-}" in
 lock)     loginctl lock-session ;;
 suspend)  systemctl suspend ;;

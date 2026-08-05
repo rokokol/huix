@@ -1,11 +1,12 @@
 { ... }:
 
 {
-  # По умолчанию logind усыпляет по крышке, ИГНОРИРУЯ inhibitor-локи
-  # (LidSwitchIgnoreInhibited=yes). С no лок handle-lid-switch начинает работать —
-  # на этом держится режим "крышка гасит экран, а не усыпляет"
-  # (scripts/lid-mode.sh, бинд SUPER+SHIFT+A, см. hyprland/services/lid-mode.nix).
-  # Само поведение крышки остаётся дефолтным (suspend), так что вне сессии
-  # Hyprland — на логин-экране, в tty — ноутбук засыпает как обычно.
+  # By default logind suspends on lid close, IGNORING inhibitor locks
+  # (LidSwitchIgnoreInhibited=yes). With no the handle-lid-switch lock starts
+  # working — this is what the "lid blanks the screen instead of suspending"
+  # mode relies on (scripts/lid-mode.sh, bind SUPER+SHIFT+A, see
+  # hyprland/services/lid-mode.nix). The lid behavior itself stays at the
+  # default (suspend), so outside a Hyprland session — on the login screen, in a
+  # tty — the laptop suspends as usual
   services.logind.settings.Login.LidSwitchIgnoreInhibited = "no";
 }

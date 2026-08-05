@@ -17,7 +17,7 @@
     };
 
     comfyui.enable = true;
-    openwebui.enable = true;
+    openwebui.enable = false;
     searxng.enable = true;
 
     printer.enable = true;

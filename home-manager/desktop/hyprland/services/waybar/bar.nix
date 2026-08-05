@@ -10,7 +10,7 @@ in
     temperatureHwmon = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
       default = null;
-      description = "hwmon-path для модуля temperature; null — автовыбор waybar";
+      description = "hwmon-path for the temperature module; null — waybar auto-selects";
     };
   };
 
@@ -36,8 +36,8 @@ in
             "hyprland/window"
           ];
           modules-center = [ "clock" ];
-          # Единственное место, где задаётся порядок модулей: фичи объявляют
-          # только свои настройки, иначе порядок зависел бы от порядка imports
+          # The only place where module order is set: features declare only
+          # their own settings, otherwise order would depend on the imports order
           modules-right =
             [ "group/hardware" ]
             ++ lib.optional cfg.nvidia "custom/gpu"
@@ -148,7 +148,7 @@ in
         };
       };
 
-      # Стиль общий; селекторы выключенных модулей просто не матчатся
+      # The style is shared; selectors for disabled modules simply don't match
       style = ''
         * {
             border: none;
@@ -185,7 +185,7 @@ in
             padding: 0 12px;
         }
 
-        /* Режим "не беспокоить" — остров гаснет в серый */
+        /* "Do not disturb" mode — the island dims to gray */
         #custom-notifications.dnd {
             background: rgba(224, 224, 224, 0.9);
             border: 1px solid #9e9e9e;

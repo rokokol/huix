@@ -4,8 +4,8 @@ set -euo pipefail
 
 INPUT="$*"
 SENTINEL_NOOP="__wooordhunt_noop__"
-# Ширины переноса (в символах) под окно 720px: WRAP_WIDTH — для строк-пояснений
-# с отступом, HEAD_MAX — для строки "слово+глосса" до её переноса ниже.
+# Wrap widths (in characters) for a 720px window: WRAP_WIDTH — for indented hint
+# lines, HEAD_MAX — for the "word+gloss" line before it wraps below
 WRAP_WIDTH=54
 HEAD_MAX=58
 
@@ -23,10 +23,10 @@ print_fallback_entry() {
   printf '%s\0info\x1f%s\n' "---" "$SENTINEL_NOOP"
 }
 
-# Печатаем длинное пояснение под переводом. Строки rofi однострочные, поэтому
-# переносим вручную и выдаём по строке на элемент. Строки невыбираемые
-# (пропускаются при навигации) и несут английское слово как значение для копии,
-# так что случайная активация всё равно скопирует что-то осмысленное.
+# Print a long hint under the translation. rofi rows are single-line, so we wrap
+# manually and emit one line per item. The lines are non-selectable (skipped during
+# navigation) and carry the English word as the copy value, so a stray activation
+# still copies something meaningful
 print_hint_lines() {
   local text="$1" copy_value="$2" line
   while IFS= read -r line; do
@@ -50,22 +50,22 @@ fi
 
 ORIGINAL_INPUT=$(printf '%s\n' "$INPUT" | xargs)
 PARSED_INPUT="${ORIGINAL_INPUT,,}"
-# wooordhunt использует подчёркивания для фраз из нескольких слов (например
-# give_up); голый пробел в URL валит curl, поэтому схлопываем пробелы в "_".
+# wooordhunt uses underscores for multi-word phrases (e.g. give_up); a bare space
+# in the URL breaks curl, so we collapse spaces into "_"
 URL_SLUG="${PARSED_INPUT// /_}"
 
 fetch_html() {
   curl -fsSL --max-time 5 "$1" 2>/dev/null
 }
 
-# Разбираем блок произношения страницы слова в строки по одной на каждую
-# произносимую форму: "<us-транскрипция>\t<uk-транскрипция>\t<часть речи>".
-# Омографы (например transfer как сущ. и глагол) идут несколькими us/uk-блоками с
-# общим id внутри <div class="trans_sound">, каждый предваряется меткой вроде
-# "глагол произносится"; идём по блоку по порядку, сохраняя каждую форму и
-# помечая её словом части речи с самого сайта (первый токен метки, пусто для
-# слов с единственной формой).
-# Аргументы: $1 = HTML.
+# Parse the pronunciation block of a word page into lines, one per pronounced form:
+# "<us-transcription>\t<uk-transcription>\t<part of speech>". Homographs (e.g.
+# transfer as a noun and a verb) come as several us/uk blocks with a shared id
+# inside <div class="trans_sound">, each preceded by a label like
+# "глагол произносится"; we walk the block in order, saving each form and marking it
+# with the part-of-speech word from the site itself (the first label token, empty
+# for words with a single form).
+# Arguments: $1 = HTML
 parse_transcriptions() {
   printf '%s' "$1" | pup '.trans_sound json{}' 2>/dev/null | jq -r '
     .[].children
@@ -90,11 +90,11 @@ parse_transcriptions() {
   ' 2>/dev/null || true
 }
 
-# Рендерим разобранные строки транскрипций для показа. При нескольких формах
-# (омографы) каждая транскрипция помечается частью речи, чтобы произношения
-# различались, а не слипались молча; единственная форма показывается голой.
-#   mode=head  -> американское, британское как фолбэк (аннотации RU->EN)
-#   mode=us|uk -> только этот акцент (строка заголовка EN->RU)
+# Render the parsed transcription rows for display. With multiple forms (homographs)
+# each transcription is marked with its part of speech so pronunciations differ
+# rather than silently merging; a single form is shown bare.
+#   mode=head  -> American, British as a fallback (RU->EN annotations)
+#   mode=us|uk -> only this accent (EN->RU header line)
 format_transcriptions() {
   local rows="$1" mode="$2" us uk pos val part result="" count
   count=$(printf '%s\n' "$rows" | grep -c . || true)
@@ -113,8 +113,8 @@ format_transcriptions() {
   printf '%s' "$result"
 }
 
-# US-транскрипция(и) для одного английского слова, напр. "house" -> |haʊs|, с
-# британской как фолбэк. Аннотирует результаты RU->EN, у которых её нет.
+# US transcription(s) for one English word, e.g. "house" -> |haʊs|, with British as
+# a fallback. Annotates RU->EN results that lack it
 fetch_transcription() {
   local slug="${1// /_}" html
   html=$(curl -fsSL --max-time 4 "https://wooordhunt.ru/word/${slug}" 2>/dev/null || true)
@@ -130,9 +130,9 @@ else
   else
     last_status=$?
     case "$last_status" in
-    22) print_message "Ничего не найдено: ${PARSED_INPUT} (╯°□°）╯︵ ┻━┻" ;;
-    28) print_message "Wooordhunt не ответил вовремя ٩(ó｡ò۶ ♡)))♬" ;;
-    *) print_message "Не удалось получить ответ от Wooordhunt |_・)" ;;
+    22) print_message "Nothing found: ${PARSED_INPUT} (╯°□°）╯︵ ┻━┻" ;;
+    28) print_message "Wooordhunt didn't respond in time ٩(ó｡ò۶ ♡)))♬" ;;
+    *) print_message "Failed to get a response from Wooordhunt |_・)" ;;
     esac
     print_fallback_entry
     exit 0
@@ -150,19 +150,18 @@ elif [[ "$PARSED_INPUT" =~ [а-яА-ЯёЁ] ]]; then
 fi
 
 if printf '%s' "$HTML" | grep -q 'class="sub_entry"'; then
-  # Каждый sub_entry — одна группа значений: одно или несколько слов-синонимов
-  # (например "exam / examination") с общим списком "— глоссы" и одним пояснением.
-  # Разбираем посекционно через JSON, чтобы слова, глоссы и значения не съезжали —
-  # плоский текст съезжает, когда в секции несколько слов или нет значения.
+  # Each sub_entry is one meaning group: one or several synonym words (e.g.
+  # "exam / examination") with a shared "— gloss" list and one explanation. We parse
+  # section by section via JSON so words, glosses and meanings don't drift — flat
+  # text drifts when a section has several words or no meaning.
   SECTIONS=$(printf '%s' "$HTML" | pup 'section.sub_entry json{}' 2>/dev/null | jq -r '
     .[] |
       (.children[]? | select(.tag=="h3")) as $h3 |
-      # Большинство слов лежит в ссылках <a>, но неслинкованные фразы (например
-      # "baking oven") приходят голым <span>; берём и то, и то. Слово может быть
-      # собственным текстом ссылки (transfer) или вложено на уровень в <span>
-      # (risk -> <a><span>risk</span>), поэтому фолбэчимся на текст детей.
-      # (Транскрипции лежат в отдельном блоке и тянутся по-словно ниже, никогда
-      # внутри этих h3.)
+      # Most words sit in <a> links, but unlinked phrases (e.g. "baking oven") come
+      # as a bare <span>; take both. A word may be the own text of the link (transfer)
+      # or nested one level into a <span> (risk -> <a><span>risk</span>), so we fall
+      # back to the children text. (Transcriptions live in a separate block and are
+      # fetched per-word below, never inside these h3)
       ([$h3.children[]?
          | select(.tag == "a" or .tag == "span")
          | (([.text] + [.children[]?.text]) | map(select(. != null and (. | test("\\S")))) | first // "")
@@ -174,7 +173,7 @@ if printf '%s' "$HTML" | grep -q 'class="sub_entry"'; then
   ' 2>/dev/null || true)
 
   if [[ -z "$SECTIONS" ]]; then
-    print_message "Не удалось разобрать ответ Wooordhunt (T＿T)"
+    print_message "Failed to parse the Wooordhunt response (T＿T)"
     print_fallback_entry
     exit 0
   fi
@@ -184,7 +183,7 @@ if printf '%s' "$HTML" | grep -q 'class="sub_entry"'; then
     printf '%s' "${s//[^a-zA-Z0-9_]/_}"
   }
 
-  # Тянем транскрипцию каждого английского слова параллельно (у страниц RU->EN их нет).
+  # Fetch each English word's transcription in parallel (RU->EN pages don't have them)
   TMPD=$(mktemp -d)
   trap 'rm -rf "$TMPD"' EXIT
   while IFS= read -r word; do
@@ -199,7 +198,7 @@ if printf '%s' "$HTML" | grep -q 'class="sub_entry"'; then
     gloss=$(printf '%s' "$gloss" | xargs)
     meaning=$(printf '%s' "$meaning" | xargs)
 
-    # Первое слово — то, что копируем; собираем head с транскрипцией каждого слова.
+    # The first word is what we copy; build head with each word's transcription
     mapfile -t wlist < <(printf '%s\n' "$words" | sed 's@ / @\n@g')
     copy_word=$(printf '%s' "${wlist[0]}" | xargs)
     head=""
@@ -212,8 +211,8 @@ if printf '%s' "$HTML" | grep -q 'class="sub_entry"'; then
       [[ -z "$head" ]] && head="$part" || head+=" / ${part}"
     done
 
-    # Короткие списки глосс держим в строке со словом; длинные переносим на
-    # строки с отступом ниже, чтобы выбираемая строка не вылезала за окно.
+    # Keep short gloss lists on the word line; wrap long ones onto indented lines
+    # below so the selectable line doesn't overflow the window
     gloss_below=""
     if [[ -n "$gloss" ]]; then
       if ((${#head} + ${#gloss} + 3 <= HEAD_MAX)); then
@@ -233,10 +232,10 @@ MEANINGS_LIST=""
 if printf '%s' "$HTML" | grep -q 'class="t_inline_en"'; then
   MEANINGS_LIST=$(printf '%s' "$HTML" | pup '.t_inline_en text{}' 2>/dev/null | xargs)
 else
-  # По одному переводу на span-ребёнок. HTML каждого span схлопываем вручную, а
-  # не через `text{}`, потому что span может обернуть вводное слово в свой тег
-  # (например "<i>(чрезмерно)</i> подчёркивать"); text{} выдал бы это двумя
-  # строками и разбил одно значение на два элемента.
+  # One translation per span child. We collapse each span's HTML manually rather
+  # than via `text{}`, because a span may wrap an introductory word in its own tag
+  # (e.g. "<i>(чрезмерно)</i> подчёркивать"); text{} would emit that as two lines
+  # and split one meaning into two items
   TR_SPANS=$(printf '%s' "$HTML" | pup '.tr > span' 2>/dev/null | awk '
     /^<span/ { buf = ""; next }
     /^<\/span>/ {
@@ -260,14 +259,14 @@ else
   fi
 fi
 
-# Страницы фраз (например "эй там") несут перевод в .light_tr, а не в одном из
-# структурированных селекторов выше.
+# Phrase pages (e.g. "эй там") carry the translation in .light_tr rather than in
+# one of the structured selectors above
 if [[ -z "$MEANINGS_LIST" ]]; then
   MEANINGS_LIST=$(printf '%s' "$HTML" | pup '.light_tr text{}' 2>/dev/null | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep . || true)
 fi
 
 if [[ -z "$MEANINGS_LIST" ]]; then
-  print_message "Не удалось разобрать ответ Wooordhunt ヽ(；▽；)ノ"
+  print_message "Failed to parse the Wooordhunt response ヽ(；▽；)ノ"
   print_fallback_entry
   exit 0
 fi

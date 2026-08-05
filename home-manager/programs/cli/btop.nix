@@ -9,7 +9,7 @@ let
   cfg = config.custom.btop;
 in
 {
-  options.custom.btop.withCuda = lib.mkEnableOption "GPU-панель btop через btop-cuda";
+  options.custom.btop.withCuda = lib.mkEnableOption "btop GPU panel via btop-cuda";
 
   config.programs.btop = {
     enable = true;

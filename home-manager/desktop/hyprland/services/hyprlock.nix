@@ -1,53 +1,55 @@
 { huixDir, ... }:
 
-# DDLC-локскрин. Фон — картинка, не скриншот: скриншотный фон ловит кадр с
-# уже применённым screen_shader, и компоситор прогоняет его через шейдер
-# второй раз (эффект и софт-яркость удваиваются).
+# DDLC lock screen. The background is an image, not a screenshot: a screenshot
+# background captures a frame with screen_shader already applied, and the
+# compositor runs it through the shader a second time (effect and software
+# brightness double up).
 #
-# Диалог = игровой PNG-бокс как есть + два label'а поверх (имя и реплики),
-# оба рисует scripts/hyprlock-quote.sh. Именно label, а не текст в PNG:
-# image-виджет hyprlock перезагружается максимум раз в секунду и ждёт
-# reload_cmd синхронно, а label обновляется в мс и асинхронно — только так
-# возможна побуквенная печать. Скрипт держит размер текстуры реплики
-# постоянным (вся реплика рендерится сразу, ненапечатанный хвост прозрачен —
-# приём Ren'Py), поэтому текст прибит к левому верху текстовой области без
-# измерений шрифта. Все пути — через huixDir (живой репозиторий, ничего не
-# печётся на сборке); геометрия — производные от размеров ассета (src ниже).
+# The dialog = the in-game PNG box as-is + two labels on top (name and lines),
+# both drawn by scripts/hyprlock-quote.sh. A label, not text baked into the PNG:
+# hyprlock's image widget reloads at most once a second and waits on reload_cmd
+# synchronously, whereas a label updates in ms and asynchronously — that's the
+# only way per-character typing is possible. The script keeps the line texture a
+# constant size (the whole line renders at once, the untyped tail is transparent
+# — a Ren'Py trick), so the text is pinned to the top-left of the text area
+# without font measurements. All paths go through huixDir (the live repository,
+# nothing is baked at build time); geometry is derived from the asset dimensions
+# (src below).
 let
   backgroundImage = "${huixDir}/assets/just-monika.png";
   dialogAsset = "${huixDir}/assets/ddlc-stickers/dialog-box.png";
   quoteScript = "${huixDir}/scripts/hyprlock-quote.sh";
 
-  # Геометрия ассета: холст 1280x720, видимый бокс на нём (по x центрирован,
-  # снизу прозрачный хвост) и его внутренности, px холста.
+  # Asset geometry: a 1280x720 canvas, the visible box on it (x-centered, with a
+  # transparent tail at the bottom) and its internals, in canvas px.
   src = {
     w = 1280;
     h = 720;
-    boxY = 527; # верх бокса на холсте
+    boxY = 527; # top of the box on the canvas
     boxW = 816;
     boxH = 185;
-    insetX = 40; # поля текстовой области внутри бокса
-    menuH = 35; # полоска меню по низу бокса
-    plateCx = 118; # центр плашки имени от левого верха бокса
+    insetX = 40; # text-area padding inside the box
+    menuH = 35; # menu strip along the bottom of the box
+    plateCx = 118; # center of the name plate from the box top-left
     plateCy = 19;
   };
 
-  boxH = 280; # высота бокса на экране; остальное — производные
-  bottom = 30; # отступ бокса от низа экрана
+  boxH = 280; # box height on screen; the rest is derived
+  bottom = 30; # box offset from the bottom of the screen
   k = boxH / (1.0 * src.boxH);
   px = v: builtins.floor (v * k + 0.5);
 
-  imgSize = px src.h; # size виджета = меньшая сторона холста (высота)
-  imgY = bottom - px (src.h - src.boxY - src.boxH); # компенсация хвоста холста
-  textW = px (src.boxW - 2 * src.insetX); # ширина текстовой области
-  quoteY = bottom + px src.menuH - 6; # низ лейбла реплики (над меню)
-  nameX = px (src.plateCx - src.boxW / 2); # центр плашки от центра экрана
-  nameY = bottom + px (src.boxH - src.plateCy) - 24; # низ лейбла имени
+  imgSize = px src.h; # widget size = shorter canvas side (height)
+  imgY = bottom - px (src.h - src.boxY - src.boxH); # compensate for the canvas tail
+  textW = px (src.boxW - 2 * src.insetX); # text-area width
+  quoteY = bottom + px src.menuH - 6; # bottom of the line label (above the menu)
+  nameX = px (src.plateCx - src.boxW / 2); # plate center from the screen center
+  nameY = bottom + px (src.boxH - src.plateCy) - 24; # bottom of the name label
 
   quoteFontSize = 24;
-  fontPx = quoteFontSize * 4 / 3; # pango pt -> px @ 96dpi: метрики переноса
+  fontPx = quoteFontSize * 4 / 3; # pango pt -> px @ 96dpi: wrapping metrics
 
-  # Все лейблы — на всех мониторах и одним шрифтом.
+  # All labels — on every monitor and in one font.
   mkLabel =
     l:
     {
@@ -64,12 +66,12 @@ in
       general = {
         hide_cursor = true;
         ignore_empty_input = true;
-        # кадр реплики добит пустыми строками до постоянной высоты —
-        # обрезка схлопнула бы текстуру и текст прыгал бы.
+        # the line frame is padded with blank lines to a constant height —
+        # trimming would collapse the texture and the text would jump
         text_trim = false;
       };
 
-      # Плавное появление локскрина.
+      # Smooth lock-screen fade-in.
       animations = {
         enabled = true;
         bezier = "linear, 1, 1, 0, 0";
@@ -83,11 +85,11 @@ in
         {
           monitor = "";
           path = backgroundImage;
-          color = "rgb(2a1a2e)"; # запасной цвет
+          color = "rgb(2a1a2e)"; # fallback color
         }
       ];
 
-      # Бокс диалога — статичный, текст живёт в лейблах поверх.
+      # The dialog box is static, the text lives in labels on top.
       image = [
         {
           monitor = "";
@@ -95,7 +97,7 @@ in
           size = imgSize;
           rounding = 0;
           border_size = 0;
-          zindex = 0; # сортировка по zindex нестабильная — фиксируем явно
+          zindex = 0; # zindex sorting is unstable — pin it explicitly
           position = "0, ${toString imgY}";
           halign = "center";
           valign = "bottom";
@@ -103,32 +105,32 @@ in
       ];
 
       label = map mkLabel [
-        # Часы
+        # Clock
         {
           text = "$TIME";
           font_size = 150;
           color = "rgba(ffffffff)";
           shadow_passes = 3;
           shadow_size = 6;
-          shadow_color = "rgba(bf936edd)"; # тёплый медно-бежевый из фона
+          shadow_color = "rgba(bf936edd)"; # warm copper-beige from the background
           position = "0, -70";
           halign = "center";
           valign = "top";
         }
-        # Дата (tr -d: text_trim выключен, хвостовой \n стал бы второй строкой)
+        # Date (tr -d: text_trim is off, a trailing \n would become a second line)
         {
           text = ''cmd[update:60000] date +"%A, %B %-d" | tr -d '\n' '';
           font_size = 30;
           color = "rgba(ffffffe6)";
           shadow_passes = 2;
           shadow_size = 3;
-          shadow_color = "rgba(9f543caa)"; # тёмно-оранжевый из фона
+          shadow_color = "rgba(9f543caa)"; # dark orange from the background
           position = "0, -250";
           halign = "center";
           valign = "top";
         }
-        # Имя на плашке: отдельный лейбл (не впечён в PNG), чтобы глитчиться
-        # вместе с текстом и с той же частотой. Розовая "обводка" — тень.
+        # Name on the plate: a separate label (not baked into the PNG) so it
+        # glitches together with the text and at the same rate. The pink "outline" is a shadow.
         {
           text = "cmd[update:33] ${quoteScript} name";
           font_size = 28;
@@ -142,10 +144,10 @@ in
           halign = "center";
           valign = "bottom";
         }
-        # Реплика: постоянный размер текстуры (см. шапку) + halign center
-        # + valign bottom дают прибитый левый верх текста ровно у поля
-        # текстовой области. Чёрная "обводка" — тень. Опрос 33 мс = плавная
-        # печать ~1 символ/кадр при CPS=30.
+        # Line: a constant texture size (see the header) + halign center
+        # + valign bottom pin the top-left of the text right at the text-area
+        # padding. The black "outline" is a shadow. A 33 ms poll = smooth
+        # typing at ~1 char/frame when CPS=30.
         {
           text = "cmd[update:33] TEXT_W=${toString textW} FONT_PX=${toString fontPx} ${quoteScript} frame";
           font_size = quoteFontSize;
@@ -155,12 +157,12 @@ in
           shadow_boost = 1.6;
           shadow_color = "rgba(000000ff)";
           text_align = "left";
-          zindex = 1; # поверх бокса
+          zindex = 1; # on top of the box
           position = "0, ${toString quoteY}";
           halign = "center";
           valign = "bottom";
         }
-        # Раскладка справа от поля ввода ($LAYOUT обновляется сам)
+        # Layout to the right of the input field ($LAYOUT updates itself)
         {
           text = "$LAYOUT[EN,RU]";
           font_size = 24;
@@ -186,7 +188,7 @@ in
           font_family = "Doki";
           placeholder_text = "<i>Give me it...~</i>";
           fail_text = "This isn't it... ($ATTEMPTS)";
-          # проверка пароля подсвечивается тем же красным, что и ошибка
+          # password check is highlighted with the same red as an error
           check_color = "rgb(d64d7a)";
           fail_color = "rgb(d64d7a)";
           capslock_color = "rgb(ffb347)";

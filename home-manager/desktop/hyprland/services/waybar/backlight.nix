@@ -4,7 +4,7 @@ let
   cfg = config.custom.waybar;
 in
 {
-  options.custom.waybar.backlight = lib.mkEnableOption "индикатор аппаратной подсветки (brightnessctl)";
+  options.custom.waybar.backlight = lib.mkEnableOption "hardware backlight indicator (brightnessctl)";
 
   config = lib.mkIf (cfg.enable && cfg.backlight) {
     programs.waybar.settings.mainBar."backlight" = {

@@ -54,8 +54,8 @@
           height = math.max(vim.api.nvim_win_get_height(preview_winid) - 2, 10)
         end
 
-        -- Все ветки возвращают termopen-argv с одинаковым хвостом
-        -- (filepath/width/height); различается только bash-тело, audio добавляет mime.
+        -- All branches return termopen argv with the same tail
+        -- (filepath/width/height); only the bash body differs, audio adds mime
         local function preview_cmd(script, extra)
           local cmd = {
             "bash",

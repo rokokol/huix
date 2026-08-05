@@ -62,23 +62,23 @@
     source = ${huixDir}/home-manager/desktop/hyprland/hyprland.conf
   '';
 
-  # swayimg 5.x перешёл на Lua-конфиг (init.lua); старый INI ~/.config/swayimg/config
-  # больше не читается, поэтому и info-оверлей, и биндинги задаём здесь.
+  # swayimg 5.x switched to a Lua config (init.lua); the old INI ~/.config/swayimg/config
+  # is no longer read, so both the info overlay and the bindings are set here
   home.file.".config/swayimg/init.lua".text = ''
     swayimg.set_mode("viewer")
     swayimg.viewer.set_default_scale("fit")
-    -- Прозрачно-заблюренный фон из самой картинки (как в старых версиях),
-    -- а не чёрная заливка. "auto" = extend/mirror по соотношению сторон.
+    -- Transparent, blurred background derived from the image itself (as in older
+    -- versions), not a black fill. "auto" = extend/mirror by aspect ratio.
     swayimg.viewer.set_window_background("auto")
 
-    -- По умолчанию никакого текстового оверлея: пустые схемы для всех углов.
+    -- No text overlay by default: empty schemes for all corners.
     swayimg.viewer.set_text("topleft", {})
     swayimg.viewer.set_text("topright", {})
     swayimg.viewer.set_text("bottomleft", {})
     swayimg.viewer.set_text("bottomright", {})
-    swayimg.text.set_timeout(0) -- если info включат руками — висит, пока не выключат
+    swayimg.text.set_timeout(0) -- if info is toggled on by hand, it stays until toggled off
 
-    -- Тумблер info по клавише (бывший `i`): показать/скрыть сводку об изображении.
+    -- Info toggle on a key (the former `i`): show/hide the image summary.
     local info_on = false
     local function toggle_info()
       if info_on then
@@ -98,8 +98,8 @@
       end
     end
 
-    -- Копирование содержимого файла в буфер (как раньше: wl-copy < файл),
-    -- но без шелла — чтобы не ломаться на путях со спецсимволами ($, `, \).
+    -- Copy the file contents to the clipboard (as before: wl-copy < file),
+    -- but without a shell — so it doesn't break on paths with special chars ($, `, \).
     local function copy_to_clipboard()
       local img = swayimg.viewer.get_image()
       if not (img and img.path) then return end
@@ -114,7 +114,7 @@
       end
     end
 
-    -- Латиница и кириллица (одна физическая раскладка) → общие обработчики.
+    -- Latin and Cyrillic (one physical layout) → shared handlers.
     local function switch(dir) return function() swayimg.viewer.switch_image(dir) end end
     local function rotate() swayimg.viewer.rotate(90) end
     local function flip() swayimg.viewer.flip_horizontal() end

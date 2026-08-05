@@ -4,43 +4,43 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-screen-shader.sh — менеджер полноэкранных шейдеров и софт-яркости Hyprland
+screen-shader.sh — manager of Hyprland full-screen shaders and soft brightness
 
-Команды:
-  effect push <name>     ДОБАВИТЬ эффект в стопку (композиция поверх текущих)
-  effect set <name>      ЗАМЕНИТЬ стопку одним эффектом
-  effect clear           очистить стопку (все эффекты выключить)
-  effect toggle <name>   есть в стопке — убрать; нет — добавить
-  effect next|prev       заменить стопку следующим/предыдущим эффектом
-  bright up|down         софт-яркость ±5% (кламп 10..200%)
-  bright reset           яркость 100%
+Commands:
+  effect push <name>     ADD an effect to the stack (composited over the current ones)
+  effect set <name>      REPLACE the stack with a single effect
+  effect clear           clear the stack (turn all effects off)
+  effect toggle <name>   in the stack — remove it; not — add it
+  effect next|prev       replace the stack with the next/previous effect
+  bright up|down         soft brightness ±5% (clamp 10..200%)
+  bright reset           brightness 100%
   bright toggle          100% ↔ 50%
-  bright set <0.10..2>   яркость точно
-  bright get             текущая яркость в процентах (целое, для UI)
-  flash [-k] <name> [sec] эффект на N секунд (деф. 1.0) и вернуть как было;
-                         накладывается ПОВЕРХ текущей стопки (композиция);
-                         durable state не трогается;
-                         -k — no-op, если стопка непуста
-  restore                перечитать state и применить заново
-                         (exec на каждом reload Hyprland — слот рантаймовый)
-  status                 JSON для waybar (custom/shader)
-  menu                   строки "<эмодзи> <подпись>|<имя>" для rofi-пикера
-                         (активные помечены номером применения: 01. 02. 03.)
-  help                   эта справка
+  bright set <0.10..2>   brightness exactly
+  bright get             current brightness in percent (integer, for the UI)
+  flash [-k] <name> [sec] effect for N seconds (default 1.0), then revert;
+                         composited OVER the current stack (composition);
+                         durable state is not touched;
+                         -k — no-op if the stack is non-empty
+  restore                re-read state and apply again
+                         (exec on every Hyprland reload — the slot is runtime)
+  status                 JSON for waybar (custom/shader)
+  menu                   "<emoji> <label>|<name>" lines for the rofi picker
+                         (active ones marked with an apply number: 01. 02. 03.)
+  help                   this help
 
-Эффекты СТАКАЮТСЯ: каждый `effect push` добавляет фильтр поверх предыдущих
-(rofi-пикер шлёт именно push), и они компонуются в один шейдер, пока стопку
-не очистят (`effect clear`, пункт "Обычный" в пикере или SUPER+G). У Hyprland
-один слот шейдера (decoration:screen_shader), поэтому все эффекты стопки плюс
-яркость собираются в один генерируемый GLSL. Эффекты, сэмплящие текстуру со
-смещением (crt/wave/glitch), ставятся в цепочке первыми (геометрия), цветовые
-фильтры — после; несколько геометрических не складываются (последний перекрывает
-предыдущие) — ограничение единственного слота. Каждый эффект в
-scripts/shaders/<name>.frag описывает только функцию vec3 effect(vec3 c, vec2 uv).
+Effects STACK: every `effect push` adds a filter over the previous ones (the rofi
+picker sends exactly push), and they compose into one shader until the stack is
+cleared (`effect clear`, the "Normal" item in the picker, or SUPER+G). Hyprland has
+one shader slot (decoration:screen_shader), so all effects in the stack plus
+brightness are assembled into one generated GLSL. Effects that sample the texture
+with an offset (crt/wave/glitch) go first in the chain (geometry), color filters
+after; multiple geometric ones don't stack (the last overrides the previous ones)
+— a limitation of the single slot. Each effect in scripts/shaders/<name>.frag
+describes only the function vec3 effect(vec3 c, vec2 uv).
 
-Выбор (стопка эффектов + яркость) хранится durable в ~/.local/state/huix/shader —
-переживает логаут/ребут и не виден hourly-sync; сгенерированные шейдеры
-эфемерны и живут в $XDG_RUNTIME_DIR/hypr-shader.
+The choice (effect stack + brightness) is stored durably in ~/.local/state/huix/shader
+— survives logout/reboot and isn't seen by the hourly sync; generated shaders are
+ephemeral and live in $XDG_RUNTIME_DIR/hypr-shader.
 EOF
 }
 
@@ -55,9 +55,10 @@ notify_info() {
   command -v notify-send >/dev/null 2>&1 && notify-send -u low "$1" "$2" || true
 }
 
-# Номер SIGRTMIN+N задаёт Nix (waybar/shader.nix) через WAYBAR_SHADER_SIGNAL.
-# SHADER_NO_SIGNAL гасит сигнал при restore на старте сессии: дефолтное действие
-# RT-сигнала — убить процесс, а waybar мог ещё не поставить обработчик.
+# The SIGRTMIN+N number is set by Nix (waybar/shader.nix) via WAYBAR_SHADER_SIGNAL.
+# SHADER_NO_SIGNAL suppresses the signal on restore at session start: the default
+# action of an RT signal is to kill the process, and waybar may not have installed
+# a handler yet.
 signal_waybar() {
   [[ -z "${SHADER_NO_SIGNAL:-}" ]] || return 0
   [[ -n "${WAYBAR_SHADER_SIGNAL:-}" ]] || return 0
@@ -77,41 +78,41 @@ SHADER_DIR="$HUIX/scripts/shaders"
 STATE_DIR="${XDG_RUNTIME_DIR:-/tmp}/hypr-shader"
 STATE="${XDG_STATE_HOME:-$HOME/.local/state}/huix/shader"
 
-# Порядок для листания (effect next/prev). none первым — это "выключено".
+# Order for cycling (effect next/prev). none first — this is "off".
 EFFECTS=(none grayscale sepia invert warm cool vignette sharpen crt matrix posterize wave glitch jpeg)
 
-# Анимированные эффекты (используют uniform time). Им нужен выключенный
-# damage tracking, иначе Hyprland не перерисовывает кадр.
+# Animated effects (use the uniform time). They need damage tracking off,
+# otherwise Hyprland doesn't redraw the frame.
 ANIMATED=(wave glitch matrix)
 
-# Статичные эффекты, которые сэмплят текстуру со СМЕЩЕНИЕМ (кривизна, искажение).
-# При точном damage tracking (2) они читают непереисованные соседние области и
-# "ломаются" на быстрых изменениях экрана. Им нужна перерисовка ВСЕГО монитора
-# при любом изменении (damage_tracking 1), но в простое можно спать — анимации нет.
+# Static effects that sample the texture with an OFFSET (curvature, distortion).
+# With precise damage tracking (2) they read undrawn neighboring areas and "break"
+# on fast screen changes. They need a redraw of the WHOLE monitor on any change
+# (damage_tracking 1), but can sleep when idle — there's no animation.
 OFFSET=(crt jpeg sharpen)
 
-# Эмодзи и подписи для индикатора в waybar (status) — один источник правды.
+# Emojis and labels for the waybar indicator (status) — the single source of truth
 declare -A EMOJI=(
   [none]="🌈" [grayscale]="⚫" [sepia]="🟤" [invert]="🔄" [warm]="🌅"
   [cool]="❄️" [vignette]="🎯" [sharpen]="🔪" [crt]="📺" [matrix]="🟢"
   [posterize]="🎨" [wave]="🌊" [glitch]="📡" [jpeg]="💾"
 )
 declare -A LABEL=(
-  [none]="Обычный" [grayscale]="Чёрно-белый" [sepia]="Сепия" [invert]="Негатив"
-  [warm]="Тёплый (ночь)" [cool]="Холодный" [vignette]="Виньетка" [sharpen]="Резкость"
-  [crt]="Кинескоп" [matrix]="Матрица" [posterize]="Постеризация" [wave]="Волна"
-  [glitch]="Глитч" [jpeg]="JPEG"
+  [none]="Normal" [grayscale]="Grayscale" [sepia]="Sepia" [invert]="Invert"
+  [warm]="Warm (night)" [cool]="Cool" [vignette]="Vignette" [sharpen]="Sharpen"
+  [crt]="CRT" [matrix]="Matrix" [posterize]="Posterize" [wave]="Wave"
+  [glitch]="Glitch" [jpeg]="JPEG"
 )
 
 mkdir -p "$STATE_DIR"
 
-# Стопка активных эффектов (по порядку добавления). Пустая = ничего не наложено.
+# Stack of active effects (in the order they were added). Empty = nothing applied.
 stack=()
 bright="1.00"
-# Hyprland НЕ перекомпилирует шейдер, если задать тот же путь. Поэтому пишем
-# в чередующиеся файлы (active-0/active-1) — путь всегда меняется и шейдер
-# гарантированно перечитывается (иначе смена яркости при активной стопке
-# не применяется).
+# Hyprland does NOT recompile the shader if given the same path. So we write to
+# alternating files (active-0/active-1) — the path always changes and the shader is
+# guaranteed to be re-read (otherwise a brightness change with an active stack isn't
+# applied).
 slot=0
 
 load_state() {
@@ -120,7 +121,7 @@ load_state() {
     # shellcheck disable=SC1090
     source "$STATE"
   fi
-  # Миграция со старого формата (одиночный effect=<name>).
+  # Migration from the old format (single effect=<name>)
   if [[ ${#stack[@]} -eq 0 && -n "${effect:-}" && "${effect:-none}" != "none" ]]; then
     stack=("$effect")
   fi
@@ -138,7 +139,7 @@ save_state() {
   } >"$STATE"
 }
 
-# Индекс эффекта в EFFECTS (или -1).
+# Index of an effect in EFFECTS (or -1)
 effect_index() {
   local i
   for i in "${!EFFECTS[@]}"; do
@@ -160,8 +161,8 @@ in_list() {
   return 1
 }
 
-# 1-based позиция эффекта в стопке (порядок применения) — печатает номер и
-# возвращает 0, если эффект в стопке; иначе возвращает 1 и ничего не печатает.
+# 1-based position of an effect in the stack (apply order) — prints the number and
+# returns 0 if the effect is in the stack; otherwise returns 1 and prints nothing.
 stack_position() {
   local i=1 x
   for x in "${stack[@]}"; do
@@ -174,18 +175,18 @@ stack_position() {
   return 1
 }
 
-# Эффект сам сэмплит текстуру (геометрия/искажение) — такой в цепочке идёт первым.
+# The effect samples the texture itself (geometry/distortion) — such one goes first in the chain
 samples_texture() {
   grep -q 'texture(' "$SHADER_DIR/$1.frag"
 }
 
-# Режим отрисовки по списку эффектов: берём самый требовательный.
-#   animated   — есть анимация (uniform time): damage 0 (рисуем каждый кадр) + VFR off
-#                (при включённом VFR Hyprland уходит в idle и анимация дёргается);
-#   fullstatic — есть статичный со смещённой выборкой (кривизна): damage 1 — при
-#                любом изменении перерисовываем весь монитор (иначе точный damage
-#                ломает искажённую выборку), но в простое спим; VFR on;
-#   default    — только попиксельные эффекты: дефолт damage 2 + VFR (частичный ok).
+# Render mode by the effect list: take the most demanding one.
+#   animated   — there's animation (uniform time): damage 0 (draw every frame) + VFR off
+#                (with VFR on Hyprland goes idle and the animation stutters);
+#   fullstatic — there's a static one with offset sampling (curvature): damage 1 — on
+#                any change redraw the whole monitor (otherwise precise damage breaks
+#                the distorted sampling), but sleep when idle; VFR on;
+#   default    — only per-pixel effects: default damage 2 + VFR (partial ok)
 set_render_mode() {
   case "$1" in
   animated) hyprctl --batch "keyword debug:damage_tracking 0 ; keyword debug:vfr 0" >/dev/null ;;
@@ -194,7 +195,7 @@ set_render_mode() {
   esac
 }
 
-render_mode_for() { # $@ = имена эффектов
+render_mode_for() { # $@ = effect names
   local n
   for n in "$@"; do in_list "$n" "${ANIMATED[@]}" && {
     printf 'animated'
@@ -207,9 +208,9 @@ render_mode_for() { # $@ = имена эффектов
   printf 'default'
 }
 
-# Переименовать все топ-уровневые определения тела эффекта (effect, hash, …)
-# суффиксом $2 — для композиции нескольких тел в одном шейдере без конфликтов.
-rename_defs() { # $1 = файл, $2 = суффикс
+# Rename all top-level definitions of an effect body (effect, hash, …) with the
+# suffix $2 — for composing several bodies in one shader without conflicts.
+rename_defs() { # $1 = file, $2 = suffix
   local names n args=()
   names=$(grep -oE '^(const )?(float|int|bool|vec[234]|mat[234]) +[A-Za-z_][A-Za-z0-9_]*' "$1" | awk '{ print $NF }')
   for n in $names; do
@@ -222,17 +223,17 @@ rename_defs() { # $1 = файл, $2 = суффикс
   fi
 }
 
-# Собрать полный GLSL из цепочки тел эффектов: $1 = выходной файл, далее список
-# .frag-файлов. Первое тело используется как есть (функция effect), остальные
-# переименовываются (effect_1, effect_2, …) и применяются по очереди к результату
-# предыдущего. time в секундах от старта: если хоть один эффект его использует,
-# Hyprland перерисовывает кадр непрерывно; иначе uniform вычищается компилятором.
+# Assemble the full GLSL from a chain of effect bodies: $1 = output file, then a
+# list of .frag files. The first body is used as is (function effect), the rest are
+# renamed (effect_1, effect_2, …) and applied in turn to the result of the previous
+# one. time in seconds since start: if any effect uses it, Hyprland redraws the
+# frame continuously; otherwise the uniform is optimized out by the compiler.
 emit_shader() {
   local out="$1"
   shift
   local bodies=("$@") b i=0
-  # Атомарная запись: пишем во временный файл, потом mv — Hyprland не увидит
-  # наполовину записанный шейдер при конкурентных вызовах.
+  # Atomic write: write to a temp file, then mv — Hyprland won't see a half-written
+  # shader on concurrent calls.
   local tmp="${out}.tmp.$$"
   {
     printf '#version 300 es\n'
@@ -266,16 +267,16 @@ emit_shader() {
   mv -f "$tmp" "$out"
 }
 
-# Упорядочить стопку для цепочки: геометрические (сэмплят текстуру) — первыми,
-# цветовые — после. Печатает по одному имени в строку.
+# Order the stack for the chain: geometric ones (sample the texture) first, color
+# ones after. Prints one name per line.
 ordered_stack() {
   local e
   for e in "${stack[@]}"; do samples_texture "$e" && printf '%s\n' "$e"; done
   for e in "${stack[@]}"; do samples_texture "$e" || printf '%s\n' "$e"; done
 }
 
-apply() { # $1 (опц.) = transient: не сохранять состояние в durable state
-  # Полностью убираем шейдер, если ни эффектов, ни затемнения нет.
+apply() { # $1 (opt.) = transient: don't save state to durable state
+  # Fully remove the shader if there are neither effects nor dimming
   if [[ ${#stack[@]} -eq 0 && "$bright" == "1.00" ]]; then
     set_render_mode default
     hyprctl keyword decoration:screen_shader "[[EMPTY]]" >/dev/null
@@ -284,7 +285,7 @@ apply() { # $1 (опц.) = transient: не сохранять состояние
     return
   fi
 
-  # Список тел в порядке цепочки. Пустая стопка при bright<1 — один passthrough.
+  # Body list in chain order. An empty stack with bright<1 is a single passthrough.
   local bodies=() e
   if [[ ${#stack[@]} -eq 0 ]]; then
     bodies=("$SHADER_DIR/none.frag")
@@ -298,7 +299,7 @@ apply() { # $1 (опц.) = transient: не сохранять состояние
     done < <(ordered_stack)
   fi
 
-  # Чередуем файл, чтобы путь всегда менялся и Hyprland перечитал шейдер.
+  # Alternate the file so the path always changes and Hyprland re-reads the shader
   slot=$((1 - slot))
   local active="$STATE_DIR/active-$slot.frag"
   emit_shader "$active" "${bodies[@]}"
@@ -309,7 +310,7 @@ apply() { # $1 (опц.) = transient: не сохранять состояние
   signal_waybar
 }
 
-# Проверить имя и что файл существует.
+# Check the name and that the file exists
 require_effect() {
   if [[ ! -f "$SHADER_DIR/$1.frag" ]]; then
     notify_error "Unknown effect: $1"
@@ -319,19 +320,19 @@ require_effect() {
 
 push_effect() {
   local name="$1"
-  # "Обычный" = сброс всей стопки.
+  # "Normal" = reset the whole stack
   if [[ "$name" == "none" ]]; then
     clear_stack
     return
   fi
   require_effect "$name"
   if in_list "$name" "${stack[@]}"; then
-    notify_info "Shader" "Уже в стопке: ${LABEL[$name]} (・_・)"
+    notify_info "Shader" "Already in the stack: ${LABEL[$name]} (・_・)"
     return
   fi
   stack+=("$name")
   apply
-  notify_info "Shader" "Добавлен: ${LABEL[$name]} · в стопке ${#stack[@]} （-＾〇＾-）"
+  notify_info "Shader" "Added: ${LABEL[$name]} · in the stack ${#stack[@]} （-＾〇＾-）"
 }
 
 set_single() {
@@ -343,12 +344,12 @@ set_single() {
   require_effect "$name"
   stack=("$name")
   apply
-  notify_info "Shader" "Эффект: ${LABEL[$name]} （-＾〇＾-）"
+  notify_info "Shader" "Effect: ${LABEL[$name]} （-＾〇＾-）"
 }
 
 toggle_effect() {
   local name="$1" e new=()
-  # "Обычный" = сброс всей стопки, а не добавление none в цепочку.
+  # "Normal" = reset the whole stack, not adding none to the chain
   if [[ "$name" == "none" ]]; then
     clear_stack
     return
@@ -358,18 +359,18 @@ toggle_effect() {
     for e in "${stack[@]}"; do [[ "$e" == "$name" ]] || new+=("$e"); done
     stack=("${new[@]}")
     apply
-    notify_info "Shader" "Убран: ${LABEL[$name]} · в стопке ${#stack[@]} (・_・)"
+    notify_info "Shader" "Removed: ${LABEL[$name]} · in the stack ${#stack[@]} (・_・)"
   else
     stack+=("$name")
     apply
-    notify_info "Shader" "Добавлен: ${LABEL[$name]} · в стопке ${#stack[@]} （-＾〇＾-）"
+    notify_info "Shader" "Added: ${LABEL[$name]} · in the stack ${#stack[@]} （-＾〇＾-）"
   fi
 }
 
 clear_stack() {
   stack=()
   apply
-  notify_info "Shader" "Эффекты сброшены (★^O^★)"
+  notify_info "Shader" "Effects reset (★^O^★)"
 }
 
 cmd_effect() {
@@ -395,11 +396,10 @@ cmd_effect() {
 }
 
 cmd_bright() {
-  # flock -n: при быстром скролле waybar шлёт десятки вызовов параллельно.
-  # Блокирующий flock ставит их в очередь → очередь копится → зависание.
-  # Неблокирующий: если другой экземпляр уже работает — выходим молча,
-  # а атомарная запись в emit_shader гарантирует, что Hyprland не увидит
-  # битый шейдер даже без сериализации.
+  # flock -n: on fast scrolling waybar sends dozens of calls in parallel. A
+  # blocking flock queues them → the queue piles up → a hang. Non-blocking: if
+  # another instance is already running — exit silently, and the atomic write in
+  # emit_shader guarantees Hyprland won't see a broken shader even without serialization.
   exec 8>"$STATE_DIR/bright.lock"
   flock -n 8 || exit 0
   load_state
@@ -420,17 +420,17 @@ cmd_bright() {
     ;;
   esac
   apply
-  # Синхронный тег: при удержании клавиши обновляется один попап, а не спамит лентой.
+  # Synchronous tag: while holding the key one popup updates instead of spamming the feed
   command -v notify-send >/dev/null 2>&1 && notify-send -u low \
     -h string:x-canonical-private-synchronous:huix-bright \
-    "Brightness" "Яркость: $(awk -v b="$bright" 'BEGIN{printf "%d", b*100}')% ☀" || true
+    "Brightness" "Brightness: $(awk -v b="$bright" 'BEGIN{printf "%d", b*100}')% ☀" || true
 }
 
-# Временный эффект на N секунд, КОМПОЗИЦИЕЙ поверх текущей стопки. Durable state
-# не трогается — краш посреди flash ничего не портит. Пишет в отдельный
-# flash.frag, не трогая слоты active-0/1: путь восстановления после flash
-# гарантированно другой, Hyprland перечитывает шейдер. Конкурентные flash
-# гасятся flock; -k — выйти молча, если стопка непуста.
+# A temporary effect for N seconds, COMPOSITED over the current stack. Durable
+# state is not touched — a crash mid-flash breaks nothing. Writes to a separate
+# flash.frag, not touching the active-0/1 slots: the restore path after flash is
+# guaranteed to differ, Hyprland re-reads the shader. Concurrent flashes are
+# suppressed by flock; -k — exit silently if the stack is non-empty.
 cmd_flash() {
   SHADER_NO_SIGNAL=1
   local keep=""
@@ -447,10 +447,10 @@ cmd_flash() {
   load_state
   [[ -n "$keep" && ${#stack[@]} -gt 0 ]] && exit 0
 
-  # flash-тело первым (обычно само сэмплит текстуру — glitch/wave); из стопки в
-  # цепочку берём только цветовые (не сэмплящие текстуру) — иначе они затрут
-  # результат flash (честная композиция нескольких геометрий требует
-  # многопроходного рендера, а у Hyprland один слот).
+  # The flash body first (usually samples the texture itself — glitch/wave); from
+  # the stack we take into the chain only color ones (not sampling the texture) —
+  # otherwise they'd overwrite the flash result (a proper composition of several
+  # geometries needs multi-pass rendering, and Hyprland has one slot).
   local bodies=("$SHADER_DIR/$name.frag") e
   for e in "${stack[@]}"; do
     samples_texture "$e" || bodies+=("$SHADER_DIR/$e.frag")
@@ -458,7 +458,7 @@ cmd_flash() {
   local file="$STATE_DIR/flash.frag"
   emit_shader "$file" "${bodies[@]}"
 
-  # Режим отрисовки/курсор — по всей паре (flash + стопка).
+  # Render mode/cursor — over the whole pair (flash + stack)
   set_render_mode "$(render_mode_for "$name" "${stack[@]}")"
 
   hyprctl keyword decoration:screen_shader "$file" >/dev/null
@@ -468,14 +468,14 @@ cmd_flash() {
 }
 
 cmd_restore() {
-  # Не сигналим waybar на старте сессии (см. signal_waybar); скрипт тут же
-  # завершается, так что глобальная установка флага безопасна.
+  # Don't signal waybar at session start (see signal_waybar); the script exits
+  # right away, so setting the flag globally is safe.
   SHADER_NO_SIGNAL=1
   load_state
   apply
 }
 
-# JSON для waybar (custom/shader): эмодзи всех эффектов стопки + процент яркости.
+# JSON for waybar (custom/shader): emojis of all stack effects + brightness percent
 cmd_status() {
   load_state
   local pct emoji="" labels="" e class
@@ -488,22 +488,22 @@ cmd_status() {
   if [[ ${#stack[@]} -gt 1 ]]; then class="stack"; elif [[ ${#stack[@]} -eq 1 ]]; then class="${stack[0]}"; else class="dim"; fi
 
   if [[ ${#stack[@]} -eq 0 && "$bright" == "1.00" ]]; then
-    # Ничего не активно — модуль прячется (пустой text).
+    # Nothing active — the module hides (empty text)
     printf '{"text":"","tooltip":"","class":"off"}\n'
   elif [[ ${#stack[@]} -eq 0 ]]; then
-    printf '{"text":"🔅 %s%%","tooltip":"Яркость %s%%","class":"dim"}\n' "$pct" "$pct"
+    printf '{"text":"🔅 %s%%","tooltip":"Brightness %s%%","class":"dim"}\n' "$pct" "$pct"
   elif [[ "$bright" == "1.00" ]]; then
     printf '{"text":"%s","tooltip":"%s","class":"%s"}\n' "$emoji" "$labels" "$class"
   else
-    printf '{"text":"%s %s%%","tooltip":"%s · яркость %s%%","class":"%s"}\n' \
+    printf '{"text":"%s %s%%","tooltip":"%s · brightness %s%%","class":"%s"}\n' \
       "$emoji" "$pct" "$labels" "$pct" "$class"
   fi
 }
 
-# Список "<эмодзи> <подпись>|<значение>" в порядке EFFECTS — единый источник
-# правды для rofi-пикера (rofi-shader.sh читает именно это). Активные в стопке
-# помечаются номером применения в формате "01. " (порядок стопки = порядок, в
-# котором эффекты добавляли), чтобы видеть накопленную композицию и её порядок.
+# List "<emoji> <label>|<value>" in EFFECTS order — the single source of truth for
+# the rofi picker (rofi-shader.sh reads exactly this). Active ones in the stack are
+# marked with an apply number in the "01. " format (stack order = the order in
+# which effects were added), to see the accumulated composition and its order.
 cmd_menu() {
   load_state
   local e mark pos
@@ -517,13 +517,13 @@ cmd_menu() {
   done
 }
 
-# Полный сброс: эффекты + яркость одним apply (для ПКМ waybar).
+# Full reset: effects + brightness in one apply (for waybar RMB)
 cmd_reset_all() {
   load_state
   stack=()
   bright="1.00"
   apply
-  notify_info "Shader" "Эффекты и яркость сброшены (★^O^★)"
+  notify_info "Shader" "Effects and brightness reset (★^O^★)"
 }
 
 case "${1:-}" in

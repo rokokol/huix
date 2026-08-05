@@ -14,12 +14,12 @@ in
   imports = [ ./mime-apps.nix ];
 
   options.custom.packages = {
-    pc = lib.mkEnableOption "пакеты рабочей станции (CUDA, тяжёлый десктоп, creative)";
-    laptop = lib.mkEnableOption "пакеты ноутбука (подсветка, камера, энергия)";
+    pc = lib.mkEnableOption "workstation packages (CUDA, heavy desktop, creative)";
+    laptop = lib.mkEnableOption "laptop packages (backlight, camera, power)";
   };
 
   config = lib.mkMerge [
-    # --- Общие для обоих хостов ---
+    # --- Shared by both hosts ---
     {
       home.packages = with pkgs; [
         # --- Common desktop apps ---
@@ -93,8 +93,8 @@ in
         with pkgs;
         [
           # --- CLI & system tools ---
-          # NVENC/NVDEC работают в стоковом ffmpeg (nv-codec-headers в комплекте);
-          # cudaSupport нужен только для CUDA-фильтров (scale_cuda и т.п.).
+          # NVENC/NVDEC work in stock ffmpeg (nv-codec-headers included);
+          # cudaSupport is only needed for CUDA filters (scale_cuda etc.)
           ffmpeg-headless
           nvtopPackages.nvidia
 

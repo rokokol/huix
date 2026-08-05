@@ -12,11 +12,12 @@ in
     theme = "ddlc";
 
     settings = {
-      # Greeter грузит тему по стабильному пути /run/current-system/…, а все
-      # файлы в /nix/store имеют mtime=1970 → Qt-кэш QML считает тему
-      # неизменной и отдаёт устаревший скомпилированный QML: правки не видны
-      # на реальном логине (в test-mode путь уникальный — там всё свежее).
-      # Отключаем дисковый кэш QML у greeter, он короткоживущий и кэш ему не нужен.
+      # The greeter loads the theme via the stable path /run/current-system/…,
+      # while all files in /nix/store have mtime=1970 → Qt's QML cache considers
+      # the theme unchanged and serves stale compiled QML: edits aren't visible
+      # on a real login (in test-mode the path is unique — everything is fresh
+      # there). Disable the greeter's on-disk QML cache; it's short-lived and
+      # doesn't need one
       General.GreeterEnvironment = "QT_WAYLAND_SHELL_INTEGRATION=layer-shell,QML_DISABLE_DISK_CACHE=1";
 
       Theme = {

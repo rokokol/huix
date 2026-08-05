@@ -7,11 +7,11 @@
 
 let
   cfg = config.custom.waybar;
-  # SIGRTMIN+N для обновления индикатора; не пересекаться с notifications.nix (9)
+  # SIGRTMIN+N to refresh the indicator; must not overlap with notifications.nix (9)
   shaderSignal = 8;
 in
 {
-  options.custom.waybar.shader = lib.mkEnableOption "индикатор полноэкранных шейдеров и софт-яркости";
+  options.custom.waybar.shader = lib.mkEnableOption "full-screen shaders and software brightness indicator";
 
   config = lib.mkIf (cfg.enable && cfg.shader) {
     home.sessionVariables.WAYBAR_SHADER_SIGNAL = toString shaderSignal;
