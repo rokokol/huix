@@ -64,7 +64,7 @@ fetch_html() {
 # inside <div class="trans_sound">, each preceded by a label like
 # "глагол произносится"; we walk the block in order, saving each form and marking it
 # with the part-of-speech word from the site itself (the first label token, empty
-# for words with a single form).
+# for words with a single form)
 # Arguments: $1 = HTML
 parse_transcriptions() {
   printf '%s' "$1" | pup '.trans_sound json{}' 2>/dev/null | jq -r '
@@ -92,7 +92,7 @@ parse_transcriptions() {
 
 # Render the parsed transcription rows for display. With multiple forms (homographs)
 # each transcription is marked with its part of speech so pronunciations differ
-# rather than silently merging; a single form is shown bare.
+# rather than silently merging; a single form is shown bare
 #   mode=head  -> American, British as a fallback (RU->EN annotations)
 #   mode=us|uk -> only this accent (EN->RU header line)
 format_transcriptions() {
@@ -153,7 +153,7 @@ if printf '%s' "$HTML" | grep -q 'class="sub_entry"'; then
   # Each sub_entry is one meaning group: one or several synonym words (e.g.
   # "exam / examination") with a shared "— gloss" list and one explanation. We parse
   # section by section via JSON so words, glosses and meanings don't drift — flat
-  # text drifts when a section has several words or no meaning.
+  # text drifts when a section has several words or no meaning
   SECTIONS=$(printf '%s' "$HTML" | pup 'section.sub_entry json{}' 2>/dev/null | jq -r '
     .[] |
       (.children[]? | select(.tag=="h3")) as $h3 |

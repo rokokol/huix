@@ -2,8 +2,8 @@
 
 set -euo pipefail
 
-# OCR of a selected screen region into the clipboard.
-# $1 — tesseract languages (rus+eng | rus | eng), default rus+eng.
+# OCR of a selected screen region into the clipboard
+# $1 — tesseract languages (rus+eng | rus | eng), default rus+eng
 lang="${1:-rus+eng}"
 
 geom="$(slurp -b ffffff66 -w 1)" || exit 0

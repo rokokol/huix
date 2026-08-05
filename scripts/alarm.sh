@@ -44,14 +44,14 @@ notify-send -u low "Alarm set （-＾〇＾-）" "Wake-up at $wake_human" || tru
 # rtcwake -m no only ARMS the RTC alarm without suspending itself. A direct
 # `rtcwake -m mem` writes to /sys/power/state bypassing systemd and on a desktop
 # with a GPU fails with "write error" — so we do the suspend itself via
-# `systemctl suspend`, so systemd hooks (incl. nvidia) run.
+# `systemctl suspend`, so systemd hooks (incl. nvidia) run
 sudo "$RTCWAKE" -m no -s "$secs"
 systemctl suspend
 
 # `systemctl suspend` returns control right after the suspend is initiated; the
 # process is frozen together with the machine and resumes only after wake-up. We
 # wait until the scheduled time arrives (in case suspend didn't fire — we just
-# sit awake until the deadline).
+# sit awake until the deadline)
 while [ "$(date +%s)" -lt "$target" ]; do
   sleep 5
 done
@@ -64,7 +64,7 @@ notify-send -u critical "WAKE UP (*≧m≦*)" "Remember why you did this, you wr
 # The ringing runs in a foreground loop and stops ONLY on Ctrl+C: SIGINT is caught
 # by a trap that sets a flag — and the loop exits. No "press any key". pw-play also
 # receives SIGINT and terminates, after which the trap runs, the flag becomes 1,
-# and the while exits immediately.
+# and the while exits immediately
 stop=0
 trap 'stop=1' INT
 echo "Ringing. Press Ctrl+C to turn the alarm off…"

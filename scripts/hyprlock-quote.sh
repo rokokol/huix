@@ -170,7 +170,7 @@ glitch_text() {
     }'
 }
 
-# Glitch the screen and text with one mechanism (password and Poisson stream).
+# Glitch the screen and text with one mechanism (password and Poisson stream)
 # flash sleeps internally — fully detach it, otherwise hyprlock waits for EOF
 fire_glitch() {
   glitch_until_ms=$((now_ms + GLITCH_TEXT_MS))

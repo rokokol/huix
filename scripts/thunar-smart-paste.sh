@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Paste the clipboard contents as a file into the current Thunar folder.
-# Invoked from a custom action (Ctrl+Shift+V) with %f as the first argument.
-# Image -> img.png (extension by MIME), text (incl. a path string) -> text.txt.
-# Thunar's file operations (Ctrl+V/Ctrl+C/Ctrl+X) are not touched by this script.
+# Paste the clipboard contents as a file into the current Thunar folder
+# Invoked from a custom action (Ctrl+Shift+V) with %f as the first argument
+# Image -> img.png (extension by MIME), text (incl. a path string) -> text.txt
+# Thunar's file operations (Ctrl+V/Ctrl+C/Ctrl+X) are not touched by this script
 set -euo pipefail
 
 dir="${1:-$PWD}"

@@ -18,15 +18,15 @@ Commands:
 The feed = visible popups + mako history, newest on top, nothing is filtered out.
 The only operation on an entry is copying the text; notification actions (buttons)
 are available natively and only on visible popups: LMB — default action, RMB —
-makoctl menu. History is cleared only as a whole.
+makoctl menu. History is cleared only as a whole
 
 DND is mako's native mechanism: the do-not-disturb mode with invisible=1 (man
 mako(5)). The script just pokes makoctl mode and kicks waybar with a signal so the
 indicator refreshes at once. Modes live in the daemon's runtime: DND survives a
-Hyprland reload and nixos-rebuild, but resets when the session restarts.
+Hyprland reload and nixos-rebuild, but resets when the session restarts
 
 makoctl has no history-clear command, so clear is a restore+dismiss of each entry
-under the invisible silent mode (see mako.nix) so popups don't flash on screen.
+under the invisible silent mode (see mako.nix) so popups don't flash on screen
 EOF
 }
 
@@ -39,7 +39,7 @@ notify_error() {
 
 # The SIGRTMIN+N number is set by Nix (waybar/notifications.nix) via
 # WAYBAR_NOTIF_SIGNAL. There's no race with waybar autostart: the signal is sent
-# only on explicit user actions, when waybar is already alive.
+# only on explicit user actions, when waybar is already alive
 signal_waybar() {
   [[ -n "${WAYBAR_NOTIF_SIGNAL:-}" ]] || return 0
   pkill -RTMIN+"$WAYBAR_NOTIF_SIGNAL" waybar 2>/dev/null || true
@@ -68,7 +68,7 @@ cmd_dnd() {
 
 # The counter counts the whole feed — history without visible popups would make a
 # notification hanging on screen invisible to the counter. Tooltip = the last
-# 5 entries.
+# 5 entries
 cmd_status() {
   local dnd=0
   dnd_active && dnd=1
@@ -96,7 +96,7 @@ cmd_status() {
 
 # The field separator is exactly \x1f, NOT a tab: entries without an icon have an
 # empty middle field, and TAB is IFS-whitespace, so bash collapses consecutive
-# whitespace separators and loses empty fields. We strip \x1f from the text itself.
+# whitespace separators and loses empty fields. We strip \x1f from the text itself
 cmd_menu() {
   feed_json | jq -r '
     .[] | [
