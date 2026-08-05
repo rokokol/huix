@@ -37,8 +37,8 @@
 
 - репо рассчитан на `x86_64-linux` и живёт чисто во flake-workflow, без `nix-channel`/`NIX_PATH`/`<nixpkgs>`
 - базовый набор пакетов идёт из `nixos-unstable` (`pkgs`)
-- рядом проброшен стабильный `nixos-25.11` как `pkgs.stable` через `overlay-stable`
-- на ПК есть CUDA-overlay, дающий `pkgs.cuda.*` — те же пакеты, но собранные с поддержкой CUDA (capability `8.6`). Путать источники нельзя — это триггерит молчаливую пересборку гигантского ML-стека
+- рядом проброшен стабильный последний релиз `nixpkgs` как `pkgs.stable` через `overlay-stable`. Путать источники нельзя — это триггерит молчаливую пересборку гигантского ML-стека
+- CUDA-пакеты берутся из выделенных attrs (`ollama-cuda`, `btop-cuda`, флейк `comfyui-nix`), а не из глобального оверлея. Кодогенерация CUDA ограничена архитектурой GPU (RTX 3060 = `sm_86`, capability `8.6`) через `cudaCapabilities` в общем `nixpkgsConfig` — менять при смене GPU. Это сужает арку, не включая глобальный `cudaSupport`, так что подхватывает только `ollama-cuda`
 - Home Manager подключён не отдельным потоком, а как NixOS-модуль с `useGlobalPkgs = true` — системный и пользовательский слой делят один пакетный набор и overlays
 - `commonArgs` (`rokokolName`, `huixDir`, `govnoDir`, `system`, `inputs`) пробрасывается и в системные модули через `specialArgs`, и в HM через `extraSpecialArgs` — это единственный способ протащить константы через границу флейка
 
