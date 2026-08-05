@@ -4,13 +4,13 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-zoom.sh — живая лупа: зум экрана вокруг курсора (Hyprland cursor:zoom_factor)
+zoom.sh — live magnifier: screen zoom around the cursor (Hyprland cursor:zoom_factor)
 
-Использование:
-  zoom.sh in|out [шаг]   ближе/дальше (множитель, по умолчанию 1.3)
-  zoom.sh toggle         2.5x или обратно 1x (по умолчанию)
-  zoom.sh reset          1x
-  zoom.sh --help         эта справка
+Usage:
+  zoom.sh in|out [step]   closer/farther (multiplier, default 1.3)
+  zoom.sh toggle          2.5x or back to 1x (default)
+  zoom.sh reset           1x
+  zoom.sh --help          this help
 EOF
 }
 
