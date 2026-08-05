@@ -58,6 +58,9 @@ in
     DARK_THEME = darkGtkThemeName;
     LIGHT_SCHEME = colorScheme;
     DARK_SCHEME = darkColorScheme;
+    # libadwaita recolour dirs for toggle-theme.sh (needs a fresh login to appear)
+    GTK4_LIGHT_DIR = "${gruvbox}/share/themes/${gtkThemeName}/gtk-4.0";
+    GTK4_DARK_DIR = "${gruvbox}/share/themes/${darkGtkThemeName}/gtk-4.0";
     THUNARX_DIRS = "/run/current-system/sw/lib/thunarx-3";
   };
 }
