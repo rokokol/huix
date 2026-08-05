@@ -54,9 +54,7 @@ require_env \
   ROFI_THEMES_DIR \
   ROFI_LIGHT_THEME \
   ROFI_DARK_THEME \
-  ROFI_ACTIVE_THEME \
-  GTK4_LIGHT_DIR \
-  GTK4_DARK_DIR
+  ROFI_ACTIVE_THEME
 
 STATE_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/huix/theme"
 
@@ -84,11 +82,32 @@ set_rofi_theme() {
   ln -sfn "$theme_path" "$ROFI_ACTIVE_THEME"
 }
 
-# libadwaita apps (file-roller etc.) ignore gtk-theme-name; they only pick up
-# gruvbox from ~/.config/gtk-4.0/gtk.css, so swap it in per light/dark
+# libadwaita apps (gnome-text-editor etc.) ignore gtk-theme-name; they only pick up
+# gruvbox from ~/.config/gtk-4.0/gtk.css, so link the active theme's gtk-4.0 there.
+# Resolved by theme name via the GTK theme search path — no store path in the env,
+# so it works in the running session right after a rebuild, no re-login needed
 set_libadwaita_css() {
-  local src="$1"
+  local theme="$1"
   local dst="${XDG_CONFIG_HOME:-$HOME/.config}/gtk-4.0"
+  local src="" base
+
+  local -a search=("$HOME/.themes" "${XDG_DATA_HOME:-$HOME/.local/share}/themes")
+  local IFS=:
+  for base in ${XDG_DATA_DIRS:-/usr/share}; do
+    search+=("$base/themes")
+  done
+
+  for base in "${search[@]}"; do
+    if [[ -f "$base/$theme/gtk-4.0/gtk.css" ]]; then
+      src="$base/$theme/gtk-4.0"
+      break
+    fi
+  done
+
+  if [[ -z "$src" ]]; then
+    notify_error "gtk-4.0 CSS for \"$theme\" not found ヽ(ﾟДﾟ)ﾉ"
+    return 1
+  fi
 
   mkdir -p "$dst"
   ln -sfn "$src/gtk.css" "$dst/gtk.css"
@@ -118,14 +137,14 @@ apply_state() {
     dconf write "$GTK_THEME_KEY" "'${DARK_THEME}'"
     dconf write "$COLOR_SCHEME_KEY" "'${DARK_SCHEME}'"
     set_rofi_theme "$ROFI_DARK_THEME"
-    set_libadwaita_css "$GTK4_DARK_DIR"
+    set_libadwaita_css "$DARK_THEME" || true
     save_state "dark"
     ;;
   light)
     dconf write "$GTK_THEME_KEY" "'${LIGHT_THEME}'"
     dconf write "$COLOR_SCHEME_KEY" "'${LIGHT_SCHEME}'"
     set_rofi_theme "$ROFI_LIGHT_THEME"
-    set_libadwaita_css "$GTK4_LIGHT_DIR"
+    set_libadwaita_css "$LIGHT_THEME" || true
     save_state "light"
     ;;
   *)
