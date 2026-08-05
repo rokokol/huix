@@ -69,6 +69,11 @@ in
       "D ${tempDir} 0777 - - -"
     ];
 
+    # ~/myWiki must resolve on both hosts (on the laptop dataDir is $HOME already), so absolute paths into the vault survive Syncthing — it syncs symlinks verbatim
+    home.file = lib.mkIf (cfg.dataDir != homeDir) {
+      "myWiki".source = config.lib.file.mkOutOfStoreSymlink myWikiDir;
+    };
+
     home.sessionVariables = {
       MY_WIKI = myWikiDir;
     };
