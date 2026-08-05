@@ -55,13 +55,6 @@
           ;
       };
 
-      configCuda = {
-        allowUnfree = true;
-        cuda.acceptLicense = true;
-        cudaSupport = true;
-        cudaCapabilities = [ "8.6" ];
-      };
-
       configNoCuda = {
         allowUnfree = true;
       };
@@ -73,14 +66,7 @@
         };
       };
 
-      overlay-cuda = final: prev: {
-        cuda = import nixpkgs {
-          inherit system;
-          config = configCuda;
-        };
-      };
-
-      # remove it later
+      # remove it after next rebuild
       overlay-hyprland = final: prev: {
         hyprland = prev.hyprland.override {
           glaze = prev.glaze.overrideAttrs (_: {
@@ -134,7 +120,6 @@
         configuration = ./nixos/configuration-pc.nix;
         home = ./home-manager/home-pc.nix;
         overlays = [
-          overlay-cuda
           overlay-hyprland
           overlay-stable
           nix-matlab.overlay

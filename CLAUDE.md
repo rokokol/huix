@@ -31,11 +31,10 @@ There is no `nix flake check` target wired up and no per-module test — validat
 
 1. **One flake, two systems.** `flake.nix` defines `nixosConfigurations.nixos-pc` and `nixosConfigurations.nixos-laptop`. There is no separate Home Manager deployment — HM is loaded as a NixOS module via `home-manager.nixosModules.home-manager` with `useGlobalPkgs = true`, so the NixOS and HM layers share one package set and overlays
 
-2. **Three package sources, always be explicit which one you use:**
+2. **Two package sources, always be explicit which one you use:**
    - `pkgs` — `nixos-unstable`
    - `pkgs.stable` — `nixos-25.11`, exposed by `overlay-stable` (both hosts)
-   - `pkgs.cuda` — `nixos-unstable` with `cudaSupport = true` and `cudaCapabilities = ["8.6"]`, exposed by `overlay-cuda` (PC only)
-   Mismatches cause silent rebuilds of huge ML stacks. The PC's Jupyter module deliberately uses `pkgs.stable.python3` with `torch-bin` overrides to avoid building torch from source
+   Mismatches cause silent rebuilds of huge ML stacks. CUDA workloads come from dedicated nixpkgs attrs (`ollama-cuda`, `btop-cuda`, the `comfyui-nix` flake), not a global `cudaSupport` overlay. The Jupyter module uses `pkgs.stable.python3` and gates the torch/transformers stack behind `custom.jupyter.withTorch` — enabled on the laptop (CPU torch, cached), off on the PC to avoid the from-source CUDA build (`libnvshmem`)
 
 3. **`commonArgs` is the only way arguments cross the flake boundary.** `flake.nix` builds `commonArgs = { rokokolName, huixDir, govnoDir, system, inputs }` and passes it via both `specialArgs` (NixOS) and `extraSpecialArgs` (HM). Any module can pull these out of its arguments — no need to thread them manually. When you add a new constant that multiple modules need, add it here, not as a `let` binding scattered across files
 
@@ -47,7 +46,7 @@ There is no `nix flake check` target wired up and no per-module test — validat
    - `nixos/services/<category>/` — individual service modules, grouped by `ai/`, `desktop/`, `devices/`, `system/`, `tools/`, `utils/`. New services go into the appropriate category and get imported in `services/default.nix`
    - Same shape mirrors on the HM side: `home-manager/home-<host>.nix` is the per-host input (all `custom.*` values: hyprland, waybar, packages, dataDir) → shared `desktop/user.nix` → shared `programs/` + `desktop/`
 
-5. **Custom options are namespaced under `custom.*` and declared in the module they gate.** NixOS side: `custom.jupyter.{enable,withCuda}` plus enable flags for host-specific services (`comfyui`, `openwebui`, `searxng`, `printer`, `tablet`, `virtualCamera`, `virtualization`), set in `configuration-<host>.nix`. HM side: `custom.hyprland.*`, `custom.waybar.*` (one bar, per-feature component files), `custom.packages.{pc,laptop}`, `custom.home.dataDir`, set in `home-<host>.nix`. Follow this pattern — don't reach for `mkIf config.services.foo.enable` from another module to gate behavior; expose an option
+5. **Custom options are namespaced under `custom.*` and declared in the module they gate.** NixOS side: `custom.jupyter.{enable,withTorch}` plus enable flags for host-specific services (`comfyui`, `openwebui`, `searxng`, `printer`, `tablet`, `virtualCamera`, `virtualization`), set in `configuration-<host>.nix`. HM side: `custom.hyprland.*`, `custom.waybar.*` (one bar, per-feature component files), `custom.packages.{pc,laptop}`, `custom.home.dataDir`, set in `home-<host>.nix`. Follow this pattern — don't reach for `mkIf config.services.foo.enable` from another module to gate behavior; expose an option
 
 6. **`useGlobalPkgs = true` consequence.** You cannot set `nixpkgs.config` or `nixpkgs.overlays` inside an HM module — they're ignored. All package/overlay config lives in `flake.nix` (system-level)
 
@@ -66,7 +65,7 @@ When in doubt where a change belongs:
 - System packages and feature toggles → host-specific NixOS modules (`nixos/pc/`, `nixos/laptop/`)
 - User-facing shared packages → the common block in `home-manager/desktop/packages/packages.nix`
 - Host-specific user packages → the `custom.packages.{pc,laptop}` groups in `packages/packages.nix` (flags set in `home-<host>.nix`)
-- Always pick the right source: `pkgs` (unstable default), `pkgs.stable` (stability-critical), `pkgs.cuda` (CUDA workloads on PC)
+- Always pick the right source: `pkgs` (unstable default), `pkgs.stable` (stability-critical); CUDA workloads use dedicated attrs (`ollama-cuda`, `btop-cuda`, `comfyui-nix`)
 
 ## Style
 

@@ -11,6 +11,9 @@
   services.ollama.package = pkgs.ollama-cpu;
 
   custom = {
-    jupyter.enable = true;
+    jupyter = {
+      enable = true;
+      withTorch = true;
+    };
   };
 }
