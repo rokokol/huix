@@ -1,8 +1,8 @@
 { pkgs, lib, ... }:
 
 {
-  # mako сам конфиг не перечитывает (exec-once, без systemd-юнита) — пинаем на
-  # каждой активации; вне графической сессии молча скипаем.
+  # mako doesn't re-read its config by itself (exec-once, no systemd unit) — we
+  # nudge it on every activation; outside a graphical session we silently skip.
   home.activation.reloadMako = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     ${pkgs.mako}/bin/makoctl reload 2>/dev/null || true
   '';
@@ -52,11 +52,11 @@
         default-timeout = 20000;
       };
 
-      # DND, тумблер — notify-center.sh dnd
+      # DND, toggle — notify-center.sh dnd
       "mode=do-not-disturb".invisible = 1;
 
-      # Служебный режим для notify-center.sh clear: у makoctl нет очистки
-      # истории, её выедает restore+dismiss-цепочка — режим прячет эти попапы
+      # Service mode for notify-center.sh clear: makoctl has no history clear,
+      # so a restore+dismiss chain wipes it — this mode hides those popups
       "mode=silent".invisible = 1;
     };
   };

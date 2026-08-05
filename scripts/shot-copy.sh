@@ -2,8 +2,8 @@
 
 set -euo pipefail
 
-# Скриншот в буфер обмена + превью-уведомление, файл удаляется через 5 с.
-# $1: region (интерактивное выделение, по умолчанию) | full (весь экран).
+# Screenshot to the clipboard + a preview notification, the file is removed after 5 s.
+# $1: region (interactive selection, default) | full (the whole screen).
 mode="${1:-region}"
 file="/tmp/shot_$(date +%s).png"
 

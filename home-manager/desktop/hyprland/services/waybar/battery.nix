@@ -4,7 +4,7 @@ let
   cfg = config.custom.waybar;
 in
 {
-  options.custom.waybar.battery = lib.mkEnableOption "индикатор батареи";
+  options.custom.waybar.battery = lib.mkEnableOption "battery indicator";
 
   config = lib.mkIf (cfg.enable && cfg.battery) {
     programs.waybar.settings.mainBar."battery" = {

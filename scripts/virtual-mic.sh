@@ -4,21 +4,21 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-virtual-mic — создаёт виртуальный микрофон (PipeWire) и крутит в него аудиофайл
-или звук из видео на репите. В приложении выбираешь микрофон "Virtual-Mic".
+virtual-mic — creates a virtual microphone (PipeWire) and loops an audio file or a
+video's sound into it. In the app you select the "Virtual-Mic" microphone.
 
-Реальный микрофон не трогается, в наушники ничего не выводится и устройства
-вывода не создаётся (используется module-pipe-source — чистый источник из FIFO).
-Источник живёт, пока команда запущена; по Ctrl+C он выгружается.
+The real microphone is untouched, nothing is output to the headphones and no output
+device is created (module-pipe-source is used — a pure source from a FIFO). The
+source lives while the command runs; on Ctrl+C it is unloaded.
 
-Использование:
-  virtual-mic [опции] <аудио-или-видео-файл>
+Usage:
+  virtual-mic [options] <audio-or-video-file>
 
-Опции:
-  -n, --name <имя>   имя микрофона в списке устройств (по умолчанию "Virtual-Mic")
-  -h, --help         показать эту справку
+Options:
+  -n, --name <name>  microphone name in the device list (default "Virtual-Mic")
+  -h, --help         show this help
 
-Примеры:
+Examples:
   virtual-mic track.mp3
   virtual-mic --name "Fake Mic" clip.mp4
 EOF
@@ -33,7 +33,7 @@ while [[ $# -gt 0 ]]; do
     exit 0
     ;;
   -n | --name)
-    name="${2:?--name требует значение}"
+    name="${2:?--name requires a value}"
     shift 2
     ;;
   --)
@@ -41,7 +41,7 @@ while [[ $# -gt 0 ]]; do
     break
     ;;
   -*)
-    echo "virtual-mic: неизвестная опция: $1" >&2
+    echo "virtual-mic: unknown option: $1" >&2
     usage >&2
     exit 1
     ;;
@@ -51,12 +51,12 @@ done
 
 file="${1:-}"
 if [[ -z "$file" ]]; then
-  echo "virtual-mic: не указан файл" >&2
+  echo "virtual-mic: no file given" >&2
   usage >&2
   exit 1
 fi
 if [[ ! -r "$file" ]]; then
-  echo "virtual-mic: файл не найден или нет доступа: $file" >&2
+  echo "virtual-mic: file not found or not readable: $file" >&2
   exit 1
 fi
 
@@ -64,15 +64,15 @@ source_name="virtual_mic"
 rate=48000
 channels=2
 
-# Создаваемые ресурсы. Объявлены заранее и пустыми, чтобы cleanup мог их убирать
-# с проверкой "создан ли" — даже если что-то упадёт на полпути инициализации.
+# Resources we create. Declared up front and empty so cleanup can remove them with
+# a "was it created" check — even if something fails midway through initialization.
 fifo=""
 module_id=""
 ff_pid=""
 
-# cleanup — best-effort: errexit выключен, каждый ресурс убирается отдельно и
-# только если он был создан. Поэтому функция не падает на полпути и не делает
-# ничего опасного при пустых переменных.
+# cleanup — best-effort: errexit is off, each resource is removed separately and
+# only if it was created. So the function doesn't fail midway and does nothing
+# dangerous with empty variables.
 cleanup() {
   set +e
   [[ -n "$ff_pid" ]] && kill "$ff_pid" 2>/dev/null
@@ -91,8 +91,8 @@ module_id="$(pactl load-module module-pipe-source \
   format=s16le rate="$rate" channels="$channels" \
   source_properties="device.description=$name")"
 
-echo "virtual-mic: $file → микрофон \"$name\" (в наушниках тишина, вывод не создаётся)"
-echo "virtual-mic: выбери микрофон \"$name\" в приложении (Ctrl+C — стоп)"
+echo "virtual-mic: $file → microphone \"$name\" (silence in the headphones, no output created)"
+echo "virtual-mic: select the microphone \"$name\" in the app (Ctrl+C — stop)"
 
 ffmpeg -hide_banner -loglevel error -y \
   -stream_loop -1 -re -i "$file" \

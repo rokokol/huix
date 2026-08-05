@@ -1,10 +1,10 @@
-# Деривация DDLC-темы для SDDM (Qt6, Theme-API 2.0).
-# QML-файлы именуются в CamelCase — это требование QML (имя файла задаёт имя
-# типа), сознательное исключение из общего правила kebab-case в репозитории.
+# DDLC theme derivation for SDDM (Qt6, Theme-API 2.0).
+# QML files are named in CamelCase — a QML requirement (the file name sets the
+# type name), a deliberate exception to the repo-wide kebab-case rule
 { stdenvNoCC, imagemagick, inputs }:
 
 let
-  # Стикеры берутся из общих ассетов репозитория (через builtins.path для изоляции хеша)
+  # Stickers are taken from the repo's shared assets (via builtins.path to isolate the hash)
   stickers = builtins.path {
     name = "ddlc-stickers";
     path = "${inputs.self}/assets/ddlc-stickers";
@@ -25,14 +25,14 @@ stdenvNoCC.mkDerivation {
     mkdir -p "$theme/assets"
     cp -r ./. "$theme/"
 
-    # Все стикеры лежат в PNG (Qt6 в greeter без qtimageformats не читает
-    # webp) — просто копируем: обычные, обрезанные (-cut) и искажённые
+    # All stickers are stored as PNG (Qt6 in the greeter can't read webp
+    # without qtimageformats) — just copy them: plain, cut (-cut) and distorted
     cp ${stickers}/*-sticker-*.png "$theme/assets/"
 
-    # Картинка меню "Just Monika" из игры — для окошек пасхалки
+    # The game's "Just Monika" menu image — for the easter-egg dialogs
     cp ${stickers}/just-monika-ok.png "$theme/assets/"
 
-    # Тайл серого шума для зернистости фона
+    # Gray noise tile for the background grain
     magick -size 240x240 xc:gray50 +noise Random -colorspace Gray "$theme/assets/noise.png"
 
     runHook postInstall

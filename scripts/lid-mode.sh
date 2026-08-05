@@ -4,27 +4,27 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-lid-mode.sh — режим "крышка гасит экран, а не усыпляет" (бинд SUPER+SHIFT+A)
+lid-mode.sh — the "lid blanks the screen instead of suspending" mode (bind SUPER+SHIFT+A)
 
-Команды:
-  toggle    включить/выключить режим
-  on|off    включить/выключить явно
-  close     обработчик закрытия крышки (bindl switch:on:Lid Switch)
-  open      обработчик открытия крышки (bindl switch:off:Lid Switch)
-  status    показать текущее состояние (on|off) — для скриптов
-  help      эта справка
+Commands:
+  toggle    turn the mode on/off
+  on|off    turn on/off explicitly
+  close     lid-close handler (bindl switch:on:Lid Switch)
+  open      lid-open handler (bindl switch:off:Lid Switch)
+  status    print the current state (on|off) — for scripts
+  help      this help
 
-Как это работает. Обычно крышку обрабатывает logind (HandleLidSwitch=suspend) и
-по умолчанию ИГНОРИРУЕТ inhibitor-локи на неё (LidSwitchIgnoreInhibited=yes).
-На ноутбуке этот игнор выключен (nixos/laptop/logind.nix), поэтому "режим" —
-это просто живой лок systemd-inhibit --what=handle-lid-switch в транзиентном
-юните huix-lid-inhibit: пока он держится, logind крышку не трогает, а Hyprland
-по switch-биндам гасит через dpms только встроенную панель — внешний монитор,
-если он подключён, продолжает работать.
+How it works. Normally the lid is handled by logind (HandleLidSwitch=suspend) and
+by default it IGNORES inhibitor locks on it (LidSwitchIgnoreInhibited=yes). On the
+laptop that ignore is disabled (nixos/laptop/logind.nix), so the "mode" is just a
+live systemd-inhibit --what=handle-lid-switch lock in the transient unit
+huix-lid-inhibit: while it holds, logind doesn't touch the lid, and Hyprland via
+the switch binds blanks only the internal panel through dpms — an external monitor,
+if attached, keeps working
 
-Состояние НЕ хранится в файле: источник правды — активен ли юнит. Значит режим
-живёт только внутри сессии и после ребута/релогина ноутбук снова засыпает от
-крышки — намеренно, чтобы не забыть его включённым в рюкзаке.
+State is NOT stored in a file: the source of truth is whether the unit is active.
+So the mode lives only within the session, and after a reboot/relogin the laptop
+suspends on the lid again — deliberately, so you don't leave it enabled in a bag
 EOF
 }
 
@@ -46,8 +46,8 @@ is_on() {
   systemctl --user is-active --quiet "$UNIT.service"
 }
 
-# Гасим только встроенную панель: с подключённым внешним монитором закрытая
-# крышка не должна тушить и его. Не нашли внутренний выход — гасим всё.
+# Blank only the internal panel: with an external monitor attached a closed lid
+# shouldn't blank it too. If no internal output is found — blank everything
 internal_monitor() {
   hyprctl monitors -j 2>/dev/null |
     jq -r 'map(select(.name | test("^(eDP|LVDS|DSI)"; "i"))) | .[0].name // empty' 2>/dev/null || true
@@ -59,53 +59,53 @@ dpms() {
   hyprctl dispatch dpms "$1" ${mon:+"$mon"} >/dev/null 2>&1 || true
 }
 
-# Лок бесполезен, если система всё ещё игнорирует inhibitor'ы крышки — обычно
-# это значит, что nixos-rebuild с nixos/laptop/logind.nix ещё не применён.
+# The lock is useless if the system still ignores lid inhibitors — usually this
+# means the nixos-rebuild with nixos/laptop/logind.nix hasn't been applied yet
 warn_if_inhibitor_ignored() {
   grep -qiE '^\s*LidSwitchIgnoreInhibited\s*=\s*(no|false|0)\s*$' "$LOGIND_CONF" 2>/dev/null && return 0
-  notify_error "logind игнорирует локи крышки: нет LidSwitchIgnoreInhibited=no в $LOGIND_CONF (нужен nixos-rebuild)"
+  notify_error "logind ignores lid locks: no LidSwitchIgnoreInhibited=no in $LOGIND_CONF (needs nixos-rebuild)"
 }
 
 cmd_on() {
   if ! is_on; then
     systemd-run --user --collect --quiet \
       --unit="$UNIT" \
-      --description="huix: крышка гасит экран, а не усыпляет" \
+      --description="huix: lid blanks the screen instead of suspending" \
       systemd-inhibit \
       --what=handle-lid-switch \
       --mode=block \
       --who="huix lid-mode" \
-      --why="закрытая крышка только гасит экран" \
+      --why="a closed lid only blanks the screen" \
       sleep infinity || true
 
-    # systemd-run возвращается сразу; ждём, пока юнит реально поднимется
+    # systemd-run returns immediately; wait until the unit actually comes up
     for _ in {1..20}; do
       is_on && break
       sleep 0.05
     done
 
     if ! is_on; then
-      notify_error "Не удалось взять лок handle-lid-switch ヽ(ﾟДﾟ)ﾉ"
+      notify_error "Failed to take the handle-lid-switch lock ヽ(ﾟДﾟ)ﾉ"
       exit 1
     fi
 
     warn_if_inhibitor_ignored || true
   fi
 
-  notify_info "Крышка не усыпляет (´∇ﾉ｀*)ノ" "Закрытие крышки только гасит экран"
+  notify_info "Lid doesn't suspend (´∇ﾉ｀*)ノ" "Closing the lid only blanks the screen"
 }
 
 cmd_off() {
   systemctl --user stop "$UNIT.service" 2>/dev/null || true
 
-  # Страховка: режим могли выключить с внешней клавиатуры при погашенной панели
+  # Safety net: the mode may have been turned off from an external keyboard with the panel blanked
   dpms on
 
-  notify_info "Крышка усыпляет （-＾〇＾-）" "Обычное поведение: закрытие крышки — сон"
+  notify_info "Lid suspends （-＾〇＾-）" "Normal behavior: closing the lid suspends"
 }
 
 cmd_close() {
-  # Режим выключен — ничего не делаем, крышку обрабатывает logind (suspend)
+  # Mode is off — do nothing, the lid is handled by logind (suspend)
   is_on || exit 0
   dpms off
 }

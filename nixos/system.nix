@@ -1,13 +1,13 @@
 { pkgs, rokokolName, ... }:
 
-# Общий системный базис для обоих хостов. По-настоящему хост-специфичное
-# (hostName, описание пользователя, монтирование govno) лежит в
-# nixos/<host>/system.nix; членство в группах, которым владеют модули
-# (docker, nvidia, …), остаётся в самих этих модулях.
+# Shared system baseline for both hosts. The truly host-specific bits
+# (hostName, user description, govno mounting) live in
+# nixos/<host>/system.nix; membership in groups owned by modules
+# (docker, nvidia, …) stays in those modules themselves
 {
   networking.networkmanager.enable = true;
 
-  # Время и локаль
+  # Time and locale
   time.timeZone = "Europe/Moscow";
   i18n.defaultLocale = "en_US.UTF-8";
   i18n.extraLocaleSettings = {
@@ -22,8 +22,8 @@
     LC_TIME = "ru_RU.UTF-8";
   };
 
-  # Пользователь (база; описание задаётся per-host, доп. группы домешиваются
-  # из модулей, которым они принадлежат — docker.nix, nvidia.nix, …)
+  # User (base; description is set per-host, extra groups are mixed in
+  # from the modules that own them — docker.nix, nvidia.nix, …)
   users.users.${rokokolName} = {
     isNormalUser = true;
     home = "/home/${rokokolName}";
@@ -38,7 +38,7 @@
     ];
   };
 
-  # Настройки Nix
+  # Nix settings
   nix = {
     settings = {
       experimental-features = [

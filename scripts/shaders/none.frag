@@ -1,5 +1,5 @@
-// Без цветового эффекта — просто прокидываем цвет дальше.
-// Нужен, чтобы работало одно лишь затемнение (brightness) без фильтра.
+// No colour effect — just pass the colour through.
+// Needed so brightness-only dimming works without a filter
 vec3 effect(vec3 c, vec2 uv) {
     return c;
 }

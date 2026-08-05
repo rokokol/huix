@@ -11,8 +11,8 @@ let
 
   cfg = config.custom.jupyter;
 
-  # чтобы не собирать transformers
-  # внезапно, у него есть поддержка cuda
+  # so we don't build transformers;
+  # surprisingly, it has cuda support
   myPython =
     if cfg.withCuda then
       pkgs.stable.python3.override {

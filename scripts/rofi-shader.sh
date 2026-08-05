@@ -12,23 +12,23 @@ require_env() {
 
 require_env
 
-# Вне rofi — лаунчер: запускаем rofi с этим же скриптом в роли modi "shader".
+# Outside rofi it's a launcher: run rofi with this same script as the "shader" modi.
 if [[ -z "${ROFI_RETV:-}" ]]; then
-  exec rofi -show shader -modi "shader:$0" -mesg "Эффект на весь экран"
+  exec rofi -show shader -modi "shader:$0" -mesg "Full-screen effect"
 fi
 
 SS="$HUIX/scripts/screen-shader.sh"
 
-# Служебные значения кнопок яркости (не эффекты) — обрабатываются отдельно.
+# Service values of the brightness buttons (not effects) — handled separately
 BRIGHT_UP="__bright_up__"
 BRIGHT_DOWN="__bright_down__"
 
-# Выбран пункт — его значение rofi кладёт в ROFI_INFO. Кнопки яркости дёргают
-# софт-яркость менеджера; всё остальное — ТУМБЛЕР эффекта (toggle): нет в стопке —
-# добавить, есть — убрать. Эффекты компонуются, пока их не убрать по одному или не
-# сбросить всё ("Обычный" = clear). НЕ выходим (не exec) — печатаем список заново,
-# чтобы rofi остался открыт и можно было тыкать подряд; номера применения (01. 02. …)
-# у активных и уровень яркости обновятся. Escape закроет.
+# On selection rofi puts its value in ROFI_INFO. The brightness buttons drive the
+# manager's soft brightness; everything else is an effect TOGGLE: not in the stack
+# — add it, in the stack — remove it. Effects compose until removed one by one or
+# reset entirely ("Normal" = clear). We do NOT exit (no exec) — we reprint the list
+# so rofi stays open and you can click in a row; the apply numbers (01. 02. …) on
+# active effects and the brightness level update. Escape closes it.
 if [[ -n "${ROFI_INFO:-}" ]]; then
   case "$ROFI_INFO" in
   "$BRIGHT_UP") "$SS" bright up ;;
@@ -37,21 +37,21 @@ if [[ -n "${ROFI_INFO:-}" ]]; then
   esac
 fi
 
-# keep-selection: после применения пункта rofi перерисовывает список — без этого
-# курсор прыгал бы в начало. С опцией позиция сохраняется, так что можно тыкать
-# эффекты/яркость подряд, не листая заново (rofi >= 1.7; тут 2.0).
+# keep-selection: after applying an item rofi redraws the list — without this the
+# cursor would jump to the top. With the option the position is kept, so you can
+# click effects/brightness in a row without scrolling again (rofi >= 1.7; here 2.0).
 printf '\0keep-selection\x1ftrue\n'
-# Текущий уровень софт-яркости — в message над списком, обновляется на каждый тык.
-printf '\0message\x1fЭффект на весь экран · яркость %s%%\n' "$("$SS" bright get)"
+# The current soft-brightness level goes into the message above the list, updated on every click.
+printf '\0message\x1fFull-screen effect · brightness %s%%\n' "$("$SS" bright get)"
 
-# Печатаем эффекты: видимая подпись + скрытое значение (info). Активные помечены
-# номером применения (01. 02. …) — см. cmd_menu в screen-shader.sh. Сразу после
-# "Обычный" (сброс) вставляем кнопки регулировки софт-яркости — разные эмодзи
-# (☀️ ярче / 🌑 темнее) для наглядности; вместе с keep-selection удобно жать подряд.
+# Print the effects: visible label + hidden value (info). Active ones are marked
+# with an apply number (01. 02. …) — see cmd_menu in screen-shader.sh. Right after
+# "Normal" (reset) we insert the soft-brightness buttons — different emojis
+# (☀️ brighter / 🌑 darker) for clarity; together with keep-selection it's handy to press in a row.
 while IFS='|' read -r label value; do
   printf '%s\0info\x1f%s\n' "$label" "$value"
   if [[ "$value" == "none" ]]; then
-    printf '🌕 Яркость +\0info\x1f%s\n' "$BRIGHT_UP"
-    printf '🌑 Яркость −\0info\x1f%s\n' "$BRIGHT_DOWN"
+    printf '🌕 Brightness +\0info\x1f%s\n' "$BRIGHT_UP"
+    printf '🌑 Brightness −\0info\x1f%s\n' "$BRIGHT_DOWN"
   fi
 done < <("$SS" menu)

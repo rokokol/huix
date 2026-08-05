@@ -1,11 +1,11 @@
-# X-курсор для экрана логина: голова Сайори. Обычная — курсор по умолчанию,
-# глитчнутая — когда курсор наведён на кликабельный элемент (pointer/hand),
-# как менялась иконка в самой игре во время глитчей.
+# X cursor for the login screen: Sayori's head. The plain one is the default
+# cursor, the glitched one is shown when the cursor hovers a clickable element
+# (pointer/hand), just like the icon changed in the game itself during glitches
 { stdenvNoCC, xcursorgen, imagemagick, inputs }:
 
 let
-  # Ассеты — через builtins.path, чтобы хеш зависел только от папки курсора,
-  # а не от всего репозитория (inputs.self меняется при каждом коммите)
+  # Assets go through builtins.path so the hash depends only on the cursor
+  # folder, not on the whole repo (inputs.self changes on every commit)
   assetDir = builtins.path {
     name = "sddm-cursor-assets";
     path = "${inputs.self}/assets/sddm-cursor";
@@ -30,8 +30,8 @@ stdenvNoCC.mkDerivation {
     cursors=$out/share/icons/sayori-cursors/cursors
     mkdir -p "$cursors"
 
-    # Масштабируем исходник в несколько размеров и собираем один X-курсор;
-    # горячая точка — левый верхний край головы (~10% от размера)
+    # Scale the source into several sizes and assemble one X cursor;
+    # the hotspot is the top-left edge of the head (~10% of the size)
     build_cursor() {
       local png="$1" name="$2"
       local cfg="$name.cfg"
@@ -46,7 +46,7 @@ stdenvNoCC.mkDerivation {
     build_cursor ${head} left_ptr
     build_cursor ${headGlitch} pointing_hand
 
-    # Стандартные имена курсоров — симлинки на два собранных
+    # Standard cursor names — symlinks to the two built ones
     for alias in default arrow top_left_arrow text xterm ibeam watch wait \
                  progress half-busy crosshair cross left_side right_side \
                  top_side bottom_side size_ver size_hor size_fdiag size_bdiag \
@@ -62,7 +62,7 @@ stdenvNoCC.mkDerivation {
     cat > "$out/share/icons/sayori-cursors/index.theme" <<EOF
 [Icon Theme]
 Name=sayori-cursors
-Comment=Голова Сайори (DDLC) как курсор для SDDM
+Comment=Sayori's head (DDLC) as a cursor for SDDM
 EOF
 
     runHook postInstall

@@ -19,7 +19,7 @@ in
   systemd.user.services = {
     "sync" = {
       Unit = {
-        Description = "Синхронизация huix-репозитория с upstream (sync.sh)";
+        Description = "Sync the huix repository with upstream (sync.sh)";
         After = [
           "graphical-session.target"
           "ssh-agent.service"
@@ -37,13 +37,13 @@ in
           "SSH_ASKPASS_REQUIRE=force"
         ];
       };
-      # Запуск при старте графической сессии (после загрузки / логина).
+      # Runs when the graphical session starts (after boot / login)
       Install.WantedBy = [ "graphical-session.target" ];
     };
   };
 
-  # Запуск после каждого nixos-rebuild: дёргаем oneshot заново уже поднятой
-  # пользовательской шиной (reloadSystemd уже отработал → бас доступен).
+  # Runs after every nixos-rebuild: re-trigger the oneshot on the already-up
+  # user bus (reloadSystemd has finished → the bus is available)
   home.activation.syncAfterRebuild = lib.hm.dag.entryAfter [ "reloadSystemd" ] ''
     $DRY_RUN_CMD ${pkgs.systemd}/bin/systemctl --user --no-block restart sync.service || true
   '';

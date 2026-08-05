@@ -21,16 +21,16 @@ let
   };
 in
 {
-  options.custom.virtualCamera.enable = lib.mkEnableOption "виртуальная вебка (v4l2loopback)";
+  options.custom.virtualCamera.enable = lib.mkEnableOption "virtual webcam (v4l2loopback)";
 
   config = lib.mkIf config.custom.virtualCamera.enable {
-    # Виртуальная вебка: v4l2loopback создаёт /dev/video10, в который любой
-    # источник (ffmpeg, OBS) пишет кадры, а приложения видят его как обычную
-    # камеру. Заливка видео/картинки на репите — командой `virtual-cam`.
+    # Virtual webcam: v4l2loopback creates /dev/video10, into which any source
+    # (ffmpeg, OBS) writes frames while applications see it as a regular camera.
+    # Feeding a looped video/image is done with the `virtual-cam` command
     boot.extraModulePackages = [ config.boot.kernelPackages.v4l2loopback ];
     boot.kernelModules = [ "v4l2loopback" ];
 
-    # exclusive_caps=1 нужен, чтобы устройство определялось браузерами/мессенджерами как camera
+    # exclusive_caps=1 is needed so the device is detected as a camera by browsers/messengers
     boot.extraModprobeConfig = ''
       options v4l2loopback devices=1 video_nr=10 card_label="Virtual Camera" exclusive_caps=1
     '';

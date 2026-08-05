@@ -1,6 +1,6 @@
-# Sayori Cursor V2 — анимированная тема курсора в стиле DDLC
-# Автор: sev (https://ko-fi.com/sevverae)
-# Оригинал: https://ko-fi.com/s/8e05db90c4
+# Sayori Cursor V2 — an animated DDLC-style cursor theme
+# Author: sev (https://ko-fi.com/sevverae)
+# Original: https://ko-fi.com/s/8e05db90c4
 { pkgs, inputs, ... }:
 
 let

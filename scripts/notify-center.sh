@@ -4,30 +4,29 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-notify-center.sh — центр уведомлений поверх mako (=^･ω･^=)
+notify-center.sh — notification center on top of mako (=^･ω･^=)
 
-Команды:
-  status              JSON для waybar (custom/notifications)
-  dnd toggle|on|off   переключить "не беспокоить"
-  dnd status          печатает on|off
-  clear               очистить всю историю
-  menu                строки "id<US>icon<US>label" для rofi (новые сверху)
-  text <id>           текст уведомления (для копирования)
-  help                эта справка
+Commands:
+  status              JSON for waybar (custom/notifications)
+  dnd toggle|on|off   toggle "do not disturb"
+  dnd status          prints on|off
+  clear               clear the whole history
+  menu                "id<US>icon<US>label" lines for rofi (newest on top)
+  text <id>           notification text (for copying)
+  help                this help
 
-Лента = видимые попапы + история mako, новые сверху, ничего не отсеивается.
-Единственная операция над записью — скопировать текст; действия (кнопки)
-уведомлений доступны нативно и только у видимых попапов: ЛКМ — default
-action, ПКМ — makoctl menu. История чистится только целиком.
+The feed = visible popups + mako history, newest on top, nothing is filtered out.
+The only operation on an entry is copying the text; notification actions (buttons)
+are available natively and only on visible popups: LMB — default action, RMB —
+makoctl menu. History is cleared only as a whole.
 
-DND — родной механизм mako: режим do-not-disturb с invisible=1 (man mako(5)).
-Скрипт лишь дёргает makoctl mode и пинает waybar сигналом, чтобы индикатор
-обновился сразу. Режимы живут в рантайме демона: DND переживает reload
-Hyprland и nixos-rebuild, но сбрасывается с перезапуском сессии.
+DND is mako's native mechanism: the do-not-disturb mode with invisible=1 (man
+mako(5)). The script just pokes makoctl mode and kicks waybar with a signal so the
+indicator refreshes at once. Modes live in the daemon's runtime: DND survives a
+Hyprland reload and nixos-rebuild, but resets when the session restarts.
 
-У makoctl нет команды очистки истории, поэтому clear — restore+dismiss
-каждой записи под невидимым режимом silent (см. mako.nix), чтобы попапы
-не мигали на экране.
+makoctl has no history-clear command, so clear is a restore+dismiss of each entry
+under the invisible silent mode (see mako.nix) so popups don't flash on screen.
 EOF
 }
 
@@ -38,9 +37,9 @@ notify_error() {
   printf '%s\n' "$1" >&2
 }
 
-# Номер SIGRTMIN+N задаёт Nix (waybar/notifications.nix) через
-# WAYBAR_NOTIF_SIGNAL. Гонки с автостартом waybar нет: сигнал шлётся только
-# по явным действиям пользователя, когда waybar уже жив.
+# The SIGRTMIN+N number is set by Nix (waybar/notifications.nix) via
+# WAYBAR_NOTIF_SIGNAL. There's no race with waybar autostart: the signal is sent
+# only on explicit user actions, when waybar is already alive.
 signal_waybar() {
   [[ -n "${WAYBAR_NOTIF_SIGNAL:-}" ]] || return 0
   pkill -RTMIN+"$WAYBAR_NOTIF_SIGNAL" waybar 2>/dev/null || true
@@ -67,16 +66,16 @@ cmd_dnd() {
   signal_waybar
 }
 
-# Счётчик считает ленту целиком — история без видимых попапов сделала бы
-# висящее на экране уведомление невидимым для счётчика. Тултип — последние
-# 5 записей.
+# The counter counts the whole feed — history without visible popups would make a
+# notification hanging on screen invisible to the counter. Tooltip = the last
+# 5 entries.
 cmd_status() {
   local dnd=0
   dnd_active && dnd=1
   feed_json | jq -c --argjson dnd "$dnd" '
     . as $all
     | ($all | length) as $n
-    | (if $n == 0 then "Уведомлений нет ( ´ ▽ ` )"
+    | (if $n == 0 then "No notifications ( ´ ▽ ` )"
        else
          $all[:5] | map(
            ("\(.app_name // "?"): \(.summary // "")"
@@ -87,7 +86,7 @@ cmd_status() {
        end) as $tt
     | if $dnd == 1 then
         {text: (if $n > 0 then "🔕 \($n)" else "🔕" end),
-         tooltip: ("Не беспокоить (－ω－) zzZ\n" + $tt), class: "dnd"}
+         tooltip: ("Do not disturb (－ω－) zzZ\n" + $tt), class: "dnd"}
       elif $n > 0 then
         {text: "🔔 \($n)", tooltip: $tt, class: "history"}
       else
@@ -95,9 +94,9 @@ cmd_status() {
       end'
 }
 
-# Разделитель полей — именно \x1f, НЕ таб: у записей без иконки среднее поле
-# пустое, а TAB — IFS-whitespace, bash схлопывает подряд идущие whitespace-
-# разделители и теряет пустые поля. Сам \x1f из текста вычищаем.
+# The field separator is exactly \x1f, NOT a tab: entries without an icon have an
+# empty middle field, and TAB is IFS-whitespace, so bash collapses consecutive
+# whitespace separators and loses empty fields. We strip \x1f from the text itself.
 cmd_menu() {
   feed_json | jq -r '
     .[] | [
@@ -132,7 +131,7 @@ cmd_clear() {
   trap silent_off EXIT
   local id
   silent_on
-  # restore всегда снимает верхушку истории — идём по снимку ids сверху вниз.
+  # restore always takes the top of the history — iterate over the ids snapshot top-down
   while read -r id; do
     makoctl restore
     makoctl dismiss -n "$id" -h

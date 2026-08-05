@@ -24,27 +24,27 @@ in
     monitorScale = lib.mkOption {
       type = lib.types.str;
       default = "1";
-      description = "масштаб монитора (,preferred,auto,<scale>)";
+      description = "monitor scale (,preferred,auto,<scale>)";
     };
 
     kbOptions = lib.mkOption {
       type = lib.types.str;
       default = osConfig.services.xserver.xkb.options;
-      description = "XKB-опции; по умолчанию из системного services.xserver.xkb.options";
+      description = "XKB options; defaults to the system services.xserver.xkb.options";
     };
 
-    touchpadNaturalScroll = lib.mkEnableOption "natural scroll тачпада";
+    touchpadNaturalScroll = lib.mkEnableOption "touchpad natural scroll";
 
     wallpaperImage = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
       default = null;
-      description = "статичные обои через awww; null — без них (см. wallpaperCollage)";
+      description = "static wallpaper via awww; null — none (see wallpaperCollage)";
     };
 
     startupArgs = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [ ];
-      description = "приложения на автозапуск";
+      description = "applications to autostart";
     };
   };
 
@@ -65,7 +65,7 @@ in
 
           follow_mouse = 1;
 
-          sensitivity = 0; # -1.0 — 1.0, 0 — без изменений
+          sensitivity = 0; # -1.0 — 1.0, 0 — unchanged
         }
         // lib.optionalAttrs cfg.touchpadNaturalScroll {
           touchpad = {

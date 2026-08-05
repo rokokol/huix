@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-# Лента уведомлений mako в rofi (script-modi, как rofi-shader.sh): тумблер DND,
-# очистка истории, клик по уведомлению копирует его текст. Вся логика — в
-# notify-center.sh, здесь только представление.
+# mako notification feed in rofi (script-modi, like rofi-shader.sh): a DND toggle,
+# history clear, clicking a notification copies its text. All the logic is in
+# notify-center.sh, this is only the presentation.
 
 set -euo pipefail
 
@@ -18,33 +18,32 @@ require_env
 
 NC="$HUIX/scripts/notify-center.sh"
 
-# Ширина строки списка в символах: rofi не умеет перенос внутри элемента
-# (однострочный, обрезается на …), поэтому длинный текст заворачиваем сами —
-# как в rofi-wooordhunt.sh.
+# List row width in characters: rofi can't wrap inside an item (single-line,
+# truncated with …), so we wrap long text ourselves — like in rofi-wooordhunt.sh.
 WRAP_WIDTH=60
 
-# Вне rofi — лаунчер: запускаем rofi с этим же скриптом в роли modi.
+# Outside rofi it's a launcher: run rofi with this same script as the modi.
 if [[ -z "${ROFI_RETV:-}" ]]; then
-  exec rofi -show notifications -modi "notifications:$0" -mesg "Центр уведомлений"
+  exec rofi -show notifications -modi "notifications:$0" -mesg "Notification center"
 fi
 
-# Главный список. У строк уведомлений в info лежит id, у служебных — команда.
+# Main list. Notification rows carry the id in info, service rows carry a command.
 print_top() {
   local menu id icon label
   menu=$("$NC" menu)
-  [[ -n "$menu" ]] && printf '🧹 Очистить историю (ﾉ>ω<)ﾉ ･ﾟ✧\0info\x1fcmd:clear\n'
+  [[ -n "$menu" ]] && printf '🧹 Clear history (ﾉ>ω<)ﾉ ･ﾟ✧\0info\x1fcmd:clear\n'
   if [[ "$("$NC" dnd status)" == "on" ]]; then
-    printf '🔔 Включить уведомления ヽ(・∀・)ﾉ\0info\x1fcmd:dnd\n'
+    printf '🔔 Enable notifications ヽ(・∀・)ﾉ\0info\x1fcmd:dnd\n'
   else
-    printf '🔕 Не беспокоить (－ω－) zzZ\0info\x1fcmd:dnd\n'
+    printf '🔕 Do not disturb (－ω－) zzZ\0info\x1fcmd:dnd\n'
   fi
   [[ -n "$menu" ]] || return 0
-  # Разделитель \x1f, не TAB: whitespace-IFS схлопывает пустое поле иконки,
-  # и label уезжает в icon (см. cmd_menu в notify-center.sh).
+  # Separator \x1f, not TAB: whitespace-IFS collapses the empty icon field, and
+  # label slides into icon (see cmd_menu in notify-center.sh).
   local first line
   while IFS=$'\x1f' read -r id icon label; do
-    # Первая строка — сам элемент, хвост — невыбираемые строки-продолжения
-    # с тем же id: случайный Enter по ним всё равно скопирует текст.
+    # The first line is the item itself, the tail are non-selectable continuation
+    # lines with the same id: a stray Enter on them still copies the text.
     first=1
     while IFS= read -r line; do
       if ((first)); then
@@ -61,7 +60,7 @@ print_top() {
   done <<<"$menu"
 }
 
-# Пустой вывод закрывает rofi; печать нового списка — продолжает сессию.
+# Empty output closes rofi; printing a new list continues the session.
 case "${ROFI_INFO:-}" in
   "")        print_top ;;
   cmd:dnd)   "$NC" dnd toggle ;;
