@@ -11,14 +11,21 @@ claude-account.sh — переключалка профилей Claude Code (о�
   claude-account current       имя активного профиля
   claude-account use <имя>     сделать профиль активным
   claude-account add <имя>     завести новый профиль (дальше /login внутри claude)
+  claude-account init [имя [почта]]
+                               мигрировать старый ~/.claude в профиль (имя по умолчанию
+                               — хостнейм; почта берётся из .claude.json). Если ~/.claude
+                               нет — ничего не делает. Запускать из чистого терминала,
+                               без открытых сессий claude
   claude-account path          CLAUDE_CONFIG_DIR активного профиля (для обёртки)
   claude-account --help        эта справка
 
 Профиль изолирует только аккаунт: .credentials.json (OAuth-токен) и .claude.json
 (в нём oauthAccount и userID — привязка токена к аккаунту). Всё остальное общее и
 симлинчится из ~/.local/share/claude-shared: settings.json, CLAUDE.md, plugins/,
-skills/, commands/, agents/, а также чаты и история — projects/ и history.jsonl.
-Claude Code пишет сквозь симлинк, поэтому /config, /memory и /resume связь не рвут.
+skills/, commands/, agents/, а также вся работа на двоих — чаты и память (projects/),
+история команд (history.jsonl), планы (plans/), задачи (tasks/, todos/) и история
+правок файлов (file-history/). Claude Code пишет сквозь симлинк, поэтому /config,
+/memory и /resume связь не рвут.
 
 .claude.json держим на профиль осознанно: там oauthAccount, и держать его вместе с
 токеном обязательно, иначе две параллельные сессии перетирали бы личность друг друга.
@@ -38,8 +45,12 @@ DEFAULT_PROFILE="rokokol"
 
 # Что общее на оба аккаунта. commands/ и agents/ раскладывает home-manager,
 # поэтому до первого rebuild их может не быть — это не ошибка, а ещё рано.
-# projects/ и history.jsonl — общие чаты и история команд: у нас одна работа на двоих.
-SHARED_ENTRIES=(settings.json CLAUDE.md plugins skills commands agents projects history.jsonl)
+# projects/, history.jsonl, plans/, todos/, tasks/, file-history/ — общая работа на
+# двоих: чаты и память, история команд, планы, задачи и история правок файлов.
+SHARED_ENTRIES=(
+  settings.json CLAUDE.md plugins skills commands agents
+  projects history.jsonl plans todos tasks file-history
+)
 
 die() {
   printf 'claude-account: %s\n' "$1" >&2
@@ -63,7 +74,9 @@ read_state() {
 
 # Общий каталог должен существовать раньше, чем на него делают симлинки.
 ensure_shared() {
-  mkdir -p "$SHARED_DIR" "$SHARED_DIR/plugins" "$SHARED_DIR/skills" "$SHARED_DIR/projects"
+  mkdir -p "$SHARED_DIR" \
+    "$SHARED_DIR/plugins" "$SHARED_DIR/skills" "$SHARED_DIR/projects" \
+    "$SHARED_DIR/plans" "$SHARED_DIR/todos" "$SHARED_DIR/tasks" "$SHARED_DIR/file-history"
 
   # Пустой settings.json обязан быть валидным JSON, иначе Claude Code падает на парсе.
   [[ -e "$SHARED_DIR/settings.json" ]] || printf '{}\n' >"$SHARED_DIR/settings.json"
