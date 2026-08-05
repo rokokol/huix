@@ -13,7 +13,8 @@ Usage:
   toggle-theme.sh --help    this help
 
 The theme lives at runtime, not in Nix: the script flips color-scheme + gtk-theme
-in dconf and swaps the rofi theme symlink. The choice is stored durably in
+in dconf, swaps the rofi theme symlink and the libadwaita ~/.config/gtk-4.0/gtk.css
+(so libadwaita apps follow too). The choice is stored durably in
 ~/.local/state/huix/theme — dconf load on nixos-rebuild resets the theme, --sync
 brings it back. Theme/key names come from the env (Nix wrapper)
 EOF
@@ -53,7 +54,9 @@ require_env \
   ROFI_THEMES_DIR \
   ROFI_LIGHT_THEME \
   ROFI_DARK_THEME \
-  ROFI_ACTIVE_THEME
+  ROFI_ACTIVE_THEME \
+  GTK4_LIGHT_DIR \
+  GTK4_DARK_DIR
 
 STATE_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/huix/theme"
 
@@ -81,6 +84,17 @@ set_rofi_theme() {
   ln -sfn "$theme_path" "$ROFI_ACTIVE_THEME"
 }
 
+# libadwaita apps (file-roller etc.) ignore gtk-theme-name; they only pick up
+# gruvbox from ~/.config/gtk-4.0/gtk.css, so swap it in per light/dark
+set_libadwaita_css() {
+  local src="$1"
+  local dst="${XDG_CONFIG_HOME:-$HOME/.config}/gtk-4.0"
+
+  mkdir -p "$dst"
+  ln -sfn "$src/gtk.css" "$dst/gtk.css"
+  ln -sfn "$src/assets" "$dst/assets"
+}
+
 detect_theme_state() {
   local current_theme current_scheme
   current_theme=$(read_current_theme)
@@ -104,12 +118,14 @@ apply_state() {
     dconf write "$GTK_THEME_KEY" "'${DARK_THEME}'"
     dconf write "$COLOR_SCHEME_KEY" "'${DARK_SCHEME}'"
     set_rofi_theme "$ROFI_DARK_THEME"
+    set_libadwaita_css "$GTK4_DARK_DIR"
     save_state "dark"
     ;;
   light)
     dconf write "$GTK_THEME_KEY" "'${LIGHT_THEME}'"
     dconf write "$COLOR_SCHEME_KEY" "'${LIGHT_SCHEME}'"
     set_rofi_theme "$ROFI_LIGHT_THEME"
+    set_libadwaita_css "$GTK4_LIGHT_DIR"
     save_state "light"
     ;;
   *)
