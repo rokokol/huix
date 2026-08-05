@@ -6,6 +6,7 @@ let
   iconThemeName = "Mint-Y-Pink";
   colorScheme = "prefer-light";
   darkColorScheme = "prefer-dark";
+  gruvbox = pkgs.callPackage ./gruvbox-gtk-theme.nix { };
 in
 {
   # gtk-theme is toggled by toggle-theme.sh at runtime, so we don't pin the theme
@@ -33,7 +34,7 @@ in
 
   home.packages = with pkgs; [
     # Removed from nixpkgs; vendored locally (see gruvbox-gtk-theme.nix)
-    (callPackage ./gruvbox-gtk-theme.nix { })
+    gruvbox
     gnome-themes-extra
     gsettings-desktop-schemas
     gtk3
@@ -57,6 +58,9 @@ in
     DARK_THEME = darkGtkThemeName;
     LIGHT_SCHEME = colorScheme;
     DARK_SCHEME = darkColorScheme;
+    # libadwaita ignores gtk-theme-name; toggle-theme.sh links these into ~/.config/gtk-4.0
+    GTK4_LIGHT_DIR = "${gruvbox}/share/themes/${gtkThemeName}/gtk-4.0";
+    GTK4_DARK_DIR = "${gruvbox}/share/themes/${darkGtkThemeName}/gtk-4.0";
     THUNARX_DIRS = "/run/current-system/sw/lib/thunarx-3";
   };
 }
