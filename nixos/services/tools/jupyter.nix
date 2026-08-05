@@ -11,22 +11,10 @@ let
 
   cfg = config.custom.jupyter;
 
-  # so we don't build transformers;
-  # surprisingly, it has cuda support
-  myPython =
-    if cfg.withCuda then
-      pkgs.stable.python3.override {
-        packageOverrides = _: super: {
-          torch = super.torch-bin;
-          torchvision = super.torchvision-bin;
-          torchaudio = super.torchaudio-bin;
-        };
-      }
-    else
-      pkgs.stable.python3;
-
-  pythonDatascience = myPython.withPackages (
-    ps: with ps; [
+  pythonDatascience = pkgs.stable.python3.withPackages (
+    ps:
+    with ps;
+    [
       ipykernel
       ipywidgets
       librosa
@@ -37,10 +25,13 @@ let
       scikit-learn
       seaborn
       sympy
+      tqdm
+    ]
+    # torch stack is a heavy CUDA build on the PC; keep it CPU-only (laptop)
+    ++ lib.optionals cfg.withTorch [
       torch
       torchaudio
       torchvision
-      tqdm
       transformers
     ]
   );
@@ -48,7 +39,7 @@ in
 {
   options.custom.jupyter = {
     enable = lib.mkEnableOption "Custom Jupyter Server";
-    withCuda = lib.mkEnableOption "CUDA support for Jupyter Python Kernel";
+    withTorch = lib.mkEnableOption "torch/transformers stack in the Python kernel";
   };
 
   config = lib.mkIf cfg.enable {

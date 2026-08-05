@@ -11,10 +11,7 @@
   services.ollama.package = pkgs.ollama-cuda;
 
   custom = {
-    jupyter = {
-      enable = true;
-      withCuda = true;
-    };
+    jupyter.enable = true;
 
     comfyui.enable = true;
     openwebui.enable = false;
