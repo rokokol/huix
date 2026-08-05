@@ -44,8 +44,9 @@ fi
 payload=$(jq -nc --arg q "$USER_INPUT" --arg source "$SRC" --arg target "$TGT" \
   '{ q: $q, source: $source, target: $target, format: "text" }')
 
+# 127.0.0.1, not localhost: the server binds IPv4 only, and curl burns its 200 ms happy-eyeballs timer on ::1 first
 # no -f: an HTTP error still carries a JSON .error worth showing, so only connect/timeout failures land here
-if ! response=$(curl -s -L -m 15 -X POST "http://localhost:$LIBRE_TRANSLATE_PORT/translate" \
+if ! response=$(curl -s -L -m 15 -X POST "http://127.0.0.1:$LIBRE_TRANSLATE_PORT/translate" \
   -H "Content-Type: application/json" -d "$payload"); then
   fail "No answer on :$LIBRE_TRANSLATE_PORT — check systemctl status libretranslate"
 fi
