@@ -112,6 +112,7 @@ in
           # --- Desktop apps ---
           (bambu-studio.override { withNvidiaGLWorkaround = true; })
           stable.discord
+          jan # local LLM chat client (Ollama frontend, KaTeX)
           vial
 
           # --- Creative & audio ---

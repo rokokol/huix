@@ -46,7 +46,7 @@
 
 | Host           | Точка входа                                                       | Чем выделяется                                                                                                                                              |
 | -------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `nixos-pc`     | `nixos/configuration-pc.nix` + `home-manager/home-pc.nix`         | NVIDIA/CUDA, `ollama-cuda`, ComfyUI, Open WebUI, Docker, виртуализация, SearxNG, печать, планшет, Arduino, NTFS-маунт `govno`, Steam, тяжёлый creative-стек |
+| `nixos-pc`     | `nixos/configuration-pc.nix` + `home-manager/home-pc.nix`         | NVIDIA/CUDA, `ollama-cuda`, ComfyUI, Docker, виртуализация, SearxNG, печать, планшет, Arduino, NTFS-маунт `govno`, Steam, тяжёлый creative-стек |
 | `nixos-laptop` | `nixos/configuration-laptop.nix` + `home-manager/home-laptop.nix` | CPU-only `ollama-cpu`, Bluetooth, powertop, Tor через webtunnel, более лёгкий desktop                                                                       |
 
 ## Всякое
