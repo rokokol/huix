@@ -32,9 +32,10 @@ in
   };
 
   home.packages = with pkgs; [
+    # gruvbox-gtk-theme
     gnome-themes-extra
     gsettings-desktop-schemas
-    gtk-engine-murrine
+    # gtk-engine-murrine
     gtk3
     qt5.qtwayland
     qt6.qtwayland
