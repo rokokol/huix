@@ -44,7 +44,7 @@
 Только ПК (флаги `custom.*.enable` в `configuration-pc.nix`):
 
 - `ai/comfyui` — слоп-машина картинок (через flakehub `comfyui-nix`) — `custom.comfyui.enable`
-- `ai/openwebui` — веб-морда к Ollama — `custom.openwebui.enable`
+- `ai/openwebui` — веб-морда к Ollama (модуль оставлен, но сейчас выключен — фронт перенесён в `jan`) — `custom.openwebui.enable`
 - `devices/printer`, `devices/tablet`, `devices/virtual-camera` — `custom.{printer,tablet,virtualCamera}.enable`
 - `tools/searxng` — приватный метапоиск за nginx — `custom.searxng.enable`
 - `utils/virtualization` (libvirtd + KVM/AMD + vfio) — `custom.virtualization.enable`
@@ -56,14 +56,14 @@
 | Сервис | Порт |
 | --- | --- |
 | Ollama | 11434 |
-| Open WebUI (ПК) | 8088 |
+| Open WebUI (ПК, выключен) | 8088 |
 | ComfyUI (ПК) | 8188 |
 | SearxNG (ПК, за nginx) | 9000 |
 | Jupyter Lab | 8888 |
 | LibreTranslate | 5000 |
 | Syncthing GUI | 8384 |
 
-Порты экспортятся как session variables (`OPEN_WEBUI_PORT`, `COMFYUI_PORT`, `SYNCTHING_PORT`, `LIBRE_TRANSLATE_PORT`) — удобно дёргать из скриптов и алиасов
+Порты экспортятся как session variables (`COMFYUI_PORT`, `SYNCTHING_PORT`, `LIBRE_TRANSLATE_PORT`) — удобно дёргать из скриптов и алиасов (`OPEN_WEBUI_PORT` выключен)
 
 ## Тонкости
 
