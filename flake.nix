@@ -55,7 +55,7 @@
           ;
       };
 
-      configNoCuda = {
+      nixpkgsConfig = {
         allowUnfree = true;
         # CUDA codegen target for this GPU (RTX 3060 = sm_86) — change on GPU swap
         cudaCapabilities = [ "8.6" ];
@@ -64,7 +64,7 @@
       overlay-stable = final: prev: {
         stable = import nixpkgs-stable {
           inherit system;
-          config = configNoCuda;
+          config = nixpkgsConfig;
         };
       };
 
@@ -95,7 +95,7 @@
 
             {
               nixpkgs.hostPlatform = system;
-              nixpkgs.config = configNoCuda;
+              nixpkgs.config = nixpkgsConfig;
               nixpkgs.overlays = overlays;
             }
 
