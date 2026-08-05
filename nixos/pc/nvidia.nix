@@ -17,8 +17,8 @@
     open = false;
     nvidiaSettings = true;
 
-    # Stable kernel
-    package = config.boot.kernelPackages.nvidiaPackages.latest;
+    # Production branch, not latest: the 610 beta breaks Hyprland's aquamarine backend (session won't start), while kwin greeter still renders
+    package = config.boot.kernelPackages.nvidiaPackages.production;
   };
   hardware.nvidia-container-toolkit.enable = true;
 
