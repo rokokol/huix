@@ -1,29 +1,34 @@
 { pkgs, huixDir, ... }:
 
 let
-  # Общее на оба аккаунта; сами профили лежат рядом, в claude-profiles/.
+  # Shared across both accounts; the profiles themselves sit next to it, in claude-profiles/
   sharedDir = ".local/share/claude-shared";
 
-  # Тонкая обёртка над scripts/claude-account.sh: логика в скрипте, Nix только
-  # собирает PATH.
+  # Thin wrapper around scripts/claude-account.sh: the logic is in the script, Nix only
+  # assembles PATH
   claude-account = pkgs.writeShellApplication {
     name = "claude-account";
+    # gnused/gnugrep/procps are for `init`: sed rewrites legacy plugin paths, grep is the
+    # leftover-path control check, pgrep -x claude guards against a live session
     runtimeInputs = with pkgs; [
       coreutils
       jq
+      gnused
+      gnugrep
+      procps
     ];
     text = ''
       exec bash "${huixDir}/scripts/claude-account.sh" "$@"
     '';
   };
 
-  # Обёртка над claude-code: подставляет CLAUDE_CONFIG_DIR активного профиля.
+  # Wrapper around claude-code: injects the active profile's CLAUDE_CONFIG_DIR
   claude = pkgs.writeShellApplication {
     name = "claude";
     text = ''
-      # Если переменная уже выставлена, нас запустил сам Claude Code (сабагент,
-      # claude -p): профиль подпроцесса обязан совпадать с родительским, иначе
-      # ломается зеркалирование транскриптов.
+      # If the variable is already set, we were launched by Claude Code itself (a subagent,
+      # claude -p): the subprocess profile must match the parent's, otherwise
+      # transcript mirroring breaks
       if [ -z "''${CLAUDE_CONFIG_DIR:-}" ]; then
         CLAUDE_CONFIG_DIR="$(${claude-account}/bin/claude-account path)"
         export CLAUDE_CONFIG_DIR
@@ -39,12 +44,12 @@ in
     claude-account
   ];
 
-  # Декларативная часть общего конфига. settings.json, CLAUDE.md, plugins/ и
-  # skills/ сюда сознательно не заводятся: в них пишет сам Claude Code (/config,
-  # /memory, маркетплейсы плагинов), а store-симлинк был бы read-only.
+  # The declarative part of the shared config. settings.json, CLAUDE.md, plugins/ and
+  # skills/ are deliberately kept out: Claude Code writes to them itself (/config,
+  # /memory, plugin marketplaces), and a store symlink would be read-only.
   #
-  # recursive = true важен: home-manager создаёт настоящий каталог и симлинчит
-  # файлы по одному, поэтому плагины и TUI могут доложить туда своё.
+  # recursive = true matters: home-manager creates a real directory and symlinks
+  # files one by one, so plugins and the TUI can drop their own files in there
   home.file."${sharedDir}/commands" = {
     source = ./commands;
     recursive = true;
