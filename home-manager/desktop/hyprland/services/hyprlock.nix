@@ -1,20 +1,7 @@
 { huixDir, ... }:
 
-# DDLC lock screen. The background is an image, not a screenshot: a screenshot
-# background captures a frame with screen_shader already applied, and the
-# compositor runs it through the shader a second time (effect and software
-# brightness double up).
-#
-# The dialog = the in-game PNG box as-is + two labels on top (name and lines),
-# both drawn by scripts/hyprlock-quote.sh. A label, not text baked into the PNG:
-# hyprlock's image widget reloads at most once a second and waits on reload_cmd
-# synchronously, whereas a label updates in ms and asynchronously — that's the
-# only way per-character typing is possible. The script keeps the line texture a
-# constant size (the whole line renders at once, the untyped tail is transparent
-# — a Ren'Py trick), so the text is pinned to the top-left of the text area
-# without font measurements. All paths go through huixDir (the live repository,
-# nothing is baked at build time); geometry is derived from the asset dimensions
-# (src below).
+# Background is a static image, not a screenshot: compositor would double-apply screen_shader on a screenshot
+# Text uses label widgets, not image: label updates asynchronously in ms, image widget blocks on reload_cmd (≥1s latency)
 let
   backgroundImage = "${huixDir}/assets/just-monika.png";
   dialogAsset = "${huixDir}/assets/ddlc-stickers/dialog-box.png";

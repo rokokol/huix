@@ -1,15 +1,6 @@
 { pkgs, ... }:
 
-# nix-ld provides ld.so for non-Nix dynamically linked binaries: anything
-# downloaded outside Nix (vendor SDKs, prebuilt CLIs, IDE servers, MATLAB,
-# workshop tarballs) finds its shared libs via NIX_LD instead of dying with
-# "No such file or directory". The list below is an FHS-like base that makes the
-# NixOS machine behave "like Debian/Mint" for foreign binaries.
-#
-# If a specific binary still complains about a missing `lib*.so`, find the
-# package that provides it and add it here — that's the whole support loop.
-# For heavy/edge cases prefer wrapping the binary: `steam-run ./foo`
-# (see ./appimage.nix), which gives it a full FHS sandbox
+# nix-ld makes non-Nix prebuilt binaries find their shared libs via NIX_LD instead of dying with "No such file or directory"
 
 {
   programs.nix-ld.enable = true;

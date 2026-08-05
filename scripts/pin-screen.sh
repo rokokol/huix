@@ -1,12 +1,7 @@
 #!/usr/bin/env bash
 
-# Pins a selected screen region above windows: a grim screenshot opens in a
-# swayimg window of class desktop-pin exactly at the selection (float rules for the
-# class are in hyprland.conf)
-#
-# We set the window position and size via hyprctl, not swayimg flags: on Hyprland
-# with fractional scale swayimg 5.4 ignores --position/--size and opens the window
-# centered at the default size (image not at the selection + empty margin)
+# Pins a selected region above all windows: grim screenshot → swayimg (class desktop-pin, float rules in hyprland.conf)
+# Position via hyprctl, not swayimg flags: swayimg 5.4 ignores --position/--size on Hyprland fractional scale
 
 GEOM=$(slurp -b ffffff66 -w 1 -f "%x %y %w %h")
 [ -z "$GEOM" ] && exit 0

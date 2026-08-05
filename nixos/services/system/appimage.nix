@@ -1,15 +1,7 @@
 { pkgs, ... }:
 
-# Running foreign binaries "so they just work", two complementary tools:
-#
-#   * programs.appimage.binfmt — registers a binfmt_misc handler so any
-#     *.AppImage runs directly (./Foo.AppImage), without chmod-and-pray and
-#     unpacking. A typical distribution format at workshops/masterclasses
-#
-#   * steam-run — wraps an arbitrary command in a full FHS sandbox (real /usr,
-#     /lib, ld.so). When the nix-ld base from ./nix-ld.nix isn't enough for a
-#     stubborn prebuilt: `steam-run ./installer` — and it behaves as on a
-#     regular distro. A heavier hammer; reach for it second
+# binfmt_misc lets *.AppImage run directly without unpacking
+# steam-run wraps any binary in a full FHS sandbox (/usr, /lib, real ld.so) for prebuilts that nix-ld can't satisfy
 
 {
   programs.appimage = {
