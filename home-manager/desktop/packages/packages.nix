@@ -28,7 +28,6 @@ in
         celluloid
         chromium
         evince
-        file-roller
         freecad
         gnome-disk-utility
         gnome-text-editor

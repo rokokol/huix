@@ -36,14 +36,19 @@
       "application/x-cbr" = "org.gnome.Evince.desktop";
       "application/epub+zip" = "org.gnome.Evince.desktop";
 
-      "application/zip" = "org.gnome.FileRoller.desktop";
-      "application/x-7z-compressed" = "org.gnome.FileRoller.desktop";
-      "application/x-bzip2" = "org.gnome.FileRoller.desktop";
-      "application/x-gzip" = "org.gnome.FileRoller.desktop";
-      "application/x-rar" = "org.gnome.FileRoller.desktop";
-      "application/x-tar" = "org.gnome.FileRoller.desktop";
-      "application/x-xz" = "org.gnome.FileRoller.desktop";
-      "application/vnd.rar" = "org.gnome.FileRoller.desktop";
+      "application/zip" = "xarchiver.desktop";
+      "application/gzip" = "xarchiver.desktop";
+      "application/zstd" = "xarchiver.desktop";
+      "application/x-7z-compressed" = "xarchiver.desktop";
+      "application/x-bzip2" = "xarchiver.desktop";
+      "application/x-rar" = "xarchiver.desktop";
+      "application/x-tar" = "xarchiver.desktop";
+      "application/x-xz" = "xarchiver.desktop";
+      "application/vnd.rar" = "xarchiver.desktop";
+      "application/x-compressed-tar" = "xarchiver.desktop";
+      "application/x-bzip2-compressed-tar" = "xarchiver.desktop";
+      "application/x-xz-compressed-tar" = "xarchiver.desktop";
+      "application/x-zstd-compressed-tar" = "xarchiver.desktop";
 
       "text/markdown" = "org.gnome.TextEditor.desktop";
       "text/x-tex" = "org.gnome.TextEditor.desktop";
