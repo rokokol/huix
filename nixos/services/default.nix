@@ -3,7 +3,7 @@
 {
   imports = [
     ./ai/comfyui.nix
-    # ./ai/ollama.nix
+    ./ai/ollama.nix
     ./ai/openwebui.nix
     ./desktop/amnezia-vpn.nix
     ./desktop/file-manager.nix
