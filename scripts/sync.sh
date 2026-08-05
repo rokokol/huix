@@ -34,7 +34,7 @@ NEW_REV=$(git rev-parse HEAD)
 notify -u low "Synchronized （´ω｀♡%）" "$(git log "$OLD_REV..$NEW_REV" --oneline)"
 
 git add -u
-if ! git commit -m "sync $(date) from $HOST_NAME"; then
+if ! git commit -m "[$HOST_NAME] sync $(date)"; then
   notify -u low "Nothing to commit (((o(*ﾟ▽ﾟ*)o)))"
   if [ "$(git rev-list --count @\{u\}..HEAD)" -gt 0 ]; then
     if ! timeout 90 git push; then

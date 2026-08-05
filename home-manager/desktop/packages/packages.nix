@@ -104,7 +104,6 @@ in
           eigen
           gcc
           llvmPackages.openmp
-          openmpi
           pkg-config
 
           # Web
