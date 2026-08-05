@@ -32,10 +32,10 @@ in
   };
 
   home.packages = with pkgs; [
-    # gruvbox-gtk-theme
+    # Removed from nixpkgs; vendored locally (see gruvbox-gtk-theme.nix)
+    (callPackage ./gruvbox-gtk-theme.nix { })
     gnome-themes-extra
     gsettings-desktop-schemas
-    # gtk-engine-murrine
     gtk3
     qt5.qtwayland
     qt6.qtwayland

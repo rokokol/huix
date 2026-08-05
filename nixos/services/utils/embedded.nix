@@ -1,14 +1,7 @@
 { pkgs, rokokolName, ... }:
 
-# Toolchain for embedded / hardware tinkering on both hosts. Covers what you
-# actually flash at workshops: Arduino/AVR, ESP32/ESP8266, STM32/ARM
-# (SWD/JTAG + DFU) and RP2040/Pico
-#
-# udev: platformio-core.udev ships a canonical set of rules for a pile of boards
-# (CP210x, CH340, FTDI, ST-Link 0483:*, RP2040 2e8a:*, DFU bootloaders, AVR
-# programmers) with MODE=0666, so probes and bootloaders work without root and
-# without extra rules. The dialout group gives shared access to /dev/ttyUSB*
-# /dev/ttyACM* (Serial Monitor, esptool, avrdude over UART)
+# Embedded toolchain for Arduino/AVR, ESP32, STM32, RP2040
+# platformio-core.udev ships udev rules for common programmers/bootloaders; dialout grants /dev/ttyUSB* /dev/ttyACM* access
 
 {
   services.udev.packages = with pkgs; [

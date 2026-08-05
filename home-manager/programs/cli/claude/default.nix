@@ -44,12 +44,8 @@ in
     claude-account
   ];
 
-  # The declarative part of the shared config. settings.json, CLAUDE.md, plugins/ and
-  # skills/ are deliberately kept out: Claude Code writes to them itself (/config,
-  # /memory, plugin marketplaces), and a store symlink would be read-only
-  #
-  # recursive = true matters: home-manager creates a real directory and symlinks
-  # files one by one, so plugins and the TUI can drop their own files in there
+  # commands/ only — settings.json/CLAUDE.md/plugins/ are writable by Claude Code (store symlink = read-only)
+  # recursive = true: HM creates a real dir + per-file symlinks, so Claude Code can add its own files alongside
   home.file."${sharedDir}/commands" = {
     source = ./commands;
     recursive = true;

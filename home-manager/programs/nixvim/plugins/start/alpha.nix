@@ -212,26 +212,6 @@
         type = "padding";
         val = 2;
       }
-      # {
-      #   type = "text";
-      #   val = {
-      #     __raw = ''
-      #       function()
-      #         local v = vim.version()
-      #         local datetime = os.date(" %H:%M   %d.%m.%Y")
-      #         local plugins_count = vim.fn.len(vim.api.nvim_list_runtime_paths())
-      #         return {
-      #           datetime,
-      #           " v" .. v.major .. "." .. v.minor .. "." .. v.patch .. "  ●  󰚥 " .. plugins_count .. " plugins"
-      #         }
-      #       end
-      #     '';
-      #   };
-      #   opts = {
-      #     position = "center";
-      #     hl = "Comment";
-      #   };
-      # }
       {
         type = "text";
         val = {

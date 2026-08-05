@@ -23,12 +23,8 @@ SS="$HUIX/scripts/screen-shader.sh"
 BRIGHT_UP="__bright_up__"
 BRIGHT_DOWN="__bright_down__"
 
-# On selection rofi puts its value in ROFI_INFO. The brightness buttons drive the
-# manager's soft brightness; everything else is an effect TOGGLE: not in the stack
-# — add it, in the stack — remove it. Effects compose until removed one by one or
-# reset entirely ("Normal" = clear). We do NOT exit (no exec) — we reprint the list
-# so rofi stays open and you can click in a row; the apply numbers (01. 02. …) on
-# active effects and the brightness level update. Escape closes it
+# Selection via ROFI_INFO: brightness buttons adjust soft brightness; effects toggle in/out of the stack
+# No exec — reprint the list so rofi stays open; "Normal" clears all, Escape closes
 if [[ -n "${ROFI_INFO:-}" ]]; then
   case "$ROFI_INFO" in
   "$BRIGHT_UP") "$SS" bright up ;;

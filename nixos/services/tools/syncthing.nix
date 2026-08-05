@@ -14,26 +14,27 @@ in
 
     openDefaultPorts = true;
 
-    # Additive on purpose: myWiki syncs through the phone, so we must not manage it
-    # declaratively — override*=true would prune anything not described here and could
-    # break the phone sync. false only ensures the declared bits, prunes nothing. Device
-    # IDs are public keys, safe in git; taken from ~/.config/syncthing/config.xml
     overrideDevices = false;
     overrideFolders = false;
 
     settings.devices = {
       laptop.id = "AHH74UD-KBUQCBR-KY2IC6K-2VS6IIN-RSI2HMT-3MPQIVF-LOHDTCY-3PSSKAM";
       nixos-pc.id = "MNSJ7QK-4YOWUOS-3O5MSOT-UXON7VW-PZFY2YC-34MDG2H-UHTWJ7H-QLTDKQV";
+      phone.id = "QAMHANE-X4B6XWI-45LGTZD-AH4BHDX-FHVWOWE-SBEHXO2-JL5TXBK-CBIUAQB";
     };
 
-    # Shared Claude Code work/config across both machines (chats, memory, plans, tasks,
-    # settings, plugins). On ext4 under ~/.local/share, not on the govno NTFS mount. Only
-    # the two PCs — deliberately not the phone. Account cookies stay per-host in
-    # claude-profiles/ and are not part of this folder
+    # Claude Code shared state (chats, memory, plugins) — ext4, PC-only, no account cookies
     settings.folders."claude-shared" = {
       id = "claude-shared";
       path = "${homeDir}/.local/share/claude-shared";
       devices = [ "laptop" "nixos-pc" ];
+      type = "sendreceive";
+    };
+
+    settings.folders."myWiki" = {
+      id = "3heyc-wgheb";
+      path = "${homeDir}/govno/myWiki";
+      devices = [ "laptop" "nixos-pc" "phone" ];
       type = "sendreceive";
     };
   };
