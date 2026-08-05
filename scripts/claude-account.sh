@@ -25,15 +25,15 @@ shared and symlinked from ~/.local/share/claude-shared: settings.json, CLAUDE.md
 plugins/, skills/, commands/, agents/, plus all the shared work — chats and memory
 (projects/), command history (history.jsonl), plans (plans/), tasks (tasks/, todos/) and
 file-edit history (file-history/). Claude Code writes through symlinks, so /config,
-/memory and /resume keep working.
+/memory and /resume keep working
 
 .claude.json is per-profile on purpose: it holds oauthAccount, which must live next to the
 token, otherwise two parallel sessions would clobber each other's identity. Side effect:
 user-scope MCP/integrations and folder trust flags from it are not shared — set up shared
-MCP via .mcp.json inside the project.
+MCP via .mcp.json inside the project
 
 The choice is durable, in ~/.local/state/huix/claude-account — like theme and shader.
-Already-running sessions are untouched: CLAUDE_CONFIG_DIR is fixed at claude startup.
+Already-running sessions are untouched: CLAUDE_CONFIG_DIR is fixed at claude startup
 EOF
 }
 
@@ -44,7 +44,7 @@ PROFILES_DIR="$DATA_HOME/claude-profiles"
 DEFAULT_PROFILE="rokokol"
 
 # What is shared across both accounts. commands/ and agents/ are laid out by home-manager,
-# so before the first rebuild they may be missing — not an error, just too early.
+# so before the first rebuild they may be missing — not an error, just too early
 # projects/, history.jsonl, plans/, todos/, tasks/, file-history/ are the shared work: one
 # job for two people — chats and memory, command history, plans, tasks and file-edit history
 SHARED_ENTRIES=(
@@ -263,7 +263,7 @@ cmd_init() {
   local ts
   ts=$(date +%Y%m%d-%H%M%S)
 
-  # CLAUDE.md special case: global memory is curated by hand, never auto-promoted to shared.
+  # CLAUDE.md special case: global memory is curated by hand, never auto-promoted to shared
   # A non-empty one is parked as .bak in the profile for a manual merge; an empty one is
   # dropped. The shared CLAUDE.md stays the (empty) stub ensure_shared makes
   local claude_md="$dir/CLAUDE.md"

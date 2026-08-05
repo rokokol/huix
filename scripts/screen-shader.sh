@@ -36,11 +36,11 @@ brightness are assembled into one generated GLSL. Effects that sample the textur
 with an offset (crt/wave/glitch) go first in the chain (geometry), color filters
 after; multiple geometric ones don't stack (the last overrides the previous ones)
 — a limitation of the single slot. Each effect in scripts/shaders/<name>.frag
-describes only the function vec3 effect(vec3 c, vec2 uv).
+describes only the function vec3 effect(vec3 c, vec2 uv)
 
 The choice (effect stack + brightness) is stored durably in ~/.local/state/huix/shader
 — survives logout/reboot and isn't seen by the hourly sync; generated shaders are
-ephemeral and live in $XDG_RUNTIME_DIR/hypr-shader.
+ephemeral and live in $XDG_RUNTIME_DIR/hypr-shader
 EOF
 }
 
@@ -55,10 +55,10 @@ notify_info() {
   command -v notify-send >/dev/null 2>&1 && notify-send -u low "$1" "$2" || true
 }
 
-# The SIGRTMIN+N number is set by Nix (waybar/shader.nix) via WAYBAR_SHADER_SIGNAL.
+# The SIGRTMIN+N number is set by Nix (waybar/shader.nix) via WAYBAR_SHADER_SIGNAL
 # SHADER_NO_SIGNAL suppresses the signal on restore at session start: the default
 # action of an RT signal is to kill the process, and waybar may not have installed
-# a handler yet.
+# a handler yet
 signal_waybar() {
   [[ -z "${SHADER_NO_SIGNAL:-}" ]] || return 0
   [[ -n "${WAYBAR_SHADER_SIGNAL:-}" ]] || return 0
@@ -78,17 +78,17 @@ SHADER_DIR="$HUIX/scripts/shaders"
 STATE_DIR="${XDG_RUNTIME_DIR:-/tmp}/hypr-shader"
 STATE="${XDG_STATE_HOME:-$HOME/.local/state}/huix/shader"
 
-# Order for cycling (effect next/prev). none first — this is "off".
+# Order for cycling (effect next/prev). none first — this is "off"
 EFFECTS=(none grayscale sepia invert warm cool vignette sharpen crt matrix posterize wave glitch jpeg)
 
 # Animated effects (use the uniform time). They need damage tracking off,
-# otherwise Hyprland doesn't redraw the frame.
+# otherwise Hyprland doesn't redraw the frame
 ANIMATED=(wave glitch matrix)
 
-# Static effects that sample the texture with an OFFSET (curvature, distortion).
+# Static effects that sample the texture with an OFFSET (curvature, distortion)
 # With precise damage tracking (2) they read undrawn neighboring areas and "break"
 # on fast screen changes. They need a redraw of the WHOLE monitor on any change
-# (damage_tracking 1), but can sleep when idle — there's no animation.
+# (damage_tracking 1), but can sleep when idle — there's no animation
 OFFSET=(crt jpeg sharpen)
 
 # Emojis and labels for the waybar indicator (status) — the single source of truth
@@ -106,13 +106,13 @@ declare -A LABEL=(
 
 mkdir -p "$STATE_DIR"
 
-# Stack of active effects (in the order they were added). Empty = nothing applied.
+# Stack of active effects (in the order they were added). Empty = nothing applied
 stack=()
 bright="1.00"
 # Hyprland does NOT recompile the shader if given the same path. So we write to
 # alternating files (active-0/active-1) — the path always changes and the shader is
 # guaranteed to be re-read (otherwise a brightness change with an active stack isn't
-# applied).
+# applied)
 slot=0
 
 load_state() {
@@ -162,7 +162,7 @@ in_list() {
 }
 
 # 1-based position of an effect in the stack (apply order) — prints the number and
-# returns 0 if the effect is in the stack; otherwise returns 1 and prints nothing.
+# returns 0 if the effect is in the stack; otherwise returns 1 and prints nothing
 stack_position() {
   local i=1 x
   for x in "${stack[@]}"; do
@@ -180,7 +180,7 @@ samples_texture() {
   grep -q 'texture(' "$SHADER_DIR/$1.frag"
 }
 
-# Render mode by the effect list: take the most demanding one.
+# Render mode by the effect list: take the most demanding one
 #   animated   — there's animation (uniform time): damage 0 (draw every frame) + VFR off
 #                (with VFR on Hyprland goes idle and the animation stutters);
 #   fullstatic — there's a static one with offset sampling (curvature): damage 1 — on
@@ -209,7 +209,7 @@ render_mode_for() { # $@ = effect names
 }
 
 # Rename all top-level definitions of an effect body (effect, hash, …) with the
-# suffix $2 — for composing several bodies in one shader without conflicts.
+# suffix $2 — for composing several bodies in one shader without conflicts
 rename_defs() { # $1 = file, $2 = suffix
   local names n args=()
   names=$(grep -oE '^(const )?(float|int|bool|vec[234]|mat[234]) +[A-Za-z_][A-Za-z0-9_]*' "$1" | awk '{ print $NF }')
@@ -227,13 +227,13 @@ rename_defs() { # $1 = file, $2 = suffix
 # list of .frag files. The first body is used as is (function effect), the rest are
 # renamed (effect_1, effect_2, …) and applied in turn to the result of the previous
 # one. time in seconds since start: if any effect uses it, Hyprland redraws the
-# frame continuously; otherwise the uniform is optimized out by the compiler.
+# frame continuously; otherwise the uniform is optimized out by the compiler
 emit_shader() {
   local out="$1"
   shift
   local bodies=("$@") b i=0
   # Atomic write: write to a temp file, then mv — Hyprland won't see a half-written
-  # shader on concurrent calls.
+  # shader on concurrent calls
   local tmp="${out}.tmp.$$"
   {
     printf '#version 300 es\n'
@@ -268,7 +268,7 @@ emit_shader() {
 }
 
 # Order the stack for the chain: geometric ones (sample the texture) first, color
-# ones after. Prints one name per line.
+# ones after. Prints one name per line
 ordered_stack() {
   local e
   for e in "${stack[@]}"; do samples_texture "$e" && printf '%s\n' "$e"; done
@@ -285,7 +285,7 @@ apply() { # $1 (opt.) = transient: don't save state to durable state
     return
   fi
 
-  # Body list in chain order. An empty stack with bright<1 is a single passthrough.
+  # Body list in chain order. An empty stack with bright<1 is a single passthrough
   local bodies=() e
   if [[ ${#stack[@]} -eq 0 ]]; then
     bodies=("$SHADER_DIR/none.frag")
@@ -399,7 +399,7 @@ cmd_bright() {
   # flock -n: on fast scrolling waybar sends dozens of calls in parallel. A
   # blocking flock queues them → the queue piles up → a hang. Non-blocking: if
   # another instance is already running — exit silently, and the atomic write in
-  # emit_shader guarantees Hyprland won't see a broken shader even without serialization.
+  # emit_shader guarantees Hyprland won't see a broken shader even without serialization
   exec 8>"$STATE_DIR/bright.lock"
   flock -n 8 || exit 0
   load_state
@@ -430,7 +430,7 @@ cmd_bright() {
 # state is not touched — a crash mid-flash breaks nothing. Writes to a separate
 # flash.frag, not touching the active-0/1 slots: the restore path after flash is
 # guaranteed to differ, Hyprland re-reads the shader. Concurrent flashes are
-# suppressed by flock; -k — exit silently if the stack is non-empty.
+# suppressed by flock; -k — exit silently if the stack is non-empty
 cmd_flash() {
   SHADER_NO_SIGNAL=1
   local keep=""
@@ -450,7 +450,7 @@ cmd_flash() {
   # The flash body first (usually samples the texture itself — glitch/wave); from
   # the stack we take into the chain only color ones (not sampling the texture) —
   # otherwise they'd overwrite the flash result (a proper composition of several
-  # geometries needs multi-pass rendering, and Hyprland has one slot).
+  # geometries needs multi-pass rendering, and Hyprland has one slot)
   local bodies=("$SHADER_DIR/$name.frag") e
   for e in "${stack[@]}"; do
     samples_texture "$e" || bodies+=("$SHADER_DIR/$e.frag")
@@ -469,7 +469,7 @@ cmd_flash() {
 
 cmd_restore() {
   # Don't signal waybar at session start (see signal_waybar); the script exits
-  # right away, so setting the flag globally is safe.
+  # right away, so setting the flag globally is safe
   SHADER_NO_SIGNAL=1
   load_state
   apply
@@ -503,7 +503,7 @@ cmd_status() {
 # List "<emoji> <label>|<value>" in EFFECTS order — the single source of truth for
 # the rofi picker (rofi-shader.sh reads exactly this). Active ones in the stack are
 # marked with an apply number in the "01. " format (stack order = the order in
-# which effects were added), to see the accumulated composition and its order.
+# which effects were added), to see the accumulated composition and its order
 cmd_menu() {
   load_state
   local e mark pos

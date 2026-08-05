@@ -4,11 +4,11 @@
 # session, power off. Bound to the power key (XF86PowerOff) and to a bind in
 # hyprland.conf. The mode emoji (⚡) is set in
 # home-manager/programs/rofi/default.nix (display-power) — the single source of
-# mode emojis, it isn't here. The logic is done by systemctl/loginctl/hyprctl.
+# mode emojis, it isn't here. The logic is done by systemctl/loginctl/hyprctl
 
 set -euo pipefail
 
-# List items: "label|action". The action is a key from the case below.
+# List items: "label|action". The action is a key from the case below
 list_options() {
   cat <<'EOF'
 🔒 Lock|lock
@@ -19,13 +19,13 @@ list_options() {
 EOF
 }
 
-# Outside rofi it's a launcher: mode "power", the emoji label comes from the rofi config.
+# Outside rofi it's a launcher: mode "power", the emoji label comes from the rofi config
 if [[ -z "${ROFI_RETV:-}" ]]; then
   exec rofi -show power -modi "power:$0" -mesg "What are we doing? (⊃‿⊂)"
 fi
 
 # On selection rofi puts the action in ROFI_INFO. An empty ROFI_INFO is the first
-# call: print the items (visible label + hidden action in info).
+# call: print the items (visible label + hidden action in info)
 case "${ROFI_INFO:-}" in
 lock)     loginctl lock-session ;;
 suspend)  systemctl suspend ;;

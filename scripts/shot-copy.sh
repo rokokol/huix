@@ -2,8 +2,8 @@
 
 set -euo pipefail
 
-# Screenshot to the clipboard + a preview notification, the file is removed after 5 s.
-# $1: region (interactive selection, default) | full (the whole screen).
+# Screenshot to the clipboard + a preview notification, the file is removed after 5 s
+# $1: region (interactive selection, default) | full (the whole screen)
 mode="${1:-region}"
 file="/tmp/shot_$(date +%s).png"
 

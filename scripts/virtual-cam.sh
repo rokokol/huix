@@ -5,7 +5,7 @@ set -euo pipefail
 usage() {
   cat <<'EOF'
 virtual-cam — loops a video or image into a virtual camera (v4l2loopback).
-In the app you select the "Virtual Camera" camera.
+In the app you select the "Virtual Camera" camera
 
 Usage:
   virtual-cam [options] <video-or-image>
@@ -18,7 +18,7 @@ Options:
                         (if the app doesn't mirror the preview itself)
   -h, --help            show this help
 
-The camera carries no sound — v4l2 is video only. For sound there's virtual-mic.
+The camera carries no sound — v4l2 is video only. For sound there's virtual-mic
 
 Examples:
   virtual-cam clip.mp4
@@ -71,7 +71,7 @@ echo "virtual-cam: $file ($mime) → $device  @${fps}fps  (Ctrl+C — stop)"
 
 # Native resolution, even dimensions only (needed for yuv420p). Constant fps + PTS
 # recomputed from the frame number: timestamps are strictly monotonic and continuous
-# across the loop boundary, otherwise the stream stutters/drops at each splice.
+# across the loop boundary, otherwise the stream stutters/drops at each splice
 vf="fps=${fps}"
 [[ "$flip" == 1 ]] && vf+=",hflip"
 vf+=",format=yuv420p,scale=trunc(iw/2)*2:trunc(ih/2)*2,setpts=N/(${fps}*TB)"

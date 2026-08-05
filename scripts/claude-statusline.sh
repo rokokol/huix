@@ -2,7 +2,7 @@
 
 # Claude Code status line: the path to this script is set in statusLine.command
 # of the shared settings.json (~/.local/share/claude-shared). It receives the
-# session JSON on stdin and emits a single line.
+# session JSON on stdin and emits a single line
 
 input=$(cat)
 cwd=$(echo "$input" | jq -r '.cwd // .workspace.current_dir // empty')
@@ -21,7 +21,7 @@ esac
 user=$(whoami)
 
 # NixOS glyph () + user in bold blue (like os+username in Starship), then the
-# path, a separator, the model and the context-window fill level.
+# path, a separator, the model and the context-window fill level
 printf '\033[1;34m %s\033[0m || %s' "$user" "$dir"
 
 if [ -n "$model" ] || [ -n "$used" ]; then

@@ -5,11 +5,11 @@ set -euo pipefail
 usage() {
   cat <<'EOF'
 virtual-mic — creates a virtual microphone (PipeWire) and loops an audio file or a
-video's sound into it. In the app you select the "Virtual-Mic" microphone.
+video's sound into it. In the app you select the "Virtual-Mic" microphone
 
 The real microphone is untouched, nothing is output to the headphones and no output
 device is created (module-pipe-source is used — a pure source from a FIFO). The
-source lives while the command runs; on Ctrl+C it is unloaded.
+source lives while the command runs; on Ctrl+C it is unloaded
 
 Usage:
   virtual-mic [options] <audio-or-video-file>
@@ -65,14 +65,14 @@ rate=48000
 channels=2
 
 # Resources we create. Declared up front and empty so cleanup can remove them with
-# a "was it created" check — even if something fails midway through initialization.
+# a "was it created" check — even if something fails midway through initialization
 fifo=""
 module_id=""
 ff_pid=""
 
 # cleanup — best-effort: errexit is off, each resource is removed separately and
 # only if it was created. So the function doesn't fail midway and does nothing
-# dangerous with empty variables.
+# dangerous with empty variables
 cleanup() {
   set +e
   [[ -n "$ff_pid" ]] && kill "$ff_pid" 2>/dev/null

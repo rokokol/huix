@@ -2,7 +2,7 @@
 
 # mako notification feed in rofi (script-modi, like rofi-shader.sh): a DND toggle,
 # history clear, clicking a notification copies its text. All the logic is in
-# notify-center.sh, this is only the presentation.
+# notify-center.sh, this is only the presentation
 
 set -euo pipefail
 
@@ -19,15 +19,15 @@ require_env
 NC="$HUIX/scripts/notify-center.sh"
 
 # List row width in characters: rofi can't wrap inside an item (single-line,
-# truncated with …), so we wrap long text ourselves — like in rofi-wooordhunt.sh.
+# truncated with …), so we wrap long text ourselves — like in rofi-wooordhunt.sh
 WRAP_WIDTH=60
 
-# Outside rofi it's a launcher: run rofi with this same script as the modi.
+# Outside rofi it's a launcher: run rofi with this same script as the modi
 if [[ -z "${ROFI_RETV:-}" ]]; then
   exec rofi -show notifications -modi "notifications:$0" -mesg "Notification center"
 fi
 
-# Main list. Notification rows carry the id in info, service rows carry a command.
+# Main list. Notification rows carry the id in info, service rows carry a command
 print_top() {
   local menu id icon label
   menu=$("$NC" menu)
@@ -39,11 +39,11 @@ print_top() {
   fi
   [[ -n "$menu" ]] || return 0
   # Separator \x1f, not TAB: whitespace-IFS collapses the empty icon field, and
-  # label slides into icon (see cmd_menu in notify-center.sh).
+  # label slides into icon (see cmd_menu in notify-center.sh)
   local first line
   while IFS=$'\x1f' read -r id icon label; do
     # The first line is the item itself, the tail are non-selectable continuation
-    # lines with the same id: a stray Enter on them still copies the text.
+    # lines with the same id: a stray Enter on them still copies the text
     first=1
     while IFS= read -r line; do
       if ((first)); then
@@ -60,7 +60,7 @@ print_top() {
   done <<<"$menu"
 }
 
-# Empty output closes rofi; printing a new list continues the session.
+# Empty output closes rofi; printing a new list continues the session
 case "${ROFI_INFO:-}" in
   "")        print_top ;;
   cmd:dnd)   "$NC" dnd toggle ;;
