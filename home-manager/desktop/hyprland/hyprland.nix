@@ -53,6 +53,9 @@ in
       enable = true;
       configType = "hyprlang";
 
+      # uwsm owns session management: HM's integration ends its exec-once with `systemctl --user stop hyprland-session.target`, and that target PropagatesStopTo graphical-session.target, which the uwsm compositor unit BindsTo — the session died ~2s in and SDDM looped. Our units hang off graphical-session.target, which uwsm brings up itself
+      systemd.enable = false;
+
       settings = {
         monitor = [
           ",preferred,auto,${cfg.monitorScale}"
