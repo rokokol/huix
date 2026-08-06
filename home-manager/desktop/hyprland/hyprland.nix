@@ -53,8 +53,8 @@ in
       enable = true;
       configType = "hyprlang";
 
-      # Keep HM's env export, drop its default stop/start of hyprland-session.target: that target PropagatesStopTo graphical-session.target, which uwsm's compositor unit BindsTo, so the stop killed the session ~2s into login
-      systemd.extraCommands = [ ];
+      # Hyprland itself does `systemctl --user import-environment` + dbus-update-activation-environment and sd_notify(READY=1), so HM's integration is pure duplication — and its `systemctl --user stop hyprland-session.target` PropagatesStopTo graphical-session.target, which uwsm's compositor unit BindsTo, killing the session ~2s into login
+      systemd.enable = false;
 
       settings = {
         monitor = [
