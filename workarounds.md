@@ -8,7 +8,7 @@ Rules for this file: one entry per workaround, and every entry must carry a **me
 
 ## `wayland.windowManager.hyprland.systemd.enable = false`
 
-**Where:** `home-manager/desktop/hyprland/hyprland.nix`
+**Where:** `home-manager/desktop/hyprland/hyprland.nix` — a shared HM module, so it covers both hosts, and both need it since `withUWSM = true` lives in the shared `nixos/desktop/core-options.nix`
 
 **Symptom it prevents:** logging into the `Hyprland (uwsm)` session shows the cursor on a black screen for ~2 seconds, then drops back to SDDM, forever. The plain `Hyprland` session entry is unaffected
 
