@@ -24,14 +24,14 @@ fi
 
 # Enter pressed on a ready translation or on an error — copy the text without the status prefix
 case "$USER_INPUT" in
-  "✔ "*)
-    echo -n "${USER_INPUT#✔ }" | wl-copy
-    exit 0
-    ;;
-  "✖ "*)
-    echo -n "${USER_INPUT#✖ }" | wl-copy
-    exit 0
-    ;;
+"✔ "*)
+  echo -n "${USER_INPUT#✔ }" | wl-copy
+  exit 0
+  ;;
+"✖ "*)
+  echo -n "${USER_INPUT#✖ }" | wl-copy
+  exit 0
+  ;;
 esac
 
 # Set by nixos/services/tools/libre-translate.nix; a session started before that rebuild lacks it
@@ -44,8 +44,7 @@ fi
 payload=$(jq -nc --arg q "$USER_INPUT" --arg source "$SRC" --arg target "$TGT" \
   '{ q: $q, source: $source, target: $target, format: "text" }')
 
-# 127.0.0.1, not localhost: the server binds IPv4 only, so ::1 only ever costs a refused connect first
-# no -f: an HTTP error still carries a JSON .error worth showing, so only connect/timeout failures land here
+# 127.0.0.1, not localhost: the server binds IPv4 only
 if ! response=$(curl -s -L -m 15 -X POST "http://127.0.0.1:$LIBRE_TRANSLATE_PORT/translate" \
   -H "Content-Type: application/json" -d "$payload"); then
   fail "No answer on :$LIBRE_TRANSLATE_PORT — check systemctl status libretranslate"
