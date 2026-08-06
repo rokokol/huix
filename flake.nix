@@ -68,7 +68,7 @@
         };
       };
 
-      # SDL3 dlopens libappindicator3.so.1 for its tray; nixpkgs keeps it out of the wrapper's LD_LIBRARY_PATH, so tauon dies on SDL_CreateTray
+      # SDL3 dlopens the appindicator lib for tauon's tray, but nixpkgs keeps it off the wrapper's LD_LIBRARY_PATH (see workarounds.md)
       overlay-tauon = final: prev: {
         tauon = prev.tauon.overrideAttrs (old: {
           makeWrapperArgs = old.makeWrapperArgs ++ [
@@ -77,7 +77,7 @@
         });
       };
 
-      # remove it after next rebuild
+      # hyprland 0.56.1 doesn't build against nixpkgs' glaze 8.0.0, so pin it back to 7.2.0 (see workarounds.md)
       overlay-hyprland = final: prev: {
         hyprland = prev.hyprland.override {
           glaze = prev.glaze.overrideAttrs (_: {
