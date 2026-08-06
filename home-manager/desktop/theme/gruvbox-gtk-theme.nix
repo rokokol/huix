@@ -32,4 +32,12 @@ stdenvNoCC.mkDerivation {
     ./install.sh -n Gruvbox -d "$out/share/themes"
     runHook postInstall
   '';
+
+  # libadwaita only honours the colour definitions, so ship them split out: the
+  # full sheet costs ~15ms to parse per GTK4 app (vs 0.12ms) and does icon lookups
+  postInstall = ''
+    for dir in $out/share/themes/*/gtk-4.0; do
+      grep '^@define-color' "$dir/gtk.css" >"$dir/gtk-colors.css"
+    done
+  '';
 }

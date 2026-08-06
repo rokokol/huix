@@ -55,8 +55,8 @@ require_env \
   ROFI_LIGHT_THEME \
   ROFI_DARK_THEME \
   ROFI_ACTIVE_THEME \
-  GTK4_LIGHT_DIR \
-  GTK4_DARK_DIR
+  GTK4_LIGHT_CSS \
+  GTK4_DARK_CSS
 
 STATE_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/huix/theme"
 
@@ -85,14 +85,14 @@ set_rofi_theme() {
 }
 
 # libadwaita ignores gtk-theme-name; it only reads ~/.config/gtk-4.0/gtk.css.
-# Link the active variant's gtk-4.0 (dir baked by theme.nix) there
+# Colours alone recolour it — assets are for the full sheet we deliberately skip
 set_libadwaita_css() {
   local src="$1"
   local dst="${XDG_CONFIG_HOME:-$HOME/.config}/gtk-4.0"
 
   mkdir -p "$dst"
-  ln -sfn "$src/gtk.css" "$dst/gtk.css"
-  ln -sfn "$src/assets" "$dst/assets"
+  ln -sfn "$src" "$dst/gtk.css"
+  rm -f "$dst/assets"
 }
 
 detect_theme_state() {
@@ -118,14 +118,14 @@ apply_state() {
     dconf write "$GTK_THEME_KEY" "'${DARK_THEME}'"
     dconf write "$COLOR_SCHEME_KEY" "'${DARK_SCHEME}'"
     set_rofi_theme "$ROFI_DARK_THEME"
-    set_libadwaita_css "$GTK4_DARK_DIR"
+    set_libadwaita_css "$GTK4_DARK_CSS"
     save_state "dark"
     ;;
   light)
     dconf write "$GTK_THEME_KEY" "'${LIGHT_THEME}'"
     dconf write "$COLOR_SCHEME_KEY" "'${LIGHT_SCHEME}'"
     set_rofi_theme "$ROFI_LIGHT_THEME"
-    set_libadwaita_css "$GTK4_LIGHT_DIR"
+    set_libadwaita_css "$GTK4_LIGHT_CSS"
     save_state "light"
     ;;
   *)
