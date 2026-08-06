@@ -82,9 +82,14 @@ Prints `0` → keep the overlay. Non-zero → drop `overlay-tauon` from `flake.n
 
 ## `overlay-hyprland` — glaze pinned to 7.2.0
 
-**Where:** `flake.nix`
+**Where:** `flake.nix` — and it must sit in the overlay list of **both** hosts, since both run Hyprland. It was on `nixos-pc` only for a while, which left `nixos-laptop` unbuildable
 
-**Why:** nixpkgs carries `glaze` 8.0.0, which hyprland 0.56.1 does not build against, so the overlay pins hyprland's `glaze` **back** to 7.2.0 from GitHub. Note this is a downgrade — a newer nixpkgs `glaze` is therefore not by itself evidence the overlay can go
+**Why:** nixpkgs carries `glaze` 8.0.0, which hyprland 0.56.1 does not build against, so the overlay pins hyprland's `glaze` **back** to 7.2.0 from GitHub. Note this is a downgrade — a newer nixpkgs `glaze` is therefore not by itself evidence the overlay can go. Without it the build fails like this, because hyprland's CMake falls back to fetching glaze over the network and the sandbox has no git:
+
+```
+-- glaze dependency not found, retrieving v7.2.0 with FetchContent
+CMake Error: error: could not find git for clone of glaze
+```
 
 **Removal check:** build hyprland as nixpkgs has it, with no overlay in the way
 
