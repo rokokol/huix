@@ -86,13 +86,17 @@ in
         INSTALL_DIR=$HOME/MATLAB2025a/
       '';
 
-      # MATLAB re-creates this autostart entry on every launch; Hidden=true makes dex skip it
-      home.file.".config/autostart/mathworks-service-host.desktop".text = ''
-        [Desktop Entry]
-        Type=Application
-        Name=Mathworks Service Host
-        Hidden=true
-      '';
+      # MATLAB may re-create this autostart entry; Hidden=true makes dex skip it,
+      # force overwrites whatever MATLAB left instead of failing on a .bak collision
+      home.file.".config/autostart/mathworks-service-host.desktop" = {
+        force = true;
+        text = ''
+          [Desktop Entry]
+          Type=Application
+          Name=Mathworks Service Host
+          Hidden=true
+        '';
+      };
     }
 
     (lib.mkIf cfg.pc {
