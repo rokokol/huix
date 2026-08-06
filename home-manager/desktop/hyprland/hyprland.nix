@@ -54,6 +54,7 @@ in
       configType = "hyprlang";
 
       # Hyprland itself does `systemctl --user import-environment` + dbus-update-activation-environment and sd_notify(READY=1), so HM's integration is pure duplication — and its `systemctl --user stop hyprland-session.target` PropagatesStopTo graphical-session.target, which uwsm's compositor unit BindsTo, killing the session ~2s into login
+      # Drop this only once HM's hyprland module knows about uwsm (grep it for "uwsm"); see the gotcha in CLAUDE.md
       systemd.enable = false;
 
       settings = {
