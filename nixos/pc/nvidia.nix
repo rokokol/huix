@@ -17,7 +17,6 @@
     open = false;
     nvidiaSettings = true;
 
-    # Production branch, not latest: stay off the 610 new-feature branch, keep the well-tested driver line
     package = config.boot.kernelPackages.nvidiaPackages.production;
   };
   hardware.nvidia-container-toolkit.enable = true;
