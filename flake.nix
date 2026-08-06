@@ -72,12 +72,7 @@
       overlay-tauon = final: prev: {
         tauon = prev.tauon.overrideAttrs (old: {
           makeWrapperArgs = old.makeWrapperArgs ++ [
-            "--prefix LD_LIBRARY_PATH : ${
-              prev.lib.makeLibraryPath [
-                prev.libappindicator
-                prev.gtk3
-              ]
-            }"
+            "--prefix LD_LIBRARY_PATH : ${prev.lib.makeLibraryPath [ prev.libayatana-appindicator ]}"
           ];
         });
       };
