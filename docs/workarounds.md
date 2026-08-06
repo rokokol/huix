@@ -51,35 +51,6 @@ Note Hyprland's own flake does not change any of this: its `homeManagerModules.d
 
 ---
 
-## `overlay-tauon` — appindicator on tauon's `LD_LIBRARY_PATH`
-
-**Where:** `flake.nix`
-
-**Symptom it prevents:** with the tray enabled (`settings` > `View` > `Tray`, or `--tray` — the pref is off by default) tauon dies on startup, not just losing the icon:
-
-```
-RuntimeError: SDL_CreateTray failed: Could not load AppIndicator libraries
-```
-
-**Why it happens:** since 11.1.1 the tray goes through SDL3's `SDL_CreateTray()` instead of pygobject, and SDL loads the indicator library at runtime with `dlopen()` by soname — `libayatana-appindicator3.so.1` first, then `libappindicator3.so.1`. nixpkgs lists `libappindicator` in `buildInputs` only, which reaches `GI_TYPELIB_PATH` (the typelib the tray no longer uses) and never the wrapper's `LD_LIBRARY_PATH`. So the library sits in the closure and stays invisible to `dlopen`
-
-gtk3 deliberately gets no such treatment even though SDL dlopens `libgtk-3.so.0` too: `SDL_CreateTray()` calls `init_appindicator()` first, and the indicator library pulls its own gtk3 in through RPATH, so the soname is already in the link map
-
-**Removal check:** build tauon as nixpkgs has it, with no overlay in the way, and look for an appindicator on its `LD_LIBRARY_PATH`
-
-```sh
-grep -o "LD_LIBRARY_PATH='[^']*'" \
-  "$(nix build --no-link --print-out-paths --impure --expr \
-    'let f = builtins.getFlake (toString ./.); in f.inputs.nixpkgs.legacyPackages.x86_64-linux.tauon')/bin/tauon" \
-  | grep -c appindicator
-```
-
-Prints `0` → keep the overlay. Non-zero → drop `overlay-tauon` from `flake.nix` and from both host overlay lists
-
-**Upstream:** [NixOS/nixpkgs#549538](https://github.com/NixOS/nixpkgs/issues/549538) (the bug), [NixOS/nixpkgs#549863](https://github.com/NixOS/nixpkgs/pull/549863) (our fix), [NixOS/nixpkgs#96420](https://github.com/NixOS/nixpkgs/issues/96420) (the standing "stop using dead libappindicator" issue it feeds)
-
----
-
 ## `overlay-hyprland` — glaze pinned to 7.2.0
 
 **Where:** `flake.nix`
