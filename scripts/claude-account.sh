@@ -14,37 +14,41 @@ Usage:
   claude-account init [name [email]]
                                migrate an existing ~/.claude into a profile (name
                                defaults to the hostname; email is read from .claude.json).
-                               Does nothing if ~/.claude is absent. Run from a clean
-                               terminal with no claude sessions open
-  claude-account path          CLAUDE_CONFIG_DIR of the active profile (for the wrapper)
+                               Does nothing if ~/.claude is already the entry symlink. Run
+                               from a clean terminal with no claude sessions open
+  claude-account ensure        repair the active profile's symlinks (home-manager calls this)
+  claude-account path          path of the active profile
   claude-account --help        this help
 
-A profile isolates only the account: .credentials.json (OAuth token) and .claude.json
-(it holds oauthAccount and userID — the token-to-account binding). Everything else is
-shared and symlinked from ~/.local/share/claude-shared: settings.json, CLAUDE.md,
-plugins/, skills/, commands/, agents/, plus all the shared work — chats and memory
-(projects/), command history (history.jsonl), plans (plans/), tasks (tasks/, todos/) and
-file-edit history (file-history/). Claude Code writes through symlinks, so /config,
-/memory and /resume keep working
+~/.claude is a symlink to the active profile, so the stock claude binary needs no wrapper and
+switching is one ln -sfn. CLAUDE_CONFIG_DIR is pinned to $HOME/.claude by home-manager — the
+same constant for every account: the binary looks for .claude.json beside the config dir rather
+than inside it and rewrites it with rename(2), which would turn a symlink at that path into a
+regular file. Pinning keeps .claude.json inside the profile, where the rename is harmless
+
+A profile isolates only the account: .credentials.json (OAuth token) and .claude.json (it holds
+oauthAccount and userID — the token-to-account binding). Everything else is shared and symlinked
+from ~/.local/share/claude-shared: settings.json, CLAUDE.md, plugins/, skills/, commands/,
+agents/, plus all the shared work — chats and memory (projects/), command history
+(history.jsonl), plans (plans/), tasks (tasks/, todos/) and file-edit history (file-history/).
+Claude Code writes through symlinks, so /config, /memory and /resume keep working
 
 .claude.json is per-profile on purpose: it holds oauthAccount, which must live next to the
 token, otherwise two parallel sessions would clobber each other's identity. Side effect:
 user-scope MCP/integrations and folder trust flags from it are not shared — set up shared
 MCP via .mcp.json inside the project
 
-The choice is durable, in ~/.local/state/huix/claude-account — like theme and shader.
-Already-running sessions are untouched: CLAUDE_CONFIG_DIR is fixed at claude startup
+Paths resolve lazily, so a switch reaches sessions that are already running: their next token
+refresh lands in the newly active profile. use warns about a live claude but switches anyway
 EOF
 }
 
 DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
-STATE_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/huix/claude-account"
+CLAUDE_DIR="$HOME/.claude" # the entry symlink CLAUDE_CONFIG_DIR points at
 SHARED_DIR="$DATA_HOME/claude-shared"
 PROFILES_DIR="$DATA_HOME/claude-profiles"
-DEFAULT_PROFILE="rokokol"
 
-# What is shared across both accounts. commands/ and agents/ are laid out by home-manager,
-# so before the first rebuild they may be missing — not an error, just too early
+# What is shared across both accounts, all of it plain files carried by Syncthing
 # projects/, history.jsonl, plans/, todos/, tasks/, file-history/ are the shared work: one
 # job for two people — chats and memory, command history, plans, tasks and file-edit history
 SHARED_ENTRIES=(
@@ -62,21 +66,31 @@ valid_name() {
   [[ "$1" =~ ^[a-zA-Z0-9_-]+$ ]]
 }
 
-read_state() {
-  local name=""
+# A claude-code session shows up with comm "claude" or, when nixpkgs-wrapped, ".claude-wrapped"
+claude_running() {
+  pgrep -x claude >/dev/null 2>&1 || pgrep -x .claude-wrapped >/dev/null 2>&1
+}
 
-  if [[ -r "$STATE_FILE" ]]; then
-    name=$(cat "$STATE_FILE")
+# The entry symlink is the state — nothing else to keep in sync with it. Empty means no profile
+# is active yet, so don't invent a default: it would name a profile that need not exist
+active_profile() {
+  if [[ -L "$CLAUDE_DIR" ]]; then
+    basename "$(readlink "$CLAUDE_DIR")"
   fi
+}
 
-  printf '%s' "${name:-$DEFAULT_PROFILE}"
+# A real directory there means the host still has the pre-profile layout
+assert_migrated() {
+  [[ ! -e "$CLAUDE_DIR" || -L "$CLAUDE_DIR" ]] ||
+    die "$CLAUDE_DIR is a real directory — migrate it first: claude-account init"
 }
 
 # The shared dir must exist before anything symlinks into it
 ensure_shared() {
   mkdir -p "$SHARED_DIR" \
-    "$SHARED_DIR/plugins" "$SHARED_DIR/skills" "$SHARED_DIR/projects" \
-    "$SHARED_DIR/plans" "$SHARED_DIR/todos" "$SHARED_DIR/tasks" "$SHARED_DIR/file-history"
+    "$SHARED_DIR/plugins" "$SHARED_DIR/skills" "$SHARED_DIR/commands" "$SHARED_DIR/agents" \
+    "$SHARED_DIR/projects" "$SHARED_DIR/plans" "$SHARED_DIR/todos" "$SHARED_DIR/tasks" \
+    "$SHARED_DIR/file-history"
 
   # An empty settings.json must still be valid JSON, otherwise Claude Code fails to parse it
   [[ -e "$SHARED_DIR/settings.json" ]] || printf '{}\n' >"$SHARED_DIR/settings.json"
@@ -127,7 +141,7 @@ cmd_list() {
   local active dir name email mark
   local found=0
 
-  active=$(read_state)
+  active=$(active_profile)
 
   for dir in "$PROFILES_DIR"/*/; do
     [[ -d "$dir" ]] || continue
@@ -154,9 +168,15 @@ cmd_use() {
   [[ -n "$name" ]] || die "give a profile name: claude-account use <name>"
   valid_name "$name" || die "profile name must match [a-zA-Z0-9_-]: $name"
   [[ -d "$PROFILES_DIR/$name" ]] || die "no profile $name, create it: claude-account add $name"
+  assert_migrated
 
-  mkdir -p "$(dirname "$STATE_FILE")"
-  printf '%s\n' "$name" >"$STATE_FILE"
+  # The swap is followed by live sessions too — their next token refresh writes into the new profile
+  if claude_running; then
+    printf 'claude-account: claude is running — open sessions follow the switch, close them first\n' >&2
+  fi
+
+  ensure_profile "$name"
+  ln -sfn "$PROFILES_DIR/$name" "$CLAUDE_DIR"
   printf 'active profile: %s\n' "$name"
 }
 
@@ -172,14 +192,41 @@ cmd_add() {
   printf 'next: claude-account use %s, then claude → /login\n' "$name"
 }
 
-# The claude wrapper calls this on every launch — profile symlinks get repaired along the
-# way (e.g. commands/ and agents/ that appeared after the latest rebuild)
+# home-manager activation calls this: repairs the profile symlinks after a rebuild adds a new
+# shared entry. Deliberately never creates the entry symlink — picking a profile is use's job,
+# and guessing one here would hide the profiles a half-migrated host already has
+cmd_ensure() {
+  local name
+
+  if [[ ! -L "$CLAUDE_DIR" ]]; then
+    if [[ -e "$CLAUDE_DIR" ]]; then
+      printf 'claude-account: %s is a real directory — migrate it: claude-account init\n' \
+        "$CLAUDE_DIR" >&2
+    else
+      printf 'claude-account: no active profile yet — pick one: claude-account use <name>\n' >&2
+    fi
+
+    return 0
+  fi
+
+  name=$(active_profile)
+  valid_name "$name" || die "broken profile name behind $CLAUDE_DIR: $name"
+  ensure_profile "$name"
+}
+
+cmd_current() {
+  local name
+  name=$(active_profile)
+
+  [[ -n "$name" ]] || die "no active profile, pick one: claude-account use <name>"
+  printf '%s\n' "$name"
+}
+
 cmd_path() {
   local name
-  name=$(read_state)
+  name=$(active_profile)
 
-  valid_name "$name" || die "broken profile name in $STATE_FILE: $name"
-  ensure_profile "$name"
+  [[ -n "$name" ]] || die "no active profile, pick one: claude-account use <name>"
   printf '%s\n' "$PROFILES_DIR/$name"
 }
 
@@ -197,12 +244,12 @@ fix_legacy_paths() {
     fi
   done
 
-  # Statusline moved into huix — if settings remembers the old path, point it at $HUIX
+  # Statusline lives in claude-shared now — if settings remembers the old path, retarget it
   local st="$SHARED_DIR/settings.json"
   if [[ -f "$st" ]] && grep -q "$old" "$st"; then
-    local hx="${HUIX:-$HOME/huix}" tmp
+    local tmp
     tmp=$(mktemp)
-    if jq --arg cmd "$hx/scripts/claude-statusline.sh" \
+    if jq --arg cmd "$SHARED_DIR/statusline.sh" \
       'if .statusLine.command? then .statusLine.command = $cmd else . end' \
       "$st" >"$tmp"; then
       mv "$tmp" "$st"
@@ -233,17 +280,24 @@ cmd_init() {
   local legacy_dir="$HOME/.claude"
   local legacy_json="$HOME/.claude.json"
 
+  # Already the entry symlink — this host is migrated, nothing to pull in
+  if [[ -L "$legacy_dir" ]]; then
+    printf 'claude-account: %s already points at a profile (%s) — nothing to migrate\n' \
+      "$legacy_dir" "$(active_profile)"
+    return 0
+  fi
+
   # The trigger is the ~/.claude directory. No dir — nothing to migrate
   if [[ ! -d "$legacy_dir" ]]; then
     printf 'claude-account: no ~/.claude — nothing to migrate\n'
     return 0
   fi
 
-  # Never move ~/.claude out from under a live session — it would break it. A claude-code
-  # session shows up with comm "claude" or, when nixpkgs-wrapped, ".claude-wrapped"
-  [[ -z "${CLAUDE_CONFIG_DIR:-}" ]] ||
-    die "init ran from inside claude (CLAUDE_CONFIG_DIR is set) — exit and run from a clean terminal"
-  if ((!force)) && { pgrep -x claude >/dev/null 2>&1 || pgrep -x .claude-wrapped >/dev/null 2>&1; }; then
+  # Never move ~/.claude out from under a live session — it would break it. CLAUDE_CONFIG_DIR is
+  # no signal here, it is pinned for every shell; CLAUDECODE is set only inside claude itself
+  [[ -z "${CLAUDECODE:-}" ]] ||
+    die "init ran from inside claude — exit and run it from a clean terminal"
+  if ((!force)) && claude_running; then
     die "claude is running — close every session and run init from a clean terminal (or init --force if sure)"
   fi
 
@@ -258,7 +312,7 @@ cmd_init() {
     mv "$legacy_json" "$dir/.claude.json"
   fi
   chmod 700 "$dir"
-  rm -f "$dir/statusline-command.sh" # moved into huix
+  rm -f "$dir/statusline-command.sh" # moved into claude-shared
 
   local ts
   ts=$(date +%Y%m%d-%H%M%S)
@@ -299,8 +353,7 @@ cmd_init() {
   ensure_profile "$name"
 
   # Make it active
-  mkdir -p "$(dirname "$STATE_FILE")"
-  printf '%s\n' "$name" >"$STATE_FILE"
+  ln -sfn "$dir" "$CLAUDE_DIR"
 
   local email
   email=$(profile_email "$name")
@@ -314,8 +367,8 @@ list)
   cmd_list "$@"
   ;;
 current)
-  read_state
-  printf '\n'
+  shift
+  cmd_current "$@"
   ;;
 use)
   shift
@@ -328,6 +381,10 @@ add)
 init)
   shift
   cmd_init "$@"
+  ;;
+ensure)
+  shift
+  cmd_ensure "$@"
   ;;
 path)
   shift

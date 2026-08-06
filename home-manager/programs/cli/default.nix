@@ -3,7 +3,7 @@
 {
   imports = [
     ./btop.nix
-    ./claude/default.nix
+    ./claude.nix
     ./git.nix
     ./ssh.nix
     ./direnv.nix
