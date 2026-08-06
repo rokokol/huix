@@ -143,6 +143,7 @@
         configuration = ./nixos/configuration-laptop.nix;
         home = ./home-manager/home-laptop.nix;
         overlays = [
+          overlay-hyprland
           overlay-stable
           overlay-tauon
           nix-matlab.overlay
