@@ -68,6 +68,20 @@
         };
       };
 
+      # SDL3 dlopens libappindicator3.so.1 for its tray; nixpkgs keeps it out of the wrapper's LD_LIBRARY_PATH, so tauon dies on SDL_CreateTray
+      overlay-tauon = final: prev: {
+        tauon = prev.tauon.overrideAttrs (old: {
+          makeWrapperArgs = old.makeWrapperArgs ++ [
+            "--prefix LD_LIBRARY_PATH : ${
+              prev.lib.makeLibraryPath [
+                prev.libappindicator
+                prev.gtk3
+              ]
+            }"
+          ];
+        });
+      };
+
       # remove it after next rebuild
       overlay-hyprland = final: prev: {
         hyprland = prev.hyprland.override {
@@ -124,6 +138,7 @@
         overlays = [
           overlay-hyprland
           overlay-stable
+          overlay-tauon
           nix-matlab.overlay
           comfyui-nix.overlays.default
         ];
@@ -134,6 +149,7 @@
         home = ./home-manager/home-laptop.nix;
         overlays = [
           overlay-stable
+          overlay-tauon
           nix-matlab.overlay
         ];
       };
