@@ -20,7 +20,6 @@
       startupArgs = [
         "dex -a"
         "super-productivity"
-        "tauon"
       ];
     };
 
