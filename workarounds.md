@@ -98,4 +98,4 @@ nix build --no-link --impure --expr \
   'let f = builtins.getFlake (toString ./.); in f.inputs.nixpkgs.legacyPackages.x86_64-linux.hyprland'
 ```
 
-Builds clean → drop `overlay-hyprland` from `flake.nix` and from the `nixos-pc` overlay list. Still fails on `glaze` → keep it, and bump the pinned tag only if hyprland itself moved on
+Builds clean → drop `overlay-hyprland` from `flake.nix` and from both host overlay lists. Still fails on `glaze` → keep it, and bump the pinned tag only if hyprland itself moved on
