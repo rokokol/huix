@@ -36,8 +36,10 @@ in
   # rename(2), which would turn a symlink at that path into a regular file
   home.sessionVariables.CLAUDE_CONFIG_DIR = "$HOME/.claude";
 
-  # Repairs the active profile's symlinks after a rebuild adds a new shared entry
-  home.activation.claudeProfileLinks = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+  # Repairs the active profile's symlinks after a rebuild adds a new shared entry. Must come after
+  # linkGeneration, not just writeBoundary — that is where home-manager removes the previous
+  # generation's files, and it would undo the repair
+  home.activation.claudeProfileLinks = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
     ${claude-account}/bin/claude-account ensure || true
   '';
 }
