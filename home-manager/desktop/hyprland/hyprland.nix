@@ -72,13 +72,11 @@ in
             natural_scroll = true;
           };
         };
-      }
-      // lib.optionalAttrs (cfg.wallpaperImage != null) {
-        exec-once = [
+
+        exec-once = cfg.startupArgs ++ lib.optionals (cfg.wallpaperImage != null) [
           "awww init"
           "awww img ${cfg.wallpaperImage}"
-        ]
-        ++ cfg.startupArgs;
+        ];
       };
     };
   };
