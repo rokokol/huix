@@ -6,34 +6,43 @@ usage() {
   cat <<'EOF'
 hyprlock-quote.sh — Monika's dialog for the DDLC lock screen
 
-Modes (invoked by label cmd[update:N] from hyprlock.nix):
-  frame   dialog frame in pango markup: letter-by-letter typing of lines from
-          assets/monika-talk.txt topic by topic, an Exp(1/7) pause after a
-          line, a smooth fade-out, an empty box Exp(1/60) between topics. The
-          first topic on every lock comes from monika-reentry.txt (Act 3
-          re-entry); those lines never enter the random rotation. A topic never
-          repeats the previous one from the same file
-  name    the name on the plate ("Monika")
-  help    this help
+Modes:
+  lock   run a lock: start hyprlock and animate its dialog until it exits.
+         This is hypridle's lock_cmd, and every lock path (SUPER+F12,
+         rofi-power.sh, the idle timeout) funnels through it
+  help   this help
+
+Rendering is push, not polling. The two dialog labels in hyprlock.conf are
+declared cmd[update:0:1] — armed for an hour, refreshed only when hyprlock gets
+SIGUSR2 — and do nothing but `cat` the files this loop writes. The loop signals
+only on the ticks where the rendered text actually changed, and between lines it
+sleeps outright, so a lock screen standing still costs nothing
+
+The loop runs in the foreground with hyprlock as its child: no daemon to reap,
+and lock_cmd blocks for exactly the duration of the lock. It never kills
+hyprlock — dying must not unlock the screen
 
 Typing is a Ren'Py trick: every frame renders the whole line, and the tail not
 yet "typed" is hidden in a transparent span. The texture size stays constant for
 the whole life of the line, and the text is pinned in place without any font
 measurements; line wrapping is just a fold by character count
 
-Glitches are a single mechanism for a wrong password (hyprlock pam error in the
-journal) and spontaneous firings (a Poisson stream): the screen glitches via
-`screen-shader.sh flash glitch` (composited over the active effect), at the same
-time the name and text are garbled with a "broken encoding"; the text glitches
-longer than the shader
+Glitches are a single mechanism for a wrong password and spontaneous firings (a
+Poisson stream): the screen glitches via `screen-shader.sh flash glitch`
+(composited over the active effect), at the same time the name and text are
+garbled with a "broken encoding"; the text glitches longer than the shader. A
+wrong password arrives as a line from a `journalctl -f` follower, which is also
+what the loop sleeps on — so it reacts at once without polling the journal
 
 Geometry is set by hyprlock.nix through the environment:
-  TEXT_W   width of the box text area, px (default 1114)
-  FONT_PX  line font size, px (font_size * 4/3; default 32) — the wrap and
-           space-line-width metrics are derived from it
+  TEXT_W     width of the box text area, px (default 1114)
+  FONT_PX    line font size, px (font_size * 4/3; default 32) — the wrap and
+             space-line-width metrics are derived from it
+  STATE_DIR  where the rendered frame/name files live; hyprlock.nix points the
+             labels at the same path
 
-State lives in $XDG_RUNTIME_DIR/hypr-ddlc; a new lock is detected by a change of
-the hyprlock PID and starts the dialog from the re-entry line
+State is plain shell variables for the lifetime of the lock, so a fresh run is
+by definition a fresh lock and starts the dialog from the re-entry line
 EOF
 }
 
@@ -45,6 +54,8 @@ REENTRY="$HUIX/assets/monika-reentry.txt"
 
 TEXT_W="${TEXT_W:-1114}"
 FONT_PX="${FONT_PX:-32}"
+STATE_DIR="${STATE_DIR:-${XDG_RUNTIME_DIR:-/tmp}/hypr-ddlc}"
+
 # Doki metrics relative to the font size: at 32px a glyph averages 15px, space 8px
 AVG_ADV=$((FONT_PX * 15 / 32))
 SPACE_ADV=$((FONT_PX / 4))
@@ -69,62 +80,88 @@ GLITCH_TEXT_MS=3600   # the text glitches longer than the shader
 
 FADE_MS=600 # smooth fade-out of a line
 
-STATE_DIR="${XDG_RUNTIME_DIR:-/tmp}/hypr-ddlc"
-STATE="$STATE_DIR/state"     # sourceable state-machine variables
-TOPIC="$STATE_DIR/topic.txt" # unspoken lines of the current topic
-CUR="$STATE_DIR/cur.txt"     # current line, already wrapped
+# Tick as fast as the pixels actually move, never faster: one char per 1000/CPS
+# while typing, but the alpha ramp and the mojibake churn need every frame
+TYPE_MS=$((1000 / CPS))
+ANIM_MS=33
+# Ceiling on a sleep: an unlock is only noticed on the next wake, and SIGCHLD does
+# not interrupt read -t, so this is what bounds the lag. An idle wake forks nothing
+IDLE_CAP_MS=1000
 
-# State defaults (first run = re-entry line right away)
+FRAME_FILE="$STATE_DIR/frame"
+NAME_FILE="$STATE_DIR/name"
+
+# Mojibake glyphs render in a fallback font with different line metrics — without
+# anchors a glitch would change the texture height and the name would jump. The
+# invisible edge glyphs keep the metrics (and, symmetrically, the centering) constant
+NAME_ANCHOR='<span alpha="1">�Жð</span>'
+GLYPHS=(Ã Ð Ñ Â Ø Þ ß ð þ ¤ ¥ § ¶ ¿ ¬ Œ ž Æ é ö ъ Ж �)
+
 phase=reentry
 until_ms=0
 reveal_ms=0
 next_glitch_ms=0
 glitch_until_ms=0
-fail_chk=0
-fail_ts=""
-last_pid=""
-last_talk=0    # index of the previous monika-talk.txt topic (0 = none)
+# both are read and written indirectly, by name, from start_topic
+# shellcheck disable=SC2034
+last_talk=0 # index of the previous monika-talk.txt topic (0 = none)
+# shellcheck disable=SC2034
 last_reentry=0 # same for monika-reentry.txt
+topic_lines=() # unspoken lines of the current topic
+cur=""         # current line, already wrapped
+frame_prev=$'\0'
+name_prev=$'\0'
+now=0
 
-# Single list of state-machine fields: save/snapshot don't drift apart when a
-# field is added
-STATE_VARS=(phase until_ms reveal_ms next_glitch_ms glitch_until_ms fail_chk fail_ts last_pid last_talk last_reentry)
-
-load_state() {
-  # shellcheck disable=SC1090
-  [[ ! -f "$STATE" ]] || source "$STATE"
+# Milliseconds without spawning date: EPOCHREALTIME = "sec.usec" (bash >= 5;
+# the separator depends on the locale — strip both the dot and the comma)
+set_now() {
+  local t=${EPOCHREALTIME//[.,]/}
+  now=${t:0:-3}
 }
 
-save_state() {
-  local v
-  for v in "${STATE_VARS[@]}"; do printf '%s=%q\n' "$v" "${!v}"; done >"$STATE.tmp"
-  mv "$STATE.tmp" "$STATE"
-}
-
-state_snapshot() {
-  local v
-  for v in "${STATE_VARS[@]}"; do printf '%s|' "${!v}"; done
-}
-
-# Exponential random pause in ms: $1 = mean, $2 = min, $3 = max (sec)
+# Exponential random pause in ms -> $exp_v: $1 = mean, $2 = min, $3 = max (sec)
 exp_ms() {
-  awk -v m="$1" -v lo="$2" -v hi="$3" -v seed="$(((RANDOM << 15) + RANDOM))" '
+  exp_v=$(awk -v m="$1" -v lo="$2" -v hi="$3" -v seed="$(((RANDOM << 15) + RANDOM))" '
     BEGIN {
       srand(seed)
       d = -m * log(1 - rand())
       if (d < lo) d = lo
       if (d > hi) d = hi
       printf "%d", d * 1000
-    }'
+    }')
 }
 
-# Random topic from file $1 -> $TOPIC; $2 is the index of this file's previous
-# topic (0 = none), excluded from the draw so the same quote doesn't come up
-# twice in a row. Prints the index of the chosen block. Blocks are separated by a
-# blank line, lines with '#' are comments
-new_topic() {
-  : >"$TOPIC"
-  awk -v seed="$(((RANDOM << 15) + RANDOM))" -v skip="${2:-0}" -v out="$TOPIC" '
+esc() {
+  local s=$1
+  s=${s//&/&amp;}
+  s=${s//</&lt;}
+  s=${s//>/&gt;}
+  esc_v=$s
+}
+
+# "Broken encoding" -> $glitch_v: ~30% of characters are replaced with mojibake
+# glyphs; regenerated on every call so the garbage "lives". Pure bash — at 33 ms
+# a fork per frame is exactly what this rewrite exists to avoid
+glitch_text() {
+  local s=$1 out="" c i
+  for ((i = 0; i < ${#s}; i++)); do
+    c=${s:i:1}
+    if [[ $c != " " && $c != $'\n' ]] && ((RANDOM % 10 < 3)); then
+      out+=${GLYPHS[RANDOM % ${#GLYPHS[@]}]}
+    else
+      out+=$c
+    fi
+  done
+  glitch_v=$out
+}
+
+# Random topic from file $1: prints the chosen block's index, then the block
+# itself. $2 is the index of this file's previous topic (0 = none), excluded from
+# the draw so the same quote doesn't come up twice in a row. Blocks are separated
+# by a blank line, lines with '#' are comments
+draw_topic() {
+  awk -v seed="$(((RANDOM << 15) + RANDOM))" -v skip="${2:-0}" '
     BEGIN { RS = ""; srand(seed) }
     { gsub(/(^|\n)#[^\n]*/, ""); sub(/^\n+/, ""); if ($0 != "") b[++n] = $0 }
     END {
@@ -136,204 +173,240 @@ new_topic() {
       } else {
         i = int(rand() * n) + 1
       }
-      print b[i] > out
       print i
+      print b[i]
     }
   ' "$1"
 }
 
-# Pop the first line of the topic into $CUR (wrapped); returns 1 if topic is empty
+# Pop the first line of the topic into $cur (wrapped); returns 1 if topic is empty
 next_line() {
-  local line
-  line=$(head -n 1 "$TOPIC" 2>/dev/null || true)
-  [[ -n "$line" ]] || return 1
-  sed -i '1d' "$TOPIC"
-  printf '%s\n' "${line//\[player\]/$USER}" |
-    fold -s -w "$WRAP_CHARS" | sed 's/ *$//' >"$CUR"
-}
-
-# "Broken encoding": ~30% of characters are replaced with mojibake glyphs;
-# regenerated on every call so the garbage "lives"
-glitch_text() {
-  awk -v seed="$(((RANDOM << 15) + RANDOM))" '
-    BEGIN {
-      srand(seed)
-      n = split("Ã Ð Ñ Â Ø Þ ß ð þ ¤ ¥ § ¶ ¿ ¬ Œ ž Æ é ö ъ Ж �", G, " ")
-    }
-    {
-      out = ""
-      for (i = 1; i <= length($0); i++) {
-        c = substr($0, i, 1)
-        out = out ((c != " " && rand() < 0.3) ? G[int(rand() * n) + 1] : c)
-      }
-      print out
-    }'
-}
-
-# Glitch the screen and text with one mechanism (password and Poisson stream)
-# flash sleeps internally — fully detach it, otherwise hyprlock waits for EOF
-fire_glitch() {
-  glitch_until_ms=$((now_ms + GLITCH_TEXT_MS))
-  nohup "$HUIX/scripts/screen-shader.sh" flash glitch "$GLITCH_SHADER_SEC" \
-    </dev/null >/dev/null 2>&1 &
-  disown
-}
-
-# Milliseconds without spawning date: EPOCHREALTIME = "sec.usec" (bash >= 5;
-# the separator depends on the locale — strip both the dot and the comma)
-now_ms() {
-  local t=${EPOCHREALTIME//[.,]/}
-  printf '%s' "${t:0:-3}"
-}
-
-esc() {
-  local s="$1"
-  s=${s//&/&amp;}
-  s=${s//</&lt;}
-  s=${s//>/&gt;}
-  printf '%s' "$s"
+  ((${#topic_lines[@]})) || return 1
+  local line=${topic_lines[0]}
+  topic_lines=("${topic_lines[@]:1}")
+  cur=$(printf '%s\n' "${line//\[player\]/$USER}" |
+    fold -s -w "$WRAP_CHARS" | sed 's/ *$//')
 }
 
 start_typing() {
   phase=typing
-  reveal_ms=$now_ms
+  reveal_ms=$now
 }
 
-# $1 is the topics file, $2 is the name of the state variable holding this file's
+# $1 is the topics file, $2 is the name of the variable holding this file's
 # previous topic index (updated to the chosen one)
 start_topic() {
-  local idx
-  idx=$(new_topic "$1" "${!2}")
-  [[ -z "$idx" ]] || printf -v "$2" '%s' "$idx"
-  next_line
+  local out
+  mapfile -t out < <(draw_topic "$1" "${!2}")
+  if ((${#out[@]})); then
+    printf -v "$2" '%s' "${out[0]}"
+    topic_lines=("${out[@]:1}")
+  fi
+  next_line || true
   start_typing
 }
 
-# Mojibake glyphs render in a fallback font with different line metrics — without
-# anchors a glitch would change the texture height and the name would jump. The
-# invisible edge glyphs keep the metrics (and, symmetrically, the centering) constant
-cmd_name() {
-  load_state
-  local name="Monika" anchor='<span alpha="1">�Жð</span>'
-  (($(now_ms) < glitch_until_ms)) && name=$(glitch_text <<<"$name")
-  printf '%s%s%s' "$anchor" "$name" "$anchor"
+fire_glitch() {
+  glitch_until_ms=$((now + GLITCH_TEXT_MS))
+  "$HUIX/scripts/screen-shader.sh" flash glitch "$GLITCH_SHADER_SEC" \
+    </dev/null >/dev/null 2>&1 &
 }
 
-cmd_frame() {
-  [[ -d "$STATE_DIR" ]] || mkdir -p "$STATE_DIR"
-  load_state
-  local state_in
-  state_in=$(state_snapshot)
-  now_ms=$(now_ms)
-
-  # Heavy checks (scanning /proc, the journal) — at most once per second
-  if ((now_ms / 1000 > fail_chk)); then
-    fail_chk=$((now_ms / 1000))
-
-    # New lock (hyprlock PID change) -> dialog from the re-entry line
-    local pid
-    pid=$(pidof hyprlock 2>/dev/null) || pid=""
-    pid=${pid%% *}
-    if [[ -n "$pid" && "$pid" != "$last_pid" ]]; then
-      last_pid="$pid"
-      phase=reentry
-    fi
-
-    # Wrong password (hyprlock pam error in the journal) -> glitch
-    local last
-    last=$(journalctl -q -t hyprlock -S -5s -g 'authentication failure' \
-      -o short-unix 2>/dev/null | tail -n 1 | cut -d' ' -f1) || true
-    if [[ -n "$last" && "$last" != "$fail_ts" ]]; then
-      fail_ts="$last"
-      fire_glitch
-    fi
-  fi
-
-  # Spontaneous glitches: a Poisson stream. 0 means not scheduled yet, then we
-  # only assign the first interval, without firing
-  if ((now_ms >= next_glitch_ms)); then
-    ((next_glitch_ms > 0)) && fire_glitch
-    next_glitch_ms=$((now_ms + $(exp_ms "$GLITCH_MEAN" "$GLITCH_MIN" "$GLITCH_MAX")))
-  fi
-
-  # State machine: reentry -> typing -> shown -> fadeout -> typing|gap
+# Advance the state machine: reentry -> typing -> shown -> fadeout -> typing|gap.
+# The typing -> shown edge is in build_frame, where the revealed length is known
+advance() {
   case "$phase" in
   reentry)
     start_topic "$REENTRY" last_reentry
     ;;
   shown)
-    if ((now_ms >= until_ms)); then
+    if ((now >= until_ms)); then
       phase=fadeout
-      reveal_ms=$now_ms # start of the fade
-      until_ms=$((now_ms + FADE_MS))
+      reveal_ms=$now # start of the fade
+      until_ms=$((now + FADE_MS))
     fi
     ;;
   fadeout)
-    if ((now_ms >= until_ms)); then
+    if ((now >= until_ms)); then
       if next_line; then
         start_typing
       else
         phase=gap
-        until_ms=$((now_ms + $(exp_ms "$TOPIC_MEAN" "$TOPIC_MIN" "$TOPIC_MAX")))
+        exp_ms "$TOPIC_MEAN" "$TOPIC_MIN" "$TOPIC_MAX"
+        until_ms=$((now + exp_v))
       fi
     fi
     ;;
   gap)
-    if ((now_ms >= until_ms)); then
+    if ((now >= until_ms)); then
       start_topic "$QUOTES" last_talk
     fi
     ;;
   esac
+}
 
-  # Frame: the whole line, the untyped tail as a transparent span (a Ren'Py
-  # trick). The texture size stays constant for the whole life of the line
-  local full="" n=0 fade_alpha=65535
+# Frame -> $frame_v: the whole line, the untyped tail as a transparent span (a
+# Ren'Py trick). The texture size stays constant for the whole life of the line
+build_frame() {
+  local full="" n=0 fade_alpha=65535 body nl pad="" i
   if [[ "$phase" != "gap" ]]; then
-    full=$(<"$CUR")
+    full=$cur
     case "$phase" in
     typing)
-      n=$(((now_ms - reveal_ms) * CPS / 1000))
+      n=$(((now - reveal_ms) * CPS / 1000))
       if ((n >= ${#full})); then
         phase=shown
-        until_ms=$((now_ms + $(exp_ms "$LINE_MEAN" "$LINE_MIN" "$LINE_MAX")))
+        exp_ms "$LINE_MEAN" "$LINE_MIN" "$LINE_MAX"
+        until_ms=$((now + exp_v))
         n=${#full}
       fi
       ;;
     fadeout)
       n=${#full}
-      fade_alpha=$((65535 - 65535 * (now_ms - reveal_ms) / FADE_MS))
+      fade_alpha=$((65535 - 65535 * (now - reveal_ms) / FADE_MS))
       ((fade_alpha >= 1)) || fade_alpha=1
       ;;
     *)
       n=${#full}
       ;;
     esac
-    ((now_ms < glitch_until_ms)) && full=$(glitch_text <<<"$full")
+    if ((now < glitch_until_ms)); then
+      glitch_text "$full"
+      full=$glitch_v
+    fi
   fi
 
-  local body
-  body=$(esc "${full:0:n}")
-  ((n < ${#full})) && body+="<span alpha=\"1\">$(esc "${full:n}")</span>"
-  ((fade_alpha < 65535)) && body="<span alpha=\"$fade_alpha\">$body</span>"
+  esc "${full:0:n}"
+  body=$esc_v
+  if ((n < ${#full})); then
+    esc "${full:n}"
+    body+="<span alpha=\"1\">$esc_v</span>"
+  fi
+  if ((fade_alpha < 65535)); then
+    body="<span alpha=\"$fade_alpha\">$body</span>"
+  fi
 
   # The frame is always BOX_LINES lines + a width-line of spaces: padding with
   # empty lines keeps the texture height constant, the space-line keeps its width
   # (a label has neither width nor a corner anchor, but with a constant texture
   # size halign center + valign bottom give a fixed top-left). Requires
   # text_trim=false in hyprlock
-  local nl pad=""
   nl=${full//[!$'\n']/}
   for ((i = ${#nl} + 1; i < BOX_LINES; i++)); do pad+=$'\n'; done
-  printf '%s%s\n%*s' "$body" "$pad" $((TEXT_W / SPACE_ADV)) ''
-
-  # While typing the frame is a function of reveal_ms: the state doesn't change,
-  # and on frequent polling there's no point writing it every tick
-  [[ -f "$STATE" && "$state_in" == "$(state_snapshot)" ]] || save_state
+  printf -v frame_v '%s%s\n%*s' "$body" "$pad" $((TEXT_W / SPACE_ADV)) ''
 }
 
-case "${1:-frame}" in
-frame) cmd_frame ;;
-name) cmd_name ;;
+build_name() {
+  local name="Monika"
+  if ((now < glitch_until_ms)); then
+    glitch_text "$name"
+    name=$glitch_v
+  fi
+  name_v="$NAME_ANCHOR$name$NAME_ANCHOR"
+}
+
+# Write atomically (a label may be reading) and wake hyprlock only on a real
+# change — this is the whole budget of the lock screen
+publish() {
+  local changed=0
+  if [[ "$frame_v" != "$frame_prev" ]]; then
+    printf '%s' "$frame_v" >"$FRAME_FILE.tmp"
+    mv "$FRAME_FILE.tmp" "$FRAME_FILE"
+    frame_prev=$frame_v
+    changed=1
+  fi
+  if [[ "$name_v" != "$name_prev" ]]; then
+    printf '%s' "$name_v" >"$NAME_FILE.tmp"
+    mv "$NAME_FILE.tmp" "$NAME_FILE"
+    name_prev=$name_v
+    changed=1
+  fi
+  ((changed)) && kill -USR2 "$hyprlock_pid" 2>/dev/null
+  return 0
+}
+
+# Milliseconds until the next visible change -> $tick_v
+next_tick_ms() {
+  local t
+  case "$phase" in
+  typing) t=$((now + TYPE_MS)) ;;
+  fadeout) t=$((now + ANIM_MS)) ;;
+  *) t=$until_ms ;;
+  esac
+  ((next_glitch_ms < t)) && t=$next_glitch_ms
+  ((glitch_until_ms > now && now + ANIM_MS < t)) && t=$((now + ANIM_MS))
+  ((t > now + IDLE_CAP_MS)) && t=$((now + IDLE_CAP_MS))
+  ((t < now)) && t=$now
+  tick_v=$((t - now))
+}
+
+# Sleep on the journal follower: a wrong password wakes us instantly, everything
+# else is a plain timeout. Falls back to sleep(1) if the follower ever dies, so a
+# closed fd can never turn this into a spin
+wait_ms() {
+  local to rc=0
+  printf -v to '%d.%03d' $(($1 / 1000)) $(($1 % 1000))
+  if [[ -n "$journal_fd" ]]; then
+    read -r -t "$to" -u "$journal_fd" _ || rc=$?
+    if ((rc == 0)); then
+      fire_glitch
+    elif ((rc > 0 && rc <= 128)); then
+      exec {journal_fd}<&- || true
+      journal_fd=""
+    fi
+  else
+    sleep "$to"
+  fi
+}
+
+# A zombie still answers `kill -0`, /proc does not lie. No fork either.
+# stderr is redirected first: a missing stat file is the shell's message, not read's
+hyprlock_alive() {
+  local state
+  read -r _ _ state _ 2>/dev/null < "/proc/$hyprlock_pid/stat" || return 1
+  [[ "$state" != "Z" ]]
+}
+
+cmd_lock() {
+  mkdir -p "$STATE_DIR"
+  # the labels cat these on hyprlock's very first render
+  : >"$FRAME_FILE"
+  : >"$NAME_FILE"
+
+  hyprlock &
+  hyprlock_pid=$!
+
+  coproc JOURNAL {
+    journalctl -f -n 0 -q -t hyprlock -g 'authentication failure' -o cat
+  }
+  journal_fd=${JOURNAL[0]}
+  trap 'kill "$JOURNAL_PID" 2>/dev/null || true' EXIT
+
+  while hyprlock_alive; do
+    set_now
+
+    # Spontaneous glitches: a Poisson stream. 0 means not scheduled yet, then we
+    # only assign the first interval, without firing
+    if ((now >= next_glitch_ms)); then
+      ((next_glitch_ms > 0)) && fire_glitch
+      exp_ms "$GLITCH_MEAN" "$GLITCH_MIN" "$GLITCH_MAX"
+      next_glitch_ms=$((now + exp_v))
+    fi
+
+    advance
+    build_frame
+    build_name
+    publish
+
+    next_tick_ms
+    wait_ms "$tick_v"
+  done
+
+  wait "$hyprlock_pid" 2>/dev/null || true
+}
+
+case "${1:-lock}" in
+lock) cmd_lock ;;
 help | -h | --help) usage ;;
 *)
   usage >&2
