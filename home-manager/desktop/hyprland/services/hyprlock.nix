@@ -2,22 +2,18 @@
 
 # Background is a static image, not a screenshot: compositor would double-apply screen_shader on a screenshot
 # Text uses label widgets, not image: label updates asynchronously in ms, image widget blocks on reload_cmd (≥1s latency)
-# The dialog labels only `cat` what hyprlock-quote.sh renders, so the poll is cheap and hyprlock owns the clock.
-# Deliberately NOT the cmd[update:0:1] + SIGUSR2 push: hyprlock's handler walks its timer vector without taking
-# timersMutex and does allocating work inside the handler, so signalling a busy locker races or deadlocks it
+# Labels just cat what hyprlock-quote.sh writes; pushing via SIGUSR2 instead is unsafe — hyprlock's handler
+# touches its timer vector without the mutex and allocates, so it deadlocks a busy locker (upstream PR #539)
 let
   backgroundImage = "${huixDir}/assets/just-monika.png";
   dialogAsset = "${huixDir}/assets/ddlc-stickers/dialog-box.png";
   quoteScript = "${huixDir}/scripts/hyprlock-quote.sh";
 
-  # Where the script publishes the rendered dialog; expanded by the shell that
-  # hyprlock runs label commands through, so nothing is baked to an absolute path
+  # Expanded by the shell hyprlock runs label commands through, not baked in at build
   stateDir = "\${XDG_RUNTIME_DIR:-/tmp}/hypr-ddlc";
 
-  # The one frame rate of the lock screen: hyprlock polls the labels this often and
-  # the script is handed the same number, so it never renders frames nobody reads.
-  # Matches CPS=10 (one revealed character per tick); each update costs a /bin/sh,
-  # so halving this doubles the cost of the whole lock screen
+  # The one frame rate: also handed to the script, so it never renders unread frames.
+  # One character per tick at CPS=10; each update costs a /bin/sh, so don't lower it
   pollMs = 100;
 
   # Asset geometry: a 1280x720 canvas, the visible box on it (x-centered, with a
@@ -59,8 +55,7 @@ let
     // l;
 in
 {
-  # The geometry above is the only source of TEXT_W/FONT_PX, so the lock command
-  # is assembled here and consumed by hypridle.nix rather than re-derived there
+  # Geometry above is the only source of TEXT_W/FONT_PX — hypridle.nix consumes this
   options.custom.hyprlock.lockCommand = lib.mkOption {
     type = lib.types.str;
     readOnly = true;

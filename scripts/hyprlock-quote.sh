@@ -329,9 +329,8 @@ next_tick_ms() {
   tick_v=$((t - now))
 }
 
-# Sleep on the journal follower: a wrong password wakes us instantly, everything
-# else is a plain timeout. Falls back to sleep(1) if the follower ever dies, so a
-# closed fd can never turn this into a spin
+# Sleep on the journal follower so a wrong password wakes us instantly; falls back
+# to sleep(1) if it dies, so a closed fd can't turn this into a spin
 wait_ms() {
   local to rc=0
   printf -v to '%d.%03d' $(($1 / 1000)) $(($1 % 1000))
