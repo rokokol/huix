@@ -112,6 +112,7 @@ cur=""         # current line, already wrapped
 frame_prev=$'\0'
 name_prev=$'\0'
 now=0
+ready=0 # hyprlock has installed its SIGUSR2 handler and is safe to signal
 
 # Milliseconds without spawning date: EPOCHREALTIME = "sec.usec" (bash >= 5;
 # the separator depends on the locale — strip both the dot and the comma)
@@ -305,6 +306,21 @@ build_name() {
   name_v="$NAME_ANCHOR$name$NAME_ANCHOR"
 }
 
+# SIGUSR2's default action is terminate, and hyprlock installs its handler only
+# once it is up — a signal landing in that window kills the locker outright
+# (exit 140). SigCgt is the kernel's own "handler installed" bitmask, bit 11 for
+# signal 12, and reading it costs no fork
+hyprlock_ready() {
+  ((ready)) && return 0
+  local key val
+  { while read -r key val; do
+    [[ "$key" == "SigCgt:" ]] || continue
+    ((0x$val & 0x800)) && ready=1
+    break
+  done; } 2>/dev/null < "/proc/$hyprlock_pid/status"
+  ((ready))
+}
+
 # Write atomically (a label may be reading) and wake hyprlock only on a real
 # change — this is the whole budget of the lock screen
 publish() {
@@ -319,6 +335,12 @@ publish() {
     printf '%s' "$name_v" >"$NAME_FILE.tmp"
     mv "$NAME_FILE.tmp" "$NAME_FILE"
     name_prev=$name_v
+    changed=1
+  fi
+  # while hyprlock is still starting the files are kept current but never
+  # signalled; the first signal after it is ready pushes whatever is on screen
+  if ((!ready)); then
+    hyprlock_ready || return 0
     changed=1
   fi
   ((changed)) && kill -USR2 "$hyprlock_pid" 2>/dev/null
@@ -376,8 +398,9 @@ cmd_lock() {
   hyprlock &
   hyprlock_pid=$!
 
+  # exec so $JOURNAL_PID is journalctl itself, not a subshell wrapping it
   coproc JOURNAL {
-    journalctl -f -n 0 -q -t hyprlock -g 'authentication failure' -o cat
+    exec journalctl -f -n 0 -q -t hyprlock -g 'authentication failure' -o cat
   }
   journal_fd=${JOURNAL[0]}
   trap 'kill "$JOURNAL_PID" 2>/dev/null || true' EXIT
