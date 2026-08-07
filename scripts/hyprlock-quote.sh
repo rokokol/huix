@@ -12,13 +12,9 @@ Modes:
          rofi-power.sh, the idle timeout) funnels through it
   help   this help
 
-The two dialog labels in hyprlock.conf do nothing but `cat` the files this loop
-writes, on hyprlock's own fixed poll. Nothing is ever signalled to hyprlock: its
-SIGUSR2 handler walks the timer vector without taking timersMutex and does
-allocating work inside the handler, so pushing updates into a busy locker races
-its timers or deadlocks it outright. Here the worst case of this loop dying is a
-dialog frozen on its last frame — the password field is hyprlock's own and keeps
-working
+The dialog labels just `cat` the files this loop writes, on hyprlock's own poll.
+Never signal hyprlock: its SIGUSR2 handler walks the timer vector without the
+mutex and allocates inside the handler, so a push into a busy locker wedges it
 
 The loop runs in the foreground with hyprlock as its child: no daemon to reap,
 and lock_cmd blocks for exactly the duration of the lock. It never kills
@@ -84,13 +80,9 @@ GLITCH_TEXT_MS=3600   # the text glitches longer than the shader
 
 FADE_MS=600 # smooth fade-out of a line
 
-# The single frame rate, shared with the label poll in hyprlock.nix — nothing can
-# appear faster than hyprlock reads the files. 100 ms is also exactly one revealed
-# character at CPS=10
+# Frame rate, shared with the label poll in hyprlock.nix; 100 ms = one char at CPS=10
 POLL_MS="${POLL_MS:-100}"
-# Ceiling on a sleep: an unlock is only noticed on the next wake, and SIGCHLD does
-# not interrupt read -t, so this is what bounds the lag. An idle wake forks nothing
-IDLE_CAP_MS=1000
+IDLE_CAP_MS=1000 # sleep ceiling: bounds how late an unlock is noticed
 
 FRAME_FILE="$STATE_DIR/frame"
 NAME_FILE="$STATE_DIR/name"
@@ -309,10 +301,7 @@ build_name() {
   name_v="$NAME_ANCHOR$name$NAME_ANCHOR"
 }
 
-# Write atomically — hyprlock polls these files on its own clock and a label may
-# be reading mid-write. We never signal it: its SIGUSR2 handler walks the timer
-# vector without timersMutex and allocates inside the handler, so a signal to a
-# busy locker (auth in flight, glitch storm) races or deadlocks it
+# Atomic: hyprlock polls these on its own clock and may read mid-write
 publish() {
   if [[ "$frame_v" != "$frame_prev" ]]; then
     printf '%s' "$frame_v" >"$FRAME_FILE.tmp"
@@ -326,9 +315,7 @@ publish() {
   fi
 }
 
-# Milliseconds until the next visible change -> $tick_v. While anything moves we
-# render at exactly the rate hyprlock polls — writing faster only burns forks on
-# frames no one can see; while nothing moves we sleep to the next state change
+# ms until the next visible change -> $tick_v; rendering faster than the poll is wasted
 next_tick_ms() {
   local t
   case "$phase" in
@@ -361,8 +348,7 @@ wait_ms() {
   fi
 }
 
-# A zombie still answers `kill -0`, /proc does not lie. No fork either.
-# stderr is redirected first: a missing stat file is the shell's message, not read's
+# A zombie still answers kill -0, /proc does not lie; stderr first, the error is the shell's
 hyprlock_alive() {
   local state
   read -r _ _ state _ 2>/dev/null < "/proc/$hyprlock_pid/stat" || return 1
