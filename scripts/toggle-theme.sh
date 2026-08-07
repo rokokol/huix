@@ -93,6 +93,9 @@ set_libadwaita_css() {
   mkdir -p "$dst"
   ln -sfn "$src" "$dst/gtk.css"
   rm -f "$dst/assets"
+
+  # to make swayosd notice the changes
+  systemctl --user restart swayosd
 }
 
 detect_theme_state() {
