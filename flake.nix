@@ -44,12 +44,15 @@
       rokokolName = "rokokol";
       huixDir = "/home/${rokokolName}/huix";
       govnoDir = "/home/${rokokolName}/govno";
+      # Same on both hosts on purpose: absolute paths into the vault travel through Syncthing
+      myWikiDir = "/home/${rokokolName}/myWiki";
 
       commonArgs = {
         inherit
           govnoDir
           huixDir
           inputs
+          myWikiDir
           rokokolName
           system
           ;

@@ -1,6 +1,6 @@
 {
-  config,
   pkgs,
+  myWikiDir,
   rokokolName,
   ...
 }:
@@ -16,7 +16,7 @@
       core.editor = "nvim";
       core.quotepath = "false";
       safe = {
-        directory = "${config.custom.home.dataDir}/myWiki";
+        directory = myWikiDir;
       };
     };
   };
