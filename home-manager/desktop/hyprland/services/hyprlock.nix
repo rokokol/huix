@@ -1,11 +1,17 @@
-{ huixDir, ... }:
+{ lib, huixDir, ... }:
 
 # Background is a static image, not a screenshot: compositor would double-apply screen_shader on a screenshot
 # Text uses label widgets, not image: label updates asynchronously in ms, image widget blocks on reload_cmd (≥1s latency)
+# The dialog labels are cmd[update:0:1] — armed for an hour, refreshed only on SIGUSR2 from hyprlock-quote.sh, which
+# signals just the ticks where the text really changed; polling them cost a third of a core for the whole lock
 let
   backgroundImage = "${huixDir}/assets/just-monika.png";
   dialogAsset = "${huixDir}/assets/ddlc-stickers/dialog-box.png";
   quoteScript = "${huixDir}/scripts/hyprlock-quote.sh";
+
+  # Where the script publishes the rendered dialog; expanded by the shell that
+  # hyprlock runs label commands through, so nothing is baked to an absolute path
+  stateDir = "\${XDG_RUNTIME_DIR:-/tmp}/hypr-ddlc";
 
   # Asset geometry: a 1280x720 canvas, the visible box on it (x-centered, with a
   # transparent tail at the bottom) and its internals, in canvas px.
@@ -46,7 +52,16 @@ let
     // l;
 in
 {
-  programs.hyprlock = {
+  # The geometry above is the only source of TEXT_W/FONT_PX, so the lock command
+  # is assembled here and consumed by hypridle.nix rather than re-derived there
+  options.custom.hyprlock.lockCommand = lib.mkOption {
+    type = lib.types.str;
+    readOnly = true;
+    default = "STATE_DIR=\"${stateDir}\" TEXT_W=${toString textW} FONT_PX=${toString fontPx} ${quoteScript} lock";
+    description = "command that runs a lock: hyprlock plus its dialog animation";
+  };
+
+  config.programs.hyprlock = {
     enable = true;
 
     settings = {
@@ -119,7 +134,7 @@ in
         # Name on the plate: a separate label (not baked into the PNG) so it
         # glitches together with the text and at the same rate. The pink "outline" is a shadow.
         {
-          text = "cmd[update:33] ${quoteScript} name";
+          text = "cmd[update:0:1] cat \"${stateDir}/name\"";
           font_size = 28;
           color = "rgba(ffffffff)";
           shadow_passes = 2;
@@ -133,10 +148,9 @@ in
         }
         # Line: a constant texture size (see the header) + halign center
         # + valign bottom pin the top-left of the text right at the text-area
-        # padding. The black "outline" is a shadow. A 33 ms poll = smooth
-        # typing at ~1 char/frame when CPS=30.
+        # padding. The black "outline" is a shadow.
         {
-          text = "cmd[update:33] TEXT_W=${toString textW} FONT_PX=${toString fontPx} ${quoteScript} frame";
+          text = "cmd[update:0:1] cat \"${stateDir}/frame\"";
           font_size = quoteFontSize;
           color = "rgba(ffffffff)";
           shadow_passes = 4;
