@@ -2,6 +2,7 @@
   config,
   lib,
   huixDir,
+  myWikiDir,
   rokokolName,
   ...
 }:
@@ -9,7 +10,6 @@
 let
   cfg = config.custom.home;
   homeDir = "/home/${rokokolName}";
-  myWikiDir = "${cfg.dataDir}/myWiki";
   downloadsDir = "${homeDir}/Downloads";
   projectsDir = "${homeDir}/Projects";
   tempDir = "/tmp/Temp";
@@ -25,7 +25,7 @@ in
   options.custom.home = {
     dataDir = lib.mkOption {
       type = lib.types.str;
-      description = "user data root: Documents/Pictures/Videos and myWiki";
+      description = "user data root: Documents/Pictures/Videos (the myWiki vault lives in $HOME on both hosts)";
     };
   };
 

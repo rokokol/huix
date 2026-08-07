@@ -23,7 +23,7 @@ HM подключён не отдельным потоком, а как NixOS-м
 | Файл / каталог | Что внутри |
 | --- | --- |
 | `home-pc.nix` / `home-laptop.nix` | точки входа per-host: весь вход `custom.*` (hyprland, waybar, packages, dataDir) + btop-пакет |
-| `desktop/user.nix` | XDG-директории, закладки, tmpfiles, env; база данных хоста — опция `custom.home.dataDir` |
+| `desktop/user.nix` | XDG-директории, закладки, tmpfiles, env; Documents/Pictures/Videos живут в `custom.home.dataDir` (на ПК это NTFS `govno`), волт — в `myWikiDir` из `commonArgs`, одинаковый на обоих хостах |
 | `desktop/sync.nix` | systemd-сервис авто-синка конфига (`scripts/sync.sh`, на старте сессии и после `nixos-rebuild`) |
 | [`desktop/hyprland/`](desktop/hyprland/README.md) | `hyprland.conf`, единый `hyprland.nix` с опциями `custom.hyprland.*`, `services/`: waybar, mako, hypridle, обои-коллажер |
 | `desktop/packages/` | `packages.nix`: общие пакеты + группы с флагами `custom.packages.{pc,laptop}` + `mime-apps` |

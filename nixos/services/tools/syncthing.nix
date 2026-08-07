@@ -1,4 +1,4 @@
-{ rokokolName, ... }:
+{ myWikiDir, rokokolName, ... }:
 
 let
   homeDir = "/home/${rokokolName}";
@@ -33,7 +33,7 @@ in
 
     settings.folders."myWiki" = {
       id = "3heyc-wgheb";
-      path = "${homeDir}/govno/myWiki";
+      path = myWikiDir;
       devices = [ "laptop" "nixos-pc" "phone" ];
       type = "sendreceive";
     };
