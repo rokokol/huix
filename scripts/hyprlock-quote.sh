@@ -12,11 +12,13 @@ Modes:
          rofi-power.sh, the idle timeout) funnels through it
   help   this help
 
-Rendering is push, not polling. The two dialog labels in hyprlock.conf are
-declared cmd[update:0:1] — armed for an hour, refreshed only when hyprlock gets
-SIGUSR2 — and do nothing but `cat` the files this loop writes. The loop signals
-only on the ticks where the rendered text actually changed, and between lines it
-sleeps outright, so a lock screen standing still costs nothing
+The two dialog labels in hyprlock.conf do nothing but `cat` the files this loop
+writes, on hyprlock's own fixed poll. Nothing is ever signalled to hyprlock: its
+SIGUSR2 handler walks the timer vector without taking timersMutex and does
+allocating work inside the handler, so pushing updates into a busy locker races
+its timers or deadlocks it outright. Here the worst case of this loop dying is a
+dialog frozen on its last frame — the password field is hyprlock's own and keeps
+working
 
 The loop runs in the foreground with hyprlock as its child: no daemon to reap,
 and lock_cmd blocks for exactly the duration of the lock. It never kills
@@ -38,6 +40,8 @@ Geometry is set by hyprlock.nix through the environment:
   TEXT_W     width of the box text area, px (default 1114)
   FONT_PX    line font size, px (font_size * 4/3; default 32) — the wrap and
              space-line-width metrics are derived from it
+  POLL_MS    how often hyprlock re-reads the files (default 100); the loop
+             renders at exactly this rate and never faster
   STATE_DIR  where the rendered frame/name files live; hyprlock.nix points the
              labels at the same path
 
@@ -80,10 +84,10 @@ GLITCH_TEXT_MS=3600   # the text glitches longer than the shader
 
 FADE_MS=600 # smooth fade-out of a line
 
-# Tick as fast as the pixels actually move, never faster: one char per 1000/CPS
-# while typing, but the alpha ramp and the mojibake churn need every frame
-TYPE_MS=$((1000 / CPS))
-ANIM_MS=33
+# The single frame rate, shared with the label poll in hyprlock.nix — nothing can
+# appear faster than hyprlock reads the files. 100 ms is also exactly one revealed
+# character at CPS=10
+POLL_MS="${POLL_MS:-100}"
 # Ceiling on a sleep: an unlock is only noticed on the next wake, and SIGCHLD does
 # not interrupt read -t, so this is what bounds the lag. An idle wake forks nothing
 IDLE_CAP_MS=1000
@@ -112,7 +116,6 @@ cur=""         # current line, already wrapped
 frame_prev=$'\0'
 name_prev=$'\0'
 now=0
-ready=0 # hyprlock has installed its SIGUSR2 handler and is safe to signal
 
 # Milliseconds without spawning date: EPOCHREALTIME = "sec.usec" (bash >= 5;
 # the separator depends on the locale — strip both the dot and the comma)
@@ -142,8 +145,8 @@ esc() {
 }
 
 # "Broken encoding" -> $glitch_v: ~30% of characters are replaced with mojibake
-# glyphs; regenerated on every call so the garbage "lives". Pure bash — at 33 ms
-# a fork per frame is exactly what this rewrite exists to avoid
+# glyphs; regenerated on every call so the garbage "lives". Pure bash: a fork per
+# frame is exactly what this rewrite exists to avoid
 glitch_text() {
   local s=$1 out="" c i
   for ((i = 0; i < ${#s}; i++)); do
@@ -306,57 +309,34 @@ build_name() {
   name_v="$NAME_ANCHOR$name$NAME_ANCHOR"
 }
 
-# SIGUSR2's default action is terminate, and hyprlock installs its handler only
-# once it is up — a signal landing in that window kills the locker outright
-# (exit 140). SigCgt is the kernel's own "handler installed" bitmask, bit 11 for
-# signal 12, and reading it costs no fork
-hyprlock_ready() {
-  ((ready)) && return 0
-  local key val
-  { while read -r key val; do
-    [[ "$key" == "SigCgt:" ]] || continue
-    ((0x$val & 0x800)) && ready=1
-    break
-  done; } 2>/dev/null < "/proc/$hyprlock_pid/status"
-  ((ready))
-}
-
-# Write atomically (a label may be reading) and wake hyprlock only on a real
-# change — this is the whole budget of the lock screen
+# Write atomically — hyprlock polls these files on its own clock and a label may
+# be reading mid-write. We never signal it: its SIGUSR2 handler walks the timer
+# vector without timersMutex and allocates inside the handler, so a signal to a
+# busy locker (auth in flight, glitch storm) races or deadlocks it
 publish() {
-  local changed=0
   if [[ "$frame_v" != "$frame_prev" ]]; then
     printf '%s' "$frame_v" >"$FRAME_FILE.tmp"
     mv "$FRAME_FILE.tmp" "$FRAME_FILE"
     frame_prev=$frame_v
-    changed=1
   fi
   if [[ "$name_v" != "$name_prev" ]]; then
     printf '%s' "$name_v" >"$NAME_FILE.tmp"
     mv "$NAME_FILE.tmp" "$NAME_FILE"
     name_prev=$name_v
-    changed=1
   fi
-  # while hyprlock is still starting the files are kept current but never
-  # signalled; the first signal after it is ready pushes whatever is on screen
-  if ((!ready)); then
-    hyprlock_ready || return 0
-    changed=1
-  fi
-  ((changed)) && kill -USR2 "$hyprlock_pid" 2>/dev/null
-  return 0
 }
 
-# Milliseconds until the next visible change -> $tick_v
+# Milliseconds until the next visible change -> $tick_v. While anything moves we
+# render at exactly the rate hyprlock polls — writing faster only burns forks on
+# frames no one can see; while nothing moves we sleep to the next state change
 next_tick_ms() {
   local t
   case "$phase" in
-  typing) t=$((now + TYPE_MS)) ;;
-  fadeout) t=$((now + ANIM_MS)) ;;
+  typing | fadeout) t=$((now + POLL_MS)) ;;
   *) t=$until_ms ;;
   esac
   ((next_glitch_ms < t)) && t=$next_glitch_ms
-  ((glitch_until_ms > now && now + ANIM_MS < t)) && t=$((now + ANIM_MS))
+  ((glitch_until_ms > now && now + POLL_MS < t)) && t=$((now + POLL_MS))
   ((t > now + IDLE_CAP_MS)) && t=$((now + IDLE_CAP_MS))
   ((t < now)) && t=$now
   tick_v=$((t - now))
