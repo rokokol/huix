@@ -2,8 +2,9 @@
 
 # Background is a static image, not a screenshot: compositor would double-apply screen_shader on a screenshot
 # Text uses label widgets, not image: label updates asynchronously in ms, image widget blocks on reload_cmd (≥1s latency)
-# The dialog labels are cmd[update:0:1] — armed for an hour, refreshed only on SIGUSR2 from hyprlock-quote.sh, which
-# signals just the ticks where the text really changed; polling them cost a third of a core for the whole lock
+# The dialog labels only `cat` what hyprlock-quote.sh renders, so the poll is cheap and hyprlock owns the clock.
+# Deliberately NOT the cmd[update:0:1] + SIGUSR2 push: hyprlock's handler walks its timer vector without taking
+# timersMutex and does allocating work inside the handler, so signalling a busy locker races or deadlocks it
 let
   backgroundImage = "${huixDir}/assets/just-monika.png";
   dialogAsset = "${huixDir}/assets/ddlc-stickers/dialog-box.png";
@@ -12,6 +13,12 @@ let
   # Where the script publishes the rendered dialog; expanded by the shell that
   # hyprlock runs label commands through, so nothing is baked to an absolute path
   stateDir = "\${XDG_RUNTIME_DIR:-/tmp}/hypr-ddlc";
+
+  # The one frame rate of the lock screen: hyprlock polls the labels this often and
+  # the script is handed the same number, so it never renders frames nobody reads.
+  # Matches CPS=10 (one revealed character per tick); each update costs a /bin/sh,
+  # so halving this doubles the cost of the whole lock screen
+  pollMs = 100;
 
   # Asset geometry: a 1280x720 canvas, the visible box on it (x-centered, with a
   # transparent tail at the bottom) and its internals, in canvas px.
@@ -57,7 +64,7 @@ in
   options.custom.hyprlock.lockCommand = lib.mkOption {
     type = lib.types.str;
     readOnly = true;
-    default = "STATE_DIR=\"${stateDir}\" TEXT_W=${toString textW} FONT_PX=${toString fontPx} ${quoteScript} lock";
+    default = "STATE_DIR=\"${stateDir}\" TEXT_W=${toString textW} FONT_PX=${toString fontPx} POLL_MS=${toString pollMs} ${quoteScript} lock";
     description = "command that runs a lock: hyprlock plus its dialog animation";
   };
 
@@ -134,7 +141,7 @@ in
         # Name on the plate: a separate label (not baked into the PNG) so it
         # glitches together with the text and at the same rate. The pink "outline" is a shadow.
         {
-          text = "cmd[update:0:1] cat \"${stateDir}/name\"";
+          text = "cmd[update:${toString pollMs}] cat \"${stateDir}/name\"";
           font_size = 28;
           color = "rgba(ffffffff)";
           shadow_passes = 2;
@@ -150,7 +157,7 @@ in
         # + valign bottom pin the top-left of the text right at the text-area
         # padding. The black "outline" is a shadow.
         {
-          text = "cmd[update:0:1] cat \"${stateDir}/frame\"";
+          text = "cmd[update:${toString pollMs}] cat \"${stateDir}/frame\"";
           font_size = quoteFontSize;
           color = "rgba(ffffffff)";
           shadow_passes = 4;
