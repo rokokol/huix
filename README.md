@@ -87,7 +87,7 @@ nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHW
 ## TODO
 
 - [ ] Трайнуть stylix
-- [ ] Настроить секреты в sops-nix
+- [x] Настроить секреты в sops-nix — ключ `~/.config/sops/age/keys.txt`, секреты в `secrets/secrets.yaml`. **Ключ не в репо: перед первым ребилдом на другом хосте его надо туда скопировать, иначе активация упадёт**
 - [ ] Настроить disko
 
 <br/>
