@@ -134,3 +134,50 @@ nix build --no-link --impure --expr \
 ```
 
 Builds clean → drop `overlay-hyprland` from `flake.nix` and from both host overlay lists. Still fails on `glaze` → keep it, and bump the pinned tag only if hyprland itself moved on
+
+---
+
+# Deferred
+
+Not workarounds — gaps in this repo's own flake that nothing upstream forces. They sit here because the two extracted repos (`ddlc-sddm-theme`, `ddlc-palette`) already have both, so this list is what it takes to bring the parent up to the same footing. Same rule as above: each carries a mechanical check
+
+## No `formatter` output
+
+**Where:** `flake.nix` — the outputs attrset
+
+**What it costs:** `nix fmt` does not work in this repo at all; the two hundred-odd `.nix` files are formatted by eye. Both extracted repos set `formatter = pkgs.nixfmt-tree` and run `nix fmt -- --ci` in CI, which does not rewrite anything and fails if a file is off-style
+
+**What it takes:** add `formatter.${system} = pkgs.nixfmt-tree;`, then one treewide `nix fmt` commit on its own so the reformat never mixes with a real change
+
+**Check:**
+
+```sh
+nix eval --raw .#formatter.x86_64-linux.name
+```
+
+Errors out → still missing
+
+## `checks` is empty, so `nix flake check` proves nothing
+
+**Where:** `flake.nix` — there is no `checks` output; `CLAUDE.md` already records this as "no `nix flake check` target wired up"
+
+**What it costs:** validating the repo means remembering two separate `nix build .#nixosConfigurations.<host>...` invocations. `nix flake check` currently only confirms the outputs evaluate — it builds nothing
+
+**What it takes:**
+
+```nix
+checks.${system} = {
+  nixos-pc = self.nixosConfigurations.nixos-pc.config.system.build.toplevel;
+  nixos-laptop = self.nixosConfigurations.nixos-laptop.config.system.build.toplevel;
+};
+```
+
+Both hosts then build from one command, and `nix flake check` additionally validates every other output — module shape, `meta` on packages, app form
+
+**Check:**
+
+```sh
+nix eval .#checks.x86_64-linux --apply builtins.attrNames
+```
+
+Errors out, or returns `[ ]` → still missing
