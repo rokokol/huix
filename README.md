@@ -42,6 +42,7 @@
 - CUDA-пакеты берутся из выделенных attrs (`ollama-cuda`, `btop-cuda`, флейк `comfyui-nix`), а не из глобального оверлея. Кодогенерация CUDA ограничена архитектурой GPU (RTX 3060 = `sm_86`, capability `8.6`) через `cudaCapabilities` в общем `nixpkgsConfig` — менять при смене GPU. Это сужает арку, не включая глобальный `cudaSupport`, так что подхватывает только `ollama-cuda`
 - Home Manager подключён не отдельным потоком, а как NixOS-модуль с `useGlobalPkgs = true` — системный и пользовательский слой делят один пакетный набор и overlays
 - `commonArgs` (`rokokolName`, `huixDir`, `govnoDir`, `myWikiDir`, `system`, `inputs`) пробрасывается и в системные модули через `specialArgs`, и в HM через `extraSpecialArgs` — это единственный способ протащить константы через границу флейка
+- MIT покрывает только код. Спрайты DDLC, шрифт `Doki`, курсоры и цитаты Моники принадлежат Team Salvato и лежат тут как фан-контент — условия в [ASSETS.md](ASSETS.md). Проект не аффилирован с Team Salvato и ими не одобрен
 
 ## Хосты
 
