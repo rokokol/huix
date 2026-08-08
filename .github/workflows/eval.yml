@@ -1,0 +1,30 @@
+name: eval
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        host: [nixos-pc, nixos-laptop]
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            accept-flake-config = true
+
+      # Eval, not build: ollama-cuda misses every cache and always compiles, so a
+      # full build of nixos-pc cannot finish on a hosted runner
+      - name: Evaluate ${{ matrix.host }}
+        run: |
+          nix eval --no-write-lock-file \
+            ".#nixosConfigurations.${{ matrix.host }}.config.system.build.toplevel.drvPath"
