@@ -2,12 +2,14 @@
   pkgs,
   config,
   lib,
+  palette,
   ...
 }:
 
 let
   rofiConfigDir = "${config.xdg.configHome}/rofi";
   rofiThemesDir = "${rofiConfigDir}/themes";
+  themes = import ./theme.nix { inherit palette; };
 in
 {
   programs.rofi = {
@@ -52,10 +54,11 @@ in
     @theme "${rofiThemesDir}/active.rasi"
   '';
 
-  xdg.configFile."rofi/themes/light.rasi".source = ./theme-light.rasi;
-  xdg.configFile."rofi/themes/dark.rasi".source = ./theme-dark.rasi;
-  xdg.configFile."rofi/assets/polka-light.svg".source = ./assets/polka-light.svg;
-  xdg.configFile."rofi/assets/polka-dark.svg".source = ./assets/polka-dark.svg;
+  xdg.configFile."rofi/assets/polka-light.svg".text = themes.polkaLight;
+  xdg.configFile."rofi/assets/polka-dark.svg".text = themes.polkaDark;
+
+  xdg.configFile."rofi/themes/light.rasi".text = themes.light;
+  xdg.configFile."rofi/themes/dark.rasi".text = themes.dark;
 
   home.sessionVariables = {
     ROFI_THEMES_DIR = rofiThemesDir;

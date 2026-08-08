@@ -1,4 +1,9 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  palette,
+  ...
+}:
 
 let
   cfg = config.custom.waybar;
@@ -79,7 +84,7 @@ in
               mode = "month";
               on-scroll = 1;
               format = {
-                today = "<span color='#f11a7e'><b><u>{}</u></b></span>";
+                today = "<span color='${palette.plum}'><b><u>{}</u></b></span>";
               };
             };
             "actions" = {
@@ -163,12 +168,12 @@ in
 
         /* Modules style (islands) */
         #workspaces, #window, #clock, #pulseaudio, #network, #language, #custom-gpu, #custom-shader, #custom-notifications, #hardware, #backlight, #battery, #tray {
-            background: rgba(255, 240, 245, 0.9);
-            color: #4c4c4c;
+            background: ${palette.rgba palette.dot "0.9"};
+            color: ${palette.inkSoft};
             padding: 0px 8px;
             margin: 2px 1px;
             border-radius: 12px;
-            border: 1px solid #ff70a6;
+            border: 1px solid ${palette.pink};
         }
 
         /* Remove borders/backgrounds from modules inside the hardware group so they blend */
@@ -177,48 +182,48 @@ in
             border: none;
             margin: 0;
             padding: 0 4px;
-            color: #4c4c4c;
+            color: ${palette.inkSoft};
         }
 
         #clock {
-            color: #f11a7e;
+            color: ${palette.plum};
             padding: 0 12px;
         }
 
         /* "Do not disturb" mode — the island dims to gray */
         #custom-notifications.dnd {
-            background: rgba(224, 224, 224, 0.9);
-            border: 1px solid #9e9e9e;
-            color: #757575;
+            background: ${palette.rgba palette.ash "0.9"};
+            border: 1px solid ${palette.muted};
+            color: ${palette.muted};
         }
 
         #window {
             background: transparent;
-            color: #fceaf1;
+            color: ${palette.textOnDark};
             border: none;
             box-shadow: none;
 
             text-shadow:
-                -1px -1px 0 #000000,
-                 1px -1px 0 #000000,
-                -1px  1px 0 #000000,
-                 1px  1px 0 #000000;
+                -1px -1px 0 ${palette.ink},
+                 1px -1px 0 ${palette.ink},
+                -1px  1px 0 ${palette.ink},
+                 1px  1px 0 ${palette.ink};
         }
 
         #workspaces button {
             padding: 0 2px;
-            color: #ffbde1;
+            color: ${palette.blush};
         }
 
         #workspaces button.active {
-            color: #f11a7e;
-            background: white;
+            color: ${palette.plum};
+            background: ${palette.paper};
             border-radius: 10px;
             min-width: 20px;
         }
 
         #workspaces button.urgent {
-            color: #ff0000;
+            color: ${palette.corrupt};
             animation-name: glitch-text;
             animation-duration: 0.3s;
             animation-iteration-count: infinite;
@@ -227,13 +232,13 @@ in
 
         @keyframes glitch-text {
             0% {
-                text-shadow: 2px 0 0 #00ffff;
+                text-shadow: 2px 0 0 ${palette.splitCyan};
             }
             50% {
-                text-shadow: -2px 0 0 #ff00ff;
+                text-shadow: -2px 0 0 ${palette.splitMagenta};
             }
             100% {
-                text-shadow: 2px 0 0 #00ffff;
+                text-shadow: 2px 0 0 ${palette.splitCyan};
             }
         }
       '';

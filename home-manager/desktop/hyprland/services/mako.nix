@@ -1,4 +1,9 @@
-{ pkgs, lib, ... }:
+{
+  pkgs,
+  lib,
+  palette,
+  ...
+}:
 
 {
   # mako doesn't re-read its config by itself (exec-once, no systemd unit) — we
@@ -28,27 +33,29 @@
       icons = 1;
       max-icon-size = 48;
 
+      # Urgency stays colour-coded rather than DDLC-pink: at a glance the level has to read
+      # before the theme does. The values come from theme/palette.nix all the same
       "urgency=low" = {
-        background-color = "#e8f5e9";
-        text-color = "#1b5e20";
-        border-color = "#4caf50";
-        progress-color = "over #c8e6c9";
+        background-color = palette.okBg;
+        text-color = palette.okFg;
+        border-color = palette.okLine;
+        progress-color = "over ${palette.okSoft}";
         default-timeout = 4000;
       };
 
       "urgency=normal" = {
-        background-color = "#fff8e1";
-        text-color = "#825e00";
-        border-color = "#ffb300";
-        progress-color = "over #ffe082";
+        background-color = palette.warnBg;
+        text-color = palette.warnFg;
+        border-color = palette.warnLine;
+        progress-color = "over ${palette.warnSoft}";
         default-timeout = 8000;
       };
 
       "urgency=critical" = {
-        background-color = "#ffebee";
-        text-color = "#b71c1c";
-        border-color = "#e53935";
-        progress-color = "over #ffcdd2";
+        background-color = palette.critBg;
+        text-color = palette.critFg;
+        border-color = palette.critLine;
+        progress-color = "over ${palette.critSoft}";
         default-timeout = 20000;
       };
 

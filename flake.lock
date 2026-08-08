@@ -21,6 +21,26 @@
     "ddlc-palette": {
       "inputs": {
         "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1786222473,
+        "narHash": "sha256-aeVYQDBSmZPv6RHWjPaDzAdpZqIHG4w8c3pKbsJeXjg=",
+        "owner": "rokokol",
+        "repo": "ddlc-palette",
+        "rev": "0918ecd9362f72b8e37a17db2e2efde94171c8a3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "ddlc-palette",
+        "type": "github"
+      }
+    },
+    "ddlc-palette_2": {
+      "inputs": {
+        "nixpkgs": [
           "ddlc-sddm-theme",
           "nixpkgs"
         ]
@@ -41,7 +61,7 @@
     },
     "ddlc-sddm-theme": {
       "inputs": {
-        "ddlc-palette": "ddlc-palette",
+        "ddlc-palette": "ddlc-palette_2",
         "nixpkgs": [
           "nixpkgs"
         ]
@@ -311,6 +331,7 @@
     "root": {
       "inputs": {
         "comfyui-nix": "comfyui-nix",
+        "ddlc-palette": "ddlc-palette",
         "ddlc-sddm-theme": "ddlc-sddm-theme",
         "freesmlauncher": "freesmlauncher",
         "home-manager": "home-manager",

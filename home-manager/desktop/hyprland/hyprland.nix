@@ -2,11 +2,14 @@
   config,
   lib,
   osConfig,
+  palette,
   ...
 }:
 
 let
   cfg = config.custom.hyprland;
+  # hyprland wants bare hex inside rgba()
+  bare = c: lib.removePrefix "#" c;
 in
 {
   imports = [
@@ -57,6 +60,14 @@ in
       systemd.enable = false;
 
       settings = {
+        # Emitted before hyprland.conf is sourced, so the file can stay colour-free
+        general = {
+          "col.active_border" = "rgba(${bare palette.pink}ee) rgba(${bare palette.plum}ee) 45deg";
+          "col.inactive_border" = "rgba(${bare palette.muted}aa)";
+        };
+
+        decoration.shadow.color = "rgba(${bare palette.ink}ee)";
+
         monitor = [
           ",preferred,auto,${cfg.monitorScale}"
         ];

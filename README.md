@@ -33,12 +33,8 @@
 [![rofi](https://img.shields.io/badge/rofi-лаунчер-EE2A7B?style=for-the-badge)](home-manager/programs/rofi/README.md)
 [![scripts](https://img.shields.io/badge/scripts-скрипты-4EAA25?style=for-the-badge&logo=gnubash&logoColor=white)](scripts/README.md)
 [![shaders](https://img.shields.io/badge/shaders-эффекты-FF4088?style=for-the-badge&logo=opengl&logoColor=white)](scripts/shaders/README.md)
-
-## Вынесено в отдельные репы
-
-Куски, которые сами по себе — законченные проекты, живут отдельно и подключаются сюда flake-инпутами:
-
 [![ddlc-sddm-theme](https://img.shields.io/badge/ddlc--sddm--theme-экран_логина-FF80C0?style=for-the-badge&logo=qt&logoColor=white)](https://github.com/rokokol/ddlc-sddm-theme)
+[![ddlc-palette](https://img.shields.io/badge/ddlc--palette-цвета-BB5599?style=for-the-badge)](https://github.com/rokokol/ddlc-palette)
 
 ## Что важно знать
 
@@ -52,10 +48,10 @@
 
 ## Хосты
 
-| Host           | Точка входа                                                       | Чем выделяется                                                                                                                                              |
-| -------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Host           | Точка входа                                                       | Чем выделяется                                                                                                                                  |
+| -------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
 | `nixos-pc`     | `nixos/configuration-pc.nix` + `home-manager/home-pc.nix`         | NVIDIA/CUDA, `ollama-cuda`, ComfyUI, Docker, виртуализация, SearxNG, печать, планшет, Arduino, NTFS-маунт `govno`, Steam, тяжёлый creative-стек |
-| `nixos-laptop` | `nixos/configuration-laptop.nix` + `home-manager/home-laptop.nix` | CPU-only `ollama-cpu`, Bluetooth, powertop, Tor через webtunnel, более лёгкий desktop                                                                       |
+| `nixos-laptop` | `nixos/configuration-laptop.nix` + `home-manager/home-laptop.nix` | CPU-only `ollama-cpu`, Bluetooth, powertop, Tor через webtunnel, более лёгкий desktop                                                           |
 
 ## Всякое
 
@@ -78,6 +74,7 @@ sudo nixos-generate-config --show-hardware-config > nixos/<host>/hardware-config
 - **`HUIX`** указывает на этот репо и читается скриптами и алиасами — не хардкодь `/home/rokokol/huix`, бери `$HUIX` в скриптах и `huixDir` в Nix
 - **Тема свет/тьма — рантайм, не декларатив** — `scripts/toggle-theme.sh` (`SUPER+A`) флипает dconf и пишет выбор в state. Не клади `color-scheme`/`gtk-theme` в HM, иначе `dconf load` на ребилде сбивает выбор
 - **Крышка ноута умеет не усыплять** — `SUPER SHIFT+A` (`scripts/lid-mode.sh`) держит лок `systemd-inhibit`, и закрытая крышка только гасит встроенную панель. Режим живёт до конца сессии: после ребута ноут снова засыпает от крышки
+- **Цвета не задаются на месте** — [ddlc-palette](https://github.com/rokokol/ddlc-palette) снимает их с ddlc.moe, `home-manager/desktop/theme/palette.nix` добавляет то, чего на сайте нет (тёмные фоны, уровни срочности), и раздаёт всё через `commonArgs.palette`. Хекс в модуле — повод спросить, почему он не оттуда
 - **Все сервисы биндятся на `127.0.0.1`** — наружу firewall ничего не открывает, см. [таблицу портов](nixos/services/README.md#порты-и-биндинги)
 - **`backupFileExtension = "bak"`** — фиксированная строка намеренно: суффикс с `lastModified` пересобирал HM-генерацию на каждый коммит и засыпал `$HOME` набором `.bak` на ревизию. Цена — вторая коллизия по тому же пути роняет активацию, пока старый `.bak` не удалишь руками
 

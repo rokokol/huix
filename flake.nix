@@ -21,6 +21,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Every DDLC colour in this repo comes from here — see home-manager/desktop/theme/palette.nix
+    ddlc-palette = {
+      url = "github:rokokol/ddlc-palette";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -60,12 +66,18 @@
       # Same on both hosts on purpose: absolute paths into the vault travel through Syncthing
       myWikiDir = "/home/${rokokolName}/myWiki";
 
+      # ddlc-palette holds what the site defines; palette.nix adds what it does not
+      palette = import ./home-manager/desktop/theme/palette.nix {
+        base = inputs.ddlc-palette.lib.palette;
+      };
+
       commonArgs = {
         inherit
           govnoDir
           huixDir
           inputs
           myWikiDir
+          palette
           rokokolName
           system
           ;
