@@ -26,7 +26,7 @@ the whole life of the line, and the text is pinned in place without any font
 measurements; line wrapping is just a fold by character count
 
 Glitches are a single mechanism for a wrong password and spontaneous firings (a
-Poisson stream): the screen glitches via `screen-shader.sh flash glitch`
+Poisson stream): the screen glitches via `screen-shader flash glitch`
 (composited over the active effect), at the same time the name and text are
 garbled with a "broken encoding"; the text glitches longer than the shader. A
 wrong password arrives as a line from a `journalctl -f` follower, which is also
@@ -44,7 +44,7 @@ Geometry is set by hyprlock.nix through the environment:
 Behaviour switches:
   GLITCH         1 (default) or 0. 0 drops the journal follower and the random
                  glitch stream — the dialog still types, it just never garbles
-  SCREEN_SHADER  path to screen-shader.sh for the full-screen flash. Missing or
+  SCREEN_SHADER  the screen-shader command for the full-screen flash. Missing or
                  non-executable degrades the glitch to text-only
 
 State is plain shell variables for the lifetime of the lock, so a fresh run is
@@ -65,7 +65,7 @@ STATE_DIR="${STATE_DIR:-${XDG_RUNTIME_DIR:-/tmp}/hypr-ddlc}"
 # 0 drops the journal follower and the spontaneous-glitch stream: the dialog still types,
 # it just never garbles. The full-screen flash additionally needs screen-shader
 GLITCH="${GLITCH:-1}"
-SCREEN_SHADER="${SCREEN_SHADER:-$HUIX/scripts/screen-shader.sh}"
+SCREEN_SHADER="${SCREEN_SHADER:-screen-shader}"
 
 # Doki metrics relative to the font size: at 32px a glyph averages 15px, space 8px
 AVG_ADV=$((FONT_PX * 15 / 32))
@@ -216,8 +216,9 @@ start_topic() {
 
 fire_glitch() {
   glitch_until_ms=$((now + GLITCH_TEXT_MS))
-  # Text garbling is self-contained; the screen flash is an optional extra
-  [[ -x "$SCREEN_SHADER" ]] || return 0
+  # Text garbling is self-contained; the screen flash is an optional extra.
+  # command -v, not -x: SCREEN_SHADER may be a bare command name on PATH
+  command -v "$SCREEN_SHADER" >/dev/null 2>&1 || return 0
   "$SCREEN_SHADER" flash glitch "$GLITCH_SHADER_SEC" \
     </dev/null >/dev/null 2>&1 &
 }

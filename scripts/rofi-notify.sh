@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# mako notification feed in rofi (script-modi, like rofi-shader.sh): a DND toggle,
+# mako notification feed in rofi (a script-modi, like the shader picker): a DND toggle,
 # history clear, clicking a notification copies its text. All the logic is in
 # notify-center.sh, this is only the presentation
 

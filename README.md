@@ -32,7 +32,7 @@
 [![nixvim](https://img.shields.io/badge/nixvim-neovim-019733?style=for-the-badge&logo=neovim&logoColor=white)](home-manager/programs/nixvim/README.md)
 [![rofi](https://img.shields.io/badge/rofi-лаунчер-EE2A7B?style=for-the-badge)](home-manager/programs/rofi/README.md)
 [![scripts](https://img.shields.io/badge/scripts-скрипты-4EAA25?style=for-the-badge&logo=gnubash&logoColor=white)](scripts/README.md)
-[![shaders](https://img.shields.io/badge/shaders-эффекты-FF4088?style=for-the-badge&logo=opengl&logoColor=white)](scripts/shaders/README.md)
+[![screen-shader](https://img.shields.io/badge/screen--shader-эффекты-FF4088?style=for-the-badge&logo=opengl&logoColor=white)](https://github.com/rokokol/hyprland-screen-shader)
 [![ddlc-sddm-theme](https://img.shields.io/badge/ddlc--sddm--theme-экран_логина-FF80C0?style=for-the-badge&logo=qt&logoColor=white)](https://github.com/rokokol/ddlc-sddm-theme)
 [![ddlc-palette](https://img.shields.io/badge/ddlc--palette-цвета-BB5599?style=for-the-badge)](https://github.com/rokokol/ddlc-palette)
 

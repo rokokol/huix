@@ -83,7 +83,7 @@ in
       default = cfg.dialog;
       description = ''
         Garble the dialog on a wrong password and at random intervals. Adds a journalctl follower;
-        the full-screen flash also needs scripts/screen-shader.sh, and degrades to text-only
+        the full-screen flash also needs screen-shader, and degrades to text-only
         garbling without it
       '';
     };
@@ -94,7 +94,7 @@ in
       readOnly = true;
       default =
         if cfg.dialog then
-          "STATE_DIR=\"${stateDir}\" TEXT_W=${toString textW} FONT_PX=${toString fontPx} POLL_MS=${toString pollMs} GLITCH=${if cfg.glitch then "1" else "0"} ${quoteScript} lock"
+          "STATE_DIR=\"${stateDir}\" TEXT_W=${toString textW} FONT_PX=${toString fontPx} POLL_MS=${toString pollMs} GLITCH=${if cfg.glitch then "1" else "0"} SCREEN_SHADER=${lib.getExe config.programs.screen-shader.package} ${quoteScript} lock"
         else
           lib.getExe config.programs.hyprlock.package;
       description = "command that runs a lock: hyprlock, plus its dialog animation when enabled";

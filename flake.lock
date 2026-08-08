@@ -177,6 +177,26 @@
         "type": "github"
       }
     },
+    "hyprland-screen-shader": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1786228815,
+        "narHash": "sha256-466qz2naqsxoZ2muRQ70OIo53iN806kR1+dspMWguXQ=",
+        "owner": "rokokol",
+        "repo": "hyprland-screen-shader",
+        "rev": "4d16381add832160541a7e9a7a98487317b44274",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "hyprland-screen-shader",
+        "type": "github"
+      }
+    },
     "libnbtplusplus": {
       "flake": false,
       "locked": {
@@ -335,6 +355,7 @@
         "ddlc-sddm-theme": "ddlc-sddm-theme",
         "freesmlauncher": "freesmlauncher",
         "home-manager": "home-manager",
+        "hyprland-screen-shader": "hyprland-screen-shader",
         "nix-matlab": "nix-matlab",
         "nixpkgs": "nixpkgs_2",
         "nixpkgs-stable": "nixpkgs-stable",

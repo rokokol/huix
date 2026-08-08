@@ -3,7 +3,7 @@
 [![huix](https://img.shields.io/badge/huix-наверх-222222?style=for-the-badge&logo=nixos&logoColor=white)](../../../README.md)
 [![home-manager](https://img.shields.io/badge/home--manager-юзер_слой-5E81AC?style=for-the-badge)](../../README.md)
 [![scripts](https://img.shields.io/badge/scripts-скрипты-4EAA25?style=for-the-badge&logo=gnubash&logoColor=white)](../../../scripts/README.md)
-[![shaders](https://img.shields.io/badge/shaders-эффекты-FF4088?style=for-the-badge&logo=opengl&logoColor=white)](../../../scripts/shaders/README.md)
+[![screen-shader](https://img.shields.io/badge/screen--shader-эффекты-FF4088?style=for-the-badge&logo=opengl&logoColor=white)](https://github.com/rokokol/hyprland-screen-shader)
 [![rofi](https://img.shields.io/badge/rofi-лаунчер-EE2A7B?style=for-the-badge)](../../programs/rofi/README.md)
 
 Мой Wayland-десктоп на Hyprland. Слой `dwindle`-тайлинга, обвязка из waybar/mako/hypridle/обоев и куча биндов, заточенных под HJKL, скриншоты с OCR, перевод и словарь прямо из rofi, живую лупу, полноэкранные шейдеры и рантайм-переключение темы
@@ -109,7 +109,7 @@
 - **планшет Gaomon S630** прибит к выходу `DP-1` (PC), иначе мапится на оба монитора
 - **зум** — `cursor:zoom_factor` живой
 - **тема свет/тьма — рантайм, не декларатив** — `SUPER+A` → `toggle-theme.sh` флипает dconf и пишет выбор в `~/.local/state/huix/theme`; на reload восстанавливается через `exec = toggle-theme.sh --sync`. Подробности и грабли — в [scripts/README](../../../scripts/README.md)
-- **шейдеры/софт-яркость** — единственный слот `decoration:screen_shader` менеджит `screen-shader.sh`; состояние в state, восстанавливается через `exec = screen-shader.sh restore`. Индикатор в waybar обновляется по RT-сигналу `SIGRTMIN+8` (`shaderSignal`); слать его до готовности waybar нельзя — RT-сигнал по умолчанию убивает процесс, поэтому `restore` сигнал подавляет
+- **шейдеры/софт-яркость** — вынесены в [rokokol/hyprland-screen-shader](https://github.com/rokokol/hyprland-screen-shader); модуль флейка сам вешает бинды и `exec = screen-shader restore`, здесь остались только `services/screen-shader.nix` (включение) и `waybar/shader.nix` (номер RT-сигнала и имя бара)
 - **крышка ноутбука** — `SUPER SHIFT+A` → `lid-mode.sh` берёт лок `systemd-inhibit --what=handle-lid-switch`, и пока он держится, закрытие крышки не усыпляет систему, а только гасит встроенную панель (`dpms off` по `bindl = , switch:on:Lid Switch`; внешний монитор не трогаем). Лок работает только потому, что на ноутбуке выключен `LidSwitchIgnoreInhibited` (`nixos/laptop/logind.nix`); само `HandleLidSwitch` осталось дефолтным, так что вне сессии Hyprland крышка усыпляет как обычно. Режим сессионный — после ребута/релогина он выключен, индикатора в баре нет, только уведомление при переключении
 - **swayimg** — навигация и копирование в буфер забиндены и на латинице, и на кириллице (`c/с`, `h/р`, …), чтобы работало при любой раскладке
 - **hyprlock: фон — картинка, не скриншот** — иначе эффект от шейдеров применяется дважды

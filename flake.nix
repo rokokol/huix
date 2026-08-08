@@ -27,6 +27,13 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Full-screen effects and soft brightness, split out of this repo
+    # — see home-manager/desktop/hyprland/services/waybar/shader.nix
+    hyprland-screen-shader = {
+      url = "github:rokokol/hyprland-screen-shader";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -159,6 +166,7 @@
                 backupFileExtension = "bak";
                 sharedModules = [
                   inputs.zen-browser.homeModules.default
+                  inputs.hyprland-screen-shader.homeManagerModules.default
                 ];
 
                 extraSpecialArgs = commonArgs;

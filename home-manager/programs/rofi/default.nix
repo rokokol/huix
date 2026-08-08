@@ -44,7 +44,6 @@ in
       display-ru-en = "🇷🇺>🇺🇸";
       display-en-ru = "🇺🇸>🇷🇺";
 
-      display-shader = "📺";
       display-notifications = "💌";
     };
   };
