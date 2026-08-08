@@ -1,35 +1,14 @@
 {
+  config,
   lib,
   pkgs,
-  huixDir,
   ...
 }:
 
-let
-  # Thin wrapper around scripts/claude-account.sh: the logic is in the script, Nix only
-  # assembles PATH
-  claude-account = pkgs.writeShellApplication {
-    name = "claude-account";
-    # gnused/gnugrep/procps are for `init`: sed rewrites legacy plugin paths, grep is the
-    # leftover-path control check, pgrep -x claude guards against a live session
-    runtimeInputs = with pkgs; [
-      coreutils
-      jq
-      gnused
-      gnugrep
-      procps
-    ];
-    text = ''
-      exec bash "${huixDir}/scripts/claude-account.sh" "$@"
-    '';
-  };
-in
 {
-  # Stock claude-code: ~/.claude is a symlink to the active profile, so no launch wrapper
-  home.packages = [
-    pkgs.claude-code
-    claude-account
-  ];
+  # Stock claude-code: ~/.claude is a symlink to the active profile, so no launch wrapper.
+  # The claude-account wrapper itself comes from scripts/scripts.nix
+  home.packages = [ pkgs.claude-code ];
 
   # Pinned to the default config dir, same value for every account. Its only effect is moving
   # .claude.json inside the profile: the binary looks for it beside the dir and rewrites it with
@@ -40,6 +19,6 @@ in
   # linkGeneration, not just writeBoundary — that is where home-manager removes the previous
   # generation's files, and it would undo the repair
   home.activation.claudeProfileLinks = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-    ${claude-account}/bin/claude-account ensure || true
+    ${config.custom.scripts.packages.claude-account}/bin/claude-account ensure || true
   '';
 }
