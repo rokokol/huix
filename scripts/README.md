@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="../assets/SHEF%20OS%20320%20KG.jpg" alt="шеф готовит утилиты" width="300"/>
+<img src="../assets/shef-os-320-kg.jpg" alt="шеф готовит утилиты" width="300"/>
 
 <em>320kg scripts 💀</em>
 

@@ -13,6 +13,7 @@
 ![Wayland](https://img.shields.io/badge/session-Wayland-FFBC00?style=flat&logo=wayland&logoColor=black)
 ![platform](https://img.shields.io/badge/platform-x86__64--linux-1793D1?style=flat&logo=linux&logoColor=white)
 [![license](https://img.shields.io/badge/license-MIT-3DA639?style=flat)](LICENSE)
+[![eval](https://github.com/rokokol/huix/actions/workflows/eval.yml/badge.svg)](https://github.com/rokokol/huix/actions/workflows/eval.yml)
 
 </div>
 
@@ -71,7 +72,7 @@ sudo nixos-generate-config --show-hardware-config > nixos/<host>/hardware-config
 - **Тема свет/тьма — рантайм, не декларатив** — `scripts/toggle-theme.sh` (`SUPER+A`) флипает dconf и пишет выбор в state. Не клади `color-scheme`/`gtk-theme` в HM, иначе `dconf load` на ребилде сбивает выбор
 - **Крышка ноута умеет не усыплять** — `SUPER SHIFT+A` (`scripts/lid-mode.sh`) держит лок `systemd-inhibit`, и закрытая крышка только гасит встроенную панель. Режим живёт до конца сессии: после ребута ноут снова засыпает от крышки
 - **Все сервисы биндятся на `127.0.0.1`** — наружу firewall ничего не открывает, см. [таблицу портов](nixos/services/README.md#порты-и-биндинги)
-- **`backupFileExtension = "bak-${lastModified}"`** — старые `.bak` копятся в `$HOME` после каждого ребилда с новой ревизии, периодически чисти
+- **`backupFileExtension = "bak"`** — фиксированная строка намеренно: суффикс с `lastModified` пересобирал HM-генерацию на каждый коммит и засыпал `$HOME` набором `.bak` на ревизию. Цена — вторая коллизия по тому же пути роняет активацию, пока старый `.bak` не удалишь руками
 
 ## MATLAB
 
@@ -94,7 +95,7 @@ nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHW
 
 <div align="center">
 
-<img src="./assets/IM%20KING%20OF%20THE%20WORLD!!!.jpg" alt="im king of the world" width="320"/>
+<img src="./assets/im-king-of-the-world.jpg" alt="im king of the world" width="320"/>
 
 <br/><br/>
 
