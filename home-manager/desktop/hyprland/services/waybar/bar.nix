@@ -169,12 +169,12 @@ in
 
         /* Modules style (islands) */
         #workspaces, #window, #clock, #pulseaudio, #network, #language, #custom-gpu, #custom-shader, #custom-notifications, #hardware, #backlight, #battery, #tray {
-            background: ${palette.rgba palette.paper "0.9"};
+            background: ${palette.rgba palette.dot "0.9"};
             color: ${palette.inkSoft};
             padding: 0px 8px;
             margin: 2px 1px;
             border-radius: 12px;
-            border: 1px solid ${palette.dot};
+            border: 1px solid ${palette.pink};
         }
 
         /* Remove borders/backgrounds from modules inside the hardware group so they blend */
@@ -218,7 +218,7 @@ in
 
         #workspaces button.active {
             color: ${palette.plum};
-            background: ${palette.paper};
+            background: ${palette.ash};
             border-radius: 10px;
             min-width: 20px;
         }
