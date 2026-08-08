@@ -15,6 +15,12 @@
 
     comfyui-nix.url = "https://flakehub.com/f/utensils/comfyui/0.18.2";
 
+    # The greeter theme, split out of this repo — see nixos/services/desktop/sddm.nix
+    ddlc-sddm-theme = {
+      url = "github:rokokol/ddlc-sddm-theme";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
