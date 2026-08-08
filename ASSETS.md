@@ -22,11 +22,11 @@ Team Salvato reserves the right to act on copyright or trademark infringement; n
 
 ## Cursors
 
-Two unrelated cursor themes live here, and only one of them is homemade.
+Two unrelated cursor themes live here, neither of them my artwork.
 
 `assets/sayori-cursor-v2/` is **Sayori Cursor V2 by sev** ([ko-fi.com/sevverae](https://ko-fi.com/sevverae), [original release](https://ko-fi.com/s/8e05db90c4)) — an animated DDLC-style cursor theme distributed through their ko-fi shop. It is vendored here for convenience only; it is not my work, it carries no licence granting redistribution, and the author's shop is the place to get it. If you want that cursor, download it from sev rather than copying it out of this repo.
 
-`assets/sddm-cursor/` is a two-frame greeter cursor assembled locally with `xcursorgen` from Sayori's head sprite — the build recipe (`nixos/services/desktop/sddm-ddlc/sayori-cursor.nix`) is mine, the sprite it is cut from is Team Salvato's.
+`assets/sddm-cursor/` is two frames cut straight from DDLC's own sprites — Sayori's head, plain and glitched. Only the `xcursorgen` recipe that turns them into an X cursor theme (`nixos/services/desktop/sddm-ddlc/sayori-cursor.nix`) is mine; the images are Team Salvato's, same as everything in the table above.
 
 ## Other bundled fonts
 
@@ -34,4 +34,6 @@ Two unrelated cursor themes live here, and only one of them is homemade.
 
 ## Everything else
 
-Photographs and joke images under `assets/` (`logo.jpg`, `im-king-of-the-world.jpg`, `sayori-v-korobke.jpg`, `shef-os-320-kg.jpg`, `say-sketch2.webp`, `laptop-wallpaper.png`) are decorative and carry no licence claim.
+The decorative images under `assets/` (`logo.jpg`, `im-king-of-the-world.jpg`, `sayori-v-korobke.jpg`, `shef-os-320-kg.jpg`, `say-sketch2.webp`, `laptop-wallpaper.png`) are pictures collected off the internet. Several are drawings whose authors I do not know, and I claim no ownership of any of them — they are here as decoration for the READMEs and as a wallpaper.
+
+If you drew one of these and want credit or want it taken down, open an issue and it will be done.
