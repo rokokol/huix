@@ -1,11 +1,19 @@
 {
   inputs,
+  pkgs,
   rokokolName,
   ...
 }:
 
 {
   imports = [ inputs.sops-nix.nixosModules.sops ];
+
+  # sops-nix only decrypts at activation, through its own sops-install-secrets binary — it puts
+  # nothing on PATH. Editing secrets/secrets.yaml needs the CLIs
+  environment.systemPackages = with pkgs; [
+    age
+    sops
+  ];
 
   sops = {
     # builtins.path so the hash follows the secrets file, not every commit

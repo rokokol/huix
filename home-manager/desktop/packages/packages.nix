@@ -37,7 +37,6 @@ in
         tauon
 
         # --- CLI ---
-        age # the sops key lives in ~/.config/sops/age/keys.txt
         codex
         curl
         exiftool
@@ -53,7 +52,6 @@ in
         pup
         python3Packages.huggingface-hub
         ripgrep
-        sops # reading and editing secrets/secrets.yaml
         texliveFull
         tree
         unzip

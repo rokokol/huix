@@ -44,7 +44,7 @@ in
 
   config = lib.mkIf cfg.enable {
     # jupyter runs as the login user, so the secret must be readable by them
-    sops.secrets."jupyter-password-hash".owner = rokokolName;
+    sops.secrets."jupyter-password".owner = rokokolName;
 
     services.jupyter = {
       enable = true;
@@ -52,11 +52,11 @@ in
       group = "users";
       command = "jupyter-lab";
       notebookDir = "${homeDir}/Notebooks";
-      # The module emits this verbatim as c.ServerApp.password = "<value>", and that line comes
-      # after notebookConfig, so it can't be overridden from there. Closing the quote turns the
-      # assignment into a file read: a wrong hash would be a loud Python error, not a silent
-      # fallback. A store path is not an option — the hash must stay out of the world-readable store
-      password = ''" + open("${config.sops.secrets."jupyter-password-hash".path}").read().strip() + "'';
+      # The module emits this verbatim as c.ServerApp.password = "<value>", after notebookConfig,
+      # so it cannot be overridden from there — closing the quote turns the assignment into a call
+      # of the helper defined above. A store path is not an option: the secret must stay out of the
+      # world-readable store
+      password = ''" + _huix_password() + "'';
       ip = "127.0.0.1";
       port = 8888;
 
@@ -65,6 +65,13 @@ in
 
         visible_kernels = {'pythondatascience', 'octave'}
         c.KernelSpecManager.allowed_kernelspecs = visible_kernels
+
+        # Only the plaintext password is stored; hashing it here keeps one source of truth,
+        # instead of a second sops entry that silently rots when the password is changed
+        def _huix_password():
+            from jupyter_server.auth import passwd
+            with open("${config.sops.secrets."jupyter-password".path}") as f:
+                return passwd(f.read().strip(), algorithm="argon2")
       '';
 
       kernels = {
