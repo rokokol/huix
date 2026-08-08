@@ -194,9 +194,11 @@ in
     edgeAlpha = "0.96";
     rowEdge = palette.blush;
     rowEdgeAlpha = "0.94";
-    selBg = palette.pink;
+    # Same wash as in dark, only lighter — and white text would drown in it,
+    # so the selected row keeps the body text colour
+    selBg = palette.rgba palette.pink "0.45";
     selEdge = palette.plum;
-    selFg = palette.paper;
+    selFg = palette.ink;
     alt = palette.dot;
     altAlpha = "0.55";
     msg = palette.dot;
@@ -215,7 +217,9 @@ in
     edgeAlpha = "0.72";
     rowEdge = palette.plum;
     rowEdgeAlpha = "0.55";
-    selBg = palette.plum;
+    # The only opaque surface in the theme would read as a sticker on the dark ground,
+    # and the pink edge would vanish into it. Translucent it sits in the same material
+    selBg = palette.rgba palette.plum "0.55";
     selEdge = palette.pink;
     selFg = palette.textOnDark;
     alt = palette.panelDark;
