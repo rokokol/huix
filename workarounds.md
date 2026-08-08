@@ -80,6 +80,41 @@ Prints `0` → keep the overlay. Non-zero → drop `overlay-tauon` from `flake.n
 
 ---
 
+## `overlay-jupyterlab` — expand `$out` in `JUPYTERLAB_DIR`
+
+**Where:** `flake.nix`, in the overlay list of **both** hosts (`services.jupyter` runs on the PC, but `python3Packages.jupyterlab` is reachable on either)
+
+**Symptom it prevents:** the login page works, but every `/lab` request 500s with
+
+```
+JupyterLab application assets not found in "/home/rokokol/$out/share/jupyter/lab"
+jinja2.exceptions.TemplateNotFound: 'index.html'
+```
+
+The `$out` is literal, and the relative path is resolved against the unit's `WorkingDirectory=~`
+
+**Why it happens:** nixpkgs writes the app dir as an unquoted shell variable
+
+```nix
+makeWrapperArgs = [ "--set" "JUPYTERLAB_DIR" "$out/share/jupyter/lab" ];
+```
+
+which only ever worked because a plain-attrs derivation flattens the list into one string that the setup hook re-splits through the shell. Python packages now build with `__structuredAttrs = true`, so `makeWrapperArgs` reaches the builder as a bash array whose elements are never expanded, and `makeWrapper` copies `$out` into the wrapper verbatim. The overlay swaps in `builtins.placeholder "out"`, which Nix rewrites to the real output path — no shell expansion involved, so it is correct under both attr styles
+
+**Removal check:** build jupyterlab as nixpkgs has it, with no overlay in the way, and look for an unexpanded `$out` in the wrapper
+
+```sh
+grep -cF "JUPYTERLAB_DIR='\$out" \
+  "$(nix build --no-link --print-out-paths --impure --expr \
+    'let f = builtins.getFlake (toString ./.); in f.inputs.nixpkgs.legacyPackages.x86_64-linux.python3Packages.jupyterlab')/bin/jupyter-lab"
+```
+
+Prints `1` → keep the overlay. `0` → drop `overlay-jupyterlab` from `flake.nix` and from both host overlay lists
+
+**Upstream:** [the offending `makeWrapperArgs`](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/python-modules/jupyterlab/default.nix), [NixOS/nixpkgs#205690](https://github.com/NixOS/nixpkgs/issues/205690) (the `__structuredAttrs` tracking issue this class of breakage belongs to)
+
+---
+
 ## `overlay-hyprland` — glaze pinned to 7.2.0
 
 **Where:** `flake.nix` — and it must sit in the overlay list of **both** hosts, since both run Hyprland. It was on `nixos-pc` only for a while, which left `nixos-laptop` unbuildable

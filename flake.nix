@@ -87,6 +87,21 @@
         });
       };
 
+      # under structuredAttrs nixpkgs never expands the "$out" in jupyterlab's JUPYTERLAB_DIR (see workarounds.md)
+      overlay-jupyterlab = final: prev: {
+        pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
+          (pyfinal: pyprev: {
+            jupyterlab = pyprev.jupyterlab.overrideAttrs (_: {
+              makeWrapperArgs = [
+                "--set"
+                "JUPYTERLAB_DIR"
+                "${builtins.placeholder "out"}/share/jupyter/lab"
+              ];
+            });
+          })
+        ];
+      };
+
       # hyprland 0.56.1 doesn't build against nixpkgs' glaze 8.0.0, so pin it back to 7.2.0 (see workarounds.md)
       overlay-hyprland = final: prev: {
         hyprland = prev.hyprland.override {
@@ -142,6 +157,7 @@
         home = ./home-manager/home-pc.nix;
         overlays = [
           overlay-hyprland
+          overlay-jupyterlab
           overlay-stable
           overlay-tauon
           nix-matlab.overlay
@@ -154,6 +170,7 @@
         home = ./home-manager/home-laptop.nix;
         overlays = [
           overlay-hyprland
+          overlay-jupyterlab
           overlay-stable
           overlay-tauon
           nix-matlab.overlay
