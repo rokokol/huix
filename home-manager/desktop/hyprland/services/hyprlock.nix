@@ -233,7 +233,7 @@ in
           fail_text = "This isn't it... ($ATTEMPTS)";
           # password check is highlighted with the same red as an error
           check_color = "rgb(${bare palette.plum})";
-          fail_color = "rgb(${bare palette.error})";
+          fail_color = "rgb(${bare palette.bow})";
           capslock_color = "rgb(${bare palette.warnLine})";
           dots_text_format = "♥";
           dots_spacing = 0.2;

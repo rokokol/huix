@@ -43,19 +43,20 @@ in
           modules-center = [ "clock" ];
           # The only place where module order is set: features declare only
           # their own settings, otherwise order would depend on the imports order
-          modules-right =
-            [ "group/hardware" ]
-            ++ lib.optional cfg.nvidia "custom/gpu"
-            ++ lib.optional cfg.backlight "backlight"
-            ++ lib.optional cfg.shader "custom/shader"
-            ++ [
-              "pulseaudio"
-              "hyprland/language"
-              "custom/notifications"
-              "tray"
-              "network"
-            ]
-            ++ lib.optional cfg.battery "battery";
+          modules-right = [
+            "group/hardware"
+          ]
+          ++ lib.optional cfg.nvidia "custom/gpu"
+          ++ lib.optional cfg.backlight "backlight"
+          ++ lib.optional cfg.shader "custom/shader"
+          ++ [
+            "pulseaudio"
+            "hyprland/language"
+            "custom/notifications"
+            "tray"
+            "network"
+          ]
+          ++ lib.optional cfg.battery "battery";
 
           "hyprland/workspaces" = {
             format = "{icon}";
@@ -168,12 +169,12 @@ in
 
         /* Modules style (islands) */
         #workspaces, #window, #clock, #pulseaudio, #network, #language, #custom-gpu, #custom-shader, #custom-notifications, #hardware, #backlight, #battery, #tray {
-            background: ${palette.rgba palette.dot "0.9"};
+            background: ${palette.rgba palette.paper "0.9"};
             color: ${palette.inkSoft};
             padding: 0px 8px;
             margin: 2px 1px;
             border-radius: 12px;
-            border: 1px solid ${palette.pink};
+            border: 1px solid ${palette.dot};
         }
 
         /* Remove borders/backgrounds from modules inside the hardware group so they blend */
@@ -223,7 +224,7 @@ in
         }
 
         #workspaces button.urgent {
-            color: ${palette.corrupt};
+            color: ${palette.bow};
             animation-name: glitch-text;
             animation-duration: 0.3s;
             animation-iteration-count: infinite;

@@ -1,9 +1,10 @@
 # The one place colours are named in this repo.
 #
 # The DDLC part is not chosen here — it comes from github:rokokol/ddlc-palette, which reads it
-# off ddlc.moe. What is chosen here is everything the site has no answer for: dark-mode grounds,
-# urgency levels, the RGB-split pair. Those are marked as such, so it stays obvious which colours
-# have a source and which are taste
+# off ddlc.moe. What is chosen here is everything the site has no answer for: dark-mode grounds
+# and the RGB-split pair. Those are marked as such, so it stays obvious which colours have a
+# source and which are taste. The urgency levels in between are neither: they only rename or
+# shade a measured colour
 { base }:
 
 let
@@ -18,12 +19,28 @@ let
     n:
     let
       d = "0123456789ABCDEF";
-      v = if n < 0 then 0 else if n > 255 then 255 else n;
+      v =
+        if n < 0 then
+          0
+        else if n > 255 then
+          255
+        else
+          n;
     in
     builtins.substring (v / 16) 1 d + builtins.substring (builtins.bitAnd v 15) 1 d;
   toHex = c: "#${hex2 c.r}${hex2 c.g}${hex2 c.b}";
 
-  scale = f: hex: (c: toHex { r = f c.r; g = f c.g; b = f c.b; }) (parse hex);
+  scale =
+    f: hex:
+    (
+      c:
+      toHex {
+        r = f c.r;
+        g = f c.g;
+        b = f c.b;
+      }
+    )
+      (parse hex);
   # Toward black / toward white, by a fraction
   darken = k: scale (v: builtins.floor (v * (1.0 - k)));
   lighten = k: scale (v: builtins.floor (v + (255 - v) * k));
@@ -62,16 +79,17 @@ base
   muted = mix 0.45 base.ink base.paper;
   mutedDark = mix 0.45 textOnDark paperDark;
 
-  # Notification urgency — semantic, deliberately outside the DDLC set so it stays readable
-  okLine = "#4CAF50";
-  warnLine = "#FFB300";
-  critLine = "#E53935";
+  # Notification urgency — the DDLC set stands in for the usual green/amber/red, so the
+  # levels are told apart by how loud the colour is rather than by hue
+  okLine = base.dot;
+  warnLine = base.sayori;
+  critLine = base.bow;
   okBg = lighten 0.88 okLine;
   warnBg = lighten 0.88 warnLine;
   critBg = lighten 0.88 critLine;
   okFg = darken 0.62 okLine;
   warnFg = darken 0.48 warnLine;
-  critFg = base.error;
+  critFg = base.bowShadow; # the bow's own shade reads better than another darken of it
   okSoft = lighten 0.62 okLine;
   warnSoft = lighten 0.62 warnLine;
   critSoft = lighten 0.62 critLine;
