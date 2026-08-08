@@ -85,7 +85,7 @@ in
               mode = "month";
               on-scroll = 1;
               format = {
-                today = "<span color='${palette.yuri}'><b><u>{}</u></b></span>";
+                today = "<span color='${palette.plum}'><b><u>{}</u></b></span>";
               };
             };
             "actions" = {
@@ -169,7 +169,7 @@ in
 
         /* Modules style (islands) */
         #workspaces, #window, #clock, #pulseaudio, #network, #language, #custom-gpu, #custom-shader, #custom-notifications, #hardware, #backlight, #battery, #tray {
-            background: ${palette.rgba palette.dot "0.9"};
+            background: ${palette.rgba palette.natsuki "0.9"};
             color: ${palette.inkSoft};
             padding: 0px 8px;
             margin: 2px 1px;
@@ -187,7 +187,7 @@ in
         }
 
         #clock {
-            color: ${palette.yuri};
+            color: ${palette.plum};
             padding: 0 12px;
         }
 

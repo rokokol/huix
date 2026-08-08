@@ -39,12 +39,13 @@ in
       display-clip = "📋";
       display-kaomoji = "(,,#ﾟДﾟ)";
       display-dictionary = "🤓";
-      sorting-method = "fzf";
 
       display-ru-en = "🇷🇺>🇺🇸";
       display-en-ru = "🇺🇸>🇷🇺";
 
       display-notifications = "💌";
+
+      sorting-method = "fzf";
     };
   };
 
