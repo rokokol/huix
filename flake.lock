@@ -18,18 +18,40 @@
         "url": "https://flakehub.com/f/utensils/comfyui/0.18.2"
       }
     },
+    "ddlc-palette": {
+      "inputs": {
+        "nixpkgs": [
+          "ddlc-sddm-theme",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1786220662,
+        "narHash": "sha256-OYyBTsKhilhXDKPhQmhSqLFm4sIUcW/BRD1hg25vEBA=",
+        "owner": "rokokol",
+        "repo": "ddlc-palette",
+        "rev": "bed8bacb30de032670fbc1a016eb8659807eca4a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "ddlc-palette",
+        "type": "github"
+      }
+    },
     "ddlc-sddm-theme": {
       "inputs": {
+        "ddlc-palette": "ddlc-palette",
         "nixpkgs": [
           "nixpkgs"
         ]
       },
       "locked": {
-        "lastModified": 1786219180,
-        "narHash": "sha256-f2EiEzVNN6Qy40O/L8Hskit/TkfnkNkHkVSbMeApaKA=",
+        "lastModified": 1786220794,
+        "narHash": "sha256-0OvTsbB03Ra3QpJuBjAaSNDL30pM631Xk54Mx1pkY3c=",
         "owner": "rokokol",
         "repo": "ddlc-sddm-theme",
-        "rev": "3a7cf776378155d8e381973dd73f138e2760fbfc",
+        "rev": "6043f95d4280f51fb198df201680c17ef86aa342",
         "type": "github"
       },
       "original": {
