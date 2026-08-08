@@ -11,7 +11,7 @@
 [![huix](https://img.shields.io/badge/huix-наверх-222222?style=for-the-badge&logo=nixos&logoColor=white)](../../README.md)
 [![nixos](https://img.shields.io/badge/nixos-системный_слой-5277C3?style=for-the-badge&logo=nixos&logoColor=white)](../README.md)
 [![fonts](https://img.shields.io/badge/fonts-шрифты-EA4AAA?style=for-the-badge&logo=googlefonts&logoColor=white)](../fonts/README.md)
-[![DDLC](https://img.shields.io/badge/DDLC-тема_логина-FF80C0?style=for-the-badge&logo=qt&logoColor=white)](desktop/sddm-ddlc/README.md)
+[![DDLC](https://img.shields.io/badge/DDLC-тема_логина-FF80C0?style=for-the-badge&logo=qt&logoColor=white)](https://github.com/rokokol/ddlc-sddm-theme)
 
 Системные сервисы, разложенные по категориям. Каждый сервис — отдельный модуль; `default.nix` — единый агрегатор, импортирующий всё на обоих хостах. Общие сервисы включены безусловно, хост-специфичные гейтятся опцией `custom.<имя>.enable` внутри своего модуля, а *вход* — какие флаги подняты — объявляет `configuration-<host>.nix`. Чтобы добавить/убрать сервис с хоста — щёлкай флаг там, а не правь модуль
 
@@ -20,7 +20,7 @@
 | Каталог | Что там |
 | --- | --- |
 | `ai/` | `ollama` (на ПК подменяется на `ollama-cuda`), `comfyui`, `openwebui` |
-| `desktop/` | `amnezia-vpn`, `file-manager`, `sddm` (+ [DDLC-тема](desktop/sddm-ddlc/README.md)), `ssh-askpass` |
+| `desktop/` | `amnezia-vpn`, `file-manager`, `sddm` (+ [DDLC-тема](https://github.com/rokokol/ddlc-sddm-theme)), `ssh-askpass` |
 | `devices/` | `printer`, `tablet`, `virtual-camera` |
 | `system/` | `appimage`, `cachix`, `nix-ld` |
 | `tools/` | `jupyter`, `libre-translate`, `searxng`, `syncthing` |
@@ -32,7 +32,7 @@
 
 - `ai/ollama` — локальные LLM (ПК тянет CUDA-сборку, ноут CPU-only)
 - `desktop/amnezia-vpn` — VPN-клиент
-- `desktop/file-manager`, `desktop/sddm` — экран логина в стиле DDLC ([подробнее](desktop/sddm-ddlc/README.md)), `desktop/ssh-askpass`
+- `desktop/file-manager`, `desktop/sddm` — экран логина в стиле DDLC (тема вынесена в [отдельную репу](https://github.com/rokokol/ddlc-sddm-theme), тут только включение), `desktop/ssh-askpass`
 - `system/appimage` — прямой запуск *.AppImage (binfmt) + `steam-run` (FHS-песочница)
 - `system/cachix` — бинарные кэши
 - `system/nix-ld` — запуск динамических не-Nix бинарей (FHS-набор библиотек)

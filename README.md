@@ -34,6 +34,12 @@
 [![scripts](https://img.shields.io/badge/scripts-скрипты-4EAA25?style=for-the-badge&logo=gnubash&logoColor=white)](scripts/README.md)
 [![shaders](https://img.shields.io/badge/shaders-эффекты-FF4088?style=for-the-badge&logo=opengl&logoColor=white)](scripts/shaders/README.md)
 
+## Вынесено в отдельные репы
+
+Куски, которые сами по себе — законченные проекты, живут отдельно и подключаются сюда flake-инпутами:
+
+[![ddlc-sddm-theme](https://img.shields.io/badge/ddlc--sddm--theme-экран_логина-FF80C0?style=for-the-badge&logo=qt&logoColor=white)](https://github.com/rokokol/ddlc-sddm-theme)
+
 ## Что важно знать
 
 - репо рассчитан на `x86_64-linux` и живёт чисто во flake-workflow, без `nix-channel`/`NIX_PATH`/`<nixpkgs>`

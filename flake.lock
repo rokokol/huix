@@ -18,6 +18,26 @@
         "url": "https://flakehub.com/f/utensils/comfyui/0.18.2"
       }
     },
+    "ddlc-sddm-theme": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1786203343,
+        "narHash": "sha256-suFxi53xMWXsqZze6K6k9jlHoIVoOV6MIBzfv780TNA=",
+        "owner": "rokokol",
+        "repo": "ddlc-sddm-theme",
+        "rev": "e4a603fd351cb84e1851263685ccd451ecc05e39",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "ddlc-sddm-theme",
+        "type": "github"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -269,6 +289,7 @@
     "root": {
       "inputs": {
         "comfyui-nix": "comfyui-nix",
+        "ddlc-sddm-theme": "ddlc-sddm-theme",
         "freesmlauncher": "freesmlauncher",
         "home-manager": "home-manager",
         "nix-matlab": "nix-matlab",

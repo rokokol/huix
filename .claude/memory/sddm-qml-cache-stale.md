@@ -7,7 +7,7 @@ metadata:
   originSessionId: 09d9bd5e-960e-4fb6-a599-9891e5fc0764
 ---
 
-Правки QML-темы SDDM (`nixos/services/desktop/sddm-ddlc/theme/`) собираются и деплоятся
+Правки QML-темы SDDM (теперь отдельная репа `rokokol/ddlc-sddm-theme`, инпут `ddlc-sddm-theme`) собираются и деплоятся
 корректно, но на **реальном экране входа** не появляются — виден старый плейсхолдер и старые
 баги. При этом `sddm-greeter-qt6 --test-mode --theme <стор-путь>` показывает свежую тему.
 
@@ -18,7 +18,7 @@ metadata:
 и mtime стабильны → Qt считает тему неизменной и отдаёт протухший `.qmlc`. `--test-mode`
 спасает уникальным стор-путём (`/nix/store/<hash>-sddm-ddlc-theme/…`) — промах кэша, пересборка.
 
-**Фикс (в `nixos/services/desktop/sddm.nix`):** отключён дисковый QML-кэш greeter'а —
+**Фикс (в модуле темы, `nix/module.nix` в её репе):** отключён дисковый QML-кэш greeter'а —
 `settings.General.GreeterEnvironment = "QT_WAYLAND_SHELL_INTEGRATION=layer-shell,QML_DISABLE_DISK_CACHE=1"`.
 Модуль nixpkgs sddm.nix мёржит `recursiveUpdate defaultConfig cfg.settings` (settings
 побеждает), поэтому wayland-интеграцию надо продублировать в этой же строке, иначе она
