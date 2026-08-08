@@ -85,7 +85,7 @@ in
               mode = "month";
               on-scroll = 1;
               format = {
-                today = "<span color='${palette.plum}'><b><u>{}</u></b></span>";
+                today = "<span color='${palette.yuri}'><b><u>{}</u></b></span>";
               };
             };
             "actions" = {
@@ -187,7 +187,7 @@ in
         }
 
         #clock {
-            color: ${palette.plum};
+            color: ${palette.yuri};
             padding: 0 12px;
         }
 
