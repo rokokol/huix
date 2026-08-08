@@ -12,7 +12,16 @@ in
   options.custom.searxng.enable = lib.mkEnableOption "SearxNG behind nginx";
 
   config = lib.mkIf config.custom.searxng.enable {
+    sops.secrets."searxng-secret-key" = { };
+
+    # The searx module runs settings.yml through envsubst, so the key arrives as $VAR at
+    # startup instead of being baked into the store
+    sops.templates."searxng.env".content = ''
+      SEARXNG_SECRET_KEY=${config.sops.placeholder."searxng-secret-key"}
+    '';
+
     services.searx = {
+      environmentFile = config.sops.templates."searxng.env".path;
       enable = true;
       package = pkgs.searxng;
 
@@ -29,7 +38,7 @@ in
         server = {
           inherit port;
           bind_address = "127.0.0.1";
-          secret_key = "9eb250a7fabc56fd385e058b2375ef4e42f42aa1cba587aa6a9821430fc59802";
+          secret_key = "$SEARXNG_SECRET_KEY";
           base_url = "http://localhost/";
           method = "POST";
         };
