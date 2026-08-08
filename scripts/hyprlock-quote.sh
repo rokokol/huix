@@ -41,6 +41,12 @@ Geometry is set by hyprlock.nix through the environment:
   STATE_DIR  where the rendered frame/name files live; hyprlock.nix points the
              labels at the same path
 
+Behaviour switches:
+  GLITCH         1 (default) or 0. 0 drops the journal follower and the random
+                 glitch stream — the dialog still types, it just never garbles
+  SCREEN_SHADER  path to screen-shader.sh for the full-screen flash. Missing or
+                 non-executable degrades the glitch to text-only
+
 State is plain shell variables for the lifetime of the lock, so a fresh run is
 by definition a fresh lock and starts the dialog from the re-entry line
 EOF
@@ -55,6 +61,11 @@ REENTRY="$HUIX/assets/monika-reentry.txt"
 TEXT_W="${TEXT_W:-1114}"
 FONT_PX="${FONT_PX:-32}"
 STATE_DIR="${STATE_DIR:-${XDG_RUNTIME_DIR:-/tmp}/hypr-ddlc}"
+
+# 0 drops the journal follower and the spontaneous-glitch stream: the dialog still types,
+# it just never garbles. The full-screen flash additionally needs screen-shader
+GLITCH="${GLITCH:-1}"
+SCREEN_SHADER="${SCREEN_SHADER:-$HUIX/scripts/screen-shader.sh}"
 
 # Doki metrics relative to the font size: at 32px a glyph averages 15px, space 8px
 AVG_ADV=$((FONT_PX * 15 / 32))
@@ -98,6 +109,7 @@ until_ms=0
 reveal_ms=0
 next_glitch_ms=0
 glitch_until_ms=0
+journal_fd="" # stays empty without glitches: then wait_ms just sleeps
 # both are read and written indirectly, by name, from start_topic
 # shellcheck disable=SC2034
 last_talk=0 # index of the previous monika-talk.txt topic (0 = none)
@@ -204,7 +216,9 @@ start_topic() {
 
 fire_glitch() {
   glitch_until_ms=$((now + GLITCH_TEXT_MS))
-  "$HUIX/scripts/screen-shader.sh" flash glitch "$GLITCH_SHADER_SEC" \
+  # Text garbling is self-contained; the screen flash is an optional extra
+  [[ -x "$SCREEN_SHADER" ]] || return 0
+  "$SCREEN_SHADER" flash glitch "$GLITCH_SHADER_SEC" \
     </dev/null >/dev/null 2>&1 &
 }
 
@@ -322,7 +336,8 @@ next_tick_ms() {
   typing | fadeout) t=$((now + POLL_MS)) ;;
   *) t=$until_ms ;;
   esac
-  ((next_glitch_ms < t)) && t=$next_glitch_ms
+  # Without glitches next_glitch_ms stays 0, which would clamp every tick to zero and spin
+  ((GLITCH && next_glitch_ms < t)) && t=$next_glitch_ms
   ((glitch_until_ms > now && now + POLL_MS < t)) && t=$((now + POLL_MS))
   ((t > now + IDLE_CAP_MS)) && t=$((now + IDLE_CAP_MS))
   ((t < now)) && t=$now
@@ -363,19 +378,22 @@ cmd_lock() {
   hyprlock &
   hyprlock_pid=$!
 
-  # exec so $JOURNAL_PID is journalctl itself, not a subshell wrapping it
-  coproc JOURNAL {
-    exec journalctl -f -n 0 -q -t hyprlock -g 'authentication failure' -o cat
-  }
-  journal_fd=${JOURNAL[0]}
-  trap 'kill "$JOURNAL_PID" 2>/dev/null || true' EXIT
+  # exec so $JOURNAL_PID is journalctl itself, not a subshell wrapping it.
+  # Without glitches nothing reacts to a wrong password, so the follower is pure cost
+  if ((GLITCH)); then
+    coproc JOURNAL {
+      exec journalctl -f -n 0 -q -t hyprlock -g 'authentication failure' -o cat
+    }
+    journal_fd=${JOURNAL[0]}
+    trap 'kill "$JOURNAL_PID" 2>/dev/null || true' EXIT
+  fi
 
   while hyprlock_alive; do
     set_now
 
     # Spontaneous glitches: a Poisson stream. 0 means not scheduled yet, then we
     # only assign the first interval, without firing
-    if ((now >= next_glitch_ms)); then
+    if ((GLITCH && now >= next_glitch_ms)); then
       ((next_glitch_ms > 0)) && fire_glitch
       exp_ms "$GLITCH_MEAN" "$GLITCH_MIN" "$GLITCH_MAX"
       next_glitch_ms=$((now + exp_v))

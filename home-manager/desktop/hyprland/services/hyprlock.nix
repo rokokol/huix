@@ -1,4 +1,10 @@
-{ lib, huixDir, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  huixDir,
+  ...
+}:
 
 # Background is a static image, not a screenshot: compositor would double-apply screen_shader on a screenshot
 # Text uses label widgets, not image: label updates asynchronously in ms, image widget blocks on reload_cmd (≥1s latency)
@@ -53,14 +59,41 @@ let
       font_family = "Doki";
     }
     // l;
+
+  cfg = config.custom.hyprlock;
 in
 {
-  # Geometry above is the only source of TEXT_W/FONT_PX — hypridle.nix consumes this
-  options.custom.hyprlock.lockCommand = lib.mkOption {
-    type = lib.types.str;
-    readOnly = true;
-    default = "STATE_DIR=\"${stateDir}\" TEXT_W=${toString textW} FONT_PX=${toString fontPx} POLL_MS=${toString pollMs} ${quoteScript} lock";
-    description = "command that runs a lock: hyprlock plus its dialog animation";
+  options.custom.hyprlock = {
+    dialog = lib.mkOption {
+      type = lib.types.bool;
+      description = ''
+        Monika's dialog box: the box image, the typed quotes and the name plate. Costs two labels
+        polled at ${toString pollMs} ms, each spawning a shell, plus the hyprlock-quote.sh loop.
+        Off leaves the background, clock, date, layout and input field
+      '';
+    };
+
+    glitch = lib.mkOption {
+      type = lib.types.bool;
+      default = cfg.dialog;
+      description = ''
+        Garble the dialog on a wrong password and at random intervals. Adds a journalctl follower;
+        the full-screen flash also needs scripts/screen-shader.sh, and degrades to text-only
+        garbling without it
+      '';
+    };
+
+    # Geometry above is the only source of TEXT_W/FONT_PX — hypridle.nix consumes this
+    lockCommand = lib.mkOption {
+      type = lib.types.str;
+      readOnly = true;
+      default =
+        if cfg.dialog then
+          "STATE_DIR=\"${stateDir}\" TEXT_W=${toString textW} FONT_PX=${toString fontPx} POLL_MS=${toString pollMs} GLITCH=${if cfg.glitch then "1" else "0"} ${quoteScript} lock"
+        else
+          lib.getExe config.programs.hyprlock.package;
+      description = "command that runs a lock: hyprlock, plus its dialog animation when enabled";
+    };
   };
 
   config.programs.hyprlock = {
@@ -94,7 +127,7 @@ in
       ];
 
       # The dialog box is static, the text lives in labels on top.
-      image = [
+      image = lib.optionals cfg.dialog [
         {
           monitor = "";
           path = dialogAsset;
@@ -108,7 +141,7 @@ in
         }
       ];
 
-      label = map mkLabel [
+      label = map mkLabel ([
         # Clock
         {
           text = "$TIME";
@@ -133,6 +166,20 @@ in
           halign = "center";
           valign = "top";
         }
+        # Layout to the right of the input field ($LAYOUT updates itself)
+        {
+          text = "$LAYOUT[EN,RU]";
+          font_size = 24;
+          color = "rgba(ffffffdd)";
+          shadow_passes = 2;
+          shadow_size = 3;
+          shadow_color = "rgba(e2679baa)";
+          position = "240, -20";
+          halign = "center";
+          valign = "center";
+        }
+      ]
+      ++ lib.optionals cfg.dialog [
         # Name on the plate: a separate label (not baked into the PNG) so it
         # glitches together with the text and at the same rate. The pink "outline" is a shadow.
         {
@@ -165,19 +212,7 @@ in
           halign = "center";
           valign = "bottom";
         }
-        # Layout to the right of the input field ($LAYOUT updates itself)
-        {
-          text = "$LAYOUT[EN,RU]";
-          font_size = 24;
-          color = "rgba(ffffffdd)";
-          shadow_passes = 2;
-          shadow_size = 3;
-          shadow_color = "rgba(e2679baa)";
-          position = "240, -20";
-          halign = "center";
-          valign = "center";
-        }
-      ];
+      ]);
 
       "input-field" = [
         {
