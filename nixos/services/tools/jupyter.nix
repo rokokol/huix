@@ -43,13 +43,20 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    # jupyter runs as the login user, so the secret must be readable by them
+    sops.secrets."jupyter-password-hash".owner = rokokolName;
+
     services.jupyter = {
       enable = true;
       user = rokokolName;
       group = "users";
       command = "jupyter-lab";
       notebookDir = "${homeDir}/Notebooks";
-      password = "argon2:$argon2id$v=19$m=10240,t=10,p=8$QQIsyCtNwAb7GSPc4f/fsQ$dJMkGhSyoVxKje2lMomM8mD0Y62GROuZOF1IzZwbZwo";
+      # The module emits this verbatim as c.ServerApp.password = "<value>", and that line comes
+      # after notebookConfig, so it can't be overridden from there. Closing the quote turns the
+      # assignment into a file read: a wrong hash would be a loud Python error, not a silent
+      # fallback. A store path is not an option — the hash must stay out of the world-readable store
+      password = ''" + open("${config.sops.secrets."jupyter-password-hash".path}").read().strip() + "'';
       ip = "127.0.0.1";
       port = 8888;
 

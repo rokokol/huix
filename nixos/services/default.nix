@@ -16,6 +16,7 @@
     ./system/appimage.nix
     ./system/cachix.nix
     ./system/nix-ld.nix
+    ./system/sops.nix
     ./tools/jupyter.nix
     ./tools/libre-translate.nix
     ./tools/searxng.nix
