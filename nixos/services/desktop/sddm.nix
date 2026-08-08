@@ -7,10 +7,10 @@
     enable = true;
     wayland.enable = true;
     wayland.compositor = "kwin";
-
-    # Theme, cursors and the QML-cache workaround come from the module
-    ddlc.enable = true;
   };
+
+  # Theme, cursors and the QML-cache workaround come from the module
+  ddlc.sddm.enable = true;
 
   security.pam.services.login.nodelay = true;
 }
