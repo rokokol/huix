@@ -24,6 +24,7 @@ let
       wsActiveAlpha,
       wsActiveFg,
       dnd,
+      dndBg,
       dndAlpha,
       warn,
       crit,
@@ -82,9 +83,9 @@ let
           color: ${secondary};
       }
 
-      /* "Do not disturb" mode — the indicator dims to gray */
+      /* "Do not disturb" mode — the indicator dims into a chip */
       #custom-notifications.dnd {
-          background: ${palette.rgba palette.ash dndAlpha};
+          background: ${palette.rgba dndBg dndAlpha};
           border-radius: 9px;
           color: ${dnd};
       }
@@ -134,30 +135,32 @@ let
     '';
 in
 {
-  # Same glass, lighter tone — but thicker than the dark set on purpose: a pale ground
-  # takes the wallpaper in, so thinned much further it greys out over dark wallpaper
+  # Light runs the dark set's proportions — same thin glass, same soft edge, same decisive
+  # active mark — flipped where the ground demands it: tints go toward ink instead of paper,
+  # and warn stays darkened because sayori disappears on white
   light = css {
     panel = palette.paper;
-    panelAlpha = "0.72";
+    panelAlpha = "0.62";
     edge = palette.pink;
-    edgeAlpha = "0.7";
+    edgeAlpha = "0.7"; # pink carries less over paper than over the dark ground
     edgeWidth = "1px";
     shadow = palette.bowShadow;
-    shadowAlpha = "0.22";
+    shadowAlpha = "0.3"; # a tinted shadow reads heavier than dark's neutral ink
     text = palette.ink;
     secondary = palette.mutedPink;
     accent = palette.yuri;
-    inset = palette.dot;
-    insetAlpha = "0.75";
+    inset = palette.ink;
+    insetAlpha = "0.07";
     wsHover = palette.pink;
-    wsHoverAlpha = "0.22";
+    wsHoverAlpha = "0.25";
     wsActiveBg = palette.pink;
-    wsActiveAlpha = "0.45";
+    wsActiveAlpha = "0.55";
     wsActiveFg = palette.ink;
     dnd = palette.mutedPink;
-    dndAlpha = "0.55";
+    dndBg = palette.ink;
+    dndAlpha = "0.07";
     warn = palette.warnFg;
-    crit = palette.critFg;
+    crit = palette.critLine;
   };
 
   # The dark ground takes more glass, and it needs the loud urgency shades — the
@@ -181,6 +184,7 @@ in
     wsActiveAlpha = "0.55";
     wsActiveFg = palette.dot;
     dnd = palette.mutedDark;
+    dndBg = palette.ash;
     dndAlpha = "0.18";
     warn = palette.sayori;
     crit = palette.bow;
