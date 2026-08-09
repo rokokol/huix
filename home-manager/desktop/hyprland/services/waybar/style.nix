@@ -38,7 +38,7 @@
   }
 
   /* Machine stats read as a block inside the right panel */
-  #hardware {
+  #hardware, #tray {
       background: ${palette.rgba palette.paper "0.07"};
       border: none;
       border-radius: 10px;
@@ -46,16 +46,7 @@
       padding: 0 3px;
   }
 
-  /* The tray wears the active-workspace mark — same tint, same corner */
-  #tray {
-      background: ${palette.rgba palette.plum "0.55"};
-      border: none;
-      border-radius: 9px;
-      margin: 3px 2px;
-      padding: 0 3px;
-  }
-
-  #clock {
+    #clock {
       color: ${palette.blush};
       font-weight: bold;
       padding: 0 8px;
