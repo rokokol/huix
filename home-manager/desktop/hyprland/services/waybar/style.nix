@@ -46,7 +46,7 @@ let
       .modules-left, .modules-center, .modules-right {
           background: ${palette.rgba panel panelAlpha};
           color: ${text};
-          padding: 0 4px;
+          padding: 0 2px;
           margin: 2px 6px;
           border-radius: 13px;
           border: ${edgeWidth} solid ${palette.rgba edge edgeAlpha};
@@ -59,7 +59,7 @@ let
           background: transparent;
           border: none;
           margin: 0;
-          padding: 0 5px;
+          padding: 0 4px;
           color: ${text};
       }
 
@@ -69,13 +69,13 @@ let
           border: none;
           border-radius: 10px;
           margin: 3px 2px;
-          padding: 0 3px;
+          padding: 0 2px;
       }
 
       #clock {
           color: ${accent};
           font-weight: bold;
-          padding: 0 8px;
+          padding: 0 6px;
       }
 
       /* Secondary next to the workspaces it follows */
