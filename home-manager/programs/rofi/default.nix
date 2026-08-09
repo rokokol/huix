@@ -38,7 +38,6 @@ in
       display-chars = "¥";
       display-clip = "📋";
       display-kaomoji = "(,,#ﾟДﾟ)";
-      display-dictionary = "🤓";
 
       display-ru-en = "🇷🇺>🇺🇸";
       display-en-ru = "🇺🇸>🇷🇺";

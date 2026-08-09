@@ -348,6 +348,26 @@
         "type": "github"
       }
     },
+    "rofi-wooordhunt": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1786303298,
+        "narHash": "sha256-hhL47iEFcExP3QULb0xiutHCP8fIjsOv8H58jplshkw=",
+        "owner": "rokokol",
+        "repo": "rofi-wooordhunt",
+        "rev": "50abd491c1d0455bc4d15393de46ee8b475a5185",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "rofi-wooordhunt",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "comfyui-nix": "comfyui-nix",
@@ -360,6 +380,7 @@
         "nixpkgs": "nixpkgs_2",
         "nixpkgs-stable": "nixpkgs-stable",
         "nixvim": "nixvim",
+        "rofi-wooordhunt": "rofi-wooordhunt",
         "sops-nix": "sops-nix",
         "zen-browser": "zen-browser"
       }

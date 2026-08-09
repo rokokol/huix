@@ -4,6 +4,7 @@
 [![home-manager](https://img.shields.io/badge/home--manager-юзер_слой-5E81AC?style=for-the-badge)](../../README.md)
 [![scripts](https://img.shields.io/badge/scripts-скрипты-4EAA25?style=for-the-badge&logo=gnubash&logoColor=white)](../../../scripts/README.md)
 [![screen-shader](https://img.shields.io/badge/screen--shader-эффекты-FF4088?style=for-the-badge&logo=opengl&logoColor=white)](https://github.com/rokokol/hyprland-screen-shader)
+[![rofi-wooordhunt](https://img.shields.io/badge/rofi--wooordhunt-словарь-F4A100?style=for-the-badge)](https://github.com/rokokol/rofi-wooordhunt)
 [![rofi](https://img.shields.io/badge/rofi-лаунчер-EE2A7B?style=for-the-badge)](../../programs/rofi/README.md)
 
 Мой Wayland-десктоп на Hyprland. Слой `dwindle`-тайлинга, обвязка из waybar/mako/hypridle/обоев и куча биндов, заточенных под HJKL, скриншоты с OCR, перевод и словарь прямо из rofi, живую лупу, полноэкранные шейдеры и рантайм-переключение темы
@@ -22,6 +23,7 @@
 | `services/lid-mode.nix`           | ноутбучный тумблер `SUPER SHIFT+A` и `bindl switch:` на крышку — режим "крышка гасит экран, а не усыпляет" (`lid-mode.sh`); включается опцией `rokokol.hyprland.lidNoSleep`                                                                                                                                          |
 | `services/hypridle.nix`           | лок по таймауту 90 мин + перед сном, `hyprlock`                                                                                                                                                                                                                                                                     |
 | `services/hyprlock.nix`           | DDLC-локскрин: фон just-monika, диалог как в игре — `hyprlock-quote.sh` печатает реплики побуквенно (первая при локе — про "перезаход в игру"), имя и текст глитчатся вместе с экраном (по Пуассону и на неверный пароль), индикатор раскладки у поля ввода, сердечки вместо точек пароля; все пути через `huixDir` |
+| `services/rofi-wooordhunt.nix`    | словарь wooordhunt: включение модуля из флейка [rofi-wooordhunt](https://github.com/rokokol/rofi-wooordhunt), бинд `SUPER+Y` и эмодзи режима приходят оттуда                                                                                                                                                          |
 | `services/wallpaper-collager.nix` | systemd-user таймер: коллаж обоев через `random-wallpaper.sh`                                                                                                                                                                                                                                                       |
 
 > **Почему `source`, а не нативные `settings`.** Главный конфиг один на оба хоста и редактируется быстрее как текст; per-host через `hyprland.conf` `source = …` подтягивается из `${huixDir}`, а различия (монитор, раскладка, бар) задаются в `*-pc.nix`/`*-laptop.nix`. Пути не хардкодятся — везде `$HUIX` / `huixDir`
@@ -31,7 +33,7 @@
 - **`awww`** вместо `hyprpaper` — демон обоев, на PC обои генерятся коллажем по нормальному распределению (`random-wallpaper.sh`)
 - **`mako`** вместо `dunst`/`swaync` — минималистичные уведомления с цветовыми темами по urgency
 - **`swayosd`** — OSD громкости/яркости/раскладки (systemd-user сервис)
-- **`rofi`** как швейцарский нож — не только launcher, но и буфер (`cliphist`), эмодзи/математика/каомодзи (`rofimoji`), словарь wooordhunt, перевод через LibreTranslate, пикер шейдеров
+- **`rofi`** как швейцарский нож — не только launcher, но и буфер (`cliphist`), эмодзи/математика/каомодзи (`rofimoji`), словарь wooordhunt (flake [rofi-wooordhunt](https://github.com/rokokol/rofi-wooordhunt)), перевод через LibreTranslate, пикер шейдеров
 - **`tesseract` (rus+eng)** — OCR со скриншота прямо в буфер
 - **`satty`** — редактор скриншотов
 - **`playerctld`** — управление медиа через единый плеер
@@ -88,7 +90,7 @@
 | `SUPER SHIFT + A`    | **ноутбук:** тумблер "крышка не усыпляет" (`lid-mode.sh`)   |
 | `SUPER + B`          | история буфера (cliphist в rofi)                            |
 | `SUPER SHIFT + B`    | эмодзи/математика/символы/каомодзи (rofimoji)               |
-| `SUPER + Y`          | словарь wooordhunt в rofi                                   |
+| `SUPER + Y`          | словарь wooordhunt в rofi (бинд от флейка)                  |
 | `SUPER + U`          | перевод ru↔en через LibreTranslate                          |
 | `SUPER + G`          | toggle grayscale-шейдер, `SUPER SHIFT + G` — пикер шейдеров |
 | `SUPER CTRL + [ / ]` | софт-яркость через шейдер вниз/вверх, `Backspace` — сброс   |
@@ -110,6 +112,7 @@
 - **зум** — `cursor:zoom_factor` живой
 - **тема свет/тьма — рантайм, не декларатив** — `SUPER+A` → `toggle-theme.sh` флипает dconf и пишет выбор в `~/.local/state/huix/theme`; на reload восстанавливается через `exec = toggle-theme.sh --sync`. Подробности и грабли — в [scripts/README](../../../scripts/README.md)
 - **шейдеры/софт-яркость** — вынесены в [rokokol/hyprland-screen-shader](https://github.com/rokokol/hyprland-screen-shader); модуль флейка сам вешает бинды и `exec = screen-shader restore`, здесь остались только `services/screen-shader.nix` (включение) и `waybar/shader.nix` (номер RT-сигнала и имя бара)
+- **словарь wooordhunt** — вынесен в [rokokol/rofi-wooordhunt](https://github.com/rokokol/rofi-wooordhunt); модуль флейка сам вешает `SUPER+Y`, а сам modi называет свой режим через протокол script-modi (`\0prompt`), так что эмодзи режима живёт в опции `prompt`, а не в `display-*` конфига rofi; здесь остался только `services/rofi-wooordhunt.nix` (включение и эмодзи)
 - **крышка ноутбука** — `SUPER SHIFT+A` → `lid-mode.sh` берёт лок `systemd-inhibit --what=handle-lid-switch`, и пока он держится, закрытие крышки не усыпляет систему, а только гасит встроенную панель (`dpms off` по `bindl = , switch:on:Lid Switch`; внешний монитор не трогаем). Лок работает только потому, что на ноутбуке выключен `LidSwitchIgnoreInhibited` (`nixos/laptop/logind.nix`); само `HandleLidSwitch` осталось дефолтным, так что вне сессии Hyprland крышка усыпляет как обычно. Режим сессионный — после ребута/релогина он выключен, индикатора в баре нет, только уведомление при переключении
 - **swayimg** — навигация и копирование в буфер забиндены и на латинице, и на кириллице (`c/с`, `h/р`, …), чтобы работало при любой раскладке
 - **hyprlock: фон — картинка, не скриншот** — иначе эффект от шейдеров применяется дважды

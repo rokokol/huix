@@ -34,6 +34,13 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # The wooordhunt dictionary modi, split out of this repo
+    # — see home-manager/desktop/hyprland/services/rofi-wooordhunt.nix
+    rofi-wooordhunt = {
+      url = "github:rokokol/rofi-wooordhunt";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -167,6 +174,7 @@
                 sharedModules = [
                   inputs.zen-browser.homeModules.default
                   inputs.hyprland-screen-shader.homeManagerModules.default
+                  inputs.rofi-wooordhunt.homeManagerModules.default
                 ];
 
                 extraSpecialArgs = commonArgs;

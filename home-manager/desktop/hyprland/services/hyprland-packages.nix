@@ -45,7 +45,6 @@
     curl
     imagemagick
     lm_sensors
-    pup
     rofimoji
     swayimg
     swayosd

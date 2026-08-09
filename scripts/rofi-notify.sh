@@ -19,7 +19,7 @@ require_env
 NC="$HUIX/scripts/notify-center.sh"
 
 # List row width in characters: rofi can't wrap inside an item (single-line,
-# truncated with …), so we wrap long text ourselves — like in rofi-wooordhunt.sh
+# truncated with …), so we wrap long text ourselves
 WRAP_WIDTH=60
 
 # Outside rofi it's a launcher: run rofi with this same script as the modi
