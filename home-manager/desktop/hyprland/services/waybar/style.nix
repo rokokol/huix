@@ -144,30 +144,31 @@ let
     '';
 in
 {
-  # Light runs the dark set's proportions — same thin glass, same soft edge, same decisive
-  # active mark — flipped where the ground demands it: tints go toward ink instead of paper,
-  # and warn stays darkened because sayori disappears on white
+  # Light borrows its tones from the light rofi theme (programs/rofi/theme.nix), so the two
+  # surfaces that show up together read as one set: plum accent, near-solid pink edge, the
+  # same pink 0.45 selection, dot for the soft blocks. Only the glass stays waybar's own —
+  # rofi sits on an opaque ground, the bar is blurred. warn stays darkened: sayori vanishes on white
   light = css {
     panel = palette.paper;
     panelAlpha = "0.62";
     edge = palette.pink;
-    edgeAlpha = "0.7"; # pink carries less over paper than over the dark ground
+    edgeAlpha = "0.96";
     edgeWidth = "1px";
     shadow = palette.bowShadow;
     shadowAlpha = "0.3"; # a tinted shadow reads heavier than dark's neutral ink
     text = palette.ink;
     secondary = palette.mutedPink;
-    accent = palette.yuri;
-    inset = palette.ink;
-    insetAlpha = "0.07";
+    accent = palette.plum;
+    inset = palette.dot;
+    insetAlpha = "0.55";
     wsHover = palette.pink;
     wsHoverAlpha = "0.25";
     wsActiveBg = palette.pink;
-    wsActiveAlpha = "0.55";
+    wsActiveAlpha = "0.45";
     wsActiveFg = palette.ink;
     dnd = palette.mutedPink;
-    dndBg = palette.ink;
-    dndAlpha = "0.07";
+    dndBg = palette.dot;
+    dndAlpha = "0.77";
     warn = palette.warnFg;
     crit = palette.critLine;
   };
