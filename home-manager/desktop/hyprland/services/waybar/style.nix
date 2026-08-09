@@ -137,7 +137,7 @@ in
   # Same glass, lighter tone — but thicker than the dark set on purpose: a pale ground
   # takes the wallpaper in, so thinned much further it greys out over dark wallpaper
   light = css {
-    panel = palette.dot;
+    panel = palette.paper;
     panelAlpha = "0.72";
     edge = palette.pink;
     edgeAlpha = "0.7";
@@ -147,7 +147,7 @@ in
     text = palette.ink;
     secondary = palette.mutedPink;
     accent = palette.yuri;
-    inset = palette.paper;
+    inset = palette.dot;
     insetAlpha = "0.75";
     wsHover = palette.pink;
     wsHoverAlpha = "0.22";
