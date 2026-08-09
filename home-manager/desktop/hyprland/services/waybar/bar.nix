@@ -7,7 +7,7 @@
 
 let
   cfg = config.rokokol.waybar;
-  styles = import ./style.nix { inherit palette; };
+  style = import ./style.nix { inherit palette; };
 in
 {
   options.rokokol.waybar = {
@@ -156,13 +156,8 @@ in
       };
     };
 
-    # waybar picks the sheet by the portal's appearance and reloads it live when
-    # toggle-theme.sh flips color-scheme — so it must not be started with -s, and
-    # style.css stays as the fallback for a session without a portal
-    xdg.configFile = {
-      "waybar/style-light.css".text = styles.light;
-      "waybar/style-dark.css".text = styles.dark;
-      "waybar/style.css".text = styles.dark;
-    };
+    # The bar keeps one dark sheet under either colour scheme — style.css is what
+    # waybar reaches for when no style-light/style-dark sits beside it
+    xdg.configFile."waybar/style.css".text = style;
   };
 }

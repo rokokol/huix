@@ -13,8 +13,8 @@
 | Файл | Что внутри |
 | --- | --- |
 | `default.nix` | агрегатор: только `imports` всех компонентов |
-| `bar.nix` | база: опция `rokokol.waybar.enable`, общие модули (workspaces, окно, часы, hardware-группа, звук, раскладка, трей, сеть), раскладка modules-left/center/right и раскладка CSS-листов по `~/.config/waybar` |
-| `style.nix` | сам CSS: одна вёрстка + два набора цветов (`light`/`dark`) |
+| `bar.nix` | база: опция `rokokol.waybar.enable`, общие модули (workspaces, окно, часы, hardware-группа, звук, раскладка, трей, сеть), раскладка modules-left/center/right и укладка CSS-листа в `~/.config/waybar` |
+| `style.nix` | сам CSS: одна вёрстка, один тёмный набор цветов из `theme/palette.nix` |
 | `notifications.nix` | `custom/notifications` — индикатор [notify-center](../../../../../scripts/README.md), всегда включён вместе с баром; тянет `mako.nix` |
 | `shader.nix` | `custom/shader` — индикатор [полноэкранных шейдеров](https://github.com/rokokol/hyprland-screen-shader) и софт-яркости: только номер сигнала и имя бара, всё остальное приходит из флейка |
 | `nvidia.nix` | `custom/gpu` — загрузка/память/температура GPU через `nvidia-smi` |
@@ -55,9 +55,8 @@
 - **RT-сигналы.** Индикаторы обновляются по `SIGRTMIN+N`: шейдер — `8` (`shader.nix` → `programs.screen-shader.waybar.signal`), уведомления — `9` (`notifications.nix` → `WAYBAR_NOTIF_SIGNAL`). Номер объявлен один раз в Nix и уходит скриптам через env — не задавать второй раз в скриптах. Дефолтное действие RT-сигнала — **убить процесс**, поэтому слать его до готовности waybar нельзя; подробности — в [screen-shader](https://github.com/rokokol/hyprland-screen-shader)
 - **CSS один на всех.** Селекторы выключенных модулей (`#custom-gpu`, `#battery`, …) просто не матчатся — стиль не нужно ветвить по хостам
 - **Фон несут три панели `.modules-left/.modules-center/.modules-right`**, а не отдельные модули: у модулей фон погашен, свои подложки есть только у `#hardware` (мягкий блок-подмес) и `#tray` — трей носит метку активного воркспейса, тот же тон и тот же радиус 9px
-- **Тема переключается сама.** waybar спрашивает у портала `org.freedesktop.appearance` и берёт `style-light.css` или `style-dark.css`, а на смену схемы перечитывает лист **вживую, без рестарта** — поэтому [toggle-theme.sh](../../../../../scripts/README.md) ничего про бар не знает. Работает только пока waybar стартует **без `-s`** (`exec-once = waybar` в `hyprland.conf`): аргумент отключает выбор по теме. `style.css` кладётся тем же тёмным набором — это фолбэк на сессию без портала
-- **Оба набора — одно стекло.** Слой waybar блюрится (`layerrule = blur on` в `hyprland.conf`), подложка обоих наборов держит 0.62, тень и активный воркспейс — тоже одни пропорции
-- **Светлый набор берёт тона светлого rofi** ([`programs/rofi/theme.nix`](../../../../programs/rofi/default.nix)): акцент `plum`, кромка `pink` 0.96, выделение `pink` 0.45, мягкие блоки на `dot`. Своё у бара только стекло — rofi стоит на плотной бумаге, бар просвечивает. `warn` остаётся затемнённым: sayori на белом не виден
+- **Бар всегда тёмный.** waybar спрашивает у портала `org.freedesktop.appearance` и ищет `style-light.css`/`style-dark.css`, а не найдя — берёт `style.css`; кладётся только он, поэтому [toggle-theme.sh](../../../../../scripts/README.md) на бар не влияет и ничего про него не знает
+- **Тёмный набор — стекло.** Слой waybar блюрится (`layerrule = blur on` в `hyprland.conf`), подложка панелей держит `paperDark` 0.62, метку активного воркспейса и трея несёт `plum` 0.55
 - **Новый компонент** = новый файл рядом + опция `rokokol.waybar.<фича>` + место в `modules-right` в `bar.nix` + селектор в списке модулей в `style.nix`. Не забыть `git add` (sync берёт только отслеживаемое)
 
 ## Применение

@@ -1,202 +1,118 @@
-# One waybar sheet, two colour sets. waybar picks style-light.css or style-dark.css by
-# the portal's org.freedesktop.appearance and swaps them live on change — so the layout
-# lives here once and only the colours are written twice
+# The one waybar sheet — a single dark set. waybar picks style-light.css / style-dark.css by the
+# portal's org.freedesktop.appearance and falls back to style.css when neither sits next to it, so
+# laying down only style.css keeps the bar dark under either colour scheme
 { palette }:
 
-let
-  css =
-    {
-      panel,
-      panelAlpha,
-      edge,
-      edgeAlpha,
-      edgeWidth,
-      shadow,
-      shadowAlpha,
-      text,
-      secondary,
-      accent,
-      inset,
-      insetAlpha,
-      wsHover,
-      wsHoverAlpha,
-      wsActiveBg,
-      wsActiveAlpha,
-      wsActiveFg,
-      dnd,
-      dndBg,
-      dndAlpha,
-      warn,
-      crit,
-    }:
-    ''
-      * {
-          border: none;
-          font-family: "Doki";
-          font-size: 12px;
-          min-height: 0;
-      }
+''
+  * {
+      border: none;
+      font-family: "Doki";
+      font-size: 12px;
+      min-height: 0;
+  }
 
-      window#waybar {
-          background: transparent;
-      }
+  window#waybar {
+      background: transparent;
+  }
 
-      /* Three panels — left / center / right — instead of an island per module.
-         The waybar layer is blurred in hyprland.conf, so a translucent panel frosts */
-      .modules-left, .modules-center, .modules-right {
-          background: ${palette.rgba panel panelAlpha};
-          color: ${text};
-          padding: 0 4px;
-          margin: 2px 6px;
-          border-radius: 13px;
-          border: ${edgeWidth} solid ${palette.rgba edge edgeAlpha};
-          box-shadow: 0 2px 6px ${palette.rgba shadow shadowAlpha};
-      }
+  /* Three panels — left / center / right — instead of an island per module.
+     The waybar layer is blurred in hyprland.conf, so a translucent panel frosts */
+  .modules-left, .modules-center, .modules-right {
+      background: ${palette.rgba palette.paperDark "0.62"};
+      color: ${palette.textOnDark};
+      padding: 0 4px;
+      margin: 2px 6px;
+      border-radius: 13px;
+      border: 1px solid ${palette.rgba palette.pink "0.55"};
+      box-shadow: 0 2px 6px ${palette.rgba palette.ink "0.35"};
+  }
 
-      /* Modules ride on the panel and carry no ground of their own */
-      #window, #clock, #cpu, #memory, #temperature, #pulseaudio, #network, #language,
-      #custom-gpu, #custom-shader, #custom-notifications, #backlight, #battery {
-          background: transparent;
-          border: none;
-          margin: 0;
-          padding: 0 5px;
-          color: ${text};
-      }
+  /* Modules ride on the panel and carry no ground of their own */
+  #window, #clock, #cpu, #memory, #temperature, #pulseaudio, #network, #language,
+  #custom-gpu, #custom-shader, #custom-notifications, #backlight, #battery {
+      background: transparent;
+      border: none;
+      margin: 0;
+      padding: 0 5px;
+      color: ${palette.textOnDark};
+  }
 
-      /* Machine stats read as a block inside the right panel */
-      #hardware {
-          background: ${palette.rgba inset insetAlpha};
-          border: none;
-          border-radius: 10px;
-          margin: 3px 2px;
-          padding: 0 3px;
-      }
+  /* Machine stats read as a block inside the right panel */
+  #hardware {
+      background: ${palette.rgba palette.paper "0.07"};
+      border: none;
+      border-radius: 10px;
+      margin: 3px 2px;
+      padding: 0 3px;
+  }
 
-      /* The tray wears the active-workspace mark — same tint, same corner */
-      #tray {
-          background: ${palette.rgba wsActiveBg wsActiveAlpha};
-          border: none;
-          border-radius: 9px;
-          margin: 3px 2px;
-          padding: 0 3px;
-      }
+  /* The tray wears the active-workspace mark — same tint, same corner */
+  #tray {
+      background: ${palette.rgba palette.plum "0.55"};
+      border: none;
+      border-radius: 9px;
+      margin: 3px 2px;
+      padding: 0 3px;
+  }
 
-      #clock {
-          color: ${accent};
-          font-weight: bold;
-          padding: 0 8px;
-      }
+  #clock {
+      color: ${palette.blush};
+      font-weight: bold;
+      padding: 0 8px;
+  }
 
-      /* Secondary next to the workspaces it follows */
-      #window {
-          color: ${secondary};
-      }
+  /* Secondary next to the workspaces it follows */
+  #window {
+      color: ${palette.mutedDark};
+  }
 
-      /* "Do not disturb" mode — the indicator dims into a chip */
-      #custom-notifications.dnd {
-          background: ${palette.rgba dndBg dndAlpha};
-          border-radius: 9px;
-          color: ${dnd};
-      }
+  /* "Do not disturb" mode — the indicator dims into a chip */
+  #custom-notifications.dnd {
+      background: ${palette.rgba palette.ash "0.18"};
+      border-radius: 9px;
+      color: ${palette.mutedDark};
+  }
 
-      #temperature.critical, #battery.critical {
-          color: ${crit};
-      }
+  #temperature.critical, #battery.critical {
+      color: ${palette.bow};
+  }
 
-      #battery.warning {
-          color: ${warn};
-      }
+  #battery.warning {
+      color: ${palette.sayori};
+  }
 
-      #workspaces button {
-          padding: 0 3px;
-          border-radius: 9px;
-          color: ${text};
-      }
+  #workspaces button {
+      padding: 0 3px;
+      border-radius: 9px;
+      color: ${palette.textOnDark};
+  }
 
-      #workspaces button:hover {
-          background: ${palette.rgba wsHover wsHoverAlpha};
-      }
+  #workspaces button:hover {
+      background: ${palette.rgba palette.pink "0.25"};
+  }
 
-      #workspaces button.active {
-          color: ${wsActiveFg};
-          background: ${palette.rgba wsActiveBg wsActiveAlpha};
-      }
+  #workspaces button.active {
+      color: ${palette.dot};
+      background: ${palette.rgba palette.plum "0.55"};
+  }
 
-      #workspaces button.urgent {
-          color: ${palette.bow};
-          animation-name: glitch-text;
-          animation-duration: 0.3s;
-          animation-iteration-count: infinite;
-          animation-direction: alternate;
-      }
+  #workspaces button.urgent {
+      color: ${palette.bow};
+      animation-name: glitch-text;
+      animation-duration: 0.3s;
+      animation-iteration-count: infinite;
+      animation-direction: alternate;
+  }
 
-      @keyframes glitch-text {
-          0% {
-              text-shadow: 2px 0 0 ${palette.splitCyan};
-          }
-          50% {
-              text-shadow: -2px 0 0 ${palette.splitMagenta};
-          }
-          100% {
-              text-shadow: 2px 0 0 ${palette.splitCyan};
-          }
+  @keyframes glitch-text {
+      0% {
+          text-shadow: 2px 0 0 ${palette.splitCyan};
       }
-    '';
-in
-{
-  # Light borrows its tones from the light rofi theme (programs/rofi/theme.nix), so the two
-  # surfaces that show up together read as one set: plum accent, near-solid pink edge, the
-  # same pink 0.45 selection, dot for the soft blocks. Only the glass stays waybar's own —
-  # rofi sits on an opaque ground, the bar is blurred. warn stays darkened: sayori vanishes on white
-  light = css {
-    panel = palette.paper;
-    panelAlpha = "0.62";
-    edge = palette.pink;
-    edgeAlpha = "0.96";
-    edgeWidth = "1px";
-    shadow = palette.bowShadow;
-    shadowAlpha = "0.3"; # a tinted shadow reads heavier than dark's neutral ink
-    text = palette.ink;
-    secondary = palette.mutedPink;
-    accent = palette.plum;
-    inset = palette.dot;
-    insetAlpha = "0.55";
-    wsHover = palette.pink;
-    wsHoverAlpha = "0.25";
-    wsActiveBg = palette.pink;
-    wsActiveAlpha = "0.45";
-    wsActiveFg = palette.ink;
-    dnd = palette.mutedPink;
-    dndBg = palette.dot;
-    dndAlpha = "0.77";
-    warn = palette.warnFg;
-    crit = palette.critLine;
-  };
-
-  # The dark ground takes more glass, and it needs the loud urgency shades — the
-  # dark-on-light ones sink into it
-  dark = css {
-    panel = palette.paperDark;
-    panelAlpha = "0.62";
-    edge = palette.pink;
-    edgeAlpha = "0.55";
-    edgeWidth = "1px";
-    shadow = palette.ink;
-    shadowAlpha = "0.35";
-    text = palette.textOnDark;
-    secondary = palette.mutedDark;
-    accent = palette.blush;
-    inset = palette.paper;
-    insetAlpha = "0.07";
-    wsHover = palette.pink;
-    wsHoverAlpha = "0.25";
-    wsActiveBg = palette.plum;
-    wsActiveAlpha = "0.55";
-    wsActiveFg = palette.dot;
-    dnd = palette.mutedDark;
-    dndBg = palette.ash;
-    dndAlpha = "0.18";
-    warn = palette.sayori;
-    crit = palette.bow;
-  };
-}
+      50% {
+          text-shadow: -2px 0 0 ${palette.splitMagenta};
+      }
+      100% {
+          text-shadow: 2px 0 0 ${palette.splitCyan};
+      }
+  }
+''
