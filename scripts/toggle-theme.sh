@@ -94,8 +94,9 @@ set_libadwaita_css() {
   ln -sfn "$src" "$dst/gtk.css"
   rm -f "$dst/assets"
 
-  # to make swayosd notice the changes
-  systemctl --user restart swayosd
+  # to make swayosd notice the changes. Best-effort on purpose: aborting here would
+  # leave the state file disagreeing with the dconf we have already written
+  systemctl --user restart swayosd || notify_error "swayosd restart failed"
 }
 
 detect_theme_state() {
