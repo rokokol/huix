@@ -1,5 +1,25 @@
 {
   "nodes": {
+    "claude-account": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1786312911,
+        "narHash": "sha256-mANshUVDLHUdGet8RwQ4uRpnOzk4ZCr0v66sHTOU0Bk=",
+        "owner": "rokokol",
+        "repo": "claude-account",
+        "rev": "9d6fe6a2e3b066d32110ec138bacec3db62d78dd",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "claude-account",
+        "type": "github"
+      }
+    },
     "comfyui-nix": {
       "inputs": {
         "flake-parts": "flake-parts",
@@ -370,6 +390,7 @@
     },
     "root": {
       "inputs": {
+        "claude-account": "claude-account",
         "comfyui-nix": "comfyui-nix",
         "ddlc-palette": "ddlc-palette",
         "ddlc-sddm-theme": "ddlc-sddm-theme",

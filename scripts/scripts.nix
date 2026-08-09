@@ -40,16 +40,6 @@ let
       env.ALARM_SOUND = "${sound-theme-freedesktop}/share/sounds/freedesktop/stereo/alarm-clock-elapsed.oga";
     };
 
-    # gnused/gnugrep/procps are for `init`: sed rewrites legacy plugin paths, grep is the
-    # leftover-path control check, pgrep -x claude guards against a live session
-    claude-account.runtimeInputs = [
-      coreutils
-      gnugrep
-      gnused
-      jq
-      procps
-    ];
-
     virtual-mic.runtimeInputs = [
       coreutils
       ffmpeg
@@ -58,13 +48,5 @@ let
   };
 in
 {
-  # Exposed so other modules can reference a wrapper's store path (claude.nix's activation hook)
-  options.rokokol.scripts.packages = lib.mkOption {
-    type = lib.types.attrsOf lib.types.package;
-    readOnly = true;
-    default = lib.mapAttrs mkScript scripts;
-    description = "PATH wrappers around scripts/*.sh, keyed by command name";
-  };
-
-  config.home.packages = lib.attrValues config.rokokol.scripts.packages;
+  home.packages = lib.attrValues (lib.mapAttrs mkScript scripts);
 }

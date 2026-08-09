@@ -34,6 +34,13 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Claude Code profile switching, split out of this repo
+    # — see home-manager/programs/cli/claude.nix
+    claude-account = {
+      url = "github:rokokol/claude-account";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # The wooordhunt dictionary modi, split out of this repo
     # — see home-manager/desktop/hyprland/services/rofi-wooordhunt.nix
     rofi-wooordhunt = {
@@ -175,6 +182,7 @@
                   inputs.zen-browser.homeModules.default
                   inputs.hyprland-screen-shader.homeManagerModules.default
                   inputs.rofi-wooordhunt.homeManagerModules.default
+                  inputs.claude-account.homeManagerModules.default
                 ];
 
                 extraSpecialArgs = commonArgs;
