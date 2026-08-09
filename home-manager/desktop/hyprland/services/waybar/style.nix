@@ -75,7 +75,7 @@ let
       #clock {
           color: ${accent};
           font-weight: bold;
-          padding: 0 6px;
+          padding: 0 4px;
       }
 
       /* Secondary next to the workspaces it follows */
