@@ -63,11 +63,20 @@ let
           color: ${text};
       }
 
-      /* Machine stats and the tray read as blocks inside the right panel */
-      #hardware, #tray {
+      /* Machine stats read as a block inside the right panel */
+      #hardware {
           background: ${palette.rgba inset insetAlpha};
           border: none;
           border-radius: 10px;
+          margin: 3px 2px;
+          padding: 0 3px;
+      }
+
+      /* The tray wears the active-workspace mark — same tint, same corner */
+      #tray {
+          background: ${palette.rgba wsActiveBg wsActiveAlpha};
+          border: none;
+          border-radius: 9px;
           margin: 3px 2px;
           padding: 0 3px;
       }
