@@ -7,6 +7,7 @@
 
 let
   cfg = config.custom.waybar;
+  styles = import ./style.nix { inherit palette; };
 in
 {
   options.custom.waybar = {
@@ -153,96 +154,15 @@ in
           };
         };
       };
+    };
 
-      # The style is shared; selectors for disabled modules simply don't match
-      style = ''
-        * {
-            border: none;
-            font-family: "Doki";
-            font-size: 12px;
-            min-height: 0;
-        }
-
-        window#waybar {
-            background: transparent;
-        }
-
-        /* Modules style (islands) */
-        #workspaces, #window, #clock, #pulseaudio, #network, #language, #custom-gpu, #custom-shader, #custom-notifications, #hardware, #backlight, #battery, #tray {
-            background: ${palette.rgba palette.natsuki "0.9"};
-            color: ${palette.inkSoft};
-            padding: 0px 8px;
-            margin: 2px 1px;
-            border-radius: 12px;
-            border: 1px solid ${palette.pink};
-        }
-
-        /* Remove borders/backgrounds from modules inside the hardware group so they blend */
-        #cpu, #memory, #temperature {
-            background: transparent;
-            border: none;
-            margin: 0;
-            padding: 0 4px;
-            color: ${palette.inkSoft};
-        }
-
-        #clock {
-            color: ${palette.plum};
-            padding: 0 12px;
-        }
-
-        /* "Do not disturb" mode — the island dims to gray */
-        #custom-notifications.dnd {
-            background: ${palette.rgba palette.ash "0.9"};
-            border: 1px solid ${palette.muted};
-            color: ${palette.muted};
-        }
-
-        #window {
-            background: transparent;
-            color: ${palette.textOnDark};
-            border: none;
-            box-shadow: none;
-
-            text-shadow:
-                -1px -1px 0 ${palette.ink},
-                 1px -1px 0 ${palette.ink},
-                -1px  1px 0 ${palette.ink},
-                 1px  1px 0 ${palette.ink};
-        }
-
-        #workspaces button {
-            padding: 0 2px;
-            color: ${palette.blush};
-        }
-
-        #workspaces button.active {
-            color: ${palette.plum};
-            background: ${palette.ash};
-            border-radius: 10px;
-            min-width: 20px;
-        }
-
-        #workspaces button.urgent {
-            color: ${palette.bow};
-            animation-name: glitch-text;
-            animation-duration: 0.3s;
-            animation-iteration-count: infinite;
-            animation-direction: alternate;
-        }
-
-        @keyframes glitch-text {
-            0% {
-                text-shadow: 2px 0 0 ${palette.splitCyan};
-            }
-            50% {
-                text-shadow: -2px 0 0 ${palette.splitMagenta};
-            }
-            100% {
-                text-shadow: 2px 0 0 ${palette.splitCyan};
-            }
-        }
-      '';
+    # waybar picks the sheet by the portal's appearance and reloads it live when
+    # toggle-theme.sh flips color-scheme — so it must not be started with -s, and
+    # style.css stays as the fallback for a session without a portal
+    xdg.configFile = {
+      "waybar/style-light.css".text = styles.light;
+      "waybar/style-dark.css".text = styles.dark;
+      "waybar/style.css".text = styles.dark;
     };
   };
 }

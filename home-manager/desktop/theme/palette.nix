@@ -70,7 +70,6 @@ base
     "rgba(${toString c.r}, ${toString c.g}, ${toString c.b}, ${a})";
 
   # Dark counterparts. The site is light-only, so these are derived, not measured
-  inkSoft = lighten 0.12 base.ink;
   paperDark = mix 0.86 base.plum base.ink; # near-black with a plum cast
   panelDark = lighten 0.08 paperDark;
   textOnDark = mix 0.12 base.paper base.blush; # white with just enough pink to not read as grey
@@ -78,6 +77,8 @@ base
   # Muted text, on either ground
   muted = mix 0.45 base.ink base.paper;
   mutedDark = mix 0.45 textOnDark paperDark;
+  # Same recipe on the pink surfaces: toward the ground's own hue, not toward grey
+  mutedPink = mix 0.45 base.ink base.plum;
 
   # Notification urgency — the DDLC set stands in for the usual green/amber/red, so the
   # levels are told apart by how loud the colour is rather than by hue
