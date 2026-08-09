@@ -9,9 +9,9 @@ let
   port = 8088;
 in
 {
-  options.custom.openwebui.enable = lib.mkEnableOption "Open WebUI";
+  options.rokokol.openwebui.enable = lib.mkEnableOption "Open WebUI";
 
-  config = lib.mkIf config.custom.openwebui.enable {
+  config = lib.mkIf config.rokokol.openwebui.enable {
     services.open-webui = {
       enable = true;
       host = "127.0.0.1";

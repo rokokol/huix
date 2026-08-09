@@ -6,7 +6,7 @@
     ./programs/default.nix
   ];
 
-  custom = {
+  rokokol = {
     home.dataDir = govnoDir;
 
     btop.withCuda = true;

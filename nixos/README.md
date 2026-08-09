@@ -10,8 +10,8 @@
 
 | Файл / каталог | Что внутри |
 | --- | --- |
-| `configuration-pc.nix` | точка входа ПК: импорты, `ollama-cuda`, флаги `custom.*` (comfyui, openwebui, searxng, printer, tablet, virtualCamera, virtualization, jupyter+CUDA) |
-| `configuration-laptop.nix` | точка входа ноута: импорты, `ollama-cpu`, `custom.jupyter` |
+| `configuration-pc.nix` | точка входа ПК: импорты, `ollama-cuda`, флаги `rokokol.*` (comfyui, openwebui, searxng, printer, tablet, virtualCamera, virtualization, jupyter+CUDA) |
+| `configuration-laptop.nix` | точка входа ноута: импорты, `ollama-cpu`, `rokokol.jupyter` |
 | `default.nix` | общий для обоих хостов слой — импортирует `boot.nix`, `sound.nix`, `system.nix`, `desktop/`, шрифты |
 | `boot.nix` / `sound.nix` / `system.nix` | общий для обоих хостов baseline: загрузка (systemd-boot + tmpfs), звук (pipewire), система (сеть, locale, время) |
 | `desktop/` | core-options и xdg-портал |
@@ -26,7 +26,7 @@
 - какие модули подключены на хосте — в `configuration-<host>.nix`
 - host-specific опции, boot, GPU, клавиатуру — в `pc/*` или `laptop/*`
 - базовые настройки (hostname, юзер, locale, Nix GC, ФС) — в `pc/system.nix` / `laptop/system.nix`
-- набор включённых сервисов — флаги `custom.*.enable` в `configuration-<host>.nix` (все модули импортирует общий `services/default.nix`)
+- набор включённых сервисов — флаги `rokokol.*.enable` в `configuration-<host>.nix` (все модули импортирует общий `services/default.nix`)
 
 ## Тонкости
 

@@ -13,7 +13,7 @@
 [![fonts](https://img.shields.io/badge/fonts-шрифты-EA4AAA?style=for-the-badge&logo=googlefonts&logoColor=white)](../fonts/README.md)
 [![DDLC](https://img.shields.io/badge/DDLC-тема_логина-FF80C0?style=for-the-badge&logo=qt&logoColor=white)](https://github.com/rokokol/ddlc-sddm-theme)
 
-Системные сервисы, разложенные по категориям. Каждый сервис — отдельный модуль; `default.nix` — единый агрегатор, импортирующий всё на обоих хостах. Общие сервисы включены безусловно, хост-специфичные гейтятся опцией `custom.<имя>.enable` внутри своего модуля, а *вход* — какие флаги подняты — объявляет `configuration-<host>.nix`. Чтобы добавить/убрать сервис с хоста — щёлкай флаг там, а не правь модуль
+Системные сервисы, разложенные по категориям. Каждый сервис — отдельный модуль; `default.nix` — единый агрегатор, импортирующий всё на обоих хостах. Общие сервисы включены безусловно, хост-специфичные гейтятся опцией `rokokol.<имя>.enable` внутри своего модуля, а *вход* — какие флаги подняты — объявляет `configuration-<host>.nix`. Чтобы добавить/убрать сервис с хоста — щёлкай флаг там, а не правь модуль
 
 ## Категории
 
@@ -41,13 +41,13 @@
 - `utils/embedded` — тулчейны AVR/ESP/STM32/RP2040 + udev (platformio)
 - `utils/tor` — Tor через webtunnel-мосты
 
-Только ПК (флаги `custom.*.enable` в `configuration-pc.nix`):
+Только ПК (флаги `rokokol.*.enable` в `configuration-pc.nix`):
 
-- `ai/comfyui` — слоп-машина картинок (через flakehub `comfyui-nix`) — `custom.comfyui.enable`
-- `ai/openwebui` — веб-морда к Ollama (модуль оставлен, но сейчас выключен — фронт перенесён в `jan`) — `custom.openwebui.enable`
-- `devices/printer`, `devices/tablet`, `devices/virtual-camera` — `custom.{printer,tablet,virtualCamera}.enable`
-- `tools/searxng` — приватный метапоиск за nginx — `custom.searxng.enable`
-- `utils/virtualization` (libvirtd + KVM/AMD + vfio) — `custom.virtualization.enable`
+- `ai/comfyui` — слоп-машина картинок (через flakehub `comfyui-nix`) — `rokokol.comfyui.enable`
+- `ai/openwebui` — веб-морда к Ollama (модуль оставлен, но сейчас выключен — фронт перенесён в `jan`) — `rokokol.openwebui.enable`
+- `devices/printer`, `devices/tablet`, `devices/virtual-camera` — `rokokol.{printer,tablet,virtualCamera}.enable`
+- `tools/searxng` — приватный метапоиск за nginx — `rokokol.searxng.enable`
+- `utils/virtualization` (libvirtd + KVM/AMD + vfio) — `rokokol.virtualization.enable`
 
 ## Порты и биндинги
 
@@ -67,7 +67,7 @@
 
 ## Тонкости
 
-- кастомные опции живут под `custom.*`: `custom.jupyter.{enable,withCuda}` плюс enable-флаги хост-специфичных сервисов (`comfyui`, `openwebui`, `searxng`, `printer`, `tablet`, `virtualCamera`, `virtualization`). Опция объявляется в самом модуле, включается в `configuration-<host>.nix`. Не гейти поведение через `mkIf config.services.foo.enable` из чужого модуля — заводи свою опцию
+- кастомные опции живут под `rokokol.*`: `rokokol.jupyter.{enable,withTorch}` плюс enable-флаги хост-специфичных сервисов (`comfyui`, `openwebui`, `searxng`, `printer`, `tablet`, `virtualCamera`, `virtualization`). Опция объявляется в самом модуле, включается в `configuration-<host>.nix`. Не гейти поведение через `mkIf config.services.foo.enable` из чужого модуля — заводи свою опцию
 - Jupyter на ПК берёт `pkgs.stable.python3` с бинарными `torch*`, чтобы не собирать ML-стек из исходников
 - LibreTranslate стартует на локальных моделях (`updateModels = false`), иначе оффлайн сервис висит до сетевого таймаута. Модели обновляет отдельный юнит `libretranslate-update-models` (недельный таймер, без сети запуск пропускается); вручную — `sudo systemctl start libretranslate-update-models`
 - тяжёлые сборки ускоряются кэшами `cuda-maintainers` (ПК, объявлен в `nixos/pc/nvidia.nix`) и `comfyui` (ПК) — при добавлении тяжёлого билда лучше дописать substituter, чем пересобирать

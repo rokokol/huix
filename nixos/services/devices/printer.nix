@@ -7,9 +7,9 @@
 }:
 
 {
-  options.custom.printer.enable = lib.mkEnableOption "printing (CUPS + gutenprint)";
+  options.rokokol.printer.enable = lib.mkEnableOption "printing (CUPS + gutenprint)";
 
-  config = lib.mkIf config.custom.printer.enable {
+  config = lib.mkIf config.rokokol.printer.enable {
     programs.system-config-printer.enable = true;
     services.printing = {
       enable = true;

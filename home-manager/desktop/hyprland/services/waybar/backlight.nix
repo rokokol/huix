@@ -1,10 +1,10 @@
 { config, lib, ... }:
 
 let
-  cfg = config.custom.waybar;
+  cfg = config.rokokol.waybar;
 in
 {
-  options.custom.waybar.backlight = lib.mkEnableOption "hardware backlight indicator (brightnessctl)";
+  options.rokokol.waybar.backlight = lib.mkEnableOption "hardware backlight indicator (brightnessctl)";
 
   config = lib.mkIf (cfg.enable && cfg.backlight) {
     programs.waybar.settings.mainBar."backlight" = {

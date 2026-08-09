@@ -10,7 +10,7 @@
     ./programs/default.nix
   ];
 
-  custom = {
+  rokokol = {
     home.dataDir = "/home/${rokokolName}";
 
     packages.laptop = true;

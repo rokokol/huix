@@ -6,11 +6,11 @@
 }:
 
 let
-  cfg = config.custom.waybar;
+  cfg = config.rokokol.waybar;
   styles = import ./style.nix { inherit palette; };
 in
 {
-  options.custom.waybar = {
+  options.rokokol.waybar = {
     enable = lib.mkEnableOption "waybar";
 
     temperatureHwmon = lib.mkOption {

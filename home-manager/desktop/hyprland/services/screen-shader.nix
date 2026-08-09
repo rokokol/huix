@@ -4,7 +4,7 @@
 # the keys, the picker and its rofi modi along — huix only says when, and waybar/shader.nix
 # adds the indicator
 {
-  config = lib.mkIf config.custom.hyprland.enable {
+  config = lib.mkIf config.rokokol.hyprland.enable {
     programs.screen-shader.enable = true;
   };
 }

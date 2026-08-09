@@ -9,7 +9,7 @@
 let
   homeDir = "/home/${rokokolName}";
 
-  cfg = config.custom.jupyter;
+  cfg = config.rokokol.jupyter;
 
   pythonDatascience = pkgs.stable.python3.withPackages (
     ps:
@@ -37,7 +37,7 @@ let
   );
 in
 {
-  options.custom.jupyter = {
+  options.rokokol.jupyter = {
     enable = lib.mkEnableOption "Custom Jupyter Server";
     withTorch = lib.mkEnableOption "torch/transformers stack in the Python kernel";
   };

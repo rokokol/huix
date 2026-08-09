@@ -22,17 +22,17 @@ HM подключён не отдельным потоком, а как NixOS-м
 
 | Файл / каталог | Что внутри |
 | --- | --- |
-| `home-pc.nix` / `home-laptop.nix` | точки входа per-host: весь вход `custom.*` (hyprland, waybar, packages, dataDir) + btop-пакет |
-| `desktop/user.nix` | XDG-директории, закладки, tmpfiles, env; Documents/Pictures/Videos живут в `custom.home.dataDir` (на ПК это NTFS `govno`), волт — в `myWikiDir` из `commonArgs`, одинаковый на обоих хостах |
+| `home-pc.nix` / `home-laptop.nix` | точки входа per-host: весь вход `rokokol.*` (hyprland, waybar, packages, dataDir) + btop-пакет |
+| `desktop/user.nix` | XDG-директории, закладки, tmpfiles, env; Documents/Pictures/Videos живут в `rokokol.home.dataDir` (на ПК это NTFS `govno`), волт — в `myWikiDir` из `commonArgs`, одинаковый на обоих хостах |
 | `desktop/sync.nix` | systemd-сервис авто-синка конфига (`scripts/sync.sh`, на старте сессии и после `nixos-rebuild`) |
-| [`desktop/hyprland/`](desktop/hyprland/README.md) | `hyprland.conf`, единый `hyprland.nix` с опциями `custom.hyprland.*`, `services/`: waybar, mako, hypridle, обои-коллажер |
-| `desktop/packages/` | `packages.nix`: общие пакеты + группы с флагами `custom.packages.{pc,laptop}` + `mime-apps` |
+| [`desktop/hyprland/`](desktop/hyprland/README.md) | `hyprland.conf`, единый `hyprland.nix` с опциями `rokokol.hyprland.*`, `services/`: waybar, mako, hypridle, обои-коллажер |
+| `desktop/packages/` | `packages.nix`: общие пакеты + группы с флагами `rokokol.packages.{pc,laptop}` + `mime-apps` |
 | `desktop/theme/` | курсор, GTK/qt-тема, дефолты |
 | `programs/` | конфиги отдельных программ, см. [programs/README.md](programs/README.md) |
 
 ## Где что менять
 
-- пользовательские пакеты — `desktop/packages/packages.nix`: общий блок (оба хоста) и группы `custom.packages.{pc,laptop}` (per-host)
+- пользовательские пакеты — `desktop/packages/packages.nix`: общий блок (оба хоста) и группы `rokokol.packages.{pc,laptop}` (per-host)
 - XDG-директории, закладки, env — `desktop/user.nix`; что включено на хосте — `home-<host>.nix`
 - Hyprland, Waybar, hypridle, обои, mako — `desktop/hyprland/*`
 - тема (cursor, GTK, qt) — `desktop/theme/*`

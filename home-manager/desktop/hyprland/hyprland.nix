@@ -7,7 +7,7 @@
 }:
 
 let
-  cfg = config.custom.hyprland;
+  cfg = config.rokokol.hyprland;
   # hyprland wants bare hex inside rgba()
   bare = c: lib.removePrefix "#" c;
 in
@@ -22,7 +22,7 @@ in
     ./services/waybar
   ];
 
-  options.custom.hyprland = {
+  options.rokokol.hyprland = {
     enable = lib.mkEnableOption "Hyprland";
 
     monitorScale = lib.mkOption {

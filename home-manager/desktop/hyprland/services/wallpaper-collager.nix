@@ -20,9 +20,9 @@ let
   ];
 in
 {
-  options.custom.hyprland.wallpaperCollage = lib.mkEnableOption "timed wallpaper collage (random-wallpaper.sh)";
+  options.rokokol.hyprland.wallpaperCollage = lib.mkEnableOption "timed wallpaper collage (random-wallpaper.sh)";
 
-  config = lib.mkIf config.custom.hyprland.wallpaperCollage {
+  config = lib.mkIf config.rokokol.hyprland.wallpaperCollage {
     systemd.user.services = {
       "awww-collage" = {
         Unit = {

@@ -8,12 +8,12 @@
 }:
 
 let
-  cfg = config.custom.packages;
+  cfg = config.rokokol.packages;
 in
 {
   imports = [ ./mime-apps.nix ];
 
-  options.custom.packages = {
+  options.rokokol.packages = {
     pc = lib.mkEnableOption "workstation packages (CUDA, heavy desktop, creative)";
     laptop = lib.mkEnableOption "laptop packages (backlight, camera, power)";
   };

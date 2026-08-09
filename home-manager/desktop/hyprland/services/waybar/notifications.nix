@@ -6,7 +6,7 @@
 }:
 
 let
-  cfg = config.custom.waybar;
+  cfg = config.rokokol.waybar;
   notifSignal = 9;
 in
 {

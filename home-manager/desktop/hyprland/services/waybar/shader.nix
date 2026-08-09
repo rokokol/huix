@@ -5,10 +5,10 @@
 }:
 
 let
-  cfg = config.custom.waybar;
+  cfg = config.rokokol.waybar;
 in
 {
-  options.custom.waybar.shader = lib.mkEnableOption "full-screen shaders and software brightness indicator";
+  options.rokokol.waybar.shader = lib.mkEnableOption "full-screen shaders and software brightness indicator";
 
   config = lib.mkIf (cfg.enable && cfg.shader) {
     # The module defines custom/shader itself; bar.nix decides where it sits

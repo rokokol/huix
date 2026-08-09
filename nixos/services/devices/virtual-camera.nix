@@ -21,9 +21,9 @@ let
   };
 in
 {
-  options.custom.virtualCamera.enable = lib.mkEnableOption "virtual webcam (v4l2loopback)";
+  options.rokokol.virtualCamera.enable = lib.mkEnableOption "virtual webcam (v4l2loopback)";
 
-  config = lib.mkIf config.custom.virtualCamera.enable {
+  config = lib.mkIf config.rokokol.virtualCamera.enable {
     # Virtual webcam: v4l2loopback creates /dev/video10, into which any source
     # (ffmpeg, OBS) writes frames while applications see it as a regular camera.
     # Feeding a looped video/image is done with the `virtual-cam` command

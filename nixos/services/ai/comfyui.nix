@@ -12,9 +12,9 @@ in
 {
   imports = [ inputs.comfyui-nix.nixosModules.default ];
 
-  options.custom.comfyui.enable = lib.mkEnableOption "ComfyUI (CUDA)";
+  options.rokokol.comfyui.enable = lib.mkEnableOption "ComfyUI (CUDA)";
 
-  config = lib.mkIf config.custom.comfyui.enable {
+  config = lib.mkIf config.rokokol.comfyui.enable {
     services.comfyui = {
       enable = true;
       gpuSupport = "cuda";

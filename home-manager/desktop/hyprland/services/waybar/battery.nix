@@ -1,10 +1,10 @@
 { config, lib, ... }:
 
 let
-  cfg = config.custom.waybar;
+  cfg = config.rokokol.waybar;
 in
 {
-  options.custom.waybar.battery = lib.mkEnableOption "battery indicator";
+  options.rokokol.waybar.battery = lib.mkEnableOption "battery indicator";
 
   config = lib.mkIf (cfg.enable && cfg.battery) {
     programs.waybar.settings.mainBar."battery" = {

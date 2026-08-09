@@ -7,9 +7,9 @@
 }:
 
 {
-  options.custom.virtualization.enable = lib.mkEnableOption "libvirt + virt-manager (KVM/VFIO)";
+  options.rokokol.virtualization.enable = lib.mkEnableOption "libvirt + virt-manager (KVM/VFIO)";
 
-  config = lib.mkIf config.custom.virtualization.enable {
+  config = lib.mkIf config.rokokol.virtualization.enable {
     boot = {
       kernelParams = [
         "amd_iommu=on"

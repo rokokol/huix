@@ -6,14 +6,14 @@
 [![scripts](https://img.shields.io/badge/scripts-скрипты-4EAA25?style=for-the-badge&logo=gnubash&logoColor=white)](../../../../../scripts/README.md)
 [![screen-shader](https://img.shields.io/badge/screen--shader-эффекты-FF4088?style=for-the-badge&logo=opengl&logoColor=white)](https://github.com/rokokol/hyprland-screen-shader)
 
-Единый бар для обоих хостов: одна база + фичи-модули, каждый в своём файле. Хост ничего не копирует — только объявляет вход через опции `custom.waybar.*`, и бар собирается из нужных компонентов
+Единый бар для обоих хостов: одна база + фичи-модули, каждый в своём файле. Хост ничего не копирует — только объявляет вход через опции `rokokol.waybar.*`, и бар собирается из нужных компонентов
 
 ## Как это собрано
 
 | Файл | Что внутри |
 | --- | --- |
 | `default.nix` | агрегатор: только `imports` всех компонентов |
-| `bar.nix` | база: опция `custom.waybar.enable`, общие модули (workspaces, окно, часы, hardware-группа, звук, раскладка, трей, сеть), раскладка modules-left/center/right и раскладка CSS-листов по `~/.config/waybar` |
+| `bar.nix` | база: опция `rokokol.waybar.enable`, общие модули (workspaces, окно, часы, hardware-группа, звук, раскладка, трей, сеть), раскладка modules-left/center/right и раскладка CSS-листов по `~/.config/waybar` |
 | `style.nix` | сам CSS: одна вёрстка + два набора цветов (`light`/`dark`) |
 | `notifications.nix` | `custom/notifications` — индикатор [notify-center](../../../../../scripts/README.md), всегда включён вместе с баром; тянет `mako.nix` |
 | `shader.nix` | `custom/shader` — индикатор [полноэкранных шейдеров](https://github.com/rokokol/hyprland-screen-shader) и софт-яркости: только номер сигнала и имя бара, всё остальное приходит из флейка |
@@ -23,7 +23,7 @@
 
 Компоненты объявляют **только свои настройки** (`programs.waybar.settings.mainBar."..."` — attrsets сливает модульная система HM). Порядок модулей в баре задаётся в одном месте — `modules-right` в `bar.nix` через `lib.optional`: иначе он зависел бы от порядка `imports`
 
-## Вход (опции `custom.waybar.*`)
+## Вход (опции `rokokol.waybar.*`)
 
 | Опция | Тип | Что даёт |
 | --- | --- | --- |
@@ -57,8 +57,8 @@
 - **Фон несут три панели `.modules-left/.modules-center/.modules-right`**, а не отдельные модули: у модулей фон погашен, свои подложки есть только у `#hardware` и `#tray` — они читаются как блоки внутри правой панели
 - **Тема переключается сама.** waybar спрашивает у портала `org.freedesktop.appearance` и берёт `style-light.css` или `style-dark.css`, а на смену схемы перечитывает лист **вживую, без рестарта** — поэтому [toggle-theme.sh](../../../../../scripts/README.md) ничего про бар не знает. Работает только пока waybar стартует **без `-s`** (`exec-once = waybar` в `hyprland.conf`): аргумент отключает выбор по теме. `style.css` кладётся тем же тёмным набором — это фолбэк на сессию без портала
 - **Оба набора — одно стекло.** Слой waybar блюрится (`layerrule = blur on` в `hyprland.conf`), подложка обоих наборов держит 0.62, тень и активный воркспейс — тоже одни пропорции. Светлый отличается только там, где этого требует подложка: подмесы (`inset`, чип DND) идут в `ink`, а не в `paper`, а `warn` остаётся затемнённым — sayori на белом не виден
-- **Новый компонент** = новый файл рядом + опция `custom.waybar.<фича>` + место в `modules-right` в `bar.nix` + селектор в списке модулей в `style.nix`. Не забыть `git add` (sync берёт только отслеживаемое)
+- **Новый компонент** = новый файл рядом + опция `rokokol.waybar.<фича>` + место в `modules-right` в `bar.nix` + селектор в списке модулей в `style.nix`. Не забыть `git add` (sync берёт только отслеживаемое)
 
 ## Применение
 
-Каталог целиком импортирует `hyprland.nix`, а вход `custom.waybar` задаёт `home-<host>.nix`. Сам waybar стартует через `exec-once` в `hyprland.conf`, `SUPER+Z` — тумблер бара
+Каталог целиком импортирует `hyprland.nix`, а вход `rokokol.waybar` задаёт `home-<host>.nix`. Сам waybar стартует через `exec-once` в `hyprland.conf`, `SUPER+Z` — тумблер бара

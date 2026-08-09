@@ -6,10 +6,10 @@
 }:
 
 let
-  cfg = config.custom.btop;
+  cfg = config.rokokol.btop;
 in
 {
-  options.custom.btop.withCuda = lib.mkEnableOption "btop GPU panel via btop-cuda";
+  options.rokokol.btop.withCuda = lib.mkEnableOption "btop GPU panel via btop-cuda";
 
   config.programs.btop = {
     enable = true;

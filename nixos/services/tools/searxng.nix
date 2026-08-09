@@ -9,9 +9,9 @@ let
   port = 9000;
 in
 {
-  options.custom.searxng.enable = lib.mkEnableOption "SearxNG behind nginx";
+  options.rokokol.searxng.enable = lib.mkEnableOption "SearxNG behind nginx";
 
-  config = lib.mkIf config.custom.searxng.enable {
+  config = lib.mkIf config.rokokol.searxng.enable {
     sops.secrets."searxng-secret-key" = { };
 
     # The searx module runs settings.yml through envsubst, so the key arrives as $VAR at

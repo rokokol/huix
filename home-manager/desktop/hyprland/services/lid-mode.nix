@@ -6,10 +6,10 @@
 }:
 
 let
-  cfg = config.custom.hyprland;
+  cfg = config.rokokol.hyprland;
 in
 {
-  options.custom.hyprland.lidNoSleep =
+  options.rokokol.hyprland.lidNoSleep =
     lib.mkEnableOption "toggle \"lid blanks the screen instead of suspending\" (laptop only)";
 
   config = lib.mkIf (cfg.enable && cfg.lidNoSleep) {

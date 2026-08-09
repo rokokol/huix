@@ -8,7 +8,7 @@
 }:
 
 let
-  cfg = config.custom.home;
+  cfg = config.rokokol.home;
   homeDir = "/home/${rokokolName}";
   downloadsDir = "${homeDir}/Downloads";
   projectsDir = "${homeDir}/Projects";
@@ -22,7 +22,7 @@ in
     ./theme/default.nix
   ];
 
-  options.custom.home = {
+  options.rokokol.home = {
     dataDir = lib.mkOption {
       type = lib.types.str;
       description = "user data root: Documents/Pictures/Videos (the myWiki vault lives in $HOME on both hosts)";

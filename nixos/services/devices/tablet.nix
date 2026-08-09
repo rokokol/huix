@@ -1,9 +1,9 @@
 { config, lib, ... }:
 
 {
-  options.custom.tablet.enable = lib.mkEnableOption "graphics tablet (OpenTabletDriver)";
+  options.rokokol.tablet.enable = lib.mkEnableOption "graphics tablet (OpenTabletDriver)";
 
-  config = lib.mkIf config.custom.tablet.enable {
+  config = lib.mkIf config.rokokol.tablet.enable {
     hardware.opentabletdriver = {
       enable = true;
       daemon.enable = true;

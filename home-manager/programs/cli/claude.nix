@@ -19,6 +19,6 @@
   # linkGeneration, not just writeBoundary — that is where home-manager removes the previous
   # generation's files, and it would undo the repair
   home.activation.claudeProfileLinks = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-    ${config.custom.scripts.packages.claude-account}/bin/claude-account ensure || true
+    ${config.rokokol.scripts.packages.claude-account}/bin/claude-account ensure || true
   '';
 }

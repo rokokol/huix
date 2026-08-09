@@ -10,7 +10,7 @@
   system.stateVersion = "25.11";
   services.ollama.package = pkgs.ollama-cpu;
 
-  custom = {
+  rokokol = {
     jupyter = {
       enable = true;
       withTorch = true;

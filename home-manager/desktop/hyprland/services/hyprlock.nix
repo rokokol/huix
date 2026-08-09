@@ -65,10 +65,10 @@ let
     }
     // l;
 
-  cfg = config.custom.hyprlock;
+  cfg = config.rokokol.hyprlock;
 in
 {
-  options.custom.hyprlock = {
+  options.rokokol.hyprlock = {
     dialog = lib.mkOption {
       type = lib.types.bool;
       description = ''

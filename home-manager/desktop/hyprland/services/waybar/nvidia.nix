@@ -1,10 +1,10 @@
 { config, lib, ... }:
 
 let
-  cfg = config.custom.waybar;
+  cfg = config.rokokol.waybar;
 in
 {
-  options.custom.waybar.nvidia = lib.mkEnableOption "NVIDIA GPU indicator via nvidia-smi";
+  options.rokokol.waybar.nvidia = lib.mkEnableOption "NVIDIA GPU indicator via nvidia-smi";
 
   config = lib.mkIf (cfg.enable && cfg.nvidia) {
     programs.waybar.settings.mainBar."custom/gpu" = {

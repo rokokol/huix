@@ -10,7 +10,7 @@
   system.stateVersion = "25.11";
   services.ollama.package = pkgs.stable.ollama-cuda;
 
-  custom = {
+  rokokol = {
     jupyter.enable = true;
 
     comfyui.enable = true;
