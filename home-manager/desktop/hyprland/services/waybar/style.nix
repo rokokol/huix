@@ -46,7 +46,7 @@
       padding: 0 3px;
   }
 
-    #clock {
+  #clock {
       color: ${palette.blush};
       font-weight: bold;
       padding: 0 8px;
