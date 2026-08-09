@@ -355,11 +355,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1786303298,
-        "narHash": "sha256-hhL47iEFcExP3QULb0xiutHCP8fIjsOv8H58jplshkw=",
+        "lastModified": 1786304241,
+        "narHash": "sha256-saxb95LKpZpmjIpgo+gzB9Xh5dm36eqY1aXGJ+Vs7WY=",
         "owner": "rokokol",
         "repo": "rofi-wooordhunt",
-        "rev": "50abd491c1d0455bc4d15393de46ee8b475a5185",
+        "rev": "03187d701eec2553bb49df16ecf4931a05b08468",
         "type": "github"
       },
       "original": {
