@@ -204,11 +204,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1786296748,
-        "narHash": "sha256-+NbVKpgYs9yO68lun7KsjndgoCuo7vlJIu3l4Wg9KV0=",
+        "lastModified": 1786381762,
+        "narHash": "sha256-FK7j/EherDKYTzB0kv0tkiciUnJsQIinu+lGm+SVSw0=",
         "owner": "rokokol",
         "repo": "hyprland-screen-shader",
-        "rev": "0a84224252761490b1207823bc3152ac457e50ff",
+        "rev": "7803e9613aad0ddaff2b1f7d15ac8c4e65c77dc6",
         "type": "github"
       },
       "original": {
@@ -375,11 +375,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1786305483,
-        "narHash": "sha256-37Jg55gTD5/kJZ0A1Wzl5GwU1OQ3aecvxdiUWnvFGZk=",
+        "lastModified": 1786380722,
+        "narHash": "sha256-e6I83PVyl4d7bWIOc0BWWsxFcz0xFijcrR9Y+MUlSHQ=",
         "owner": "rokokol",
         "repo": "rofi-wooordhunt",
-        "rev": "64e3e14d26bbb25c1bec75987e10473ba54dea94",
+        "rev": "cc90620c79d6bf198afb7c0bb9522380fdbe66eb",
         "type": "github"
       },
       "original": {

@@ -12,6 +12,7 @@ in
 
   config = lib.mkIf (cfg.enable && cfg.shader) {
     programs.screen-shader.waybar = {
+      enable = true;
       bars = [ "mainBar" ];
       signal = 8;
     };

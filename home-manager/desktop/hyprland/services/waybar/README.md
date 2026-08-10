@@ -16,7 +16,7 @@
 | `bar.nix` | база: опция `rokokol.waybar.enable`, общие модули (workspaces, окно, часы, hardware-группа, звук, раскладка, трей, сеть), раскладка modules-left/center/right и укладка CSS-листа в `~/.config/waybar` |
 | `style.nix` | сам CSS: одна вёрстка, один тёмный набор цветов из `theme/palette.nix` |
 | `notifications.nix` | `custom/notifications` — индикатор [notify-center](../../../../../scripts/README.md), всегда включён вместе с баром; тянет `mako.nix` |
-| `shader.nix` | `custom/shader` — индикатор [полноэкранных шейдеров](https://github.com/rokokol/hyprland-screen-shader) и софт-яркости: только номер сигнала и имя бара, всё остальное приходит из флейка |
+| `shader.nix` | `custom/shader` — индикатор [полноэкранных шейдеров](https://github.com/rokokol/hyprland-screen-shader) и софт-яркости: только `enable`, номер сигнала и имя бара, всё остальное приходит из флейка |
 | `nvidia.nix` | `custom/gpu` — загрузка/память/температура GPU через `nvidia-smi` |
 | `backlight.nix` | аппаратная подсветка, колесо → `brightnessctl` |
 | `battery.nix` | батарея |
@@ -46,7 +46,7 @@
 | Модуль | ЛКМ | ПКМ | СКМ | Колесо |
 | --- | --- | --- | --- | --- |
 | `custom/notifications` 🔔 | лента в rofi | тумблер DND | закрыть всё мимо истории | — |
-| `custom/shader` | rofi-пикер эффектов | снять эффект | — | софт-яркость ±10% |
+| `custom/shader` | rofi-пикер эффектов | сбросить эффекты и яркость | яркость 100% ↔ 50% | софт-яркость ±5% |
 | `backlight` | — | — | — | подсветка ±1% |
 | `pulseaudio` | pavucontrol | — | — | — |
 

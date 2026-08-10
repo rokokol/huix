@@ -23,7 +23,7 @@
 | `services/lid-mode.nix`           | ноутбучный тумблер `SUPER SHIFT+A` и `bindl switch:` на крышку — режим "крышка гасит экран, а не усыпляет" (`lid-mode.sh`); включается опцией `rokokol.hyprland.lidNoSleep`                                                                                                                                          |
 | `services/hypridle.nix`           | лок по таймауту 90 мин + перед сном, `hyprlock`                                                                                                                                                                                                                                                                     |
 | `services/hyprlock.nix`           | DDLC-локскрин: фон just-monika, диалог как в игре — `hyprlock-quote.sh` печатает реплики побуквенно (первая при локе — про "перезаход в игру"), имя и текст глитчатся вместе с экраном (по Пуассону и на неверный пароль), индикатор раскладки у поля ввода, сердечки вместо точек пароля; все пути через `huixDir` |
-| `services/rofi-wooordhunt.nix`    | словарь wooordhunt: включение модуля из флейка [rofi-wooordhunt](https://github.com/rokokol/rofi-wooordhunt), бинд `SUPER+Y` и эмодзи режима приходят оттуда                                                                                                                                                          |
+| `services/rofi-wooordhunt.nix`    | словарь wooordhunt: включение модуля из флейка [rofi-wooordhunt](https://github.com/rokokol/rofi-wooordhunt) и эмодзи режима; бинд `SUPER+Y` — в `hyprland.conf`, как и все остальные |
 | `services/wallpaper-collager.nix` | systemd-user таймер: коллаж обоев через `random-wallpaper.sh`                                                                                                                                                                                                                                                       |
 
 > **Почему `source`, а не нативные `settings`.** Главный конфиг один на оба хоста и редактируется быстрее как текст; per-host через `hyprland.conf` `source = …` подтягивается из `${huixDir}`, а различия (монитор, раскладка, бар) задаются в `*-pc.nix`/`*-laptop.nix`. Пути не хардкодятся — везде `$HUIX` / `huixDir`
@@ -90,9 +90,9 @@
 | `SUPER SHIFT + A`    | **ноутбук:** тумблер "крышка не усыпляет" (`lid-mode.sh`)   |
 | `SUPER + B`          | история буфера (cliphist в rofi)                            |
 | `SUPER SHIFT + B`    | эмодзи/математика/символы/каомодзи (rofimoji)               |
-| `SUPER + Y`          | словарь wooordhunt в rofi (бинд от флейка)                  |
+| `SUPER + Y`          | словарь wooordhunt в rofi                                   |
 | `SUPER + U`          | перевод ru↔en через LibreTranslate                          |
-| `SUPER + G`          | toggle grayscale-шейдер, `SUPER SHIFT + G` — пикер шейдеров |
+| `SUPER + G`          | снять эффекты, `SUPER SHIFT + G` — пикер шейдеров           |
 | `SUPER CTRL + [ / ]` | софт-яркость через шейдер вниз/вверх, `Backspace` — сброс   |
 | `SUPER + Z`          | toggle waybar                                               |
 | `SUPER + F12`        | лок сессии                                                  |
@@ -111,8 +111,8 @@
 - **планшет Gaomon S630** прибит к выходу `DP-1` (PC), иначе мапится на оба монитора
 - **зум** — `cursor:zoom_factor` живой
 - **тема свет/тьма — рантайм, не декларатив** — `SUPER+A` → `toggle-theme.sh` флипает dconf и пишет выбор в `~/.local/state/huix/theme`; на reload восстанавливается через `exec = toggle-theme.sh --sync`. Подробности и грабли — в [scripts/README](../../../scripts/README.md)
-- **шейдеры/софт-яркость** — вынесены в [rokokol/hyprland-screen-shader](https://github.com/rokokol/hyprland-screen-shader); модуль флейка сам вешает бинды и `exec = screen-shader restore`, здесь остались только `services/screen-shader.nix` (включение) и `waybar/shader.nix` (номер RT-сигнала и имя бара)
-- **словарь wooordhunt** — вынесен в [rokokol/rofi-wooordhunt](https://github.com/rokokol/rofi-wooordhunt); модуль флейка сам вешает `SUPER+Y`, а сам modi называет свой режим через протокол script-modi (`\0prompt`), так что эмодзи режима живёт в опции `prompt`, а не в `display-*` конфига rofi; здесь остался только `services/rofi-wooordhunt.nix` (включение и эмодзи)
+- **шейдеры/софт-яркость** — вынесены в [rokokol/hyprland-screen-shader](https://github.com/rokokol/hyprland-screen-shader); модуль флейка пишет в конфиг Hyprland ровно `exec = screen-shader restore` (слот шейдера теряется на каждом reload), клавиши живут в `hyprland.conf`, а здесь остались `services/screen-shader.nix` (включение) и `waybar/shader.nix` (`enable`, номер RT-сигнала и имя бара). Клавиши зовут `rofi-shader` — слой UI, который показывает всплывашку; `screen-shader` сам молчит
+- **словарь wooordhunt** — вынесен в [rokokol/rofi-wooordhunt](https://github.com/rokokol/rofi-wooordhunt); `SUPER+Y` висит в `hyprland.conf` и зовёт просто `rofi-wooordhunt` — это лаунчер, а сам modi лежит вне PATH, в `libexec` пакета. Режим называет себя через протокол script-modi (`\0prompt`), так что эмодзи режима живёт в опции `prompt`, а не в `display-*` конфига rofi; здесь остался только `services/rofi-wooordhunt.nix` (включение и эмодзи)
 - **крышка ноутбука** — `SUPER SHIFT+A` → `lid-mode.sh` берёт лок `systemd-inhibit --what=handle-lid-switch`, и пока он держится, закрытие крышки не усыпляет систему, а только гасит встроенную панель (`dpms off` по `bindl = , switch:on:Lid Switch`; внешний монитор не трогаем). Лок работает только потому, что на ноутбуке выключен `LidSwitchIgnoreInhibited` (`nixos/laptop/logind.nix`); само `HandleLidSwitch` осталось дефолтным, так что вне сессии Hyprland крышка усыпляет как обычно. Режим сессионный — после ребута/релогина он выключен, индикатора в баре нет, только уведомление при переключении
 - **swayimg** — навигация и копирование в буфер забиндены и на латинице, и на кириллице (`c/с`, `h/р`, …), чтобы работало при любой раскладке
 - **hyprlock: фон — картинка, не скриншот** — иначе эффект от шейдеров применяется дважды
