@@ -15,34 +15,26 @@
 
     comfyui-nix.url = "https://flakehub.com/f/utensils/comfyui/0.18.2";
 
-    # The greeter theme, split out of this repo — see nixos/services/desktop/sddm.nix
     ddlc-sddm-theme = {
       url = "github:rokokol/ddlc-sddm-theme";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Every DDLC colour in this repo comes from here — see home-manager/desktop/theme/palette.nix
     ddlc-palette = {
       url = "github:rokokol/ddlc-palette";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Full-screen effects and soft brightness, split out of this repo
-    # — see home-manager/desktop/hyprland/services/waybar/shader.nix
     hyprland-screen-shader = {
       url = "github:rokokol/hyprland-screen-shader";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Claude Code profile switching, split out of this repo
-    # — see home-manager/programs/cli/claude.nix
     claude-account = {
       url = "github:rokokol/claude-account";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # The wooordhunt dictionary modi, split out of this repo
-    # — see home-manager/desktop/hyprland/services/rofi-wooordhunt.nix
     rofi-wooordhunt = {
       url = "github:rokokol/rofi-wooordhunt";
       inputs.nixpkgs.follows = "nixpkgs";
