@@ -1,7 +1,20 @@
-{ base16, lib, ... }:
+{
+  base16,
+  config,
+  lib,
+  ...
+}:
 
 {
-  programs.nixvim = {
+  # One switch for the whole editor: the sweep below is by colour, not by a list of groups, and
+  # the plugins that shade their own bars follow the same flag
+  options.rokokol.nixvim.transparent = lib.mkOption {
+    type = lib.types.bool;
+    default = true;
+    description = "Clear every ground the colorscheme paints with base00, so the terminal shows through";
+  };
+
+  config.programs.nixvim = {
     enable = true;
     defaultEditor = true;
 
@@ -55,7 +68,7 @@
     # background_opacity only shows through once those are cleared. Sweeping by colour rather
     # than by group name keeps gutters and floats in step: naming a few left the rest opaque
     # around a transparent text area, which reads as a half-painted window
-    extraConfigLuaPost = ''
+    extraConfigLuaPost = lib.mkIf config.rokokol.nixvim.transparent ''
       local ground = tonumber("${lib.removePrefix "#" base16.dark.base00}", 16)
       for group, hl in pairs(vim.api.nvim_get_hl(0, {})) do
         if hl.bg == ground then
