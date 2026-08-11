@@ -53,14 +53,12 @@
 
     # base16-nvim paints every ground with base00 and has no transparency switch, so kitty's
     # background_opacity only shows through once those are cleared. Sweeping by colour rather
-    # than by group name keeps gutters and floats in step: naming a few left the rest opaque,
-    # which reads as a half-painted window. Telescope is held out of it: its prompt and titles
-    # carry grounds of their own, so clearing the results pane alone leaves a float with a hole
-    # in it — base16-nvim means to darken that pane, but its darken() returns base00 unchanged
+    # than by group name keeps gutters and floats in step: naming a few left the rest opaque
+    # around a transparent text area, which reads as a half-painted window
     extraConfigLuaPost = ''
       local ground = tonumber("${lib.removePrefix "#" base16.dark.base00}", 16)
       for group, hl in pairs(vim.api.nvim_get_hl(0, {})) do
-        if hl.bg == ground and not group:match("^Telescope") then
+        if hl.bg == ground then
           hl.bg = "NONE"
           vim.api.nvim_set_hl(0, group, hl)
         end
