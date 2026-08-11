@@ -22,7 +22,13 @@ stdenvNoCC.mkDerivation {
   buildInputs = [ gnome-themes-extra ];
 
   dontBuild = true;
-  postPatch = "patchShebangs themes/install.sh";
+  # Accent recoloured to ddlc-palette's "yuri" (#6C4681) instead of gruvbox's default blue
+  postPatch = ''
+    patchShebangs themes/install.sh
+    substituteInPlace themes/src/sass/_color-palette-default.scss \
+      --replace-fail '$default-light: $blue-light;' '$default-light: #6C4681;' \
+      --replace-fail '$default-dark: $blue-dark;' '$default-dark: #6C4681;'
+  '';
 
   # Default install ships Light/Dark (+hdpi/xhdpi), which is all we toggle between
   installPhase = ''
