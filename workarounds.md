@@ -181,3 +181,50 @@ nix eval .#checks.x86_64-linux --apply builtins.attrNames
 ```
 
 Errors out, or returns `[ ]` → still missing
+
+---
+
+## The nvim transparency sweep, and `bufferline.themable = false`
+
+**Where:** `home-manager/programs/nixvim/settings.nix` (the sweep in `extraConfigLuaPost`, gated by `rokokol.nixvim.transparent`) and `home-manager/programs/nixvim/plugins/ui/bufferline.nix` (`themable = false` plus a re-derive behind `mkAfter`)
+
+**Symptom it prevents:** kitty runs at `background_opacity 0.9`, and without the sweep nvim paints every ground opaque, so the terminal shows through nowhere. With the sweep but without the bufferline half, the tabline stays a band of `#121212` across the top of an otherwise transparent editor
+
+**Why it happens:** base16-nvim has no transparency switch at all — gruvbox has `transparent_mode`, which nils `bg` on `Normal`, `NormalFloat`, `WinSeparator`, `SignColumn`, `FoldColumn` and the sign groups, and base16-nvim has no equivalent, so the only way through is to clear the grounds after the scheme has been applied. That has to happen at the end of `init.lua`, and bufferline reads `Normal`'s background when it sets up — line 405 against line 1424 — so it keeps `tint(base00, -45)`, a shade of a background nothing draws any more. It has `config.update_highlights()` for re-deriving, but `highlights.set(...)` passes `default = options.themable`, and `nvim_set_hl` with `default = true` will not touch a group that already exists
+
+**Removal check:**
+
+```sh
+# a transparency option upstream retires the sweep, and the bufferline half with it
+grep -ric transparen "$(nix eval --raw '.#nixosConfigurations.nixos-pc.pkgs.vimPlugins.base16-nvim.outPath' 2>/dev/null)/lua/base16-colorscheme.lua"
+```
+
+Non-zero → base16-nvim knows the word, go read what it offers
+
+---
+
+## Telescope gets its highlights spelled out
+
+**Where:** `home-manager/programs/nixvim/plugins/editor/telescope.nix` — the `highlightOverride` block
+
+**Symptom it prevents:** the picker renders as a hole. The results and preview panes show the wallpaper while the prompt sits on top of them as a solid slab, and no border separates any of it
+
+**Why it happens:** base16-nvim means to give telescope grounds of its own, one shade darker than the rest, and computes them with
+
+```lua
+local function darken(hex, pct)
+    local r, g, b = hex_to_rgb(string.sub(hex, 2))
+    local br, bg, bb = hex_to_rgb(string.sub(M.colors.base00, 2))
+    r = math.floor(r + (br - r) * pct)   -- and the same for g and b
+```
+
+which does not darken — it interpolates towards `base00`. So `darken(base00, 0.1)` returns `base00` unchanged for every scheme and every `pct`, by algebra rather than by rounding, and `TelescopeNormal` ends up on the ordinary background. kitty then draws any cell whose background equals the default background at `background_opacity`, so that pane is transparent while `TelescopePromptNormal`, which is built from `base02` and does move, stays opaque
+
+**Removal check:**
+
+```sh
+# the bug is the second hex_to_rgb reading base00 instead of the argument
+grep -A3 'local function darken' "$(nix eval --raw '.#nixosConfigurations.nixos-pc.pkgs.vimPlugins.base16-nvim.outPath' 2>/dev/null)/lua/base16-colorscheme.lua"
+```
+
+No `M.colors.base00` in the body → fixed upstream, drop the block and let the scheme style telescope
