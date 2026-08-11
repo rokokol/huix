@@ -6,27 +6,11 @@
 }:
 
 {
-  # `makoctl reload` can report success while leaving [urgency=...] colour rules
-  # stuck on an already-running daemon (observed: stayed on mako's stock blue
-  # theme for hours across several activations) — restart the unit instead, which
-  # always re-execs the binary and can't leave stale criteria behind.
-  home.activation.restartMako = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    ${pkgs.systemd}/bin/systemctl --user restart mako.service 2>/dev/null || true
+  # mako doesn't re-read its config by itself (exec-once, no systemd unit) — we
+  # nudge it on every activation; outside a graphical session we silently skip.
+  home.activation.reloadMako = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    ${pkgs.mako}/bin/makoctl reload 2>/dev/null || true
   '';
-
-  systemd.user.services.mako = {
-    Unit = {
-      Description = "Wayland notification daemon";
-      After = [ "graphical-session.target" ];
-      PartOf = [ "graphical-session.target" ];
-    };
-    Service = {
-      ExecStart = "${pkgs.mako}/bin/mako";
-      Restart = "always";
-      RestartSec = 2;
-    };
-    Install.WantedBy = [ "graphical-session.target" ];
-  };
 
   services.mako = {
     enable = true;
