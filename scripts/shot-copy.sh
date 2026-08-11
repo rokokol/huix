@@ -16,6 +16,6 @@ else
 fi
 
 wl-copy <"$file"
-notify-send -i "$file" "Copied"
+notify-send -u low -i "$file" "Copied"
 sleep 5
 rm -f "$file"

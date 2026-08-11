@@ -211,7 +211,6 @@
         ];
       }
 
-      # 3. Footer (Stats)
       {
         type = "padding";
         val = 2;

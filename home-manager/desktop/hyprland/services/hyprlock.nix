@@ -93,7 +93,9 @@ in
       readOnly = true;
       default =
         if cfg.dialog then
-          "STATE_DIR=\"${stateDir}\" TEXT_W=${toString textW} FONT_PX=${toString fontPx} POLL_MS=${toString pollMs} GLITCH=${if cfg.glitch then "1" else "0"} SCREEN_SHADER=${lib.getExe config.programs.screen-shader.package} ${quoteScript} lock"
+          "STATE_DIR=\"${stateDir}\" TEXT_W=${toString textW} FONT_PX=${toString fontPx} POLL_MS=${toString pollMs} GLITCH=${
+            if cfg.glitch then "1" else "0"
+          } SCREEN_SHADER=${lib.getExe config.programs.screen-shader.package} ${quoteScript} lock"
         else
           lib.getExe config.programs.hyprlock.package;
       description = "command that runs a lock: hyprlock, plus its dialog animation when enabled";
@@ -145,78 +147,80 @@ in
         }
       ];
 
-      label = map mkLabel ([
-        # Clock
-        {
-          text = "$TIME";
-          font_size = 150;
-          color = "rgba(${bare.paper}ff)";
-          shadow_passes = 3;
-          shadow_size = 6;
-          shadow_color = "rgba(bf936edd)"; # warm copper-beige from the background
-          position = "0, -70";
-          halign = "center";
-          valign = "top";
-        }
-        # Date (tr -d: text_trim is off, a trailing \n would become a second line)
-        {
-          text = ''cmd[update:60000] date +"%A, %B %-d" | tr -d '\n' '';
-          font_size = 30;
-          color = "rgba(${bare.paper}e6)";
-          shadow_passes = 2;
-          shadow_size = 3;
-          shadow_color = "rgba(9f543caa)"; # dark orange from the background
-          position = "0, -250";
-          halign = "center";
-          valign = "top";
-        }
-        # Layout to the right of the input field ($LAYOUT updates itself)
-        {
-          text = "$LAYOUT[EN,RU]";
-          font_size = 24;
-          color = "rgba(${bare.paper}dd)";
-          shadow_passes = 2;
-          shadow_size = 3;
-          shadow_color = "rgba(${bare.plum}aa)";
-          position = "240, -20";
-          halign = "center";
-          valign = "center";
-        }
-      ]
-      ++ lib.optionals cfg.dialog [
-        # Name on the plate: a separate label (not baked into the PNG) so it
-        # glitches together with the text and at the same rate. The pink "outline" is a shadow.
-        {
-          text = "cmd[update:${toString pollMs}] cat \"${stateDir}/name\"";
-          font_size = 28;
-          color = "rgba(${bare.paper}ff)";
-          shadow_passes = 2;
-          shadow_size = 6;
-          shadow_boost = 2;
-          shadow_color = "rgba(${bare.plum}ff)";
-          zindex = 2;
-          position = "${toString nameX}, ${toString nameY}";
-          halign = "center";
-          valign = "bottom";
-        }
-        # Line: a constant texture size (see the header) + halign center
-        # + valign bottom pin the top-left of the text right at the text-area
-        # padding. The black "outline" is a shadow.
-        {
-          text = "cmd[update:${toString pollMs}] cat \"${stateDir}/frame\"";
-          font_size = quoteFontSize;
-          color = "rgba(${bare.paper}ff)";
-          shadow_passes = 4;
-          shadow_size = 2;
-          shadow_boost = 1.6;
-          shadow_color = "rgba(${bare.ink}ff)";
-          text_align = "left";
-          zindex = 1; # on top of the box
-          position = "0, ${toString quoteY}";
-          halign = "center";
-          valign = "bottom";
-        }
-      ]);
+      label = map mkLabel (
+        [
+          # Clock
+          {
+            text = "$TIME";
+            font_size = 150;
+            color = "rgba(${bare.paper}ff)";
+            shadow_passes = 3;
+            shadow_size = 6;
+            shadow_color = "rgba(bf936edd)"; # warm copper-beige from the background
+            position = "0, -70";
+            halign = "center";
+            valign = "top";
+          }
+          # Date (tr -d: text_trim is off, a trailing \n would become a second line)
+          {
+            text = ''cmd[update:60000] date +"%A, %B %-d" | tr -d '\n' '';
+            font_size = 30;
+            color = "rgba(${bare.paper}e6)";
+            shadow_passes = 2;
+            shadow_size = 3;
+            shadow_color = "rgba(9f543caa)"; # dark orange from the background
+            position = "0, -250";
+            halign = "center";
+            valign = "top";
+          }
+          # Layout to the right of the input field ($LAYOUT updates itself)
+          {
+            text = "$LAYOUT[EN,RU]";
+            font_size = 24;
+            color = "rgba(${bare.paper}dd)";
+            shadow_passes = 2;
+            shadow_size = 3;
+            shadow_color = "rgba(${bare.plum}aa)";
+            position = "240, -20";
+            halign = "center";
+            valign = "center";
+          }
+        ]
+        ++ lib.optionals cfg.dialog [
+          # Name on the plate: a separate label (not baked into the PNG) so it
+          # glitches together with the text and at the same rate. The pink "outline" is a shadow.
+          {
+            text = "cmd[update:${toString pollMs}] cat \"${stateDir}/name\"";
+            font_size = 28;
+            color = "rgba(${bare.paper}ff)";
+            shadow_passes = 2;
+            shadow_size = 6;
+            shadow_boost = 2;
+            shadow_color = "rgba(${bare.plum}ff)";
+            zindex = 2;
+            position = "${toString nameX}, ${toString nameY}";
+            halign = "center";
+            valign = "bottom";
+          }
+          # Line: a constant texture size (see the header) + halign center
+          # + valign bottom pin the top-left of the text right at the text-area
+          # padding. The black "outline" is a shadow.
+          {
+            text = "cmd[update:${toString pollMs}] cat \"${stateDir}/frame\"";
+            font_size = quoteFontSize;
+            color = "rgba(${bare.paper}ff)";
+            shadow_passes = 4;
+            shadow_size = 2;
+            shadow_boost = 1.6;
+            shadow_color = "rgba(${bare.ink}ff)";
+            text_align = "left";
+            zindex = 1; # on top of the box
+            position = "0, ${toString quoteY}";
+            halign = "center";
+            valign = "bottom";
+          }
+        ]
+      );
 
       "input-field" = [
         {
@@ -232,7 +236,7 @@ in
           fail_text = "This isn't it... ($ATTEMPTS)";
           # password check is highlighted with the same red as an error
           check_color = "rgb(${bare.plum})";
-          fail_color = "rgb(${bare.bow})";
+          fail_color = "rgb(${bare.yuri})";
           capslock_color = "rgb(${bare.sayori})";
           dots_text_format = "♥";
           dots_spacing = 0.2;
