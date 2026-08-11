@@ -217,6 +217,8 @@ local darkerbg = darken(M.colors.base00, 0.1)
 
 but `darken` does not darken — it blends its argument towards `base00`, which is right for its seven other callers (`darken(base0B, 0.85)` is how the diff-add background is arrived at) and an identity for this one: `r + (r - r) * pct == r`, for every scheme and every `pct`. So `TelescopeNormal`, `TelescopeBorder` and `TelescopeResultsTitle` land on the ordinary background, while `TelescopePromptNormal` and `TelescopeSelection`, built from `base02`, do move. On stock `base16-default-dark` that reads `#181818` against `#343434`. kitty then draws any cell whose background equals the default background at `background_opacity`, so the results pane comes out transparent under an opaque prompt
 
+**Reported:** [RRethy/base16-nvim#120](https://github.com/RRethy/base16-nvim/issues/120), fix in [#121](https://github.com/RRethy/base16-nvim/pull/121)
+
 **Removal check:**
 
 ```sh
