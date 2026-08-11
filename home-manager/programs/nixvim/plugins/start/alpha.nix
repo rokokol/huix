@@ -1,6 +1,10 @@
-{ ... }:
+{ base16, ... }:
 
 {
+  # The header is a wall of braille, so it wants the palette's dimmest accent rather than
+  # Special — base0C is the brightest colour in the scheme after the greys
+  programs.nixvim.highlightOverride.AlphaHeader.fg = base16.dark.base0E;
+
   programs.nixvim.plugins.alpha = {
 
     enable = true;
@@ -82,7 +86,7 @@
         };
         opts = {
           position = "center";
-          hl = "Special";
+          hl = "AlphaHeader";
         };
       }
 

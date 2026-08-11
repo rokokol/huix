@@ -1,4 +1,4 @@
-{ base16, ... }:
+{ base16, lib, ... }:
 
 {
   programs.nixvim = {
@@ -52,24 +52,20 @@
     };
 
     # base16-nvim paints every ground with base00 and has no transparency switch, so kitty's
-    # background_opacity only shows through if these are cleared after the scheme is applied.
-    # nvim_set_hl replaces a group rather than patching it, hence the foreground restated
-    highlightOverride =
-      let
-        clear = {
-          fg = base16.dark.base05;
-          bg = "NONE";
-        };
-      in
-      {
-        Normal = clear;
-        NormalFloat = clear;
-        FloatBorder = clear;
-        Pmenu = clear;
-        TelescopeNormal = clear;
-        TelescopeBorder = clear;
-        WhichKeyFloat = clear;
-      };
+    # background_opacity only shows through once those are cleared. Sweeping by colour rather
+    # than by group name keeps gutters and floats in step: naming a few left the rest opaque,
+    # which reads as a half-painted window. Telescope is held out of it: its prompt and titles
+    # carry grounds of their own, so clearing the results pane alone leaves a float with a hole
+    # in it — base16-nvim means to darken that pane, but its darken() returns base00 unchanged
+    extraConfigLuaPost = ''
+      local ground = tonumber("${lib.removePrefix "#" base16.dark.base00}", 16)
+      for group, hl in pairs(vim.api.nvim_get_hl(0, {})) do
+        if hl.bg == ground and not group:match("^Telescope") then
+          hl.bg = "NONE"
+          vim.api.nvim_set_hl(0, group, hl)
+        end
+      end
+    '';
 
     # --- Lua Config ---
     extraConfigLua = ''
