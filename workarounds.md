@@ -209,22 +209,19 @@ Non-zero → base16-nvim knows the word, go read what it offers
 
 **Symptom it prevents:** the picker renders as a hole. The results and preview panes show the wallpaper while the prompt sits on top of them as a solid slab, and no border separates any of it
 
-**Why it happens:** base16-nvim means to give telescope grounds of its own, one shade darker than the rest, and computes them with
+**Why it happens:** base16-nvim means to give telescope grounds of its own, one shade off the rest, and reaches for
 
 ```lua
-local function darken(hex, pct)
-    local r, g, b = hex_to_rgb(string.sub(hex, 2))
-    local br, bg, bb = hex_to_rgb(string.sub(M.colors.base00, 2))
-    r = math.floor(r + (br - r) * pct)   -- and the same for g and b
+local darkerbg = darken(M.colors.base00, 0.1)
 ```
 
-which does not darken — it interpolates towards `base00`. So `darken(base00, 0.1)` returns `base00` unchanged for every scheme and every `pct`, by algebra rather than by rounding, and `TelescopeNormal` ends up on the ordinary background. kitty then draws any cell whose background equals the default background at `background_opacity`, so that pane is transparent while `TelescopePromptNormal`, which is built from `base02` and does move, stays opaque
+but `darken` does not darken — it blends its argument towards `base00`, which is right for its seven other callers (`darken(base0B, 0.85)` is how the diff-add background is arrived at) and an identity for this one: `r + (r - r) * pct == r`, for every scheme and every `pct`. So `TelescopeNormal`, `TelescopeBorder` and `TelescopeResultsTitle` land on the ordinary background, while `TelescopePromptNormal` and `TelescopeSelection`, built from `base02`, do move. On stock `base16-default-dark` that reads `#181818` against `#343434`. kitty then draws any cell whose background equals the default background at `background_opacity`, so the results pane comes out transparent under an opaque prompt
 
 **Removal check:**
 
 ```sh
-# the bug is the second hex_to_rgb reading base00 instead of the argument
-grep -A3 'local function darken' "$(nix eval --raw '.#nixosConfigurations.nixos-pc.pkgs.vimPlugins.base16-nvim.outPath' 2>/dev/null)/lua/base16-colorscheme.lua"
+# the one call whose target is the colour it is being blended into
+grep -n 'darken(M.colors.base00' "$(nix eval --raw '.#nixosConfigurations.nixos-pc.pkgs.vimPlugins.base16-nvim.outPath' 2>/dev/null)/lua/base16-colorscheme.lua"
 ```
 
-No `M.colors.base00` in the body → fixed upstream, drop the block and let the scheme style telescope
+No match → the call takes a real target now, so drop the block and let the scheme style telescope
