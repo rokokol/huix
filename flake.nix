@@ -79,13 +79,16 @@
       # Same on both hosts on purpose: absolute paths into the vault travel through Syncthing
       myWikiDir = "/home/${rokokolName}/myWiki";
 
-      # ddlc-palette holds what the site defines; palette.nix adds what it does not
-      palette = import ./home-manager/desktop/theme/palette.nix {
-        base = inputs.ddlc-palette.lib.palette;
+      # Nothing in this repo names a colour: hexes, their bare and rgba spellings and the two
+      # terminal schemes all come from ddlc-palette, which reads them off ddlc.moe
+      palette = inputs.ddlc-palette.lib.palette // {
+        inherit (inputs.ddlc-palette.lib) bare rgba;
       };
+      base16 = inputs.ddlc-palette.lib.base16;
 
       commonArgs = {
         inherit
+          base16
           govnoDir
           huixDir
           inputs

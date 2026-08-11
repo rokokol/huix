@@ -8,8 +8,7 @@
 
 let
   cfg = config.rokokol.hyprland;
-  # hyprland wants bare hex inside rgba()
-  bare = c: lib.removePrefix "#" c;
+  inherit (palette) bare;
 in
 {
   imports = [
@@ -64,11 +63,11 @@ in
       settings = {
         # Emitted before hyprland.conf is sourced, so the file can stay colour-free
         general = {
-          "col.active_border" = "rgba(${bare palette.pink}ee) rgba(${bare palette.plum}ee) 45deg";
-          "col.inactive_border" = "rgba(${bare palette.muted}aa)";
+          "col.active_border" = "rgba(${bare.pink}ee) rgba(${bare.plum}ee) 45deg";
+          "col.inactive_border" = "rgba(${bare.jacket}aa)";
         };
 
-        decoration.shadow.color = "rgba(${bare palette.ink}ee)";
+        decoration.shadow.color = "rgba(${bare.ink}ee)";
 
         monitor = [
           ",preferred,auto,${cfg.monitorScale}"

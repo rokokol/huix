@@ -45,11 +45,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1786228914,
-        "narHash": "sha256-/QjXmt0oYpG9VFKOTtyCR3FA9G9N8/UYrLKzsXY+m5Q=",
+        "lastModified": 1786445628,
+        "narHash": "sha256-LO1uQOjUkk3Tw+Ch56ip0GSNxILlg/ov6fr9BnskpCc=",
         "owner": "rokokol",
         "repo": "ddlc-palette",
-        "rev": "090aad16b07445df25ccc1e39493672cc84c551f",
+        "rev": "68eedcfe0e2b3dcd0b6e6ebcb21b5a40c7d57513",
         "type": "github"
       },
       "original": {
@@ -66,11 +66,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1786228914,
-        "narHash": "sha256-/QjXmt0oYpG9VFKOTtyCR3FA9G9N8/UYrLKzsXY+m5Q=",
+        "lastModified": 1786445628,
+        "narHash": "sha256-LO1uQOjUkk3Tw+Ch56ip0GSNxILlg/ov6fr9BnskpCc=",
         "owner": "rokokol",
         "repo": "ddlc-palette",
-        "rev": "090aad16b07445df25ccc1e39493672cc84c551f",
+        "rev": "68eedcfe0e2b3dcd0b6e6ebcb21b5a40c7d57513",
         "type": "github"
       },
       "original": {
@@ -87,11 +87,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1786229132,
-        "narHash": "sha256-yb8Or5EAT2C0SLBgsrQnHhNXVZxEEG16E7KuiTz2wRQ=",
+        "lastModified": 1786446866,
+        "narHash": "sha256-tR7nwJH0Exd6HhHk+jLHCuA2MkInpMThiH8l0WGsRIo=",
         "owner": "rokokol",
         "repo": "ddlc-sddm-theme",
-        "rev": "32a8325c059a5443563190aa12d02fab5a5c8e29",
+        "rev": "5fe9493b2510a0bd513c400cd1a5ae7a5589e1cd",
         "type": "github"
       },
       "original": {

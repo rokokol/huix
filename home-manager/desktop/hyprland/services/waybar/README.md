@@ -14,7 +14,7 @@
 | --- | --- |
 | `default.nix` | агрегатор: только `imports` всех компонентов |
 | `bar.nix` | база: опция `rokokol.waybar.enable`, общие модули (workspaces, окно, часы, hardware-группа, звук, раскладка, трей, сеть), раскладка modules-left/center/right и укладка CSS-листа в `~/.config/waybar` |
-| `style.nix` | сам CSS: одна вёрстка, один тёмный набор цветов из `theme/palette.nix` |
+| `style.nix` | сам CSS: одна вёрстка, один тёмный набор цветов из `commonArgs.palette` |
 | `notifications.nix` | `custom/notifications` — индикатор [notify-center](../../../../../scripts/README.md), всегда включён вместе с баром; тянет `mako.nix` |
 | `shader.nix` | `custom/shader` — индикатор [полноэкранных шейдеров](https://github.com/rokokol/hyprland-screen-shader) и софт-яркости: только `enable`, номер сигнала и имя бара, всё остальное приходит из флейка |
 | `nvidia.nix` | `custom/gpu` — загрузка/память/температура GPU через `nvidia-smi` |
@@ -56,7 +56,7 @@
 - **CSS один на всех.** Селекторы выключенных модулей (`#custom-gpu`, `#battery`, …) просто не матчатся — стиль не нужно ветвить по хостам
 - **Фон несут три панели `.modules-left/.modules-center/.modules-right`**, а не отдельные модули: у модулей фон погашен, свои подложки есть только у `#hardware` (мягкий блок-подмес) и `#tray` — трей носит метку активного воркспейса, тот же тон и тот же радиус 9px
 - **Бар всегда тёмный.** waybar спрашивает у портала `org.freedesktop.appearance` и ищет `style-light.css`/`style-dark.css`, а не найдя — берёт `style.css`; кладётся только он, поэтому [toggle-theme.sh](../../../../../scripts/README.md) на бар не влияет и ничего про него не знает
-- **Тёмный набор — стекло.** Слой waybar блюрится (`layerrule = blur on` в `hyprland.conf`), подложка панелей держит `paperDark` 0.62, метку активного воркспейса и трея несёт `plum` 0.55
+- **Тёмный набор — стекло.** Слой waybar блюрится (`layerrule = blur on` в `hyprland.conf`), подложка панелей держит `yuriShadow` 0.62, метку активного воркспейса и трея несёт `plum` 0.55
 - **Новый компонент** = новый файл рядом + опция `rokokol.waybar.<фича>` + место в `modules-right` в `bar.nix` + селектор в списке модулей в `style.nix`. Не забыть `git add` (sync берёт только отслеживаемое)
 
 ## Применение

@@ -18,13 +18,13 @@
   /* Three panels — left / center / right — instead of an island per module.
      The waybar layer is blurred in hyprland.conf, so a translucent panel frosts */
   .modules-left, .modules-center, .modules-right {
-      background: ${palette.rgba palette.paperDark "0.62"};
-      color: ${palette.textOnDark};
+      background: ${palette.rgba.yuriShadow "0.62"};
+      color: ${palette.dot};
       padding: 0 4px;
       margin: 2px 6px;
       border-radius: 13px;
-      border: 1px solid ${palette.rgba palette.pink "0.55"};
-      box-shadow: 0 2px 6px ${palette.rgba palette.ink "0.35"};
+      border: 1px solid ${palette.rgba.pink "0.55"};
+      box-shadow: 0 2px 6px ${palette.rgba.ink "0.35"};
   }
 
   /* Modules ride on the panel and carry no ground of their own */
@@ -34,12 +34,12 @@
       border: none;
       margin: 0;
       padding: 0 5px;
-      color: ${palette.textOnDark};
+      color: ${palette.dot};
   }
 
   /* Machine stats read as a block inside the right panel */
   #hardware, #tray {
-      background: ${palette.rgba palette.paper "0.07"};
+      background: ${palette.rgba.paper "0.07"};
       border: none;
       border-radius: 10px;
       margin: 3px 2px;
@@ -54,14 +54,14 @@
 
   /* Secondary next to the workspaces it follows */
   #window {
-      color: ${palette.mutedDark};
+      color: ${palette.jacket};
   }
 
   /* "Do not disturb" mode — the indicator dims into a chip */
   #custom-notifications.dnd {
-      background: ${palette.rgba palette.ash "0.18"};
+      background: ${palette.rgba.ash "0.18"};
       border-radius: 9px;
-      color: ${palette.mutedDark};
+      color: ${palette.jacket};
   }
 
   #temperature.critical, #battery.critical {
@@ -75,16 +75,17 @@
   #workspaces button {
       padding: 0 3px;
       border-radius: 9px;
-      color: ${palette.textOnDark};
+      color: ${palette.dot};
   }
 
   #workspaces button:hover {
-      background: ${palette.rgba palette.pink "0.25"};
+      background: ${palette.rgba.pink "0.25"};
   }
 
+  /* The one thing on the bar brighter than the body text */
   #workspaces button.active {
-      color: ${palette.dot};
-      background: ${palette.rgba palette.plum "0.55"};
+      color: ${palette.paper};
+      background: ${palette.rgba.plum "0.55"};
   }
 
   #workspaces button.urgent {
@@ -95,15 +96,16 @@
       animation-direction: alternate;
   }
 
+  /* RGB-split, the same pair the greeter uses */
   @keyframes glitch-text {
       0% {
-          text-shadow: 2px 0 0 ${palette.splitCyan};
+          text-shadow: 2px 0 0 ${palette.sayoriEye};
       }
       50% {
-          text-shadow: -2px 0 0 ${palette.splitMagenta};
+          text-shadow: -2px 0 0 ${palette.bow};
       }
       100% {
-          text-shadow: 2px 0 0 ${palette.splitCyan};
+          text-shadow: 2px 0 0 ${palette.sayoriEye};
       }
   }
 ''

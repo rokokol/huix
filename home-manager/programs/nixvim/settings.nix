@@ -1,4 +1,4 @@
-{ ... }:
+{ base16, ... }:
 
 {
   programs.nixvim = {
@@ -46,20 +46,30 @@
     };
 
     # --- Appearance ---
-    colorschemes.gruvbox = {
+    colorschemes.base16 = {
       enable = true;
-      settings = {
-        transparent_mode = true;
-        overrides = {
-          NormalFloat.bg = "none";
-          FloatBorder.bg = "none";
-          Pmenu.bg = "none";
-          TelescopeNormal.bg = "none";
-          TelescopeBorder.bg = "none";
-          WhichKeyFloat.bg = "none";
-        };
-      };
+      colorscheme = base16.dark;
     };
+
+    # base16-nvim paints every ground with base00 and has no transparency switch, so kitty's
+    # background_opacity only shows through if these are cleared after the scheme is applied.
+    # nvim_set_hl replaces a group rather than patching it, hence the foreground restated
+    highlightOverride =
+      let
+        clear = {
+          fg = base16.dark.base05;
+          bg = "NONE";
+        };
+      in
+      {
+        Normal = clear;
+        NormalFloat = clear;
+        FloatBorder = clear;
+        Pmenu = clear;
+        TelescopeNormal = clear;
+        TelescopeBorder = clear;
+        WhichKeyFloat = clear;
+      };
 
     # --- Lua Config ---
     extraConfigLua = ''

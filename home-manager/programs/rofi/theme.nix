@@ -1,5 +1,5 @@
 # One rofi layout, two colour sets. Light and dark differed only in their hexes, so the
-# structure lived twice; now it lives here and the colours come from theme/palette.nix
+# structure lived twice; now it lives here and each set is a list of ddlc-palette keys
 { palette }:
 
 let
@@ -37,6 +37,7 @@ let
       </svg>
     '';
 
+  # Every colour below is a palette key, so a set reads as a list of names
   rasi =
     {
       polka,
@@ -51,6 +52,7 @@ let
       rowEdge,
       rowEdgeAlpha,
       selBg,
+      selBgAlpha,
       selEdge,
       selFg,
       alt,
@@ -58,10 +60,14 @@ let
       msg,
       msgAlpha,
     }:
+    let
+      hex = n: palette.${n};
+      rgba = n: palette.rgba.${n};
+    in
     ''
       * {
         background-color: transparent;
-        text-color: ${text};
+        text-color: ${hex text};
         margin: 0px;
         padding: 0px;
         font: "Doki 12";
@@ -71,18 +77,18 @@ let
         location: center;
         width: 720px;
         border: 2px;
-        border-color: ${palette.rgba edge edgeAlpha};
+        border-color: ${rgba edge edgeAlpha};
         border-radius: 28px;
         dynamic: true;
         padding: 18px;
-        background-color: ${ground};
+        background-color: ${hex ground};
         background-image: url("../assets/${polka}", both);
       }
 
       inputbar {
-        background-color: ${palette.rgba panel panelAlpha};
+        background-color: ${rgba panel panelAlpha};
         border: 1px;
-        border-color: ${palette.rgba edge "0.5"};
+        border-color: ${rgba edge "0.5"};
         margin: 6px 6px 14px 6px;
         padding: 14px 16px;
         border-radius: 18px;
@@ -90,19 +96,19 @@ let
       }
 
       prompt {
-        text-color: ${accent};
+        text-color: ${hex accent};
         margin: 0px 12px 0px 0px;
         font: "Doki 13";
       }
 
       entry {
         placeholder: "Okay, everyone!";
-        placeholder-color: ${palette.rgba text placeholderAlpha};
-        text-color: ${text};
+        placeholder-color: ${rgba text placeholderAlpha};
+        text-color: ${hex text};
       }
 
       listview {
-        background-color: ${palette.rgba panel "0.45"};
+        background-color: ${rgba panel "0.45"};
         margin: 0px 6px 6px 6px;
         padding: 6px;
         border-radius: 20px;
@@ -118,12 +124,12 @@ let
         spacing: 10px;
         border-radius: 18px;
         border: 1px;
-        border-color: ${palette.rgba rowEdge rowEdgeAlpha};
-        background-color: ${palette.rgba panel "0.93"};
+        border-color: ${rgba rowEdge rowEdgeAlpha};
+        background-color: ${rgba panel "0.93"};
       }
 
       element-icon {
-        background-color: ${palette.rgba accent "0.09"};
+        background-color: ${rgba accent "0.09"};
         padding: 6px;
         size: 28px;
         horizontal-align: 0.5;
@@ -134,39 +140,39 @@ let
       element-text {
         horizontal-align: 0;
         vertical-align: 0.5;
-        text-color: ${text};
+        text-color: ${hex text};
         font: "DepartureMono Nerd Font Mono 12";
       }
 
       element selected {
-        background-color: ${selBg};
-        border-color: ${selEdge};
-        text-color: ${selFg};
+        background-color: ${rgba selBg selBgAlpha};
+        border-color: ${hex selEdge};
+        text-color: ${hex selFg};
       }
 
       element selected element-text {
-        text-color: ${selFg};
+        text-color: ${hex selFg};
       }
 
       element selected element-icon {
-        background-color: ${palette.rgba selFg "0.16"};
+        background-color: ${rgba selFg "0.16"};
       }
 
       element alternate {
-        background-color: ${palette.rgba alt altAlpha};
+        background-color: ${rgba alt altAlpha};
       }
 
       message {
         margin: 8px 10px 0px 10px;
         padding: 10px 14px;
-        background-color: ${palette.rgba msg msgAlpha};
+        background-color: ${rgba msg msgAlpha};
         border: 1px;
-        border-color: ${palette.rgba edge "0.4"};
+        border-color: ${rgba edge "0.4"};
         border-radius: 16px;
       }
 
       textbox {
-        text-color: ${accent};
+        text-color: ${hex accent};
         font: "DepartureMono Nerd Font Mono 12";
       }
     '';
@@ -178,53 +184,55 @@ in
   };
 
   polkaDark = polkaSvg {
-    ground = palette.paperDark;
-    dot = palette.panelDark;
+    ground = palette.yuriShadow;
+    dot = palette.yuri;
   };
 
   light = rasi {
     polka = "polka-light.svg";
-    ground = palette.paper;
-    panel = palette.paper;
+    ground = "paper";
+    panel = "paper";
     panelAlpha = "0.92";
-    text = palette.ink;
+    text = "ink";
     placeholderAlpha = "0.52";
-    accent = palette.plum;
-    edge = palette.pink;
+    accent = "plum";
+    edge = "pink";
     edgeAlpha = "0.96";
-    rowEdge = palette.blush;
+    rowEdge = "blush";
     rowEdgeAlpha = "0.94";
     # Same wash as in dark, only lighter — and white text would drown in it,
     # so the selected row keeps the body text colour
-    selBg = palette.rgba palette.pink "0.45";
-    selEdge = palette.plum;
-    selFg = palette.ink;
-    alt = palette.dot;
+    selBg = "pink";
+    selBgAlpha = "0.45";
+    selEdge = "plum";
+    selFg = "ink";
+    alt = "dot";
     altAlpha = "0.55";
-    msg = palette.dot;
+    msg = "dot";
     msgAlpha = "0.77";
   };
 
   dark = rasi {
     polka = "polka-dark.svg";
-    ground = palette.paperDark;
-    panel = palette.panelDark;
+    ground = "yuriShadow";
+    panel = "yuri";
     panelAlpha = "0.92";
-    text = palette.textOnDark;
+    text = "dot";
     placeholderAlpha = "0.48";
-    accent = palette.pink;
-    edge = palette.pink;
+    accent = "pink";
+    edge = "pink";
     edgeAlpha = "0.72";
-    rowEdge = palette.plum;
+    rowEdge = "plum";
     rowEdgeAlpha = "0.55";
     # The only opaque surface in the theme would read as a sticker on the dark ground,
     # and the pink edge would vanish into it. Translucent it sits in the same material
-    selBg = palette.rgba palette.plum "0.55";
-    selEdge = palette.pink;
-    selFg = palette.textOnDark;
-    alt = palette.panelDark;
+    selBg = "plum";
+    selBgAlpha = "0.55";
+    selEdge = "pink";
+    selFg = "dot";
+    alt = "yuri";
     altAlpha = "0.96";
-    msg = palette.panelDark;
+    msg = "yuri";
     msgAlpha = "0.77";
   };
 }

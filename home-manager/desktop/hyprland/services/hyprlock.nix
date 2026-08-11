@@ -8,8 +8,7 @@
 }:
 
 let
-  # hyprlock wants bare hex inside rgb()/rgba()
-  bare = c: lib.removePrefix "#" c;
+  inherit (palette) bare;
 in
 # Background is a static image, not a screenshot: compositor would double-apply screen_shader on a screenshot
 # Text uses label widgets, not image: label updates asynchronously in ms, image widget blocks on reload_cmd (≥1s latency)
@@ -127,7 +126,7 @@ in
         {
           monitor = "";
           path = backgroundImage;
-          color = "rgb(${bare palette.paperDark})"; # shows until the image loads
+          color = "rgb(${bare.yuriShadow})"; # shows until the image loads
         }
       ];
 
@@ -151,7 +150,7 @@ in
         {
           text = "$TIME";
           font_size = 150;
-          color = "rgba(${bare palette.paper}ff)";
+          color = "rgba(${bare.paper}ff)";
           shadow_passes = 3;
           shadow_size = 6;
           shadow_color = "rgba(bf936edd)"; # warm copper-beige from the background
@@ -163,7 +162,7 @@ in
         {
           text = ''cmd[update:60000] date +"%A, %B %-d" | tr -d '\n' '';
           font_size = 30;
-          color = "rgba(${bare palette.paper}e6)";
+          color = "rgba(${bare.paper}e6)";
           shadow_passes = 2;
           shadow_size = 3;
           shadow_color = "rgba(9f543caa)"; # dark orange from the background
@@ -175,10 +174,10 @@ in
         {
           text = "$LAYOUT[EN,RU]";
           font_size = 24;
-          color = "rgba(${bare palette.paper}dd)";
+          color = "rgba(${bare.paper}dd)";
           shadow_passes = 2;
           shadow_size = 3;
-          shadow_color = "rgba(${bare palette.plum}aa)";
+          shadow_color = "rgba(${bare.plum}aa)";
           position = "240, -20";
           halign = "center";
           valign = "center";
@@ -190,11 +189,11 @@ in
         {
           text = "cmd[update:${toString pollMs}] cat \"${stateDir}/name\"";
           font_size = 28;
-          color = "rgba(${bare palette.paper}ff)";
+          color = "rgba(${bare.paper}ff)";
           shadow_passes = 2;
           shadow_size = 6;
           shadow_boost = 2;
-          shadow_color = "rgba(${bare palette.plum}ff)";
+          shadow_color = "rgba(${bare.plum}ff)";
           zindex = 2;
           position = "${toString nameX}, ${toString nameY}";
           halign = "center";
@@ -206,11 +205,11 @@ in
         {
           text = "cmd[update:${toString pollMs}] cat \"${stateDir}/frame\"";
           font_size = quoteFontSize;
-          color = "rgba(${bare palette.paper}ff)";
+          color = "rgba(${bare.paper}ff)";
           shadow_passes = 4;
           shadow_size = 2;
           shadow_boost = 1.6;
-          shadow_color = "rgba(${bare palette.ink}ff)";
+          shadow_color = "rgba(${bare.ink}ff)";
           text_align = "left";
           zindex = 1; # on top of the box
           position = "0, ${toString quoteY}";
@@ -225,16 +224,16 @@ in
           size = "380, 64";
           outline_thickness = 4;
           rounding = 22;
-          outer_color = "rgb(${bare palette.pink})";
-          inner_color = "rgb(${bare palette.paper})";
-          font_color = "rgb(${bare palette.plum})";
+          outer_color = "rgb(${bare.pink})";
+          inner_color = "rgb(${bare.paper})";
+          font_color = "rgb(${bare.plum})";
           font_family = "Doki";
           placeholder_text = "<i>Give me it...~</i>";
           fail_text = "This isn't it... ($ATTEMPTS)";
           # password check is highlighted with the same red as an error
-          check_color = "rgb(${bare palette.plum})";
-          fail_color = "rgb(${bare palette.bow})";
-          capslock_color = "rgb(${bare palette.warnLine})";
+          check_color = "rgb(${bare.plum})";
+          fail_color = "rgb(${bare.bow})";
+          capslock_color = "rgb(${bare.sayori})";
           dots_text_format = "♥";
           dots_spacing = 0.2;
           fade_on_empty = false;

@@ -76,7 +76,7 @@ sudo nixos-generate-config --show-hardware-config > nixos/<host>/hardware-config
 - **`HUIX`** указывает на этот репо и читается скриптами и алиасами — не хардкодь `/home/rokokol/huix`, бери `$HUIX` в скриптах и `huixDir` в Nix
 - **Тема свет/тьма — рантайм, не декларатив** — `scripts/toggle-theme.sh` (`SUPER+A`) флипает dconf и пишет выбор в state. Не клади `color-scheme`/`gtk-theme` в HM, иначе `dconf load` на ребилде сбивает выбор
 - **Крышка ноута умеет не усыплять** — `SUPER SHIFT+A` (`scripts/lid-mode.sh`) держит лок `systemd-inhibit`, и закрытая крышка только гасит встроенную панель. Режим живёт до конца сессии: после ребута ноут снова засыпает от крышки
-- **Цвета не задаются на месте** — [ddlc-palette](https://github.com/rokokol/ddlc-palette) снимает их с ddlc.moe, `home-manager/desktop/theme/palette.nix` добавляет то, чего на сайте нет (тёмные фоны, производные оттенки), и раздаёт всё через `commonArgs.palette`. Хекс в модуле — повод спросить, почему он не оттуда
+- **Цвета здесь не выбираются вообще** — [ddlc-palette](https://github.com/rokokol/ddlc-palette) снимает их с ddlc.moe и отдаёт готовыми: хексы, их голое (`bare`) и полупрозрачное (`rgba`) написание в `commonArgs.palette` и две схемы для терминала с редактором в `commonArgs.base16`. Хекс в модуле — повод спросить, почему он не оттуда
 - **Все сервисы биндятся на `127.0.0.1`** — наружу firewall ничего не открывает, см. [таблицу портов](nixos/services/README.md#порты-и-биндинги)
 - **`backupFileExtension = "bak"`** — фиксированная строка намеренно: суффикс с `lastModified` пересобирал HM-генерацию на каждый коммит и засыпал `$HOME` набором `.bak` на ревизию. Цена — вторая коллизия по тому же пути роняет активацию, пока старый `.bak` не удалишь руками
 

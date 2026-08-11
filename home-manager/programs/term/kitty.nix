@@ -1,5 +1,27 @@
-{ ... }:
+{ base16, lib, ... }:
 
+let
+  c = base16.dark;
+  # The 16 ANSI slots as base16 fills them: eight hues, then brights that repeat all but 0, 7, 15
+  ansi = [
+    "base00"
+    "base08"
+    "base0B"
+    "base0A"
+    "base0D"
+    "base0E"
+    "base0C"
+    "base05"
+    "base03"
+    "base08"
+    "base0B"
+    "base0A"
+    "base0D"
+    "base0E"
+    "base0C"
+    "base07"
+  ];
+in
 {
   programs.kitty = {
     enable = true;
@@ -8,8 +30,6 @@
       name = "DepartureMono Nerd Font Mono";
       size = 12;
     };
-
-    themeFile = "GruvboxMaterialDarkHard";
 
     keybindings = {
       "ctrl+shift+c" = "copy_to_clipboard";
@@ -37,6 +57,15 @@
 
       cursor_blink_interval = "0.5";
       cursor_stop_blinking_after = "15.0";
-    };
+
+      background = c.base00;
+      foreground = c.base05;
+      cursor = c.base05;
+      cursor_text_color = c.base00;
+      selection_background = c.base02;
+      selection_foreground = c.base00;
+      url_color = c.base04;
+    }
+    // lib.listToAttrs (lib.imap0 (i: slot: lib.nameValuePair "color${toString i}" c.${slot}) ansi);
   };
 }

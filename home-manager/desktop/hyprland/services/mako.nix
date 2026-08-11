@@ -33,29 +33,32 @@
       icons = 1;
       max-icon-size = 48;
 
-      # Urgency stays colour-coded rather than DDLC-pink: at a glance the level has to read
-      # before the theme does. The values come from theme/palette.nix all the same
+      # The three levels are told apart by how loud the colour is, not by hue — the palette has
+      # no green/amber/red. Grounds stay deliberately close; the border carries the level.
+      # A progress bar only ever appears if the sender passes a "value" hint, which nothing in
+      # huix does — the lines are here so a third-party one doesn't get mako's off-palette blue
       "urgency=low" = {
-        background-color = palette.okBg;
-        text-color = palette.okFg;
-        border-color = palette.okLine;
-        progress-color = "over ${palette.okSoft}";
+        background-color = palette.paper;
+        text-color = palette.ink;
+        border-color = palette.dot;
+        progress-color = "over ${palette.dot}";
         default-timeout = 4000;
       };
 
       "urgency=normal" = {
-        background-color = palette.warnBg;
-        text-color = palette.warnFg;
-        border-color = palette.warnLine;
-        progress-color = "over ${palette.warnSoft}";
+        background-color = palette.dot;
+        text-color = palette.ink;
+        border-color = palette.sayori;
+        progress-color = "over ${palette.sayori}";
         default-timeout = 8000;
       };
 
+      # bow, not the yuri border: the one level that has to shout keeps the palette's only red
       "urgency=critical" = {
-        background-color = palette.critBg;
-        text-color = palette.critFg;
-        border-color = palette.critLine;
-        progress-color = "over ${palette.critSoft}";
+        background-color = palette.blush;
+        text-color = palette.yuriShadow;
+        border-color = palette.yuri;
+        progress-color = "over ${palette.bow}";
         default-timeout = 20000;
       };
 
