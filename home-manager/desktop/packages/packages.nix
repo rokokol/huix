@@ -52,6 +52,9 @@ in
         pup
         python3Packages.huggingface-hub
         ripgrep
+        # The same two the scripts here and the flakes split out of them are linted with in CI
+        shellcheck
+        shfmt
         texliveFull
         tree
         unzip
