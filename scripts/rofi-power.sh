@@ -3,7 +3,7 @@
 # Power menu in rofi (script-modi "power"): lock, suspend, reboot, log out of the
 # session, power off. Bound to the power key (XF86PowerOff) and to a bind in
 # hyprland.conf. The mode emoji (⚡) is set in
-# home-manager/programs/rofi/default.nix (display-power) — the single source of
+# home-manager/programs/rofi.nix (display-power) — the single source of
 # mode emojis, it isn't here. The logic is done by systemctl/loginctl/hyprctl
 
 set -euo pipefail
