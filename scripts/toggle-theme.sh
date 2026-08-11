@@ -13,8 +13,8 @@ Usage:
   toggle-theme.sh --help    this help
 
 The theme lives at runtime, not in Nix: the script flips color-scheme + gtk-theme
-in dconf, swaps the rofi theme symlink and the libadwaita ~/.config/gtk-4.0/gtk.css
-(so libadwaita apps follow too). The choice is stored durably in
+in dconf, hands rofi's variant to ddlc-rofi-theme and swaps the libadwaita
+~/.config/gtk-4.0/gtk.css (so libadwaita apps follow too). The choice is stored durably in
 ~/.local/state/huix/theme — dconf load on nixos-rebuild resets the theme, --sync
 brings it back. Theme/key names come from the env (Nix wrapper)
 EOF
@@ -51,10 +51,6 @@ require_env \
   DARK_THEME \
   LIGHT_SCHEME \
   DARK_SCHEME \
-  ROFI_THEMES_DIR \
-  ROFI_LIGHT_THEME \
-  ROFI_DARK_THEME \
-  ROFI_ACTIVE_THEME \
   GTK4_LIGHT_CSS \
   GTK4_DARK_CSS
 
@@ -75,13 +71,6 @@ read_current_theme() {
 
 read_current_scheme() {
   dconf read "$COLOR_SCHEME_KEY" 2>/dev/null || true
-}
-
-set_rofi_theme() {
-  local theme_path="$1"
-
-  mkdir -p "$ROFI_THEMES_DIR"
-  ln -sfn "$theme_path" "$ROFI_ACTIVE_THEME"
 }
 
 # libadwaita ignores gtk-theme-name; it only reads ~/.config/gtk-4.0/gtk.css.
@@ -114,21 +103,21 @@ detect_theme_state() {
   fi
 }
 
-# Apply a theme by state name (dark|light): dconf + the rofi theme symlink and
+# Apply a theme by state name (dark|light): dconf + rofi's own switch and
 # committing the choice to the state file. No notification — this is a "silent" apply
 apply_state() {
   case "$1" in
   dark)
     dconf write "$GTK_THEME_KEY" "'${DARK_THEME}'"
     dconf write "$COLOR_SCHEME_KEY" "'${DARK_SCHEME}'"
-    set_rofi_theme "$ROFI_DARK_THEME"
+    ddlc-rofi-theme dark
     set_libadwaita_css "$GTK4_DARK_CSS"
     save_state "dark"
     ;;
   light)
     dconf write "$GTK_THEME_KEY" "'${LIGHT_THEME}'"
     dconf write "$COLOR_SCHEME_KEY" "'${LIGHT_SCHEME}'"
-    set_rofi_theme "$ROFI_LIGHT_THEME"
+    ddlc-rofi-theme light
     set_libadwaita_css "$GTK4_LIGHT_CSS"
     save_state "light"
     ;;

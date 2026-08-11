@@ -45,11 +45,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1786447942,
-        "narHash": "sha256-t6kM5HzU87qbEp5pHAsrKWJBkS2fG0RhH12l/pvMXMU=",
+        "lastModified": 1786449931,
+        "narHash": "sha256-toW/hBRkBIecsSLNU0YRRfSg19Kfz6QEoRHLhNdDNdQ=",
         "owner": "rokokol",
         "repo": "ddlc-palette",
-        "rev": "3b86fe137413ba00945199f94a6c446d279b8514",
+        "rev": "c03884aebc2dac5c424f0403e005e1bb856af33c",
         "type": "github"
       },
       "original": {
@@ -59,6 +59,27 @@
       }
     },
     "ddlc-palette_2": {
+      "inputs": {
+        "nixpkgs": [
+          "ddlc-rofi-theme",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1786448652,
+        "narHash": "sha256-VyHaCrjO26miRPKmjEFhHI4RwBpPiZFZ9kP4p9kuCxU=",
+        "owner": "rokokol",
+        "repo": "ddlc-palette",
+        "rev": "6a2277adb38b70cbed5711d15de2b47670f2546c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "ddlc-palette",
+        "type": "github"
+      }
+    },
+    "ddlc-palette_3": {
       "inputs": {
         "nixpkgs": [
           "ddlc-sddm-theme",
@@ -79,9 +100,30 @@
         "type": "github"
       }
     },
-    "ddlc-sddm-theme": {
+    "ddlc-rofi-theme": {
       "inputs": {
         "ddlc-palette": "ddlc-palette_2",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1786449943,
+        "narHash": "sha256-nJw1BGRxBwzoi0SNBZJ7a1NiNLIFF5mSjRBrddvdt24=",
+        "owner": "rokokol",
+        "repo": "ddlc-rofi-theme",
+        "rev": "66d7ad404dd1bb4c5b155f124c678f8f1ee62e7f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "ddlc-rofi-theme",
+        "type": "github"
+      }
+    },
+    "ddlc-sddm-theme": {
+      "inputs": {
+        "ddlc-palette": "ddlc-palette_3",
         "nixpkgs": [
           "nixpkgs"
         ]
@@ -393,6 +435,7 @@
         "claude-account": "claude-account",
         "comfyui-nix": "comfyui-nix",
         "ddlc-palette": "ddlc-palette",
+        "ddlc-rofi-theme": "ddlc-rofi-theme",
         "ddlc-sddm-theme": "ddlc-sddm-theme",
         "freesmlauncher": "freesmlauncher",
         "home-manager": "home-manager",

@@ -25,6 +25,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    ddlc-rofi-theme = {
+      url = "github:rokokol/ddlc-rofi-theme";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     hyprland-screen-shader = {
       url = "github:rokokol/hyprland-screen-shader";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -177,6 +182,7 @@
                   inputs.zen-browser.homeModules.default
                   inputs.hyprland-screen-shader.homeManagerModules.default
                   inputs.rofi-wooordhunt.homeManagerModules.default
+                  inputs.ddlc-rofi-theme.homeManagerModules.default
                   inputs.claude-account.homeManagerModules.default
                 ];
 

@@ -1,27 +1,5 @@
-{ base16, lib, ... }:
+{ inputs, ... }:
 
-let
-  c = base16.dark;
-  # The 16 ANSI slots as base16 fills them: eight hues, then brights that repeat all but 0, 7, 15
-  ansi = [
-    "base00"
-    "base08"
-    "base0B"
-    "base0A"
-    "base0D"
-    "base0E"
-    "base0C"
-    "base05"
-    "base03"
-    "base08"
-    "base0B"
-    "base0A"
-    "base0D"
-    "base0E"
-    "base0C"
-    "base07"
-  ];
-in
 {
   programs.kitty = {
     enable = true;
@@ -43,7 +21,6 @@ in
       notify_on_cmd_finish = "unfocused 1.0";
 
       linux_display_server = "wayland";
-      wayland_titlebar_color = "system";
 
       background_opacity = "0.9";
       window_padding_width = 12;
@@ -57,15 +34,10 @@ in
 
       cursor_blink_interval = "0.5";
       cursor_stop_blinking_after = "15.0";
+    };
 
-      background = c.base00;
-      foreground = c.base05;
-      cursor = c.base05;
-      cursor_text_color = c.base00;
-      selection_background = c.base02;
-      selection_foreground = c.base00;
-      url_color = c.base04;
-    }
-    // lib.listToAttrs (lib.imap0 (i: slot: lib.nameValuePair "color${toString i}" c.${slot}) ansi);
+    # Colours are the palette's business, and it renders kitty's own spelling of them. This lands
+    # after settings in kitty.conf, and kitty takes the last word for a key
+    extraConfig = builtins.readFile inputs.ddlc-palette.lib.dist.kitty.dark;
   };
 }
