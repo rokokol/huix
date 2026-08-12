@@ -59,6 +59,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    virtual-media-devices = {
+      url = "github:rokokol/virtual-media-devices";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -179,6 +184,7 @@
           specialArgs = commonArgs;
           modules = [
             configuration
+            inputs.virtual-media-devices.nixosModules.default
 
             {
               nixpkgs.hostPlatform = system;
@@ -198,6 +204,7 @@
                   inputs.rofi-wooordhunt.homeManagerModules.default
                   inputs.ddlc-rofi-theme.homeManagerModules.default
                   inputs.claude-account.homeManagerModules.default
+                  inputs.virtual-media-devices.homeManagerModules.default
                 ];
 
                 extraSpecialArgs = commonArgs;

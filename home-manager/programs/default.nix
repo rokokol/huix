@@ -8,6 +8,7 @@
     "${inputs.self}/scripts/scripts.nix"
     ./term/default.nix
     ./thunar.nix
+    ./virtual-mic.nix
     ./zen.nix
   ];
 }

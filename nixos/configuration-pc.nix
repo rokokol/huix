@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, rokokolName, ... }:
 
 {
   imports = [
@@ -10,6 +10,11 @@
   system.stateVersion = "25.11";
   services.ollama.package = pkgs.stable.ollama-cuda;
 
+  services.virtual-media-devices.camera = {
+    enable = true;
+    users = [ rokokolName ];
+  };
+
   rokokol = {
     jupyter.enable = true;
 
@@ -19,7 +24,6 @@
 
     printer.enable = true;
     tablet.enable = true;
-    virtualCamera.enable = true;
     virtualization.enable = true;
   };
 }

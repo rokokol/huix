@@ -12,7 +12,6 @@
     ./desktop/throne.nix
     ./devices/printer.nix
     ./devices/tablet.nix
-    ./devices/virtual-camera.nix
     ./system/appimage.nix
     ./system/cachix.nix
     ./system/nix-ld.nix

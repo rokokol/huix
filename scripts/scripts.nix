@@ -39,12 +39,6 @@ let
       # freedesktop sound theme ships a proper alarm clip; reference it directly
       env.ALARM_SOUND = "${sound-theme-freedesktop}/share/sounds/freedesktop/stereo/alarm-clock-elapsed.oga";
     };
-
-    virtual-mic.runtimeInputs = [
-      coreutils
-      ffmpeg
-      pulseaudio
-    ];
   };
 in
 {

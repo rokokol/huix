@@ -456,6 +456,7 @@
         "nixvim": "nixvim",
         "rofi-wooordhunt": "rofi-wooordhunt",
         "sops-nix": "sops-nix",
+        "virtual-media-devices": "virtual-media-devices",
         "zen-browser": "zen-browser"
       }
     },
@@ -492,6 +493,26 @@
         "owner": "nix-systems",
         "ref": "future-26.11",
         "repo": "default",
+        "type": "github"
+      }
+    },
+    "virtual-media-devices": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1786550474,
+        "narHash": "sha256-VQG7uIkF8DRZuwonBHBo5utc3hD8Y1jbwiBWelGYAcI=",
+        "owner": "rokokol",
+        "repo": "virtual-media-devices",
+        "rev": "ec802691ccd350d7e4422e0c02b842a5d720fbe1",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "virtual-media-devices",
         "type": "github"
       }
     },
