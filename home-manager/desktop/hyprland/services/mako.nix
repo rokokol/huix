@@ -25,6 +25,10 @@
       icons = 1;
       max-icon-size = 48;
 
+      # Senders decide their own expire timeout otherwise, and web pushes asking to stay until
+      # clicked (Firefox requireInteraction) then hang forever — the sections below decide instead
+      ignore-timeout = 1;
+
       # Chats and the web, in effect: a sender that omits the urgency hint (Telegram and Firefox
       # both do) matches no [urgency=…] section at all, so the global block is the only place
       # that can style it, and whatever is left unset here stays on mako's stock blue.
@@ -32,7 +36,7 @@
       background-color = palette.natsuki;
       text-color = palette.ink;
       border-color = palette.plum;
-      progress-color = "over ${palette.plum}";
+      progress-color = "over ${palette.pink}";
       default-timeout = 12000;
 
       # The three levels are told apart by how loud the colour is, not by hue — the palette has
@@ -43,7 +47,7 @@
         background-color = palette.paper;
         text-color = palette.ink;
         border-color = palette.dot;
-        progress-color = "over ${palette.dot}";
+        progress-color = "over ${palette.blush}";
         default-timeout = 4000;
       };
 
@@ -51,16 +55,16 @@
         background-color = palette.dot;
         text-color = palette.ink;
         border-color = palette.sayori;
-        progress-color = "over ${palette.sayori}";
+        progress-color = "over ${palette.monika}";
         default-timeout = 8000;
       };
 
       # bow, not the yuri border: the one level that has to shout keeps the palette's only red
       "urgency=critical" = {
         background-color = palette.blush;
-        text-color = palette.yuriShadow;
+        text-color = palette.ink;
         border-color = palette.yuri;
-        progress-color = "over ${palette.bow}";
+        progress-color = "over ${palette.yuriShadow}";
         default-timeout = 20000;
       };
 
