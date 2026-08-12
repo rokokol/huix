@@ -137,6 +137,46 @@ Builds clean → drop `overlay-hyprland` from `flake.nix` and from both host ove
 
 ---
 
+## `bambu-studio.override { withNvidiaGLWorkaround = true; }`
+
+**Where:** `home-manager/desktop/packages/packages.nix`, inside the `rokokol.packages.pc` group — the laptop has no NVIDIA GPU and takes the package as nixpkgs ships it. The `NVreg_EnableResizableBar=1` line in `nixos/pc/nvidia.nix` is downstream of this entry: it exists to make this route usable, see below
+
+**Symptom it prevents:** on the proprietary NVIDIA GL driver the 3D viewport stays empty — the UI, the plater and the model list all render, the model does not. The option routes GL through Mesa's zink instead:
+
+```
+--set __GLX_VENDOR_LIBRARY_NAME mesa
+--set MESA_LOADER_DRIVER_OVERRIDE zink
+--set GALLIUM_DRIVER zink
+```
+
+**What it costs — and why the ReBAR line exists:** zink streams geometry through `ZINK_HEAP_DEVICE_LOCAL_VISIBLE` (index 3 of `enum zink_heap` in `zink_types.h`), the Vulkan memory type that is both `DEVICE_LOCAL` and `HOST_VISIBLE`. On NVIDIA that is BAR1, and with Resizable BAR off BAR1 is 256 MiB no matter how much VRAM the card has. A model past a few hundred thousand triangles exhausts it mid-render and the process dies:
+
+```
+MESA: error: zink: couldn't allocate memory: heap=3 size=2097152
+MESA: error: ZINK: vkMapMemory failed (VK_ERROR_MEMORY_MAP_FAILED)
+```
+
+zink has a small-BAR mitigation (`zink_bo.c`: reclaim everything when that heap is `<= 256 MiB` on NVIDIA) and it is not enough. There is no env knob to steer allocations off that heap — `ZINK_DEBUG` has no heap flag. The only fix is to make BAR1 big, which is what `NVreg_EnableResizableBar=1` does; zink then sets `screen->resizable_bar` on its own, since it calls a BAR resizable once visible VRAM exceeds 90% of total VRAM
+
+**Diagnostic trap:** the package is wrapped with `makeCWrapper --set`, which overwrites the environment rather than defaulting it. Every `__GLX_VENDOR_LIBRARY_NAME=nvidia` / `LIBGL_ALWAYS_SOFTWARE=1` / `MESA_LOADER_DRIVER_OVERRIDE=...` tried from a shell is silently discarded, so no shell experiment says anything about the GL path. `GDK_BACKEND=x11` does take, but it only moves the windowing backend and leaves zink in place — "tried X11, no change" is therefore not evidence
+
+**Removal check:** the option only exists in nixpkgs for this bug, so its disappearance is the trigger
+
+```sh
+nix eval --raw .#nixosConfigurations.nixos-pc.pkgs.bambu-studio.meta.position \
+  | cut -d: -f1 | xargs grep -c withNvidiaGLWorkaround
+```
+
+Non-zero → upstream still ships it, keep the override. Zero → the argument is gone, drop the override. To re-test before that happens, build the package as nixpkgs has it and load any model — the viewport either draws it or does not:
+
+```sh
+"$(nix build --no-link --print-out-paths .#nixosConfigurations.nixos-pc.pkgs.bambu-studio)"/bin/bambu-studio
+```
+
+**Upstream:** [NixOS/nixpkgs#498311](https://github.com/NixOS/nixpkgs/issues/498311) (the blank viewport, closed by the option this entry sets), [OrcaSlicer#11698](https://github.com/OrcaSlicer/OrcaSlicer/issues/11698) (the same zink BAR1 crash in the sibling slicer)
+
+---
+
 # Deferred
 
 Not workarounds — gaps in this repo's own flake that nothing upstream forces. They sit here because the two extracted repos (`ddlc-sddm-theme`, `ddlc-palette`) already have both, so this list is what it takes to bring the parent up to the same footing. Same rule as above: each carries a mechanical check

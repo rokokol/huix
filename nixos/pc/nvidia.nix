@@ -10,6 +10,11 @@
   services.xserver.videoDrivers = [ "nvidia" ];
   boot.kernelParams = [ "nvidia_drm.fbdev=1" ];
 
+  # off by default in the driver; without it BAR1 stays 256 MiB and every GL-on-Vulkan
+  # client (zink) is capped by that, not by VRAM. Needs Above 4G Decoding + Re-Size BAR
+  # in the BIOS — check with: nvidia-smi -q | grep -A3 "BAR1 Memory Usage"
+  boot.extraModprobeConfig = "options nvidia NVreg_EnableResizableBar=1";
+
   hardware.nvidia = {
     modesetting.enable = true;
     powerManagement.enable = true;
