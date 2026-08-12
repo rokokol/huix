@@ -37,7 +37,6 @@ in
         tauon
 
         # --- CLI ---
-        codex
         curl
         exiftool
         fastfetch
@@ -49,10 +48,10 @@ in
         lazygit
         libreoffice-fresh
         matlab
+        opencode
         pup
         python3Packages.huggingface-hub
         ripgrep
-        # The same two the scripts here and the flakes split out of them are linted with in CI
         shellcheck
         shfmt
         texliveFull
