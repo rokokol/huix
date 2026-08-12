@@ -1,17 +1,15 @@
 {
-  base16,
   config,
+  inputs,
   lib,
   ...
 }:
 
 {
-  # One switch for the whole editor: the sweep below is by colour, not by a list of groups, and
-  # the plugins that shade their own bars follow the same flag
   options.rokokol.nixvim.transparent = lib.mkOption {
     type = lib.types.bool;
     default = true;
-    description = "Clear every ground the colorscheme paints with base00, so the terminal shows through";
+    description = "Let kitty's background_opacity through by clearing the grounds the theme paints with base00";
   };
 
   config.programs.nixvim = {
@@ -59,24 +57,15 @@
     };
 
     # --- Appearance ---
-    colorschemes.base16 = {
-      enable = true;
-      colorscheme = base16.dark;
-    };
+    imports = [ inputs.ddlc-nvim.nixvimModules.ddlc ];
 
-    # base16-nvim paints every ground with base00 and has no transparency switch, so kitty's
-    # background_opacity only shows through once those are cleared. Sweeping by colour rather
-    # than by group name keeps gutters and floats in step: naming a few left the rest opaque
-    # around a transparent text area, which reads as a half-painted window
-    extraConfigLuaPost = lib.mkIf config.rokokol.nixvim.transparent ''
-      local ground = tonumber("${lib.removePrefix "#" base16.dark.base00}", 16)
-      for group, hl in pairs(vim.api.nvim_get_hl(0, {})) do
-        if hl.bg == ground then
-          hl.bg = "NONE"
-          vim.api.nvim_set_hl(0, group, hl)
-        end
-      end
-    '';
+    ddlc.nixvim = {
+      enable = true;
+      settings = {
+        variant = "dark";
+        transparent = config.rokokol.nixvim.transparent;
+      };
+    };
 
     # --- Lua Config ---
     extraConfigLua = ''

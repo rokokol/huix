@@ -37,6 +37,8 @@
 [![ddlc-sddm-theme](https://img.shields.io/badge/ddlc--sddm--theme-экран_логина-FF80C0?style=for-the-badge&logo=qt&logoColor=white)](https://github.com/rokokol/ddlc-sddm-theme)
 [![ddlc-palette](https://img.shields.io/badge/ddlc--palette-цвета-BB5599?style=for-the-badge)](https://github.com/rokokol/ddlc-palette)
 [![ddlc-rofi-theme](https://img.shields.io/badge/ddlc--rofi--theme-тема_rofi-EE2A7B?style=for-the-badge)](https://github.com/rokokol/ddlc-rofi-theme)
+[![ddlc.nvim](https://img.shields.io/badge/ddlc.nvim-тема_редактора-76C332?style=for-the-badge&logo=neovim&logoColor=white)](https://github.com/rokokol/ddlc.nvim)
+[![ddlc-terminal-themes](https://img.shields.io/badge/ddlc--terminal--themes-kitty_и_btop-72D0FA?style=for-the-badge)](https://github.com/rokokol/ddlc-terminal-themes)
 
 ## Что важно знать
 
@@ -76,7 +78,7 @@ sudo nixos-generate-config --show-hardware-config > nixos/<host>/hardware-config
 - **`HUIX`** указывает на этот репо и читается скриптами и алиасами — не хардкодь `/home/rokokol/huix`, бери `$HUIX` в скриптах и `huixDir` в Nix
 - **Тема свет/тьма — рантайм, не декларатив** — `scripts/toggle-theme.sh` (`SUPER+A`) флипает dconf и пишет выбор в state. Не клади `color-scheme`/`gtk-theme` в HM, иначе `dconf load` на ребилде сбивает выбор
 - **Крышка ноута умеет не усыплять** — `SUPER SHIFT+A` (`scripts/lid-mode.sh`) держит лок `systemd-inhibit`, и закрытая крышка только гасит встроенную панель. Режим живёт до конца сессии: после ребута ноут снова засыпает от крышки
-- **Цвета здесь не выбираются вообще** — [ddlc-palette](https://github.com/rokokol/ddlc-palette) снимает их с ddlc.moe и отдаёт готовыми: хексы, их голое (`bare`) и полупрозрачное (`rgba`) написание в `commonArgs.palette` и две схемы для терминала с редактором в `commonArgs.base16`. Готовые конфиги kitty и btop она рендерит сама — они читаются из `inputs.ddlc-palette.lib.dist`, а не собираются здесь заново. Хекс в модуле — повод спросить, почему он не оттуда
+- **Цвета здесь не выбираются вообще** — [ddlc-palette](https://github.com/rokokol/ddlc-palette) снимает их с ddlc.moe и отдаёт готовыми: хексы, их голое (`bare`) и полупрозрачное (`rgba`) написание в `commonArgs.palette` и две схемы для терминала с редактором в `commonArgs.base16`. Темы приложений приезжают собранными из своих репо: kitty и btop из [ddlc-terminal-themes](https://github.com/rokokol/ddlc-terminal-themes), редактор из [ddlc.nvim](https://github.com/rokokol/ddlc.nvim). Хекс в модуле — повод спросить, почему он не оттуда
 - **Все сервисы биндятся на `127.0.0.1`** — наружу firewall ничего не открывает, см. [таблицу портов](nixos/services/README.md#порты-и-биндинги)
 - **`backupFileExtension = "bak"`** — фиксированная строка намеренно: суффикс с `lastModified` пересобирал HM-генерацию на каждый коммит и засыпал `$HOME` набором `.bak` на ревизию. Цена — вторая коллизия по тому же пути роняет активацию, пока старый `.bak` не удалишь руками
 

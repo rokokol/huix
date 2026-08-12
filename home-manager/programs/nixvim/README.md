@@ -22,6 +22,7 @@
 - `plugins/ui/` — statusline, tabs, icons и работа с изображениями
 
 ## Особенности
+- цвета приходят из [ddlc.nvim](https://github.com/rokokol/ddlc.nvim): модуль подключается в `settings.nix`, там же `ddlc.nixvim.settings` — вариант и прозрачность (её же держит `rokokol.nixvim.transparent`)
 - helper'ы Telescope лежат в `plugins/editor/telescope-helpers.nix`
 - скрытые файлы в поиске переключаются через `<C-h>`
 - прокрутка превью в Telescope повешена на `<M-h/j/k/l>`
