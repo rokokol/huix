@@ -35,6 +35,6 @@
 
 ## Тонкости
 
-- Jupyter на ПК берёт `pkgs.stable.python3` с бинарными `torch*`, чтобы не собирать ML-стек из исходников
+- Jupyter везде берёт `pkgs.stable.python3`, а `torch*`/`transformers` доезжают только по `rokokol.jupyter.withTorch` — он поднят на ноуте, где стек ставится бинарниками; на ПК его нет, иначе CUDA-торч собирался бы из исходников
 - LibreTranslate стартует на локальных моделях (`updateModels = false`), иначе оффлайн сервис висит до сетевого таймаута. Модели обновляет отдельный юнит `libretranslate-update-models` (недельный таймер, без сети запуск пропускается); вручную — `sudo systemctl start libretranslate-update-models`
 - тяжёлые сборки ускоряются кэшами `cuda-maintainers` (объявлен в `nixos/pc/nvidia.nix`) и `comfyui` — при добавлении тяжёлого билда лучше дописать substituter, чем пересобирать
