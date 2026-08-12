@@ -33,10 +33,10 @@
       # both do) matches no [urgency=…] section at all, so the global block is the only place
       # that can style it, and whatever is left unset here stays on mako's stock blue.
       # Its own ground rather than a level's, since the category is orthogonal to loudness
-      background-color = palette.natsuki;
+      background-color = palette.blush;
       text-color = palette.ink;
-      border-color = palette.plum;
-      progress-color = "over ${palette.pink}";
+      border-color = palette.yuri;
+      progress-color = "over ${palette.yuriShadow}";
       default-timeout = 12000;
 
       # The three levels are told apart by how loud the colour is, not by hue — the palette has
@@ -61,10 +61,10 @@
 
       # bow, not the yuri border: the one level that has to shout keeps the palette's only red
       "urgency=critical" = {
-        background-color = palette.blush;
+        background-color = palette.natsuki;
         text-color = palette.ink;
-        border-color = palette.yuri;
-        progress-color = "over ${palette.yuriShadow}";
+        border-color = palette.plum;
+        progress-color = "over ${palette.pink}";
         default-timeout = 20000;
       };
 
