@@ -78,6 +78,8 @@
 | `SUPER SHIFT + B`    | эмодзи/математика/символы/каомодзи (rofimoji)               |
 | `SUPER + Y`          | словарь wooordhunt в rofi                                   |
 | `SUPER + U`          | перевод ru↔en через LibreTranslate                          |
+| `SUPER + N`          | лента уведомлений, `SUPER SHIFT + N` — тумблер DND          |
+| `SUPER + Delete`     | меню питания (то же на кнопку `XF86PowerOff`)               |
 | `SUPER + G`          | снять эффекты, `SUPER SHIFT + G` — пикер шейдеров           |
 | `SUPER CTRL + [ / ]` | софт-яркость через шейдер вниз/вверх, `Backspace` — сброс   |
 | `SUPER + Z`          | toggle waybar                                               |
