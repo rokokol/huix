@@ -17,33 +17,11 @@
 
 HM подключён не отдельным потоком, а как NixOS-модуль с `useGlobalPkgs = true`, поэтому системный и пользовательский слой делят один пакетный набор и overlays. Важное следствие — `nixpkgs.config` и `nixpkgs.overlays` внутри HM-модуля игнорируются, вся конфигурация пакетов живёт в [`flake.nix`](../flake.nix)
 
-## Что внутри
-
-| Файл / каталог | Что внутри |
-| --- | --- |
-| `home-pc.nix` / `home-laptop.nix` | точки входа per-host: весь вход `rokokol.*` (hyprland, waybar, packages, dataDir) + btop-пакет |
-| `desktop/user.nix` | XDG-директории, закладки, tmpfiles, env; Documents/Pictures/Videos живут в `rokokol.home.dataDir` (на ПК это NTFS `govno`), волт — в `myWikiDir` из `commonArgs`, одинаковый на обоих хостах |
-| `desktop/sync.nix` | systemd-сервис авто-синка конфига (`scripts/sync.sh`, на старте сессии и после `nixos-rebuild`) |
-| [`desktop/hyprland/`](desktop/hyprland/README.md) | `hyprland.conf`, единый `hyprland.nix` с опциями `rokokol.hyprland.*`, `services/`: waybar, mako, hypridle, обои-коллажер |
-| `desktop/packages/` | `packages.nix`: общие пакеты + группы с флагами `rokokol.packages.{pc,laptop}` + `mime-apps` |
-| `desktop/theme/` | курсор, GTK/qt-тема, дефолты |
-| `programs/` | конфиги отдельных программ, см. [programs/README.md](programs/README.md) |
-
-## Где что менять
-
-- пользовательские пакеты — `desktop/packages/packages.nix`: общий блок (оба хоста) и группы `rokokol.packages.{pc,laptop}` (per-host)
-- XDG-директории, закладки, env — `desktop/user.nix`; что включено на хосте — `home-<host>.nix`
-- Hyprland, Waybar, hypridle, обои, mako — `desktop/hyprland/*`
-- тема (cursor, GTK, qt) — `desktop/theme/*`
-- конфиги программ (kitty, zsh, starship, git, ssh, btop, direnv, rofi, thunar, zen, nixvim) — `programs/*`
+Точка входа — `home-pc.nix` / `home-laptop.nix`: весь вход `rokokol.*` задаётся там, а не в модулях. Дальше пакеты в `desktop/packages/` (общий блок + группы `rokokol.packages.{pc,laptop}`), десктоп в [`desktop/hyprland/`](desktop/hyprland/README.md), тема в `desktop/theme/`, конфиги отдельных программ в [`programs/`](programs/README.md), XDG-директории и env — в `desktop/user.nix`
 
 ## Тонкости
 
 - **тема свет/тьма управляется в рантайме, не декларативно** — `scripts/toggle-theme.sh` (бинд `SUPER+A`) флипает `color-scheme`+`gtk-theme` в dconf и пишет выбор в `~/.local/state/huix/theme`. Не клади `color-scheme`/`gtk-theme` в `theme.nix` `dconf.settings` и не ставь `gtk.theme` — иначе `dconf load` на каждом ребилде будет сбивать рантайм-выбор обратно в светлую
+- Documents/Pictures/Videos смотрят в `rokokol.home.dataDir` (на ПК это NTFS-раздел `govno`), а волт — в `myWikiDir` из `commonArgs`, одинаковый на обоих хостах: Syncthing везёт симлинки как есть, так что разъехавшиеся пути дали бы битые ссылки на втором хосте
 - `home.stateVersion` зафиксирован на `25.11` — не трогай без явной миграции
 - `backupFileExtension = "bak"` в [`flake.nix`](../flake.nix) — фиксированная строка намеренно: суффикс с `lastModified` пересобирал HM-генерацию на каждый коммит и засыпал `$HOME` набором `.bak` на ревизию. Цена — вторая коллизия по тому же пути роняет активацию, пока старый `.bak` не удалишь руками
-
-## Применение
-
-Подключается из `nixos/configuration-<host>.nix` через `home-manager.nixosModules.home-manager`
-

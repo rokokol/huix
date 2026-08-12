@@ -6,37 +6,10 @@
 
 Тут живёт всё системное: загрузка, железо, GPU, сеть, ядро, системные сервисы и юзеры. Если правка касается `/etc` или systemd-system юнита — она сюда, а не в [Home Manager](../home-manager/README.md)
 
-Хосты собираются слоями, правь самый узкий из подходящих:
-
-| Файл / каталог | Что внутри |
-| --- | --- |
-| `configuration-pc.nix` | точка входа ПК: импорты, `ollama-cuda`, флаги `rokokol.*` (comfyui, openwebui, searxng, printer, tablet, virtualization, jupyter+CUDA), виртуальная камера из [virtual-media-devices](https://github.com/rokokol/virtual-media-devices) |
-| `configuration-laptop.nix` | точка входа ноута: импорты, `ollama-cpu`, `rokokol.jupyter` |
-| `default.nix` | общий для обоих хостов слой — импортирует `boot.nix`, `sound.nix`, `system.nix`, `desktop/`, шрифты |
-| `boot.nix` / `sound.nix` / `system.nix` | общий для обоих хостов baseline: загрузка (systemd-boot + tmpfs), звук (pipewire), система (сеть, locale, время) |
-| `desktop/` | core-options и xdg-портал |
-| `fonts/` | системные шрифты, см. [fonts/README.md](fonts/README.md) |
-| `pc/` | железо ПК: hardware, nvidia, keyboard, system, options |
-| `laptop/` | железо ноута: hardware, keyboard, system, options, logind (крышка) |
-| `services/` | системные сервисы, см. [services/README.md](services/README.md) |
-
-## Где что менять
-
-- общую архитектуру, inputs, overlays, `specialArgs` — в [`flake.nix`](../flake.nix)
-- какие модули подключены на хосте — в `configuration-<host>.nix`
-- host-specific опции, boot, GPU, клавиатуру — в `pc/*` или `laptop/*`
-- базовые настройки (hostname, юзер, locale, Nix GC, ФС) — в `pc/system.nix` / `laptop/system.nix`
-- набор включённых сервисов — флаги `rokokol.*.enable` в `configuration-<host>.nix` (все модули импортирует общий `services/default.nix`)
+Хосты собираются слоями, правь самый узкий из подходящих: `configuration-<host>.nix` — точка входа хоста (импорты и флаги `rokokol.*.enable`), `default.nix` + `boot/sound/system.nix` — общий baseline обоих хостов, `pc/` и `laptop/` — железо и host-specific опции, `desktop/` — core-опции и xdg-портал, [`services/`](services/README.md) и [`fonts/`](fonts/README.md) — по своему README. Inputs, overlays и `specialArgs` — во [`flake.nix`](../flake.nix)
 
 ## Тонкости
 
 - `system.stateVersion` зафиксирован на `25.11` — не трогай без явной миграции
 - `users.users.<имя>.extraGroups` доезжает из нескольких модулей (`system.nix`, `nvidia.nix`, `docker.nix`, `virtualization.nix`) — Nix их мёрджит, но при дебаге прав грепай весь `nixos/`, а не один файл
 - на ПК NTFS-раздел с меткой `govno` монтируется в `/home/rokokol/govno` с `nofail` — отсутствие маунта не ломает boot, но ломает часть `xdg.userDirs`
-
-## Применение
-
-```sh
-sudo nixos-rebuild switch --flake .#nixos-pc
-sudo nixos-rebuild switch --flake .#nixos-laptop
-```

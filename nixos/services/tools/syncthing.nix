@@ -14,6 +14,7 @@ in
 
     openDefaultPorts = true;
 
+    # additive: myWiki also rides the phone, which is configured from the phone side
     overrideDevices = false;
     overrideFolders = false;
 

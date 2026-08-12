@@ -13,41 +13,9 @@
 [![fonts](https://img.shields.io/badge/fonts-шрифты-EA4AAA?style=for-the-badge&logo=googlefonts&logoColor=white)](../fonts/README.md)
 [![DDLC](https://img.shields.io/badge/DDLC-тема_логина-FF80C0?style=for-the-badge&logo=qt&logoColor=white)](https://github.com/rokokol/ddlc-sddm-theme)
 
-Системные сервисы, разложенные по категориям. Каждый сервис — отдельный модуль; `default.nix` — единый агрегатор, импортирующий всё на обоих хостах. Общие сервисы включены безусловно, хост-специфичные гейтятся опцией `rokokol.<имя>.enable` внутри своего модуля, а *вход* — какие флаги подняты — объявляет `configuration-<host>.nix`. Чтобы добавить/убрать сервис с хоста — щёлкай флаг там, а не правь модуль
+Системные сервисы, разложенные по категориям `ai/`, `desktop/`, `devices/`, `system/`, `tools/`, `utils/`. Каждый сервис — отдельный модуль, `default.nix` — единый агрегатор, импортирующий всё на обоих хостах
 
-## Категории
-
-| Каталог | Что там |
-| --- | --- |
-| `ai/` | `ollama` (на ПК подменяется на `ollama-cuda`), `comfyui`, `openwebui` |
-| `desktop/` | `amnezia-vpn`, `file-manager`, `sddm` (+ [DDLC-тема](https://github.com/rokokol/ddlc-sddm-theme)), `ssh-askpass` |
-| `devices/` | `printer`, `tablet` |
-| `system/` | `appimage`, `cachix`, `nix-ld` |
-| `tools/` | `jupyter`, `libre-translate`, `searxng`, `syncthing` |
-| `utils/` | `docker`, `embedded`, `tor`, `virtualization` |
-
-## Кто где включён
-
-Общие для обоих хостов:
-
-- `ai/ollama` — локальные LLM (ПК тянет CUDA-сборку, ноут CPU-only)
-- `desktop/amnezia-vpn` — VPN-клиент
-- `desktop/file-manager`, `desktop/sddm` — экран логина в стиле DDLC (тема вынесена в [отдельную репу](https://github.com/rokokol/ddlc-sddm-theme), тут только включение), `desktop/ssh-askpass`
-- `system/appimage` — прямой запуск *.AppImage (binfmt) + `steam-run` (FHS-песочница)
-- `system/cachix` — бинарные кэши
-- `system/nix-ld` — запуск динамических не-Nix бинарей (FHS-набор библиотек)
-- `tools/jupyter` (на ПК с CUDA), `tools/libre-translate`, `tools/syncthing`
-- `utils/docker`
-- `utils/embedded` — тулчейны AVR/ESP/STM32/RP2040 + udev (platformio)
-- `utils/tor` — Tor через webtunnel-мосты
-
-Только ПК (флаги `rokokol.*.enable` в `configuration-pc.nix`):
-
-- `ai/comfyui` — слоп-машина картинок (через flakehub `comfyui-nix`) — `rokokol.comfyui.enable`
-- `ai/openwebui` — веб-морда к Ollama (модуль оставлен, но сейчас выключен — фронт перенесён в `jan`) — `rokokol.openwebui.enable`
-- `devices/printer`, `devices/tablet` — `rokokol.{printer,tablet}.enable`
-- `tools/searxng` — приватный метапоиск за nginx — `rokokol.searxng.enable`
-- `utils/virtualization` (libvirtd + KVM/AMD + vfio) — `rokokol.virtualization.enable`
+Общие сервисы включены безусловно, хост-специфичные гейтятся опцией `rokokol.<имя>.enable`, объявленной в своём же модуле. Вход — какие флаги подняты — задаёт `configuration-<host>.nix`, там же и смотри, что где включено: добавить или убрать сервис с хоста значит щёлкнуть флаг там, а не править модуль. Не гейти поведение через `mkIf config.services.foo.enable` из чужого модуля — заводи свою опцию
 
 ## Порты и биндинги
 
@@ -56,19 +24,17 @@
 | Сервис | Порт |
 | --- | --- |
 | Ollama | 11434 |
-| Open WebUI (ПК, выключен) | 8088 |
+| Open WebUI (ПК; модуль есть, но выключен — фронт переехал в `jan`) | 8088 |
 | ComfyUI (ПК) | 8188 |
 | SearxNG (ПК, за nginx) | 9000 |
 | Jupyter Lab | 8888 |
 | LibreTranslate | 5000 |
 | Syncthing GUI | 8384 |
 
-Порты экспортятся как session variables (`COMFYUI_PORT`, `SYNCTHING_PORT`, `LIBRE_TRANSLATE_PORT`) — удобно дёргать из скриптов и алиасов (`OPEN_WEBUI_PORT` выключен)
+Порты экспортятся как session variables (`COMFYUI_PORT`, `SYNCTHING_PORT`, `LIBRE_TRANSLATE_PORT`) — удобно дёргать из скриптов и алиасов
 
 ## Тонкости
 
-- кастомные опции живут под `rokokol.*`: `rokokol.jupyter.{enable,withTorch}` плюс enable-флаги хост-специфичных сервисов (`comfyui`, `openwebui`, `searxng`, `printer`, `tablet`, `virtualization`). Опция объявляется в самом модуле, включается в `configuration-<host>.nix`. Не гейти поведение через `mkIf config.services.foo.enable` из чужого модуля — заводи свою опцию
 - Jupyter на ПК берёт `pkgs.stable.python3` с бинарными `torch*`, чтобы не собирать ML-стек из исходников
 - LibreTranslate стартует на локальных моделях (`updateModels = false`), иначе оффлайн сервис висит до сетевого таймаута. Модели обновляет отдельный юнит `libretranslate-update-models` (недельный таймер, без сети запуск пропускается); вручную — `sudo systemctl start libretranslate-update-models`
-- тяжёлые сборки ускоряются кэшами `cuda-maintainers` (ПК, объявлен в `nixos/pc/nvidia.nix`) и `comfyui` (ПК) — при добавлении тяжёлого билда лучше дописать substituter, чем пересобирать
-
+- тяжёлые сборки ускоряются кэшами `cuda-maintainers` (объявлен в `nixos/pc/nvidia.nix`) и `comfyui` — при добавлении тяжёлого билда лучше дописать substituter, чем пересобирать
