@@ -30,6 +30,16 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    ddlc-terminal-themes = {
+      url = "github:rokokol/ddlc-terminal-themes";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    ddlc-nvim = {
+      url = "github:rokokol/ddlc.nvim";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     hyprland-screen-shader = {
       url = "github:rokokol/hyprland-screen-shader";
       inputs.nixpkgs.follows = "nixpkgs";

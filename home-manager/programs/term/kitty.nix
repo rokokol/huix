@@ -36,8 +36,8 @@
       cursor_stop_blinking_after = "15.0";
     };
 
-    # Colours are the palette's business, and it renders kitty's own spelling of them. This lands
+    # Colours are the theme's business, and it renders kitty's own spelling of them. This lands
     # after settings in kitty.conf, and kitty takes the last word for a key
-    extraConfig = builtins.readFile inputs.ddlc-palette.lib.dist.kitty.dark;
+    extraConfig = builtins.readFile inputs.ddlc-terminal-themes.lib.kitty.dark;
   };
 }

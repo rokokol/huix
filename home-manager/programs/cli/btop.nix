@@ -25,6 +25,6 @@ in
       };
     };
 
-    xdg.configFile."btop/themes/ddlc-dark.theme".source = inputs.ddlc-palette.lib.dist.btop.dark;
+    xdg.configFile."btop/themes/ddlc-dark.theme".source = inputs.ddlc-terminal-themes.lib.btop.dark;
   };
 }

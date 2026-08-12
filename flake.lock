@@ -38,18 +38,40 @@
         "url": "https://flakehub.com/f/utensils/comfyui/0.18.2"
       }
     },
-    "ddlc-palette": {
+    "ddlc-nvim": {
       "inputs": {
+        "ddlc-palette": "ddlc-palette",
         "nixpkgs": [
           "nixpkgs"
         ]
       },
       "locked": {
-        "lastModified": 1786451325,
-        "narHash": "sha256-dnRzA25z0CgTvIfvDB2Fr2zewRYqd0PjFG4rRuOr8FA=",
+        "lastModified": 1786536485,
+        "narHash": "sha256-zJFDnrDFIfvHRHdVDfBs/iByoVunIMn8+WS2un9cAjg=",
+        "owner": "rokokol",
+        "repo": "ddlc.nvim",
+        "rev": "6e28e075571e266661a743c6c890fb65e797f81d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "ddlc.nvim",
+        "type": "github"
+      }
+    },
+    "ddlc-palette": {
+      "inputs": {
+        "nixpkgs": [
+          "ddlc-nvim",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1786486925,
+        "narHash": "sha256-416NPtsoQ7ieKkrjLKaJbpV9UsYzWL3VfbDK3ZV8Zvw=",
         "owner": "rokokol",
         "repo": "ddlc-palette",
-        "rev": "266ab48b3d9be4e931dcc9bd09244e0591fb2a47",
+        "rev": "7b7300d58430afbf6b87e53c5b208f42bdcab455",
         "type": "github"
       },
       "original": {
@@ -59,6 +81,26 @@
       }
     },
     "ddlc-palette_2": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1786536637,
+        "narHash": "sha256-bhE6/zbxgOfTIBkvblNruxcuzHCRQDP4TM41epn2f5k=",
+        "owner": "rokokol",
+        "repo": "ddlc-palette",
+        "rev": "96dabe6daf44814a9954e9b5edbe33250c8f86ee",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "ddlc-palette",
+        "type": "github"
+      }
+    },
+    "ddlc-palette_3": {
       "inputs": {
         "nixpkgs": [
           "ddlc-rofi-theme",
@@ -79,7 +121,7 @@
         "type": "github"
       }
     },
-    "ddlc-palette_3": {
+    "ddlc-palette_4": {
       "inputs": {
         "nixpkgs": [
           "ddlc-sddm-theme",
@@ -100,9 +142,30 @@
         "type": "github"
       }
     },
+    "ddlc-palette_5": {
+      "inputs": {
+        "nixpkgs": [
+          "ddlc-terminal-themes",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1786486925,
+        "narHash": "sha256-416NPtsoQ7ieKkrjLKaJbpV9UsYzWL3VfbDK3ZV8Zvw=",
+        "owner": "rokokol",
+        "repo": "ddlc-palette",
+        "rev": "7b7300d58430afbf6b87e53c5b208f42bdcab455",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "ddlc-palette",
+        "type": "github"
+      }
+    },
     "ddlc-rofi-theme": {
       "inputs": {
-        "ddlc-palette": "ddlc-palette_2",
+        "ddlc-palette": "ddlc-palette_3",
         "nixpkgs": [
           "nixpkgs"
         ]
@@ -123,7 +186,7 @@
     },
     "ddlc-sddm-theme": {
       "inputs": {
-        "ddlc-palette": "ddlc-palette_3",
+        "ddlc-palette": "ddlc-palette_4",
         "nixpkgs": [
           "nixpkgs"
         ]
@@ -139,6 +202,27 @@
       "original": {
         "owner": "rokokol",
         "repo": "ddlc-sddm-theme",
+        "type": "github"
+      }
+    },
+    "ddlc-terminal-themes": {
+      "inputs": {
+        "ddlc-palette": "ddlc-palette_5",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1786536012,
+        "narHash": "sha256-XIUs7O0G6OsGt7lfVQpb/FCLfMNhYtp5X/YjTq1w7l8=",
+        "owner": "rokokol",
+        "repo": "ddlc-terminal-themes",
+        "rev": "7f836064c7e8f498d08b3f6286e68c9f99f12550",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "ddlc-terminal-themes",
         "type": "github"
       }
     },
@@ -434,9 +518,11 @@
       "inputs": {
         "claude-account": "claude-account",
         "comfyui-nix": "comfyui-nix",
-        "ddlc-palette": "ddlc-palette",
+        "ddlc-nvim": "ddlc-nvim",
+        "ddlc-palette": "ddlc-palette_2",
         "ddlc-rofi-theme": "ddlc-rofi-theme",
         "ddlc-sddm-theme": "ddlc-sddm-theme",
+        "ddlc-terminal-themes": "ddlc-terminal-themes",
         "freesmlauncher": "freesmlauncher",
         "home-manager": "home-manager",
         "hyprland-screen-shader": "hyprland-screen-shader",
