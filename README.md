@@ -60,7 +60,7 @@ nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHW
 
 ## Вынесено в отдельные репо
 
-Куски, которые переросли конфиг и живут своими флейками — huix подключает их входами и держит по одному шву на каждый:
+Куски, которые переросли конфиг и живут своими флейками — huix подключает их входами и держит по одному шву на каждый. Вся семья вместе с самим конфигом помечена топиком [huix](https://github.com/topics/huix), так что список ниже есть кому пересчитать и без README:
 
 [![screen-shader](https://img.shields.io/badge/screen--shader-эффекты-FF4088?style=for-the-badge&logo=opengl&logoColor=white)](https://github.com/rokokol/hyprland-screen-shader)
 [![claude-account](https://img.shields.io/badge/claude--account-профили_Claude-D97757?style=for-the-badge&logo=anthropic&logoColor=white)](https://github.com/rokokol/claude-account)
