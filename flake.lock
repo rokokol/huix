@@ -38,6 +38,29 @@
         "url": "https://flakehub.com/f/utensils/comfyui/0.18.2"
       }
     },
+    "ddlc-hyprlock": {
+      "inputs": {
+        "ddlc-palette": [
+          "ddlc-palette"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1786556468,
+        "narHash": "sha256-OAMTOOiJOwynecakGh2pC17bmsZyw/Pl/Diq6ObqrI4=",
+        "owner": "rokokol",
+        "repo": "ddlc-hyprlock",
+        "rev": "1b59cae564e41769a5b8a8115cd68c107149ae1c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "ddlc-hyprlock",
+        "type": "github"
+      }
+    },
     "ddlc-nvim": {
       "inputs": {
         "ddlc-palette": [
@@ -442,6 +465,7 @@
       "inputs": {
         "claude-account": "claude-account",
         "comfyui-nix": "comfyui-nix",
+        "ddlc-hyprlock": "ddlc-hyprlock",
         "ddlc-nvim": "ddlc-nvim",
         "ddlc-palette": "ddlc-palette",
         "ddlc-rofi-theme": "ddlc-rofi-theme",

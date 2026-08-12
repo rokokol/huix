@@ -13,8 +13,6 @@
 
     packages.pc = true;
 
-    hyprlock.dialog = true;
-
     hyprland = {
       enable = true;
       monitorScale = "1";

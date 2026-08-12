@@ -7,7 +7,7 @@
       general = {
         # every lock path funnels through here, so this is where the dialog
         # animation is started; it blocks for the whole lock, like hyprlock did
-        lock_cmd = "pidof hyprlock || ${config.rokokol.hyprlock.lockCommand}";
+        lock_cmd = "pidof hyprlock || ${config.ddlc.hyprlock.lockCommand}";
         before_sleep_cmd = "loginctl lock-session"; # block until the sleep
         after_sleep_cmd = "hyprctl dispatch dpms on"; # turn on the screen on wakeup
       };

@@ -15,9 +15,6 @@
 
     packages.laptop = true;
 
-    # The dialog costs two shell-spawning labels at 10 Hz plus a render loop — not on battery
-    hyprlock.dialog = false;
-
     hyprland = {
       enable = true;
       monitorScale = "1.33";
@@ -33,6 +30,9 @@
       battery = true;
     };
   };
+
+  # The dialog costs two shell-spawning labels at 10 Hz plus a render loop — not on battery
+  ddlc.hyprlock.dialog = false;
 
   # Files
   home.file.".octaverc".text = ''

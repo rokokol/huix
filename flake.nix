@@ -44,6 +44,12 @@
       inputs.ddlc-palette.follows = "ddlc-palette";
     };
 
+    ddlc-hyprlock = {
+      url = "github:rokokol/ddlc-hyprlock";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.ddlc-palette.follows = "ddlc-palette";
+    };
+
     hyprland-screen-shader = {
       url = "github:rokokol/hyprland-screen-shader";
       inputs.nixpkgs.follows = "nixpkgs";
