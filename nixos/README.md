@@ -10,7 +10,7 @@
 
 | Файл / каталог | Что внутри |
 | --- | --- |
-| `configuration-pc.nix` | точка входа ПК: импорты, `ollama-cuda`, флаги `rokokol.*` (comfyui, openwebui, searxng, printer, tablet, virtualCamera, virtualization, jupyter+CUDA) |
+| `configuration-pc.nix` | точка входа ПК: импорты, `ollama-cuda`, флаги `rokokol.*` (comfyui, openwebui, searxng, printer, tablet, virtualization, jupyter+CUDA), виртуальная камера из [virtual-media-devices](https://github.com/rokokol/virtual-media-devices) |
 | `configuration-laptop.nix` | точка входа ноута: импорты, `ollama-cpu`, `rokokol.jupyter` |
 | `default.nix` | общий для обоих хостов слой — импортирует `boot.nix`, `sound.nix`, `system.nix`, `desktop/`, шрифты |
 | `boot.nix` / `sound.nix` / `system.nix` | общий для обоих хостов baseline: загрузка (systemd-boot + tmpfs), звук (pipewire), система (сеть, locale, время) |

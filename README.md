@@ -34,6 +34,7 @@
 [![screen-shader](https://img.shields.io/badge/screen--shader-эффекты-FF4088?style=for-the-badge&logo=opengl&logoColor=white)](https://github.com/rokokol/hyprland-screen-shader)
 [![claude-account](https://img.shields.io/badge/claude--account-профили_Claude-D97757?style=for-the-badge&logo=anthropic&logoColor=white)](https://github.com/rokokol/claude-account)
 [![rofi-wooordhunt](https://img.shields.io/badge/rofi--wooordhunt-словарь-F4A100?style=for-the-badge)](https://github.com/rokokol/rofi-wooordhunt)
+[![virtual-media-devices](https://img.shields.io/badge/virtual--media--devices-камера_и_микрофон-2E9E9E?style=for-the-badge&logo=ffmpeg&logoColor=white)](https://github.com/rokokol/virtual-media-devices)
 [![ddlc-sddm-theme](https://img.shields.io/badge/ddlc--sddm--theme-экран_логина-FF80C0?style=for-the-badge&logo=qt&logoColor=white)](https://github.com/rokokol/ddlc-sddm-theme)
 [![ddlc-palette](https://img.shields.io/badge/ddlc--palette-цвета-BB5599?style=for-the-badge)](https://github.com/rokokol/ddlc-palette)
 [![ddlc-rofi-theme](https://img.shields.io/badge/ddlc--rofi--theme-тема_rofi-EE2A7B?style=for-the-badge)](https://github.com/rokokol/ddlc-rofi-theme)

@@ -21,7 +21,7 @@
 | --- | --- |
 | `ai/` | `ollama` (на ПК подменяется на `ollama-cuda`), `comfyui`, `openwebui` |
 | `desktop/` | `amnezia-vpn`, `file-manager`, `sddm` (+ [DDLC-тема](https://github.com/rokokol/ddlc-sddm-theme)), `ssh-askpass` |
-| `devices/` | `printer`, `tablet`, `virtual-camera` |
+| `devices/` | `printer`, `tablet` |
 | `system/` | `appimage`, `cachix`, `nix-ld` |
 | `tools/` | `jupyter`, `libre-translate`, `searxng`, `syncthing` |
 | `utils/` | `docker`, `embedded`, `tor`, `virtualization` |
@@ -45,7 +45,7 @@
 
 - `ai/comfyui` — слоп-машина картинок (через flakehub `comfyui-nix`) — `rokokol.comfyui.enable`
 - `ai/openwebui` — веб-морда к Ollama (модуль оставлен, но сейчас выключен — фронт перенесён в `jan`) — `rokokol.openwebui.enable`
-- `devices/printer`, `devices/tablet`, `devices/virtual-camera` — `rokokol.{printer,tablet,virtualCamera}.enable`
+- `devices/printer`, `devices/tablet` — `rokokol.{printer,tablet}.enable`
 - `tools/searxng` — приватный метапоиск за nginx — `rokokol.searxng.enable`
 - `utils/virtualization` (libvirtd + KVM/AMD + vfio) — `rokokol.virtualization.enable`
 
@@ -67,7 +67,7 @@
 
 ## Тонкости
 
-- кастомные опции живут под `rokokol.*`: `rokokol.jupyter.{enable,withTorch}` плюс enable-флаги хост-специфичных сервисов (`comfyui`, `openwebui`, `searxng`, `printer`, `tablet`, `virtualCamera`, `virtualization`). Опция объявляется в самом модуле, включается в `configuration-<host>.nix`. Не гейти поведение через `mkIf config.services.foo.enable` из чужого модуля — заводи свою опцию
+- кастомные опции живут под `rokokol.*`: `rokokol.jupyter.{enable,withTorch}` плюс enable-флаги хост-специфичных сервисов (`comfyui`, `openwebui`, `searxng`, `printer`, `tablet`, `virtualization`). Опция объявляется в самом модуле, включается в `configuration-<host>.nix`. Не гейти поведение через `mkIf config.services.foo.enable` из чужого модуля — заводи свою опцию
 - Jupyter на ПК берёт `pkgs.stable.python3` с бинарными `torch*`, чтобы не собирать ML-стек из исходников
 - LibreTranslate стартует на локальных моделях (`updateModels = false`), иначе оффлайн сервис висит до сетевого таймаута. Модели обновляет отдельный юнит `libretranslate-update-models` (недельный таймер, без сети запуск пропускается); вручную — `sudo systemctl start libretranslate-update-models`
 - тяжёлые сборки ускоряются кэшами `cuda-maintainers` (ПК, объявлен в `nixos/pc/nvidia.nix`) и `comfyui` (ПК) — при добавлении тяжёлого билда лучше дописать substituter, чем пересобирать
