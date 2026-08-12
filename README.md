@@ -9,8 +9,6 @@
 ![NixOS](https://img.shields.io/badge/NixOS-unstable-5277C3?style=flat&logo=nixos&logoColor=white)
 ![Nix](https://img.shields.io/badge/Nix-flakes-7EBAE4?style=flat&logo=nixos&logoColor=white)
 ![Hyprland](https://img.shields.io/badge/WM-Hyprland-00AAAE?style=flat&logo=hyprland&logoColor=white)
-![Home Manager](https://img.shields.io/badge/Home_Manager-25.11-41BDF5?style=flat)
-![Wayland](https://img.shields.io/badge/session-Wayland-FFBC00?style=flat&logo=wayland&logoColor=black)
 ![platform](https://img.shields.io/badge/platform-x86__64--linux-1793D1?style=flat&logo=linux&logoColor=white)
 [![license](https://img.shields.io/badge/license-MIT-3DA639?style=flat)](LICENSE)
 [![eval](https://github.com/rokokol/huix/actions/workflows/eval.yml/badge.svg)](https://github.com/rokokol/huix/actions/workflows/eval.yml)
@@ -18,6 +16,34 @@
 </div>
 
 Короче, это мой конфиг для NixOS — один флейк, два профиля: ПК и ноут. Сижу на Hyprland, юзаю nixvim как IDE, часть штук типа Obsidian, SP или Zen синхронизирую через git/облако, а не декларативно, кривые пакеты тяну через flatpak; рядом крутятся MATLAB/Python/C++
+
+## Команды
+
+```sh
+sudo nixos-rebuild switch --flake .#nixos-pc   # или .#nixos-laptop
+rebuild                                        # алиас на то же для текущего хоста
+rebuilds                                       # то же, но пакеты с зеркала Яндекса — если проблемы с сетью
+```
+
+При смене железа:
+
+```sh
+sudo nixos-generate-config --show-hardware-config > nixos/<host>/hardware-configuration.nix
+```
+
+Матлаб (как-то позволяет скачать матлаб на комп (★^O^★)):
+
+```sh
+nix run gitlab:doronbehar/nix-matlab#matlab-shell
+nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHWORKS_R2025A/install
+```
+
+## Хосты
+
+| Host           | Точка входа                                                       | Чем выделяется                                                                                                                                 |
+| -------------- | ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `nixos-pc`     | `nixos/configuration-pc.nix` + `home-manager/home-pc.nix`         | NVIDIA/CUDA, `ollama-cuda`, ComfyUI, Docker, виртуализация, SearxNG, печать, планшет, Arduino, NTFS-маунт `govno`, Steam, тяжёлый creative-стек |
+| `nixos-laptop` | `nixos/configuration-laptop.nix` + `home-manager/home-laptop.nix` | CPU-only `ollama-cpu`, Bluetooth, powertop, Tor через webtunnel, более лёгкий desktop                                                           |
 
 ## Карта репозитория
 
@@ -31,72 +57,36 @@
 [![programs](https://img.shields.io/badge/programs-программы-7E57C2?style=for-the-badge)](home-manager/programs/README.md)
 [![nixvim](https://img.shields.io/badge/nixvim-neovim-019733?style=for-the-badge&logo=neovim&logoColor=white)](home-manager/programs/nixvim/README.md)
 [![scripts](https://img.shields.io/badge/scripts-скрипты-4EAA25?style=for-the-badge&logo=gnubash&logoColor=white)](scripts/README.md)
+
+## Вынесено в отдельные репо
+
+Куски, которые переросли конфиг и живут своими флейками — huix подключает их входами и держит по одному шву на каждый:
+
 [![screen-shader](https://img.shields.io/badge/screen--shader-эффекты-FF4088?style=for-the-badge&logo=opengl&logoColor=white)](https://github.com/rokokol/hyprland-screen-shader)
 [![claude-account](https://img.shields.io/badge/claude--account-профили_Claude-D97757?style=for-the-badge&logo=anthropic&logoColor=white)](https://github.com/rokokol/claude-account)
 [![rofi-wooordhunt](https://img.shields.io/badge/rofi--wooordhunt-словарь-F4A100?style=for-the-badge)](https://github.com/rokokol/rofi-wooordhunt)
 [![virtual-media-devices](https://img.shields.io/badge/virtual--media--devices-камера_и_микрофон-2E9E9E?style=for-the-badge&logo=ffmpeg&logoColor=white)](https://github.com/rokokol/virtual-media-devices)
-[![ddlc-sddm-theme](https://img.shields.io/badge/ddlc--sddm--theme-экран_логина-FF80C0?style=for-the-badge&logo=qt&logoColor=white)](https://github.com/rokokol/ddlc-sddm-theme)
 [![ddlc-palette](https://img.shields.io/badge/ddlc--palette-цвета-BB5599?style=for-the-badge)](https://github.com/rokokol/ddlc-palette)
+[![ddlc-sddm-theme](https://img.shields.io/badge/ddlc--sddm--theme-экран_логина-FF80C0?style=for-the-badge&logo=qt&logoColor=white)](https://github.com/rokokol/ddlc-sddm-theme)
+[![ddlc-hyprlock](https://img.shields.io/badge/ddlc--hyprlock-локскрин-58E1FF?style=for-the-badge)](https://github.com/rokokol/ddlc-hyprlock)
 [![ddlc-rofi-theme](https://img.shields.io/badge/ddlc--rofi--theme-тема_rofi-EE2A7B?style=for-the-badge)](https://github.com/rokokol/ddlc-rofi-theme)
 [![ddlc.nvim](https://img.shields.io/badge/ddlc.nvim-тема_редактора-76C332?style=for-the-badge&logo=neovim&logoColor=white)](https://github.com/rokokol/ddlc.nvim)
 [![ddlc-terminal-themes](https://img.shields.io/badge/ddlc--terminal--themes-kitty_и_btop-72D0FA?style=for-the-badge)](https://github.com/rokokol/ddlc-terminal-themes)
-[![ddlc-hyprlock](https://img.shields.io/badge/ddlc--hyprlock-локскрин-58E1FF?style=for-the-badge)](https://github.com/rokokol/ddlc-hyprlock)
 
-## Что важно знать
+## Что стоит знать
 
-- репо рассчитан на `x86_64-linux` и живёт чисто во flake-workflow, без `nix-channel`/`NIX_PATH`/`<nixpkgs>`
-- базовый набор пакетов идёт из `nixos-unstable` (`pkgs`)
-- рядом проброшен стабильный последний релиз `nixpkgs` как `pkgs.stable` через `overlay-stable`. Путать источники нельзя — это триггерит молчаливую пересборку гигантского ML-стека
-- CUDA-пакеты берутся из выделенных attrs (`ollama-cuda`, `btop-cuda`, флейк `comfyui-nix`), а не из глобального оверлея. Кодогенерация CUDA ограничена архитектурой GPU (RTX 3060 = `sm_86`, capability `8.6`) через `cudaCapabilities` в общем `nixpkgsConfig` — менять при смене GPU. Это сужает арку, не включая глобальный `cudaSupport`, так что подхватывает только `ollama-cuda`
-- Home Manager подключён не отдельным потоком, а как NixOS-модуль с `useGlobalPkgs = true` — системный и пользовательский слой делят один пакетный набор и overlays
-- `commonArgs` (`rokokolName`, `huixDir`, `govnoDir`, `myWikiDir`, `system`, `inputs`) пробрасывается и в системные модули через `specialArgs`, и в HM через `extraSpecialArgs` — это единственный способ протащить константы через границу флейка
-- MIT покрывает только код. Шрифт `Doki` принадлежит Team Salvato и лежит тут как фан-контент, курсор — работа sev; спрайты уехали в `ddlc-sddm-theme`, фон и цитаты Моники — в `ddlc-hyprlock`. Условия по каждому файлу — в [ASSETS.md](ASSETS.md). Проект не аффилирован с Team Salvato и ими не одобрен
+- `SUPER+A` переключает свет/тьму на лету — тема выбирается в рантайме и переживает ребилд, декларативно она нигде не прибита
+- `SUPER SHIFT+A` на ноуте включает режим "крышка гасит экран, а не усыпляет"; он сессионный, после ребута крышка снова усыпляет
+- цвета тут не выбираются вообще: [ddlc-palette](https://github.com/rokokol/ddlc-palette) снимает их с ddlc.moe и отдаёт готовыми, темы приложений приезжают собранными из своих репо. Хекс в модуле — повод спросить, почему он не оттуда
+- все сервисы биндятся на `127.0.0.1`, наружу firewall не открывает ничего — [таблица портов](nixos/services/README.md#порты-и-биндинги)
+- MIT покрывает только код. Шрифт `Doki` принадлежит Team Salvato и лежит тут как фан-контент, курсор — работа sev; условия по каждому файлу — в [ASSETS.md](ASSETS.md). Проект не аффилирован с Team Salvato и ими не одобрен
 
-## Хосты
-
-| Host           | Точка входа                                                       | Чем выделяется                                                                                                                                  |
-| -------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `nixos-pc`     | `nixos/configuration-pc.nix` + `home-manager/home-pc.nix`         | NVIDIA/CUDA, `ollama-cuda`, ComfyUI, Docker, виртуализация, SearxNG, печать, планшет, Arduino, NTFS-маунт `govno`, Steam, тяжёлый creative-стек |
-| `nixos-laptop` | `nixos/configuration-laptop.nix` + `home-manager/home-laptop.nix` | CPU-only `ollama-cpu`, Bluetooth, powertop, Tor через webtunnel, более лёгкий desktop                                                           |
-
-## Всякое
-
-Алиасы: rebuild — обычная сборка, rebuilds — зеркало только от Яндекса, если проблемы с сетью
-
-```sh
-rebuild
-```
-
-При смене железа:
-
-```sh
-sudo nixos-generate-config --show-hardware-config > nixos/<host>/hardware-configuration.nix
-```
-
-## Полезные тонкости
-
-- **sync-сервис сам пушит изменения** — `home-manager/desktop/sync.nix` гоняет `scripts/sync.sh` на старте графической сессии (загрузка/логин) и после каждого `nixos-rebuild` (хук активации), а не по часовому таймеру: `pull --rebase` → `add -u` → `commit` → `push`. Из-за `add -u` новый файл без `git add` тихо не уедет в upstream. Пуллься перед правкой на другом хосте
-- **Осмысленные правки коммить руками** (и агентам — тоже): отдельный коммит с нормальным сообщением на каждое логическое изменение, не дожидаясь sync-сервиса — он лепит всё подряд в безликие "sync …"
-- **`HUIX`** указывает на этот репо и читается скриптами и алиасами — не хардкодь `/home/rokokol/huix`, бери `$HUIX` в скриптах и `huixDir` в Nix
-- **Тема свет/тьма — рантайм, не декларатив** — `scripts/toggle-theme.sh` (`SUPER+A`) флипает dconf и пишет выбор в state. Не клади `color-scheme`/`gtk-theme` в HM, иначе `dconf load` на ребилде сбивает выбор
-- **Крышка ноута умеет не усыплять** — `SUPER SHIFT+A` (`scripts/lid-mode.sh`) держит лок `systemd-inhibit`, и закрытая крышка только гасит встроенную панель. Режим живёт до конца сессии: после ребута ноут снова засыпает от крышки
-- **Цвета здесь не выбираются вообще** — [ddlc-palette](https://github.com/rokokol/ddlc-palette) снимает их с ddlc.moe и отдаёт готовыми: хексы, их голое (`bare`) и полупрозрачное (`rgba`) написание в `commonArgs.palette` и две схемы для терминала с редактором в `commonArgs.base16`. Темы приложений приезжают собранными из своих репо: kitty и btop из [ddlc-terminal-themes](https://github.com/rokokol/ddlc-terminal-themes), редактор из [ddlc.nvim](https://github.com/rokokol/ddlc.nvim). Хекс в модуле — повод спросить, почему он не оттуда
-- **Все сервисы биндятся на `127.0.0.1`** — наружу firewall ничего не открывает, см. [таблицу портов](nixos/services/README.md#порты-и-биндинги)
-- **`backupFileExtension = "bak"`** — фиксированная строка намеренно: суффикс с `lastModified` пересобирал HM-генерацию на каждый коммит и засыпал `$HOME` набором `.bak` на ревизию. Цена — вторая коллизия по тому же пути роняет активацию, пока старый `.bak` не удалишь руками
-
-## MATLAB
-
-Как-то позволяет скачать матлаб на комп (★^O^★)
-
-```sh
-nix run gitlab:doronbehar/nix-matlab#matlab-shell
-nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHWORKS_R2025A/install
-```
+> [!WARNING]
+> Секреты идут через sops-nix, и age-ключа (`~/.config/sops/age/keys.txt`) в репо нет. На новом хосте его надо положить туда руками до первого ребилда, иначе активация упадёт
 
 ## TODO
 
 - [ ] Трайнуть stylix
-- [x] Настроить секреты в sops-nix — ключ `~/.config/sops/age/keys.txt`, секреты в `secrets/secrets.yaml`. **Ключ не в репо: перед первым ребилдом на другом хосте его надо туда скопировать, иначе активация упадёт**
 - [ ] Настроить disko
 
 <br/>
