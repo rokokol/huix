@@ -31,7 +31,7 @@
 | LibreTranslate | 5000 |
 | Syncthing GUI | 8384 |
 
-Порты экспортятся как session variables (`COMFYUI_PORT`, `SYNCTHING_PORT`, `LIBRE_TRANSLATE_PORT`) — удобно дёргать из скриптов и алиасов
+Порт объявлен в своём модуле один раз и уходит в `environment.sessionVariables` (`OLLAMA_PORT`, `COMFYUI_PORT`, `OPEN_WEBUI_PORT`, `SYNCTHING_PORT`, `LIBRE_TRANSLATE_PORT`) — скрипты и алиасы берут его оттуда, а не повторяют числом
 
 ## Тонкости
 
