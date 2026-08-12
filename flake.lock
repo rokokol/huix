@@ -48,11 +48,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1786567772,
-        "narHash": "sha256-Rx1XdFqKbYsMGLdpcAuoLWB31yTNriqFfxw3Uom31p8=",
+        "lastModified": 1786569327,
+        "narHash": "sha256-VT9MxT1v7cP49FQwLaphYKN3uhINfFQTINUzHpFVi7k=",
         "owner": "rokokol",
         "repo": "ddlc-hyprlock",
-        "rev": "a94e9f2eacee46a9cbc6f405022b2fc762a4b74a",
+        "rev": "87312803a55e5d119a88d03cc5b78e2805453b67",
         "type": "github"
       },
       "original": {
