@@ -48,11 +48,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1786538892,
-        "narHash": "sha256-F88gC0oljUcmATP3mBKoUkCnbDcWoX+IDRtwBiPyZnk=",
+        "lastModified": 1786552142,
+        "narHash": "sha256-iUXfUbqQUfZ/pcZ9SgGdBVwgeO5K9QrdHjz7iG1dlB0=",
         "owner": "rokokol",
         "repo": "ddlc.nvim",
-        "rev": "ae6918a55788678927871b03e59c7c31eaaf04a7",
+        "rev": "dc1c4c8c32afb2a370c1b3a595662419c031f0d1",
         "type": "github"
       },
       "original": {
