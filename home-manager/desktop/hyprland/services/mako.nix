@@ -1,17 +1,10 @@
 {
   pkgs,
-  lib,
   palette,
   ...
 }:
 
 {
-  # mako doesn't re-read its config by itself (exec-once, no systemd unit) — we
-  # nudge it on every activation; outside a graphical session we silently skip.
-  home.activation.reloadMako = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    ${pkgs.mako}/bin/makoctl reload 2>/dev/null || true
-  '';
-
   services.mako = {
     enable = true;
 
