@@ -18,6 +18,7 @@
     ddlc-sddm-theme = {
       url = "github:rokokol/ddlc-sddm-theme";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.ddlc-palette.follows = "ddlc-palette";
     };
 
     ddlc-palette = {
@@ -28,16 +29,19 @@
     ddlc-rofi-theme = {
       url = "github:rokokol/ddlc-rofi-theme";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.ddlc-palette.follows = "ddlc-palette";
     };
 
     ddlc-terminal-themes = {
       url = "github:rokokol/ddlc-terminal-themes";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.ddlc-palette.follows = "ddlc-palette";
     };
 
     ddlc-nvim = {
       url = "github:rokokol/ddlc.nvim";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.ddlc-palette.follows = "ddlc-palette";
     };
 
     hyprland-screen-shader = {

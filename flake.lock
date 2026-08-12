@@ -40,7 +40,9 @@
     },
     "ddlc-nvim": {
       "inputs": {
-        "ddlc-palette": "ddlc-palette",
+        "ddlc-palette": [
+          "ddlc-palette"
+        ],
         "nixpkgs": [
           "nixpkgs"
         ]
@@ -62,27 +64,6 @@
     "ddlc-palette": {
       "inputs": {
         "nixpkgs": [
-          "ddlc-nvim",
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1786486925,
-        "narHash": "sha256-416NPtsoQ7ieKkrjLKaJbpV9UsYzWL3VfbDK3ZV8Zvw=",
-        "owner": "rokokol",
-        "repo": "ddlc-palette",
-        "rev": "7b7300d58430afbf6b87e53c5b208f42bdcab455",
-        "type": "github"
-      },
-      "original": {
-        "owner": "rokokol",
-        "repo": "ddlc-palette",
-        "type": "github"
-      }
-    },
-    "ddlc-palette_2": {
-      "inputs": {
-        "nixpkgs": [
           "nixpkgs"
         ]
       },
@@ -100,72 +81,11 @@
         "type": "github"
       }
     },
-    "ddlc-palette_3": {
-      "inputs": {
-        "nixpkgs": [
-          "ddlc-rofi-theme",
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1786448652,
-        "narHash": "sha256-VyHaCrjO26miRPKmjEFhHI4RwBpPiZFZ9kP4p9kuCxU=",
-        "owner": "rokokol",
-        "repo": "ddlc-palette",
-        "rev": "6a2277adb38b70cbed5711d15de2b47670f2546c",
-        "type": "github"
-      },
-      "original": {
-        "owner": "rokokol",
-        "repo": "ddlc-palette",
-        "type": "github"
-      }
-    },
-    "ddlc-palette_4": {
-      "inputs": {
-        "nixpkgs": [
-          "ddlc-sddm-theme",
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1786445628,
-        "narHash": "sha256-LO1uQOjUkk3Tw+Ch56ip0GSNxILlg/ov6fr9BnskpCc=",
-        "owner": "rokokol",
-        "repo": "ddlc-palette",
-        "rev": "68eedcfe0e2b3dcd0b6e6ebcb21b5a40c7d57513",
-        "type": "github"
-      },
-      "original": {
-        "owner": "rokokol",
-        "repo": "ddlc-palette",
-        "type": "github"
-      }
-    },
-    "ddlc-palette_5": {
-      "inputs": {
-        "nixpkgs": [
-          "ddlc-terminal-themes",
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1786486925,
-        "narHash": "sha256-416NPtsoQ7ieKkrjLKaJbpV9UsYzWL3VfbDK3ZV8Zvw=",
-        "owner": "rokokol",
-        "repo": "ddlc-palette",
-        "rev": "7b7300d58430afbf6b87e53c5b208f42bdcab455",
-        "type": "github"
-      },
-      "original": {
-        "owner": "rokokol",
-        "repo": "ddlc-palette",
-        "type": "github"
-      }
-    },
     "ddlc-rofi-theme": {
       "inputs": {
-        "ddlc-palette": "ddlc-palette_3",
+        "ddlc-palette": [
+          "ddlc-palette"
+        ],
         "nixpkgs": [
           "nixpkgs"
         ]
@@ -186,7 +106,9 @@
     },
     "ddlc-sddm-theme": {
       "inputs": {
-        "ddlc-palette": "ddlc-palette_4",
+        "ddlc-palette": [
+          "ddlc-palette"
+        ],
         "nixpkgs": [
           "nixpkgs"
         ]
@@ -207,7 +129,9 @@
     },
     "ddlc-terminal-themes": {
       "inputs": {
-        "ddlc-palette": "ddlc-palette_5",
+        "ddlc-palette": [
+          "ddlc-palette"
+        ],
         "nixpkgs": [
           "nixpkgs"
         ]
@@ -519,7 +443,7 @@
         "claude-account": "claude-account",
         "comfyui-nix": "comfyui-nix",
         "ddlc-nvim": "ddlc-nvim",
-        "ddlc-palette": "ddlc-palette_2",
+        "ddlc-palette": "ddlc-palette",
         "ddlc-rofi-theme": "ddlc-rofi-theme",
         "ddlc-sddm-theme": "ddlc-sddm-theme",
         "ddlc-terminal-themes": "ddlc-terminal-themes",
