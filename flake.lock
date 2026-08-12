@@ -46,11 +46,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1786536485,
-        "narHash": "sha256-zJFDnrDFIfvHRHdVDfBs/iByoVunIMn8+WS2un9cAjg=",
+        "lastModified": 1786538892,
+        "narHash": "sha256-F88gC0oljUcmATP3mBKoUkCnbDcWoX+IDRtwBiPyZnk=",
         "owner": "rokokol",
         "repo": "ddlc.nvim",
-        "rev": "6e28e075571e266661a743c6c890fb65e797f81d",
+        "rev": "ae6918a55788678927871b03e59c7c31eaaf04a7",
         "type": "github"
       },
       "original": {
@@ -213,11 +213,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1786536012,
-        "narHash": "sha256-XIUs7O0G6OsGt7lfVQpb/FCLfMNhYtp5X/YjTq1w7l8=",
+        "lastModified": 1786549853,
+        "narHash": "sha256-HKn6qGv1TGSWp3nihsjfBuue7VhHcdkespp5J/IspTE=",
         "owner": "rokokol",
         "repo": "ddlc-terminal-themes",
-        "rev": "7f836064c7e8f498d08b3f6286e68c9f99f12550",
+        "rev": "2d003c25c3716acbf6ba36cd0d2e7556d9307d8f",
         "type": "github"
       },
       "original": {

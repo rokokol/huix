@@ -1,6 +1,11 @@
 { inputs, ... }:
 
 {
+  imports = [ inputs.ddlc-terminal-themes.homeManagerModules.default ];
+
+  # The colours land after everything below, and kitty takes the last word for a key
+  ddlc.kitty.enable = true;
+
   programs.kitty = {
     enable = true;
 
@@ -35,9 +40,5 @@
       cursor_blink_interval = "0.5";
       cursor_stop_blinking_after = "15.0";
     };
-
-    # Colours are the theme's business, and it renders kitty's own spelling of them. This lands
-    # after settings in kitty.conf, and kitty takes the last word for a key
-    extraConfig = builtins.readFile inputs.ddlc-terminal-themes.lib.kitty.dark;
   };
 }
