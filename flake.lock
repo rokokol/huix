@@ -503,11 +503,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1786551230,
-        "narHash": "sha256-saPbgGV6kiVOtqSPzX6pA0VsvrGT/7EJ2RS5DS3Cqf8=",
+        "lastModified": 1786552949,
+        "narHash": "sha256-lqLw/xLmo8j5lQ+YjHcsAvKJbR7ngfF4G5Aesx6c2ng=",
         "owner": "rokokol",
         "repo": "virtual-media-devices",
-        "rev": "416af64b9294b79f8d30453c6d5bc1400725db5f",
+        "rev": "6f9f3c8dd6952c2aa1e28064077e80feb15d2306",
         "type": "github"
       },
       "original": {
