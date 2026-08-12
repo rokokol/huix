@@ -17,7 +17,6 @@
       on-button-left = "invoke-default-action";
       on-button-middle = "dismiss";
 
-      default-timeout = 6500;
       max-history = 50;
 
       border-radius = 8;
@@ -25,6 +24,16 @@
 
       icons = 1;
       max-icon-size = 48;
+
+      # Chats and the web, in effect: a sender that omits the urgency hint (Telegram and Firefox
+      # both do) matches no [urgency=…] section at all, so the global block is the only place
+      # that can style it, and whatever is left unset here stays on mako's stock blue.
+      # Its own ground rather than a level's, since the category is orthogonal to loudness
+      background-color = palette.natsuki;
+      text-color = palette.ink;
+      border-color = palette.plum;
+      progress-color = "over ${palette.plum}";
+      default-timeout = 12000;
 
       # The three levels are told apart by how loud the colour is, not by hue — the palette has
       # no green/amber/red. Grounds stay deliberately close; the border carries the level.
