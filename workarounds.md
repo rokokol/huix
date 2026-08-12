@@ -185,9 +185,9 @@ Not workarounds — gaps in this repo's own flake that nothing upstream forces. 
 
 **Where:** `flake.nix` — every `ddlc-*` input carries `inputs.ddlc-palette.follows = "ddlc-palette";` next to the `nixpkgs` one
 
-**What it costs:** nothing while the four lines are there, and a silent divergence the moment one is forgotten. Every `ddlc-*` repository declares the palette as an input of its own, so without a `follows` each pulls a copy: the lock held five, at four revisions (`ddlc-rofi-theme` on `6a2277a`, `ddlc-sddm-theme` on `68eedcf`, the two new ones on `7b7300d`, root on the current one). A colour corrected in the palette then reaches whichever theme was bumped and leaves the rest on the old hex — which is the one thing a single source of truth exists to prevent, and it is invisible except by reading the lock
+**What it costs:** nothing while the five lines are there, and a silent divergence the moment one is forgotten. Every `ddlc-*` repository declares the palette as an input of its own, so without a `follows` each pulls a copy: the lock held five, at four revisions (`ddlc-rofi-theme` on `6a2277a`, `ddlc-sddm-theme` on `68eedcf`, the two new ones on `7b7300d`, root on the current one). A colour corrected in the palette then reaches whichever theme was bumped and leaves the rest on the old hex — which is the one thing a single source of truth exists to prevent, and it is invisible except by reading the lock
 
-**What it takes:** the `follows` belongs in the child repositories' own `flake.nix`, where each already makes `nixpkgs` follow. Once they do, these four lines are dead weight and can go — the palette is then one node because nothing asks for a second
+**What it takes:** the `follows` belongs in the child repositories' own `flake.nix`, where each already makes `nixpkgs` follow. Once they do, these five lines are dead weight and can go — the palette is then one node because nothing asks for a second
 
 **Check:**
 

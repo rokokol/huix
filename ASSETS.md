@@ -10,12 +10,9 @@ The following are derived from or contain official DDLC assets:
 
 | Path | What |
 | --- | --- |
-| `assets/ddlc-stickers/dialog-box.png` | the in-game dialog box, drawn by hyprlock |
-| `assets/just-monika.png` | hyprlock background |
-| `assets/monika-talk.txt`, `assets/monika-reentry.txt` | in-game dialogue used by the lock screen |
 | `nixos/fonts/doki.otf`, `Doki_patched.ttf`, `DokiNerdFontMono-Regular.otf` | the in-game font, and a Nerd-patched variant of it |
 
-The greeter sprites and the greeter cursor left with the theme — they live in [rokokol/ddlc-sddm-theme](https://github.com/rokokol/ddlc-sddm-theme) now, under the same conditions
+The greeter sprites and the greeter cursor left with the theme — they live in [rokokol/ddlc-sddm-theme](https://github.com/rokokol/ddlc-sddm-theme) now, under the same conditions. The lock screen's background, its dialog box and every line it types went the same way, into [rokokol/ddlc-hyprlock](https://github.com/rokokol/ddlc-hyprlock)
 
 Use here follows [Team Salvato's IP guidelines](https://teamsalvato.com/ip-guidelines): this is non-commercial fan content, nothing containing official assets is sold, and no claim of affiliation is made. If you reuse any of it, the same conditions apply to you
 

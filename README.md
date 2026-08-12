@@ -40,6 +40,7 @@
 [![ddlc-rofi-theme](https://img.shields.io/badge/ddlc--rofi--theme-тема_rofi-EE2A7B?style=for-the-badge)](https://github.com/rokokol/ddlc-rofi-theme)
 [![ddlc.nvim](https://img.shields.io/badge/ddlc.nvim-тема_редактора-76C332?style=for-the-badge&logo=neovim&logoColor=white)](https://github.com/rokokol/ddlc.nvim)
 [![ddlc-terminal-themes](https://img.shields.io/badge/ddlc--terminal--themes-kitty_и_btop-72D0FA?style=for-the-badge)](https://github.com/rokokol/ddlc-terminal-themes)
+[![ddlc-hyprlock](https://img.shields.io/badge/ddlc--hyprlock-локскрин-58E1FF?style=for-the-badge)](https://github.com/rokokol/ddlc-hyprlock)
 
 ## Что важно знать
 
@@ -49,7 +50,7 @@
 - CUDA-пакеты берутся из выделенных attrs (`ollama-cuda`, `btop-cuda`, флейк `comfyui-nix`), а не из глобального оверлея. Кодогенерация CUDA ограничена архитектурой GPU (RTX 3060 = `sm_86`, capability `8.6`) через `cudaCapabilities` в общем `nixpkgsConfig` — менять при смене GPU. Это сужает арку, не включая глобальный `cudaSupport`, так что подхватывает только `ollama-cuda`
 - Home Manager подключён не отдельным потоком, а как NixOS-модуль с `useGlobalPkgs = true` — системный и пользовательский слой делят один пакетный набор и overlays
 - `commonArgs` (`rokokolName`, `huixDir`, `govnoDir`, `myWikiDir`, `system`, `inputs`) пробрасывается и в системные модули через `specialArgs`, и в HM через `extraSpecialArgs` — это единственный способ протащить константы через границу флейка
-- MIT покрывает только код. Спрайты DDLC, шрифт `Doki`, курсоры и цитаты Моники принадлежат Team Salvato и лежат тут как фан-контент — условия в [ASSETS.md](ASSETS.md). Проект не аффилирован с Team Salvato и ими не одобрен
+- MIT покрывает только код. Шрифт `Doki` принадлежит Team Salvato и лежит тут как фан-контент, курсор — работа sev; спрайты уехали в `ddlc-sddm-theme`, фон и цитаты Моники — в `ddlc-hyprlock`. Условия по каждому файлу — в [ASSETS.md](ASSETS.md). Проект не аффилирован с Team Salvato и ими не одобрен
 
 ## Хосты
 
