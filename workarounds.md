@@ -160,6 +160,16 @@ zink has a small-BAR mitigation (`zink_bo.c`: reclaim everything when that heap 
 
 **Diagnostic trap:** the package is wrapped with `makeCWrapper --set`, which overwrites the environment rather than defaulting it. Every `__GLX_VENDOR_LIBRARY_NAME=nvidia` / `LIBGL_ALWAYS_SOFTWARE=1` / `MESA_LOADER_DRIVER_OVERRIDE=...` tried from a shell is silently discarded, so no shell experiment says anything about the GL path. `GDK_BACKEND=x11` does take, but it only moves the windowing backend and leaves zink in place — "tried X11, no change" is therefore not evidence
 
+**Rejected alternatives**, all tested on driver 595.84 with the same build, wrapper env reconstructed minus the four zink vars (`glxinfo -B` under it reports `NVIDIA GeForce RTX 3060`, so the GL path is genuinely native and not a broken environment):
+
+| route | result |
+| --- | --- |
+| native NVIDIA GL, Wayland | viewport empty, app otherwise healthy — it still slices |
+| native GL + `GDK_BACKEND=x11` | viewport still empty |
+| native GL + `GDK_BACKEND=x11` + GLX-built GLEW | segfault during startup |
+
+The third is worth spelling out, since the reasoning behind it looks convincing and is wrong. Upstream never defines `GLEW_EGL` on Linux — `deps/GLEW/glew/CMakeLists.txt` guards it with `if(NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")` under the comment `# we do not support wayland for now` — while nixpkgs `LD_PRELOAD`s its own `glew`, built `-DGLEW_EGL=ON` and linking `libEGL.so.1`. So the app does get a GLEW flavour upstream never builds against. Feeding it the matching GLX build (`glew` with `-DGLEW_EGL=OFF`, which drops `libEGL` from its `ldd`) does not fix the viewport — it crashes instead. The flavour mismatch is real and is not the cause
+
 **Removal check:** the option only exists in nixpkgs for this bug, so its disappearance is the trigger
 
 ```sh
