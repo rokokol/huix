@@ -246,5 +246,18 @@
           nix-matlab.overlay
         ];
       };
+
+      # Straight from nixpkgs, not from a host: nothing in nixpkgsConfig or the overlays
+      # reaches this package, so picking a host would only make it look like one owns it
+      formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt-tree;
+
+      # nix flake check already evaluates both hosts. This adds the one thing evaluation
+      # cannot say: whether the Lua nixvim assembles out of every module is parseable —
+      # nixvim runs stylua over the generated init.lua, so a syntax error fails the build
+      checks.${system} = nixpkgs.lib.mapAttrs' (
+        name: cfg:
+        nixpkgs.lib.nameValuePair "nixvim-init-${name}"
+          cfg.config.home-manager.users.${rokokolName}.programs.nixvim.build.initFile
+      ) inputs.self.nixosConfigurations;
     };
 }

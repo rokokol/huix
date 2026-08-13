@@ -28,3 +28,33 @@ jobs:
         run: |
           nix eval --no-write-lock-file \
             ".#nixosConfigurations.${{ matrix.host }}.config.system.build.toplevel.drvPath"
+
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            accept-flake-config = true
+
+      # Evaluates both hosts again — this time through the flake's own outputs, so the
+      # formatter and the checks are validated too — and builds the generated init.lua,
+      # which nixvim runs stylua over: broken Lua in any module fails here and nowhere else
+      - run: nix flake check --no-write-lock-file
+
+      - run: nix fmt -- --ci
+
+      # The palette is one node only because every ddlc-* input follows it. A forgotten
+      # follows shows up as a suffixed second node and nothing else — the colours then
+      # diverge silently, which is the one thing a single source of truth exists to prevent
+      - name: exactly one ddlc-palette in the lock
+        run: |
+          python3 - <<'EOF'
+          import json, sys
+          nodes = [k for k in json.load(open("flake.lock"))["nodes"] if k.startswith("ddlc-palette")]
+          if nodes != ["ddlc-palette"]:
+              sys.exit(f"the lock holds {nodes} — an input is missing its ddlc-palette.follows")
+          EOF

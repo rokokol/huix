@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-A single NixOS flake that builds two hosts: `nixos-pc` (NVIDIA/CUDA workstation) and `nixos-laptop` (CPU-only). It is configuration — there is no application code, no test suite, no linter. "Building" the repo means evaluating the flake into a system closure; "running" it means switching to that closure on a NixOS host
+A single NixOS flake that builds two hosts: `nixos-pc` (NVIDIA/CUDA workstation) and `nixos-laptop` (CPU-only). It is configuration — there is no application code and no test suite; what stands in for one is `nix flake check`, which evaluates both hosts and builds the Lua nixvim assembles. "Building" the repo means evaluating the flake into a system closure; "running" it means switching to that closure on a NixOS host
 
 Every layer has a README in Russian describing what lives there — [`nixos/`](nixos/README.md), [`nixos/services/`](nixos/services/README.md), [`home-manager/`](home-manager/README.md), [`hyprland/`](home-manager/desktop/hyprland/README.md), [`waybar/`](home-manager/desktop/hyprland/services/waybar/README.md), [`programs/`](home-manager/programs/README.md), [`scripts/`](scripts/README.md). Read the one next to the file you are editing; this file holds only what none of them can say
 
@@ -18,15 +18,21 @@ sudo nixos-rebuild switch --flake .#nixos-laptop
 # Build without activating — works from any machine, useful for CI-style validation
 nix build .#nixosConfigurations.nixos-pc.config.system.build.toplevel
 
-# Evaluate without building (fastest sanity check, and what CI runs)
+# Evaluate without building (fastest sanity check, and what CI runs per host)
 nix eval .#nixosConfigurations.nixos-pc.config.system.build.toplevel.drvPath
+
+# Both hosts at once, plus the nixvim init.lua — ~30 s, and what the check job runs
+nix flake check
+nix fmt -- --ci             # nixfmt over every .nix; fails instead of rewriting
 
 # Inputs
 nix flake update            # all
 nix flake update <input>    # one
 ```
 
-There is no `checks` output, no `formatter` and no per-module test — `nix flake check` proves nothing here and `nix fmt` does not run. Validation is `nix build` of the host closure; both gaps are written up under "Deferred" in `workarounds.md`
+`nix flake check` evaluates both host configurations — that is where a bad option or a type error surfaces — and realises `checks.<system>.nixvim-init-<host>`, the generated `init.lua`. nixvim runs stylua over that file, so **broken Lua in any nixvim module fails there and nowhere else**: evaluation does not parse it, and the wrapper in the store never loads it (Home Manager writes the config to `~/.config/nvim`, so a bare `nvim` out of the package starts empty). A runtime fault — a `require` of a plugin that is not there, a `setup` that throws — is still only visible on the next real `nvim`
+
+There is no per-module test, and no check builds a host closure: `ollama-cuda` misses every cache and compiles from source, so a hosted runner cannot finish one
 
 ## Architecture you must internalize
 
@@ -58,7 +64,7 @@ Package layering follows the same split: system packages and feature toggles in 
 
 The global rules (straight quotes, one-line comments, no trailing period, no hard-wrapped Markdown) apply here too and are not repeated. This repo adds:
 
-- 2-space indentation in `.nix` files. Nothing enforces it — there is no `formatter`, so `nix fmt` cannot check the tree
+- 2-space indentation in `.nix` files, which is what `nix fmt` writes — the `formatter` output is `nixfmt-tree`, and CI runs it with `--ci` so an unformatted file fails the build. Run `nix fmt` before committing, and keep a reformat in its own commit
 - **All repo files are kebab-case**, including assets — no `snake_case`, `CamelCase` or spaces. When renaming, `git mv` and grep the whole tree for references (they live in `.nix`, `.sh`, `.conf`, README). Deliberate exceptions: conventional metadata docs (`README.md`, `CLAUDE.md`, `LICENSE`) and the vendored fonts under `nixos/fonts/`, which are canonical branding and referenced by glob
 - **All text is English** — prose comments and every user-facing string (notify-send, rofi prompts, `usage()`, waybar tooltips). The sole exception is `README.md` files, which stay in Russian
 - **No dates in comments.** Don't anchor a comment to a moment ("removed on 2026-07-22") — state the durable reason instead ("removed from nixpkgs because it needed GTK2"). Version pins live in `flake.lock`, not in prose

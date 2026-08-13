@@ -1,0 +1,9 @@
+# The pinned actions in .github/workflows go stale silently — nothing in CI notices a major
+# that has moved on, and this repository family sat split across checkout@v4 and @v7 for
+# weeks because of it
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

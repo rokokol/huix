@@ -187,63 +187,22 @@ Non-zero → upstream still ships it, keep the override. Zero → the argument i
 
 ---
 
-# Deferred
+# Invariants
 
-Not workarounds — gaps in this repo's own flake that nothing upstream forces. They sit here because the two extracted repos (`ddlc-sddm-theme`, `ddlc-palette`) already have both, so this list is what it takes to bring the parent up to the same footing. Same rule as above: each carries a mechanical check
+Not workarounds — properties of this repo's own flake that nothing enforces on its own, so each carries a mechanical check and a note on what breaks without it
 
-## `ddlc-palette.follows` is set here, not in the repositories that read it
+## Exactly one `ddlc-palette` node, held by `follows` here
 
 **Where:** `flake.nix` — every `ddlc-*` input carries `inputs.ddlc-palette.follows = "ddlc-palette";` next to the `nixpkgs` one
 
-**What it costs:** nothing while the five lines are there, and a silent divergence the moment one is forgotten. Every `ddlc-*` repository declares the palette as an input of its own, so without a `follows` each pulls a copy: the lock held five, at four revisions (`ddlc-rofi-theme` on `6a2277a`, `ddlc-sddm-theme` on `68eedcf`, the two new ones on `7b7300d`, root on the current one). A colour corrected in the palette then reaches whichever theme was bumped and leaves the rest on the old hex — which is the one thing a single source of truth exists to prevent, and it is invisible except by reading the lock
+**Why it cannot move into the children:** `follows` rewrites an input's own dependency tree, and only the flake that owns that tree may declare it. A child repository can make *its* `nixpkgs` follow *its* input, but it cannot make its `ddlc-palette` resolve to a node in whoever consumes it — that node does not exist from where the child is written. This is not a gap to be closed in the children; the five lines here are the mechanism
 
-**What it takes:** the `follows` belongs in the child repositories' own `flake.nix`, where each already makes `nixpkgs` follow. Once they do, these five lines are dead weight and can go — the palette is then one node because nothing asks for a second
+**What it costs to forget one:** the input pulls its own copy of the palette and the lock holds a suffixed second node. The lock did once hold five, at four revisions (`ddlc-rofi-theme` on `6a2277a`, `ddlc-sddm-theme` on `68eedcf`, two on `7b7300d`, root on its own). A colour corrected in the palette then reaches whichever theme was bumped and leaves the rest on the old hex — the one thing a single source of truth exists to prevent, and invisible except by reading the lock
 
-**Check:**
+**Check** (also a CI step in `.github/workflows/eval.yml`):
 
 ```sh
 python3 -c "import json;print([k for k in json.load(open('flake.lock'))['nodes'] if k.startswith('ddlc-palette')])"
 ```
 
 Anything but `['ddlc-palette']` → a suffixed node is a second copy, and the `follows` for its parent is missing
-
-## No `formatter` output
-
-**Where:** `flake.nix` — the outputs attrset
-
-**What it costs:** `nix fmt` does not work in this repo at all; the two hundred-odd `.nix` files are formatted by eye. Both extracted repos set `formatter = pkgs.nixfmt-tree` and run `nix fmt -- --ci` in CI, which does not rewrite anything and fails if a file is off-style
-
-**What it takes:** add `formatter.${system} = pkgs.nixfmt-tree;`, then one treewide `nix fmt` commit on its own so the reformat never mixes with a real change
-
-**Check:**
-
-```sh
-nix eval --raw .#formatter.x86_64-linux.name
-```
-
-Errors out → still missing
-
-## `checks` is empty, so `nix flake check` proves nothing
-
-**Where:** `flake.nix` — there is no `checks` output; `CLAUDE.md` already records this as "no `nix flake check` target wired up"
-
-**What it costs:** validating the repo means remembering two separate `nix build .#nixosConfigurations.<host>...` invocations. `nix flake check` currently only confirms the outputs evaluate — it builds nothing
-
-**What it takes:**
-
-```nix
-checks.${system} = {
-  nixos-pc = self.nixosConfigurations.nixos-pc.config.system.build.toplevel;
-  nixos-laptop = self.nixosConfigurations.nixos-laptop.config.system.build.toplevel;
-};
-```
-
-Both hosts then build from one command, and `nix flake check` additionally validates every other output — module shape, `meta` on packages, app form
-
-**Check:**
-
-```sh
-nix eval .#checks.x86_64-linux --apply builtins.attrNames
-```
-
-Errors out, or returns `[ ]` → still missing
