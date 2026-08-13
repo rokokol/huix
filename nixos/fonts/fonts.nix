@@ -1,10 +1,18 @@
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 
 {
   fonts.packages = with pkgs; [
     (stdenv.mkDerivation {
       name = "my-fonts";
-      src = ../fonts;
+      # Only the font files: this module and the README live in the same directory, so a
+      # bare ../fonts rebuilds the package (and everything downstream) on any edit to them
+      src = lib.fileset.toSource {
+        root = ../fonts;
+        fileset = lib.fileset.unions [
+          (lib.fileset.fileFilter (f: f.hasExt "ttf") ../fonts)
+          (lib.fileset.fileFilter (f: f.hasExt "otf") ../fonts)
+        ];
+      };
       installPhase = ''
         mkdir -p $out/share/fonts/truetype
         mkdir -p $out/share/fonts/opentype
@@ -22,4 +30,3 @@
     serif = [ "Spectral" ];
   };
 }
-
