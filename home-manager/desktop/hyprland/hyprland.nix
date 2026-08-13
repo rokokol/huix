@@ -88,10 +88,12 @@ in
           };
         };
 
-        exec-once = cfg.startupArgs ++ lib.optionals (cfg.wallpaperImage != null) [
-          "awww init"
-          "awww img ${cfg.wallpaperImage}"
-        ];
+        exec-once =
+          cfg.startupArgs
+          ++ lib.optionals (cfg.wallpaperImage != null) [
+            "awww init"
+            "awww img ${cfg.wallpaperImage}"
+          ];
       };
     };
   };

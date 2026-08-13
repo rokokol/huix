@@ -9,8 +9,7 @@ let
   cfg = config.rokokol.hyprland;
 in
 {
-  options.rokokol.hyprland.lidNoSleep =
-    lib.mkEnableOption "toggle \"lid blanks the screen instead of suspending\" (laptop only)";
+  options.rokokol.hyprland.lidNoSleep = lib.mkEnableOption "toggle \"lid blanks the screen instead of suspending\" (laptop only)";
 
   config = lib.mkIf (cfg.enable && cfg.lidNoSleep) {
     # hyprland.conf is shared by both hosts, so the laptop-only binds live here.

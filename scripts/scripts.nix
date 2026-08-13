@@ -18,12 +18,10 @@ let
     }:
     pkgs.writeShellApplication {
       inherit name runtimeInputs;
-      text =
-        lib.concatStringsSep "\n" (lib.mapAttrsToList (k: v: ''export ${k}="${v}"'') env)
-        + ''
+      text = lib.concatStringsSep "\n" (lib.mapAttrsToList (k: v: ''export ${k}="${v}"'') env) + ''
 
-          exec bash "${huixDir}/scripts/${name}.sh" "$@"
-        '';
+        exec bash "${huixDir}/scripts/${name}.sh" "$@"
+      '';
     };
 
   scripts = with pkgs; {

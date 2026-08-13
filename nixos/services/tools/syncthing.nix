@@ -28,14 +28,21 @@ in
     settings.folders."claude-shared" = {
       id = "claude-shared";
       path = "${homeDir}/.local/share/claude-shared";
-      devices = [ "laptop" "nixos-pc" ];
+      devices = [
+        "laptop"
+        "nixos-pc"
+      ];
       type = "sendreceive";
     };
 
     settings.folders."myWiki" = {
       id = "3heyc-wgheb";
       path = myWikiDir;
-      devices = [ "laptop" "nixos-pc" "phone" ];
+      devices = [
+        "laptop"
+        "nixos-pc"
+        "phone"
+      ];
       type = "sendreceive";
     };
   };
