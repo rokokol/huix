@@ -60,7 +60,7 @@ nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHW
 
 ## Вынесено в отдельные репо
 
-Куски, которые переросли конфиг и живут своими флейками — huix подключает их входами и держит по одному шву на каждый. Вся семья вместе с самим конфигом помечена топиком [huix](https://github.com/topics/huix), так что список ниже есть кому пересчитать и без README:
+Куски, которые переросли конфиг и живут своими флейками — huix подключает их входами и держит по одному шву на каждый. Вся семья вместе с самим конфигом помечена топиком [huix](https://github.com/topics/huix)
 
 [![screen-shader](https://img.shields.io/badge/screen--shader-эффекты-FF4088?style=for-the-badge&logo=opengl&logoColor=white)](https://github.com/rokokol/hyprland-screen-shader)
 [![claude-account](https://img.shields.io/badge/claude--account-профили_Claude-D97757?style=for-the-badge&logo=anthropic&logoColor=white)](https://github.com/rokokol/claude-account)
@@ -80,11 +80,9 @@ nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHW
 - все сервисы биндятся на `127.0.0.1`, наружу firewall не открывает ничего — [таблица портов](nixos/services/README.md#порты-и-биндинги)
 - MIT покрывает только код. Шрифт `Doki` принадлежит Team Salvato и лежит тут как фан-контент, курсор — работа sev; условия по каждому файлу — в [ASSETS.md](ASSETS.md). Проект не аффилирован с Team Salvato и ими не одобрен
 
-> [!WARNING]
-> Секреты идут через sops-nix, и age-ключа (`~/.config/sops/age/keys.txt`) в репо нет. На новом хосте его надо положить туда руками до первого ребилда, иначе активация упадёт
-
 ## TODO
 
+- [x] Использовать sops-nix
 - [ ] Трайнуть stylix
 - [ ] Настроить disko
 
