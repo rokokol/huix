@@ -158,6 +158,13 @@ MESA: error: ZINK: vkMapMemory failed (VK_ERROR_MEMORY_MAP_FAILED)
 
 zink has a small-BAR mitigation (`zink_bo.c`: reclaim everything when that heap is `<= 256 MiB` on NVIDIA) and it is not enough. There is no env knob to steer allocations off that heap — `ZINK_DEBUG` has no heap flag. The only fix is to make BAR1 big, which is what `NVreg_EnableResizableBar=1` does; zink then sets `screen->resizable_bar` on its own, since it calls a BAR resizable once visible VRAM exceeds 90% of total VRAM
 
+With the BIOS side on (Above 4G Decoding + Re-Size BAR, CSM off) the card reports a 16 GiB BAR1 — the aperture rounds up to a power of two over 12 GiB of VRAM — and the separate 246 MiB Vulkan heap is gone: the one memory type carrying both `DEVICE_LOCAL` and `HOST_VISIBLE` now points at the 12 GiB heap, so the 90% condition holds and complex models render. Both halves have to be checked, since `nvidia-smi` can show a grown BAR1 while Vulkan still exposes the small heap, and only the Vulkan view is what zink reads:
+
+```sh
+nvidia-smi -q | grep -A3 "BAR1 Memory Usage"
+nix shell nixpkgs#vulkan-tools -c vulkaninfo | grep -E 'memoryHeaps\[|memoryTypes\[|heapIndex|MEMORY_PROPERTY_'
+```
+
 **Diagnostic trap:** the package is wrapped with `makeCWrapper --set`, which overwrites the environment rather than defaulting it. Every `__GLX_VENDOR_LIBRARY_NAME=nvidia` / `LIBGL_ALWAYS_SOFTWARE=1` / `MESA_LOADER_DRIVER_OVERRIDE=...` tried from a shell is silently discarded, so no shell experiment says anything about the GL path. `GDK_BACKEND=x11` does take, but it only moves the windowing backend and leaves zink in place — "tried X11, no change" is therefore not evidence
 
 **Rejected alternatives**, all tested on driver 595.84 with the same build, wrapper env reconstructed minus the four zink vars (`glxinfo -B` under it reports `NVIDIA GeForce RTX 3060`, so the GL path is genuinely native and not a broken environment):
