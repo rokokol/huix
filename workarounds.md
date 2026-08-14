@@ -184,7 +184,7 @@ nix eval --raw .#nixosConfigurations.nixos-pc.pkgs.bambu-studio.meta.position \
   | cut -d: -f1 | xargs grep -c withNvidiaGLWorkaround
 ```
 
-Non-zero → upstream still ships it, keep the override. Zero → the argument is gone, drop the override. To re-test before that happens, build the package as nixpkgs has it and load any model — the viewport either draws it or does not:
+Non-zero → upstream still ships it, keep the override. Zero → the argument is gone, drop the override — but leave `NVreg_EnableResizableBar=1` alone. Resizable BAR is a PCIe feature enabled as intended and it serves everything on the GPU, not this package; it is described here only because it is what makes the zink route survivable. To re-test before the option disappears, build the package as nixpkgs has it and load any model — the viewport either draws it or does not:
 
 ```sh
 "$(nix build --no-link --print-out-paths .#nixosConfigurations.nixos-pc.pkgs.bambu-studio)"/bin/bambu-studio
