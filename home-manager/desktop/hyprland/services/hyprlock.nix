@@ -11,7 +11,7 @@
 }:
 
 {
-  imports = [ inputs.ddlc-hyprlock.homeManagerModules.default ];
+  imports = [ inputs.ddlc-hyprlock.homeModules.default ];
 
   ddlc.hyprlock = {
     enable = true;

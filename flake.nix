@@ -206,11 +206,11 @@
                 backupFileExtension = "bak";
                 sharedModules = [
                   inputs.zen-browser.homeModules.default
-                  inputs.hyprland-screen-shader.homeManagerModules.default
-                  inputs.rofi-wooordhunt.homeManagerModules.default
-                  inputs.ddlc-rofi-theme.homeManagerModules.default
-                  inputs.claude-account.homeManagerModules.default
-                  inputs.virtual-media-devices.homeManagerModules.default
+                  inputs.hyprland-screen-shader.homeModules.default
+                  inputs.rofi-wooordhunt.homeModules.default
+                  inputs.ddlc-rofi-theme.homeModules.default
+                  inputs.claude-account.homeModules.default
+                  inputs.virtual-media-devices.homeModules.default
                 ];
 
                 extraSpecialArgs = commonArgs;

@@ -10,7 +10,7 @@ let
   cfg = config.rokokol.btop;
 in
 {
-  imports = [ inputs.ddlc-terminal-themes.homeManagerModules.default ];
+  imports = [ inputs.ddlc-terminal-themes.homeModules.default ];
 
   options.rokokol.btop.withCuda = lib.mkEnableOption "btop GPU panel via btop-cuda";
 

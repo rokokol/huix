@@ -1,7 +1,7 @@
 { inputs, ... }:
 
 {
-  imports = [ inputs.ddlc-terminal-themes.homeManagerModules.default ];
+  imports = [ inputs.ddlc-terminal-themes.homeModules.default ];
 
   # The colours land after everything below, and kitty takes the last word for a key
   ddlc.kitty.enable = true;
