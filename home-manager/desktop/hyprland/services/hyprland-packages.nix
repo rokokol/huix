@@ -1,12 +1,10 @@
 { pkgs, huixDir, ... }:
 
 {
+  imports = [ ./hypridle.nix ];
+
   services.swayosd.enable = true;
   services.playerctld.enable = true;
-
-  imports = [
-    ./hypridle.nix
-  ];
 
   home.packages = with pkgs; [
     kitty

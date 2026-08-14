@@ -1,8 +1,4 @@
-{
-  huixDir,
-  rokokolName,
-  ...
-}:
+{ huixDir, rokokolName, ... }:
 
 {
   imports = [

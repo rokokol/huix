@@ -1,8 +1,4 @@
-{
-  pkgs,
-  palette,
-  ...
-}:
+{ pkgs, palette, ... }:
 
 {
   services.mako = {

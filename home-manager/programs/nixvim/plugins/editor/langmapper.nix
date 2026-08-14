@@ -68,17 +68,14 @@ let
     "Ю>"
   ];
 in
-
 {
   programs.nixvim = {
     opts = {
-      langmap = langmap;
+      inherit langmap;
       langremap = true;
     };
 
-    extraPlugins = [
-      pkgs.vimPlugins.langmapper-nvim
-    ];
+    extraPlugins = [ pkgs.vimPlugins.langmapper-nvim ];
 
     extraConfigLua = ''
       local ok, lm = pcall(require, 'langmapper')

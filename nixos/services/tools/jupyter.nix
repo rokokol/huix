@@ -75,8 +75,6 @@ in
       '';
 
       kernels = {
-        # clojure = pkgs.clojupyter.definition;
-
         octave = pkgs.octave-kernel.definition;
 
         pythondatascience = {

@@ -19,8 +19,6 @@
   };
 
   users.users.${rokokolName} = {
-    extraGroups = [
-      "docker"
-    ];
+    extraGroups = [ "docker" ];
   };
 }

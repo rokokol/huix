@@ -1,8 +1,4 @@
-{
-  lib,
-  pkgs,
-  ...
-}:
+{ lib, pkgs, ... }:
 
 let
   port = 11434;
@@ -12,7 +8,7 @@ in
     enable = true;
     package = lib.mkDefault pkgs.stable.ollama;
     host = "127.0.0.1";
-    port = port;
+    inherit port;
 
     environmentVariables.OLLAMA_ORIGINS = "null*"; # Jan sends Origin: null, ollama's CORS rejects it
   };

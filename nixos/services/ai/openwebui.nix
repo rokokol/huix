@@ -15,7 +15,7 @@ in
     services.open-webui = {
       enable = true;
       host = "127.0.0.1";
-      port = port;
+      inherit port;
 
       package = pkgs.open-webui;
 

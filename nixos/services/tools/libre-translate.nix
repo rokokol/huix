@@ -4,8 +4,8 @@ let
   port = 5000;
   langs = "ru,en";
 
-  # python-окружение с модулем libretranslate — обновляет модели напрямую,
-  # без запуска сервера (у pkgs.libretranslate нет dependencyEnv)
+  # Python env with the libretranslate module — updates the models directly, without starting
+  # the server (pkgs.libretranslate ships no dependencyEnv)
   pythonEnv = pkgs.python3.withPackages (ps: [ ps.libretranslate ]);
 
   updateScript = pkgs.writeShellScript "libretranslate-update-models" ''
@@ -18,10 +18,10 @@ in
 {
   services.libretranslate = {
     enable = true;
-    port = port;
-    # не обновлять модели при старте: с --update-models сервис висит до сетевого
-    # таймаута (~16 мин оффлайн); модели уже лежат в /var/lib/libretranslate,
-    # обновлением занимается юнит libretranslate-update-models ниже
+    inherit port;
+    # Don't update the models at startup: with --update-models the service hangs until the
+    # network timeout (~16 min offline). They already sit in /var/lib/libretranslate, and the
+    # libretranslate-update-models unit below refreshes them
     updateModels = false;
 
     extraArgs = {
@@ -29,9 +29,9 @@ in
     };
   };
 
-  # обновление моделей отдельным oneshot-юнитом: по таймеру раз в неделю,
-  # вручную — `sudo systemctl start libretranslate-update-models`;
-  # без сети ExecCondition тихо пропускает запуск (skipped, не failed)
+  # Model refresh as its own oneshot unit: weekly by timer, by hand via
+  # `sudo systemctl start libretranslate-update-models`. Offline the ExecCondition skips the
+  # run quietly (skipped, not failed)
   systemd.services.libretranslate-update-models = {
     description = "Update LibreTranslate language models";
     environment.HOME = "/var/lib/libretranslate";
@@ -39,10 +39,10 @@ in
       Type = "oneshot";
       User = "libretranslate";
       Group = "libretranslate";
-      # быстрый чек: индекс моделей argos недоступен — значит, мы оффлайн
+      # Cheap probe: the argos model index is unreachable, so we are offline
       ExecCondition = "${pkgs.curl}/bin/curl -sfm 10 -o /dev/null https://raw.githubusercontent.com/argosopentech/argospm-index/main/index.json";
       ExecStart = updateScript;
-      # перезапустить сервер, чтобы он подхватил обновлённые модели
+      # Restart the server so it picks up the refreshed models
       ExecStartPost = "+${pkgs.systemd}/bin/systemctl try-restart libretranslate.service";
       TimeoutStartSec = "1h";
     };
@@ -52,8 +52,8 @@ in
     wantedBy = [ "timers.target" ];
     timerConfig = {
       OnCalendar = "weekly";
-      # догнать пропущенный по выключенному ноутбуку запуск; учтите: если в момент
-      # срабатывания сети нет, попытка пропускается до следующей недели
+      # Catch up a run missed while the laptop was off; with no network at the moment it fires,
+      # the attempt is skipped until the next week
       Persistent = true;
       RandomizedDelaySec = "1h";
     };

@@ -1,7 +1,7 @@
 { pkgs, ... }:
 
-# nix-ld makes non-Nix prebuilt binaries find their shared libs via NIX_LD instead of dying with "No such file or directory"
-
+# nix-ld makes non-Nix prebuilt binaries find their shared libs via NIX_LD instead of dying
+# with "No such file or directory"
 {
   programs.nix-ld.enable = true;
 

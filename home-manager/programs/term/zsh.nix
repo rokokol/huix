@@ -1,8 +1,8 @@
 {
-  pkgs,
-  huixDir,
   config,
   lib,
+  pkgs,
+  huixDir,
   ...
 }:
 

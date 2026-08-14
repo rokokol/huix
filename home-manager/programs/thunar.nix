@@ -1,8 +1,4 @@
-{
-  pkgs,
-  huixDir,
-  ...
-}:
+{ pkgs, huixDir, ... }:
 
 {
   home.packages = with pkgs; [ thunar ];

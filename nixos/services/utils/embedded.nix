@@ -1,8 +1,8 @@
 { pkgs, rokokolName, ... }:
 
 # Embedded toolchain for Arduino/AVR, ESP32, STM32, RP2040
-# platformio-core.udev ships udev rules for common programmers/bootloaders; dialout grants /dev/ttyUSB* /dev/ttyACM* access
-
+# platformio-core.udev ships udev rules for common programmers/bootloaders; dialout grants
+# /dev/ttyUSB* /dev/ttyACM* access
 {
   services.udev.packages = with pkgs; [
     platformio-core.udev
