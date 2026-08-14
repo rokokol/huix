@@ -1,0 +1,83 @@
+name: update-lock
+
+# nixpkgs in flake.lock ages on its own and nothing else here moves it: dependabot watches only
+# the uses: pins. This bumps it weekly, runs the very same checks a push runs — eval.yml itself,
+# not a copy of its commands — and lands the bump only if they pass. The point is the laptop:
+# it is booted rarely, and a lock nobody has moved in a month is what makes that first rebuild
+# long. What this cannot do is build the closure — nixos-laptop's toplevel is 40.8 GiB against
+# a runner's 14, so "green" here means both hosts evaluate, not that they build
+on:
+  schedule:
+    - cron: "0 5 * * 1"
+  workflow_dispatch:
+
+# Two runs would push the same branch from different bases
+concurrency: update-lock
+
+permissions:
+  contents: read
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      branch: ${{ steps.push.outputs.branch }}
+      moved: ${{ steps.push.outputs.moved }}
+    steps:
+      # Full history: pushing from a shallow clone is refused
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: cachix/install-nix-action@v31
+
+      - id: push
+        run: |
+          nix flake update nixpkgs
+          if git diff --quiet -- flake.lock; then
+            echo "nixpkgs is already current"
+            echo "moved=0" >>"$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          branch=flake-lock/$(date -u +%Y-%m-%d)
+          git switch -c "$branch"
+          git commit -qam "take nixpkgs' current revision"
+          git push -f origin "$branch"
+          echo "branch=$branch" >>"$GITHUB_OUTPUT"
+          echo "moved=1" >>"$GITHUB_OUTPUT"
+
+  # The whole point of the temp branch: a reusable workflow checks out a ref, so the bump has
+  # to exist somewhere before the checks can see it
+  verify:
+    needs: bump
+    if: needs.bump.outputs.moved == '1'
+    uses: ./.github/workflows/eval.yml
+    with:
+      ref: ${{ needs.bump.outputs.branch }}
+
+  # Red leaves the branch alone, with the bump on it, so the failure can be looked at
+  land:
+    needs: [bump, verify]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.bump.outputs.branch }}
+          fetch-depth: 0
+      - name: rebase the verified bump onto master
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch -q origin master
+          # sync.sh pushes after every nixos-rebuild, so master has usually moved since the
+          # bump was taken. The commit touches flake.lock alone: a conflict means the lock was
+          # bumped by hand too, and stopping is the right answer. What lands is then the
+          # rebased tree rather than the byte-identical one the checks saw
+          git rebase origin/master
+          git push origin HEAD:master
+          git push origin --delete "${{ needs.bump.outputs.branch }}"

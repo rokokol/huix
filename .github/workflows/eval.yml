@@ -5,6 +5,14 @@ on:
     branches: [master]
   pull_request:
   workflow_dispatch:
+  # Called by update-lock.yml against its temp branch, so the lock bump is checked by this
+  # file rather than by a copy of its commands
+  workflow_call:
+    inputs:
+      ref:
+        type: string
+        required: false
+        default: ""
 
 jobs:
   eval:
@@ -15,6 +23,8 @@ jobs:
         host: [nixos-pc, nixos-laptop]
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
 
       - uses: cachix/install-nix-action@v31
         with:
@@ -33,6 +43,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
 
       - uses: cachix/install-nix-action@v31
         with:
