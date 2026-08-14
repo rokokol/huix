@@ -62,9 +62,12 @@ Package layering follows the same split: system packages and feature toggles in 
 
 ## Style
 
-The global rules (straight quotes, one-line comments, no trailing period, no hard-wrapped Markdown) apply here too and are not repeated. This repo adds:
+The global rules (straight quotes, one-line comments, no trailing period, no hard-wrapped Markdown) apply here too and are not repeated. `nix fmt` (`nixfmt-tree`) owns layout — indentation, line breaks, list wrapping — and CI runs it with `--ci`, so nothing about layout is written down here. What follows is what the formatter cannot check:
 
-- 2-space indentation in `.nix` files, which is what `nix fmt` writes — the `formatter` output is `nixfmt-tree`, and CI runs it with `--ci` so an unformatted file fails the build. Run `nix fmt` before committing, and keep a reformat in its own commit
+- **Module arguments in a fixed order**: the standard ones first (`config`, `lib`, `pkgs`, `osConfig`), then the `commonArgs` extras alphabetically, then `...`. Up to two named arguments go on one line (`{ config, lib, ... }:`), three or more one per line — nixfmt preserves either form, so it is on you
+- **A file-level comment sits after the argument header**, immediately before the body `{`, with no blank line between. The two files that are not modules — `waybar/style.nix` (a string function) and `theme/gruvbox-gtk-theme.nix` (a derivation) — keep theirs on line 1, and the generated `hardware-configuration.nix` pair is not touched at all
+- **Prose comments wrap at 100 columns**, `imports` comes first in the body, single-element lists stay inline unless nixfmt wraps them, and `cfg = config.rokokol.<name>` is bound only when the config is read more than once — a `let` for a single reference is noise
+- **`inherit x`, never `x = x`**; **`lib.mkForce`, never `pkgs.lib.mkForce`** when `lib` is already an argument. `with lib;` is not used anywhere — call `lib.*` by name
 - **All repo files are kebab-case**, including assets — no `snake_case`, `CamelCase` or spaces. When renaming, `git mv` and grep the whole tree for references (they live in `.nix`, `.sh`, `.conf`, README). Deliberate exceptions: conventional metadata docs (`README.md`, `CLAUDE.md`, `LICENSE`) and the vendored fonts under `nixos/fonts/`, which are canonical branding and referenced by glob
 - **All text is English** — prose comments and every user-facing string (notify-send, rofi prompts, `usage()`, waybar tooltips). The sole exception is `README.md` files, which stay in Russian
 - **No dates in comments.** Don't anchor a comment to a moment ("removed on 2026-07-22") — state the durable reason instead ("removed from nixpkgs because it needed GTK2"). Version pins live in `flake.lock`, not in prose
@@ -76,6 +79,7 @@ The global rules (straight quotes, one-line comments, no trailing period, no har
 
 - **Commit your work yourself after each finished change** — a descriptive `git add <files> && git commit` per logical change. Do **not** leave changes for the sync service: it produces meaningless "sync …" messages and squashes unrelated edits together
 - **Prefix the subject with the current host**: `[nixos-pc] enable CUDA cache`, `[nixos-laptop] add lid mode toggle`
+- **Run `nix fmt` before committing, and keep a reformat in its own commit** — a formatting churn mixed into a behaviour change hides the change
 - **The sync service pushes tracked changes after every `nixos-rebuild`** (`home-manager/desktop/sync.nix` → `scripts/sync.sh`): `git pull --rebase --autostash` → `git add -u` → `git commit` → `git push`. Note `add -u` — a new file left without `git add` is silently never pushed. Pull before editing on the other host, and expect a rebuild mid-session to swallow anything you left uncommitted
 
 ## Editing gotchas
