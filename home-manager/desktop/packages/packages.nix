@@ -2,8 +2,8 @@
   config,
   lib,
   pkgs,
-  inputs,
   huixDir,
+  inputs,
   ...
 }:
 
@@ -130,7 +130,7 @@ in
           vial
 
           # --- Creative & audio ---
-          aseprite
+          stable.aseprite
           easyeffects
           stable.gimp
           stable.gimpPlugins.gmic

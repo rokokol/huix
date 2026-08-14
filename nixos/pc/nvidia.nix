@@ -19,7 +19,7 @@
     modesetting.enable = true;
     powerManagement.enable = true;
     powerManagement.finegrained = false;
-    open = false;
+    open = true;
     nvidiaSettings = true;
 
     package = config.boot.kernelPackages.nvidiaPackages.production;
@@ -38,9 +38,7 @@
   };
 
   nix.settings = {
-    substituters = [
-      "https://cuda-maintainers.cachix.org"
-    ];
+    substituters = [ "https://cuda-maintainers.cachix.org" ];
 
     trusted-public-keys = [
       "cuda-maintainers.cachix.org-1:0dq3bujKpuEPMCX6U4WylrUDZ9JyUG0VpVZa7CNfq5E="

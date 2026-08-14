@@ -2,8 +2,8 @@
   description = "I love Monika btw";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-26.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-26.05";
     # Deliberately without nixpkgs.follows: nixvim pins its own nixpkgs and warns if you override it
     nixvim.url = "github:nix-community/nixvim";
 
@@ -12,8 +12,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
     };
-
-    comfyui-nix.url = "https://flakehub.com/f/utensils/comfyui/0.18.2";
 
     ddlc-sddm-theme = {
       url = "github:rokokol/ddlc-sddm-theme";
@@ -97,7 +95,6 @@
       nixpkgs-stable,
       home-manager,
       nix-matlab,
-      comfyui-nix,
       ...
     }@inputs:
 
@@ -142,7 +139,8 @@
         };
       };
 
-      # SDL3 dlopens the appindicator lib for tauon's tray, but nixpkgs keeps it off the wrapper's LD_LIBRARY_PATH (see workarounds.md)
+      # SDL3 dlopens the appindicator lib for tauon's tray, but nixpkgs keeps it off the
+      # wrapper's LD_LIBRARY_PATH (see workarounds.md)
       overlay-tauon = final: prev: {
         tauon = prev.tauon.overrideAttrs (old: {
           makeWrapperArgs = old.makeWrapperArgs ++ [
@@ -151,7 +149,8 @@
         });
       };
 
-      # under structuredAttrs nixpkgs never expands the "$out" in jupyterlab's JUPYTERLAB_DIR (see workarounds.md)
+      # under structuredAttrs nixpkgs never expands the "$out" in jupyterlab's JUPYTERLAB_DIR
+      # (see workarounds.md)
       overlay-jupyterlab = final: prev: {
         pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
           (pyfinal: pyprev: {
@@ -166,7 +165,8 @@
         ];
       };
 
-      # hyprland 0.56.1 doesn't build against nixpkgs' glaze 8.0.0, so pin it back to 7.2.0 (see workarounds.md)
+      # hyprland 0.56.1 doesn't build against nixpkgs' glaze 8.0.0, so pin it back to 7.2.0
+      # (see workarounds.md)
       overlay-hyprland = final: prev: {
         hyprland = prev.hyprland.override {
           glaze = prev.glaze.overrideAttrs (_: {
@@ -231,7 +231,6 @@
           overlay-stable
           overlay-tauon
           nix-matlab.overlay
-          comfyui-nix.overlays.default
         ];
       };
 
