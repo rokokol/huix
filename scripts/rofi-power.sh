@@ -20,17 +20,19 @@ list_options() {
 EOF
 }
 
-# Blanks the monitor and waits for the cursor to move before turning it back on. Runs
-# detached so the menu closes immediately instead of blocking on the wait
-screen_off_until_move() {
-  hyprctl dispatch dpms off
-  local x0 y0 x y
-  IFS=', ' read -r x0 y0 <<<"$(hyprctl cursorpos)"
-  while IFS=', ' read -r x y <<<"$(hyprctl cursorpos)"; do
-    [[ "$x" == "$x0" && "$y" == "$y0" ]] || break
-    sleep 0.2
-  done
-  hyprctl dispatch dpms on
+# Both hyprland options that wake the monitor on any input
+wake_on_input() {
+  hyprctl --batch "keyword misc:key_press_enables_dpms $1; keyword misc:mouse_move_enables_dpms $1" >/dev/null
+}
+
+# hypridle has no "idle now" trigger (dbus gives only GetActive/Inhibit/UnInhibit), so the
+# blanking is here; hyprland does the waking, muted for the half second in which the key
+# release that dismissed rofi would land in the dark screen and undo it
+screen_off() {
+  trap 'wake_on_input true' EXIT
+  wake_on_input false
+  hyprctl dispatch dpms off >/dev/null
+  sleep 0.5
 }
 
 # Outside rofi it's a launcher: mode "power", the emoji label comes from the rofi config
@@ -42,7 +44,7 @@ fi
 # call: print the items (visible label + hidden action in info)
 case "${ROFI_INFO:-}" in
 lock)      loginctl lock-session ;;
-screenoff) screen_off_until_move & disown ;;
+screenoff) screen_off & disown ;;
 suspend)   systemctl suspend ;;
 reboot)    systemctl reboot ;;
 logout)    hyprctl dispatch exit ;;
