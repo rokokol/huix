@@ -23,8 +23,9 @@
     };
 
     # A personal age key, not sops.age.sshKeyPaths: neither host runs sshd, so there is no
-    # /etc/ssh/ssh_host_ed25519_key to derive a recipient from. Back this file up — losing it
-    # means re-encrypting secrets/secrets.yaml from scratch
-    age.keyFile = "/home/${rokokolName}/.config/sops/age/keys.txt";
+    # /etc/ssh/ssh_host_ed25519_key to derive a recipient from. Keep it off /home: sops-nix
+    # decrypts secrets during early activation, before a separate /home may be mounted.
+    # Back this file up — losing it means re-encrypting secrets/secrets.yaml from scratch
+    age.keyFile = "/var/lib/sops-nix/key.txt";
   };
 }

@@ -16,7 +16,10 @@
   };
 
   rokokol = {
-    jupyter.enable = true;
+    jupyter = {
+      enable = true;
+      withTorch = true;
+    };
 
     comfyui.enable = true;
     openwebui.enable = false;

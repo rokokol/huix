@@ -40,10 +40,10 @@ nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHW
 
 ## Хосты
 
-| Host | Точка входа | Чем выделяется |
-| --- | --- | --- |
-| `nixos-pc` | `nixos/configuration-pc.nix` + `home-manager/home-pc.nix` | NVIDIA/CUDA, `ollama-cuda`, ComfyUI, SearxNG, виртуализация, печать, планшет, виртуальная камера, Steam, тяжёлый creative-стек, NTFS-маунт `govno` |
-| `nixos-laptop` | `nixos/configuration-laptop.nix` + `home-manager/home-laptop.nix` | CPU-only `ollama-cpu` и Jupyter с CPU-торчем, Bluetooth, powertop, батарея и подсветка в баре, тумблер "крышка не усыпляет" |
+| Host           | Точка входа                                                       | Чем выделяется                                                                                                                                     |
+| -------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `nixos-pc`     | `nixos/configuration-pc.nix` + `home-manager/home-pc.nix`         | NVIDIA/CUDA, `ollama-cuda`, ComfyUI, SearxNG, виртуализация, печать, планшет, виртуальная камера, Steam, тяжёлый creative-стек, NTFS-маунт `govno` |
+| `nixos-laptop` | `nixos/configuration-laptop.nix` + `home-manager/home-laptop.nix` | CPU-only `ollama-cpu` и Jupyter с CPU-торчем, Bluetooth, powertop, батарея и подсветка в баре, тумблер "крышка не усыпляет"                        |
 
 ## Карта репозитория
 
@@ -75,16 +75,10 @@ nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHW
 
 ## Что стоит знать
 
-- `SUPER+A` переключает свет/тьму на лету — тема выбирается в рантайме и переживает ребилд, декларативно она нигде не прибита
+- `SUPER+A` переключает светлую/темную темы на лету — она выбирается в рантайме и переживает ребилд, декларативно она нигде не настроена
 - цвета тут не выбираются вообще: [ddlc-palette](https://github.com/rokokol/ddlc-palette) снимает их с ddlc.moe и отдаёт готовыми, темы приложений приезжают собранными из своих репо. Хекс в модуле — повод спросить, почему он не оттуда
 - все сервисы биндятся на `127.0.0.1`, наружу firewall не открывает ничего — [таблица портов](nixos/services/README.md#порты-и-биндинги)
 - MIT покрывает только код. Шрифт `Doki` принадлежит Team Salvato и лежит тут как фан-контент, курсор — работа sev; условия по каждому файлу — в [ASSETS.md](ASSETS.md). Проект не аффилирован с Team Salvato и ими не одобрен
-
-## TODO
-
-- [x] Использовать sops-nix
-- [ ] Трайнуть stylix
-- [ ] Настроить disko
 
 <br/>
 

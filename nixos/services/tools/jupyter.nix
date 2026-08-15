@@ -11,7 +11,7 @@ let
 
   cfg = config.rokokol.jupyter;
 
-  pythonDatascience = pkgs.stable.python3.withPackages (
+  pythonDatascience = pkgs.python3.withPackages (
     ps:
     with ps;
     [
@@ -27,7 +27,7 @@ let
       sympy
       tqdm
     ]
-    # torch stack is a heavy CUDA build on the PC; keep it CPU-only (laptop)
+    # on the PC these resolve to the CUDA wheels of overlay-torch-bin, on the laptop to CPU torch
     ++ lib.optionals cfg.withTorch [
       torch
       torchaudio
