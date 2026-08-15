@@ -149,54 +149,6 @@
         });
       };
 
-      # under structuredAttrs nixpkgs never expands the "$out" in jupyterlab's JUPYTERLAB_DIR
-      # (see workarounds.md)
-      overlay-jupyterlab = final: prev: {
-        pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
-          (pyfinal: pyprev: {
-            jupyterlab = pyprev.jupyterlab.overrideAttrs (_: {
-              makeWrapperArgs = [
-                "--set"
-                "JUPYTERLAB_DIR"
-                "${builtins.placeholder "out"}/share/jupyter/lab"
-              ];
-            });
-          })
-        ];
-      };
-
-      # No cache serves a CUDA torch: cache.nixos.org builds it CPU-only and cuda-maintainers
-      # has nothing for cudaPackages_13, which comfyui demands. torch-bin is the official
-      # PyTorch wheel with CUDA already inside — fetched, never compiled. torch-bin itself has
-      # to be overridden, not just aliased to torch: torchvision-bin and torchaudio-bin name it
-      # directly, and leaving it on the default cudaPackages drags in a second CUDA stack
-      overlay-torch-bin = final: prev: {
-        pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
-          (pyfinal: pyprev: {
-            # torch 2.12 wants cuda-bindings >= 13.0.3 and marks itself broken below that
-            cuda-bindings = pyprev.cuda-bindings.override { cudaPackages = final.cudaPackages_13; };
-            torch-bin =
-              (pyprev.torch-bin.override { cudaPackages = final.cudaPackages_13; }).overrideAttrs
-                (old: {
-                  # the wheel pins setuptools<82 against nixpkgs' 83 (see workarounds.md)
-                  pythonRelaxDeps = (old.pythonRelaxDeps or [ ]) ++ [ "setuptools" ];
-                });
-            # nixpkgs points torchaudio at a cu128 wheel while torch is cu130, and torchaudio
-            # refuses to import across that gap (see workarounds.md)
-            torchaudio-bin = pyprev.torchaudio-bin.overrideAttrs (_: {
-              src = final.fetchurl {
-                name = "torchaudio-2.11.0+cu130-cp314-cp314-linux_x86_64.whl";
-                url = "https://download.pytorch.org/whl/cu130/torchaudio-2.11.0%2Bcu130-cp314-cp314-manylinux_2_28_x86_64.whl";
-                hash = "sha256-N4tJZxtYERSi0l1Ako8SoVCHL+rfEWaaY/Vz6Bx4AZo=";
-              };
-            });
-            torch = pyfinal.torch-bin;
-            torchaudio = pyfinal.torchaudio-bin;
-            torchvision = pyfinal.torchvision-bin;
-          })
-        ];
-      };
-
       # hyprland 0.56.1 doesn't build against nixpkgs' glaze 8.0.0, so pin it back to 7.2.0
       # (see workarounds.md)
       overlay-hyprland = final: prev: {
@@ -259,11 +211,8 @@
         home = ./home-manager/home-pc.nix;
         overlays = [
           overlay-hyprland
-          overlay-jupyterlab
           overlay-stable
           overlay-tauon
-          # PC only: the laptop has no GPU to spend 3 GiB of CUDA wheels on
-          overlay-torch-bin
           nix-matlab.overlay
         ];
       };
@@ -273,7 +222,6 @@
         home = ./home-manager/home-laptop.nix;
         overlays = [
           overlay-hyprland
-          overlay-jupyterlab
           overlay-stable
           overlay-tauon
           nix-matlab.overlay

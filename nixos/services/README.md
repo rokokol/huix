@@ -21,18 +21,16 @@
 
 Всё биндится на `127.0.0.1`, наружу не торчит ничего — firewall под эти сервисы не открыт
 
-| Сервис                                                             | Порт  |
-| ------------------------------------------------------------------ | ----- |
-| Ollama                                                             | 11434 |
-| Open WebUI (ПК; модуль есть, но выключен — фронт переехал в `jan`) | 8088  |
-| ComfyUI (ПК)                                                       | 8188  |
-| SearxNG (ПК, за nginx)                                             | 9000  |
-| Jupyter Lab                                                        | 8888  |
-| LibreTranslate                                                     | 5000  |
-| Syncthing GUI                                                      | 8384  |
+| Сервис                 | Порт  |
+| ---------------------- | ----- |
+| Ollama                 | 11434 |
+| SearxNG (ПК, за nginx) | 9000  |
+| LibreTranslate         | 5000  |
+| Syncthing GUI          | 8384  |
 
-Порт объявлен в своём модуле один раз и уходит в `environment.sessionVariables` (`OLLAMA_PORT`, `COMFYUI_PORT`, `OPEN_WEBUI_PORT`, `SYNCTHING_PORT`, `LIBRE_TRANSLATE_PORT`) — скрипты и алиасы берут его оттуда, а не повторяют числом
+Порт объявлен в своём модуле один раз и уходит в `environment.sessionVariables` (`OLLAMA_PORT`, `SYNCTHING_PORT`, `LIBRE_TRANSLATE_PORT`) — скрипты и алиасы берут его оттуда, а не повторяют числом
 
 ## Тонкости
 
 - LibreTranslate стартует на локальных моделях (`updateModels = false`), иначе оффлайн сервис висит до сетевого таймаута. Модели обновляет отдельный юнит `libretranslate-update-models` (недельный таймер, без сети запуск пропускается); вручную — `sudo systemctl start libretranslate-update-models`
+- ComfyUI, Open WebUI и Jupyter здесь больше не живут — стоят докером. Пакеты в nixpkgs тянут за собой torch-колёса, чей CUDA-слой в дереве несогласован, и относящиеся к этому баги заведены наверх

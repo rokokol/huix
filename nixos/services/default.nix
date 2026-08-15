@@ -2,9 +2,7 @@
 
 {
   imports = [
-    ./ai/comfyui.nix
     ./ai/ollama.nix
-    ./ai/openwebui.nix
     ./desktop/amnezia-vpn.nix
     ./desktop/file-manager.nix
     ./desktop/sddm.nix
@@ -16,7 +14,6 @@
     ./system/cachix.nix
     ./system/nix-ld.nix
     ./system/sops.nix
-    ./tools/jupyter.nix
     ./tools/libre-translate.nix
     ./tools/searxng.nix
     ./tools/syncthing.nix
