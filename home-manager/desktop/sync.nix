@@ -19,7 +19,7 @@ in
   systemd.user.services = {
     "sync" = {
       Unit = {
-        Description = "Sync the huix repository with upstream (sync.sh)";
+        Description = "Fast-forward the huix repository to upstream (sync.sh --pull-only)";
         After = [
           "graphical-session.target"
           "ssh-agent.service"
@@ -29,7 +29,7 @@ in
       };
       Service = {
         Type = "oneshot";
-        ExecStart = "${pkgs.bash}/bin/bash ${scriptsDir}/sync.sh";
+        ExecStart = "${pkgs.bash}/bin/bash ${scriptsDir}/sync.sh --pull-only";
         TimeoutStartSec = "2min";
         Environment = [
           "PATH=${lib.makeBinPath syncDeps}"

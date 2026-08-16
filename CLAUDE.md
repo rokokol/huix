@@ -77,10 +77,11 @@ The global rules (straight quotes, one-line comments, no trailing period, no har
 
 ## Committing
 
-- **Commit your work yourself after each finished change** — a descriptive `git add <files> && git commit` per logical change. Do **not** leave changes for the sync service: it produces meaningless "sync …" messages and squashes unrelated edits together
+- **Commit your work yourself after each finished change** — a descriptive `git add <files> && git commit` per logical change. Nothing else writes the history: what you leave uncommitted stays in the working tree until someone commits it by hand
 - **Prefix the subject with the current host**: `[nixos-pc] enable CUDA cache`, `[nixos-laptop] add lid mode toggle`
 - **Run `nix fmt` before committing, and keep a reformat in its own commit** — a formatting churn mixed into a behaviour change hides the change
-- **The sync service pushes tracked changes after every `nixos-rebuild`** (`home-manager/desktop/sync.nix` → `scripts/sync.sh`): `git pull --rebase --autostash` → `git add -u` → `git commit` → `git push`. Note `add -u` — a new file left without `git add` is silently never pushed. Pull before editing on the other host, and expect a rebuild mid-session to swallow anything you left uncommitted
+- **The sync service only fast-forwards** (`home-manager/desktop/sync.nix` → `scripts/sync.sh --pull-only`): on the start of the graphical session and after every `nixos-rebuild` it runs `git fetch` + `git merge --ff-only`, and when that is not possible it says so and leaves the tree alone. It never commits, never pushes and never rebases a local commit
+- **`syssync [message]` is the one command that publishes** — `git pull --rebase --autostash` → `git add -A` → `git commit -m "[host] <message>"` (a timestamp when the message is omitted) → `git push`. It stages everything, so a new file goes up without a separate `git add`, and anything in the tree you did not want in history has to be gone before you call it
 
 ## Editing gotchas
 
