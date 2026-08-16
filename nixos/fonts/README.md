@@ -14,4 +14,4 @@
 | `sansSerif` | Spectral                     |
 | `serif`     | Spectral                     |
 
-`Doki` во всех вариантах — игровой шрифт DDLC, принадлежит Team Salvato, см. [ASSETS.md](../../ASSETS.md). `DokiNerdFontMono-Regular.otf` я собрал из него сам по приколу: нердфонтный моно `Doki` выглядит абсолютно проклято, поэтому лежит тут экспонатом
+`Doki` во всех вариантах — игровой шрифт DDLC, принадлежит Team Salvato, см. [ASSETS.md](../../ASSETS.md). `DokiNerdFontMono-Regular.otf` я собрал из него сам по приколу, он выглядит абсолютно проклято, поэтому лежит тут экспонатом

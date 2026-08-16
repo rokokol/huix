@@ -8,8 +8,8 @@ Doki Doki Literature Club and Doki Doki Literature Club Plus are the property of
 
 The following are derived from or contain official DDLC assets:
 
-| Path | What |
-| --- | --- |
+| Path                                                                       | What                                               |
+| -------------------------------------------------------------------------- | -------------------------------------------------- |
 | `nixos/fonts/doki.otf`, `Doki_patched.ttf`, `DokiNerdFontMono-Regular.otf` | the in-game font, and a Nerd-patched variant of it |
 
 The greeter sprites and the greeter cursor left with the theme — they live in [rokokol/ddlc-sddm-theme](https://github.com/rokokol/ddlc-sddm-theme) now, under the same conditions. The lock screen's background, its dialog box and every line it types went the same way, into [rokokol/ddlc-hyprlock](https://github.com/rokokol/ddlc-hyprlock)

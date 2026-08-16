@@ -7,7 +7,7 @@
 
 ## Особенности
 
-- цвета приходят из [ddlc.nvim](https://github.com/rokokol/ddlc.nvim): модуль подключается в `settings.nix`, там же `ddlc.nixvim.settings` — вариант и прозрачность (её же держит `rokokol.nixvim.transparent`)
+- цвета приходят из [ddlc.nvim](https://github.com/rokokol/ddlc.nvim): модуль подключается в `settings.nix`, там же `ddlc.nixvim.settings` для настроек прозрачности (её же держит `rokokol.nixvim.transparent`)
 - скрытые файлы в поиске переключаются через `<C-h>`
 - прокрутка превью в Telescope повешена на `<M-h/j/k/l>`
 - media preview определяется по MIME через `file`, а не по расширению
