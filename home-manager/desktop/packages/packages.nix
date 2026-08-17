@@ -48,7 +48,6 @@ in
         lazygit
         libreoffice-fresh
         matlab
-        opencode
         pup
         python3Packages.huggingface-hub
         ripgrep
