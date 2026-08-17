@@ -1,9 +1,11 @@
 { pkgs, ... }:
 
-# Profile switching lives in rokokol/claude-account, which pins CLAUDE_CONFIG_DIR and runs
-# "claude-account ensure" on every activation — neither belongs here as well
+# Profile switching and shared OpenCode config live in rokokol/claude-account
 {
   home.packages = [ pkgs.claude-code ];
 
-  programs.claude-account.enable = true;
+  programs.claude-account = {
+    enable = true;
+    opencode.enable = true;
+  };
 }
