@@ -19,21 +19,16 @@
       ffmpegthumbnailer # video thumbnails for Telescope preview
       bat
 
-      # LSPs and Formatters
-      nixd
+      # Formatters and linters
       nixfmt
       deadnix
       statix
       ruff
       black
-      pyright
-      clang-tools
       stylua
       shfmt
       shellcheck
       nodejs
-      lua-language-server
-      bash-language-server
     ];
   };
 }
