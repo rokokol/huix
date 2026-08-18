@@ -19,14 +19,9 @@
       ffmpegthumbnailer # video thumbnails for Telescope preview
       bat
 
-      # Formatters and linters
-      nixfmt
+      # Linters
       deadnix
       statix
-      ruff
-      black
-      stylua
-      shfmt
       shellcheck
       nodejs
     ];

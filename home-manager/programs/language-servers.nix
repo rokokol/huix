@@ -17,9 +17,17 @@ let
     vscode-langservers-extracted
     yaml-language-server
   ];
+  formatters = with pkgs; [
+    black
+    nixfmt
+    ruff
+    rustc
+    shfmt
+    stylua
+  ];
 in
 {
-  home.packages = languageServers;
+  home.packages = languageServers ++ formatters;
 
-  programs.nixvim.extraPackages = languageServers;
+  programs.nixvim.extraPackages = languageServers ++ formatters;
 }
