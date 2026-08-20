@@ -29,6 +29,7 @@ in
         chromium
         evince
         freecad
+        geary
         gnome-disk-utility
         gnome-text-editor
         obs-studio

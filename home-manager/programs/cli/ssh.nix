@@ -10,10 +10,4 @@
       };
     };
   };
-
-  home = {
-    sessionVariables = {
-      SSH_ASKPASS_REQUIRE = "prefer";
-    };
-  };
 }

@@ -5,8 +5,9 @@
     ./ai/ollama.nix
     ./desktop/amnezia-vpn.nix
     ./desktop/file-manager.nix
+    ./desktop/gnome-keyring.nix
     ./desktop/sddm.nix
-    ./desktop/ssh-askpass.nix
+    ./desktop/ssh-agent.nix
     ./desktop/throne.nix
     ./devices/printer.nix
     ./devices/tablet.nix
