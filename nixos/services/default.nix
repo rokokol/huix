@@ -15,6 +15,7 @@
     ./system/cachix.nix
     ./system/nix-ld.nix
     ./system/sops.nix
+    ./system/tailscale.nix
     ./tools/libre-translate.nix
     ./tools/searxng.nix
     ./tools/syncthing.nix
