@@ -7,11 +7,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1786974804,
-        "narHash": "sha256-L/f3HzSQYinMu5BSW6kQOBZl4uc7dPu0zV6fAlOAwzE=",
+        "lastModified": 1787144086,
+        "narHash": "sha256-VS7fF0766dIXl5PHRSrGBKaSFJD5fCK5indEE2bcb9c=",
         "owner": "rokokol",
         "repo": "claude-account",
-        "rev": "0d39e40bab84684a9e811486869b428514828871",
+        "rev": "fcd2da6288f372f447af67f8f0d3e49a364c1ae8",
         "type": "github"
       },
       "original": {
@@ -411,9 +411,45 @@
         "nixpkgs-stable": "nixpkgs-stable",
         "nixvim": "nixvim",
         "rofi-wooordhunt": "rofi-wooordhunt",
+        "sing-geoip": "sing-geoip",
+        "sing-geosite": "sing-geosite",
         "sops-nix": "sops-nix",
         "virtual-media-devices": "virtual-media-devices",
         "zen-browser": "zen-browser"
+      }
+    },
+    "sing-geoip": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1786525964,
+        "narHash": "sha256-Z+Ez9DJ1GQCNzsTg7c12b0t2lNAadta94gaq1FTnG50=",
+        "owner": "SagerNet",
+        "repo": "sing-geoip",
+        "rev": "b9c5e675b4d5359d4b47f4434fa7ae77e9991306",
+        "type": "github"
+      },
+      "original": {
+        "owner": "SagerNet",
+        "ref": "rule-set",
+        "repo": "sing-geoip",
+        "type": "github"
+      }
+    },
+    "sing-geosite": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1787189106,
+        "narHash": "sha256-Ig9XFqtYYIX/D9pJhB2o/US/AaqBi9iMkdAykks2dfE=",
+        "owner": "SagerNet",
+        "repo": "sing-geosite",
+        "rev": "a70ce9f1f078f129cd40500f0bc0aee6eb6d59cd",
+        "type": "github"
+      },
+      "original": {
+        "owner": "SagerNet",
+        "ref": "rule-set",
+        "repo": "sing-geosite",
+        "type": "github"
       }
     },
     "sops-nix": {

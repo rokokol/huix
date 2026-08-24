@@ -3,8 +3,8 @@
 {
   environment.systemPackages = [ pkgs.cachix ];
 
-  # Throne's IPv6 route to Yandex's AS resets the TLS handshake (other IPv6 hosts work fine);
-  # pin IPv4 to skip it
+  # The tunnel's IPv6 route to Yandex's AS resets the TLS handshake (other IPv6 hosts work
+  # fine); pin IPv4 to skip it
   networking.hosts = {
     "213.180.204.183" = [ "mirror.yandex.ru" ];
   };

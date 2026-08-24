@@ -87,6 +87,18 @@
       url = "github:FreesmTeam/FreesmLauncher";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # sing-box routing rule-sets. Both `rule-set` branches are rebuilt upstream every few days
+    # and carry no tags, so the pin belongs in the lock file rather than in a hash beside the URL
+    sing-geoip = {
+      url = "github:SagerNet/sing-geoip/rule-set";
+      flake = false;
+    };
+
+    sing-geosite = {
+      url = "github:SagerNet/sing-geosite/rule-set";
+      flake = false;
+    };
   };
 
   outputs =

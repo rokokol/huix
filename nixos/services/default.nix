@@ -8,12 +8,12 @@
     ./desktop/gnome-keyring.nix
     ./desktop/sddm.nix
     ./desktop/ssh-agent.nix
-    ./desktop/throne.nix
     ./devices/printer.nix
     ./devices/tablet.nix
     ./system/appimage.nix
     ./system/cachix.nix
     ./system/nix-ld.nix
+    ./system/sing-box.nix
     ./system/sops.nix
     ./system/tailscale.nix
     ./tools/libre-translate.nix
