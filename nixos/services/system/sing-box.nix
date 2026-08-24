@@ -191,6 +191,22 @@ in
     };
   };
 
+  # /etc/systemd/system is a store symlink here, so `systemctl enable sing-box@<name>` cannot
+  # persist a choice — the last one goes to /var/lib/skvpn/active and comes back through this
+  systemd.services.skvpn-restore = {
+    description = "Bring the last active sing-box profile back up";
+
+    wantedBy = [ "multi-user.target" ];
+    after = [ "network-online.target" ];
+    wants = [ "network-online.target" ];
+
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = "${skvpn}/bin/skvpn restore";
+    };
+  };
+
   # Also runs on every `skvpn up`, so a rotated node is picked up without being asked for
   systemd.services.skvpn-sync = {
     description = "Refresh sing-box profiles from the stored subscription";

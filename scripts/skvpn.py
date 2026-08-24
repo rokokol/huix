@@ -23,6 +23,7 @@ PROFILES = CONF / "profiles"
 SUB_URL = CONF / "subscription.url"
 MANIFEST = CONF / "subscription.profiles"
 STAMP = ROOT / "var/lib/skvpn/last-sync"
+ACTIVE = ROOT / "var/lib/skvpn/active"
 UNIT = "sing-box@{}.service"
 MAX_AGE = 24 * 3600
 
@@ -51,6 +52,14 @@ def profile_path(name):
 
 def profile_names():
     return sorted(p.stem for p in PROFILES.glob("*.json"))
+
+
+def systemctl(*args):
+    probe = subprocess.run(
+        ["systemctl", *args], capture_output=True, text=True, check=False
+    )
+    if probe.returncode != 0:
+        die(probe.stderr.strip().splitlines()[0] if probe.stderr.strip() else "systemctl failed")
 
 
 def running():
@@ -288,7 +297,10 @@ def cmd_up(args):
         die(f"no such profile: {name}")
     sync(if_stale=True)
     cmd_down([])
-    subprocess.run(["systemctl", "start", UNIT.format(name)], check=True)
+    systemctl("start", UNIT.format(name))
+    # Remembered only once it is up, so a broken profile is not replayed on every boot
+    ACTIVE.parent.mkdir(parents=True, exist_ok=True)
+    ACTIVE.write_text(name + "\n")
     print(f"  →  {name}")
 
 
@@ -296,13 +308,28 @@ def cmd_down(_args):
     need_root()
     active = running()
     if active:
-        subprocess.run(["systemctl", "stop", UNIT.format(active)], check=True)
+        systemctl("stop", UNIT.format(active))
         print(f"  ×  {active}")
+    ACTIVE.unlink(missing_ok=True)
+
+
+def cmd_restore(_args):
+    """Boot-time half of `up` — no fetching and no choosing, just what was last up."""
+    need_root()
+    if not ACTIVE.exists():
+        return
+    name = ACTIVE.read_text().strip()
+    if not profile_path(name).exists():
+        die(f"remembered profile is gone: {name}")
+    systemctl("start", "--no-block", UNIT.format(name))
+    print(f"  →  {name}")
 
 
 def cmd_status(_args):
     active = running()
     print(f"  profile   {active or 'none'}")
+    if ACTIVE.exists():
+        print(f"  on boot   {ACTIVE.read_text().strip()}")
     if STAMP.exists():
         age = int((time.time() - STAMP.stat().st_mtime) / 60)
         print(f"  synced    {age} min ago")
@@ -315,6 +342,7 @@ COMMANDS = {
     "ls": cmd_ls,
     "up": cmd_up,
     "down": cmd_down,
+    "restore": cmd_restore,
     "status": cmd_status,
 }
 
