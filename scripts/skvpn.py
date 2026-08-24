@@ -21,6 +21,7 @@ ROOT = Path(os.environ.get("SKVPN_ROOT", "/"))
 CONF = ROOT / "etc/sing-box"
 PROFILES = CONF / "profiles"
 SUB_URL = CONF / "subscription.url"
+MANIFEST = CONF / "subscription.profiles"
 STAMP = ROOT / "var/lib/skvpn/last-sync"
 UNIT = "sing-box@{}.service"
 MAX_AGE = 24 * 3600
@@ -40,7 +41,8 @@ def need_root():
 
 
 def slug(name):
-    return re.sub(r"[^A-Za-z0-9._-]", "-", name)
+    # No dots: they become the systemd instance name, where a leading one gets escaped
+    return re.sub(r"[^A-Za-z0-9_-]", "-", name)
 
 
 def profile_path(name):
@@ -52,12 +54,17 @@ def profile_names():
 
 
 def running():
-    for name in profile_names():
-        probe = subprocess.run(
-            ["systemctl", "is-active", "--quiet", UNIT.format(name)], check=False
-        )
-        if probe.returncode == 0:
-            return name
+    # Asked of systemd, not of the profile directory, which an unprivileged user cannot read
+    probe = subprocess.run(
+        ["systemctl", "list-units", "--plain", "--no-legend", "--state=active", "sing-box@*"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    for line in probe.stdout.splitlines():
+        unit = line.split()[0]
+        if unit.startswith("sing-box@") and unit.endswith(".service"):
+            return unit.removeprefix("sing-box@").removesuffix(".service")
     return None
 
 
@@ -202,6 +209,16 @@ def sync(if_stale=False):
     if not seen:
         die("subscription carried nothing sing-box can speak")
 
+    # Drop what this subscription used to carry and no longer does; the manifest is what tells
+    # those apart from profiles added by hand, which are never touched
+    previous = set(MANIFEST.read_text().split()) if MANIFEST.exists() else set()
+    for gone in sorted(previous - set(seen)):
+        path = profile_path(gone)
+        if path.exists() and running() != gone:
+            path.unlink()
+            print(f"  -  {gone}")
+    MANIFEST.write_text("\n".join(seen) + "\n")
+
     STAMP.parent.mkdir(parents=True, exist_ok=True)
     STAMP.write_text(url + "\n")
 
@@ -254,6 +271,8 @@ def cmd_rm(args):
 
 def cmd_ls(_args):
     active = running()
+    if not os.access(PROFILES, os.R_OK):
+        die(f"cannot read {PROFILES} — try `sudo skvpn ls`")
     for name in profile_names():
         node = json.loads(profile_path(name).read_text())["outbounds"][0]
         mark = "*" if name == active else " "
