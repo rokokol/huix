@@ -54,6 +54,17 @@ def profile_names():
     return sorted(p.stem for p in PROFILES.glob("*.json"))
 
 
+def remembered():
+    return ACTIVE.read_text().strip() if ACTIVE.exists() else None
+
+
+def forget(name):
+    """Drop the boot choice when the profile behind it goes away."""
+    if remembered() == name:
+        ACTIVE.unlink()
+        print(f"     {name} was the boot choice, boot now starts nothing")
+
+
 def systemctl(*args):
     probe = subprocess.run(
         ["systemctl", *args], capture_output=True, text=True, check=False
@@ -226,6 +237,7 @@ def sync(if_stale=False):
         if path.exists() and running() != gone:
             path.unlink()
             print(f"  -  {gone}")
+            forget(gone)
     MANIFEST.write_text("\n".join(seen) + "\n")
 
     STAMP.parent.mkdir(parents=True, exist_ok=True)
@@ -276,6 +288,7 @@ def cmd_rm(args):
             die(f"{path.stem} is up — `skvpn down` first")
         path.unlink()
         print(f"  -  {path.stem}")
+        forget(path.stem)
 
 
 def cmd_ls(_args):
@@ -316,9 +329,9 @@ def cmd_down(_args):
 def cmd_restore(_args):
     """Boot-time half of `up` — no fetching and no choosing, just what was last up."""
     need_root()
-    if not ACTIVE.exists():
+    name = remembered()
+    if name is None:
         return
-    name = ACTIVE.read_text().strip()
     if not profile_path(name).exists():
         die(f"remembered profile is gone: {name}")
     systemctl("start", "--no-block", UNIT.format(name))
@@ -328,8 +341,8 @@ def cmd_restore(_args):
 def cmd_status(_args):
     active = running()
     print(f"  profile   {active or 'none'}")
-    if ACTIVE.exists():
-        print(f"  on boot   {ACTIVE.read_text().strip()}")
+    if remembered():
+        print(f"  on boot   {remembered()}")
     if STAMP.exists():
         age = int((time.time() - STAMP.stat().st_mtime) / 60)
         print(f"  synced    {age} min ago")
