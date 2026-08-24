@@ -232,13 +232,21 @@ def sync(if_stale=False):
     # Drop what this subscription used to carry and no longer does; the manifest is what tells
     # those apart from profiles added by hand, which are never touched
     previous = set(MANIFEST.read_text().split()) if MANIFEST.exists() else set()
+    spared = []
     for gone in sorted(previous - set(seen)):
         path = profile_path(gone)
-        if path.exists() and running() != gone:
-            path.unlink()
-            print(f"  -  {gone}")
-            forget(gone)
-    MANIFEST.write_text("\n".join(seen) + "\n")
+        if not path.exists():
+            continue
+        # Kept in the manifest as well as on disk, or the next sync would no longer know it
+        # came from here and the orphan would outlive every cleanup
+        if running() == gone:
+            spared.append(gone)
+            print(f"  ~  {gone} is up, left in place")
+            continue
+        path.unlink()
+        print(f"  -  {gone}")
+        forget(gone)
+    MANIFEST.write_text("\n".join(seen + spared) + "\n")
 
     STAMP.parent.mkdir(parents=True, exist_ok=True)
     STAMP.write_text(url + "\n")
@@ -298,7 +306,7 @@ def cmd_ls(_args):
     for name in profile_names():
         node = json.loads(profile_path(name).read_text())["outbounds"][0]
         mark = "*" if name == active else " "
-        print(f" {mark} {name:<24} {node['type']:<10} {node['server']}")
+        print(f" {mark} {name:<24} {node['type']:<10} {node.get('server', '-')}")
 
 
 def cmd_up(args):
