@@ -1,9 +1,7 @@
 { config, ... }:
 
 # Mesh client for the official Tailscale coordination server. The tailnet is joined once by
-# hand (`sudo tailscale up`) — the state lives in /var/lib/tailscale and survives rebuilds,
-# so nothing here needs an auth key. No routing features: this host only talks to peers, it
-# is neither an exit node nor a subnet router
+# hand (`sudo tailscale up`) — the state lives in /var/lib/tailscale and survives rebuilds
 {
   services.tailscale = {
     enable = true;

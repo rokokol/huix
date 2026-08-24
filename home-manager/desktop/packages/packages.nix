@@ -128,6 +128,7 @@ in
           stable.discord
           jan # local LLM chat client (Ollama frontend, KaTeX)
           vial
+          feather
 
           # --- Creative & audio ---
           stable.aseprite
