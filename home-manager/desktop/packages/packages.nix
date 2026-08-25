@@ -39,6 +39,7 @@ in
 
         # --- CLI ---
         curl
+        dig
         exiftool
         fastfetch
         file
