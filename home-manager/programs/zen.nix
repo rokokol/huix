@@ -161,6 +161,12 @@ in
             definedAliases = [ "@w" ];
           };
 
+          "youtube" = {
+            urls = [ { template = "https://www.youtube.com/results?search_query={searchTerms}"; } ];
+            icon = "https://icons.duckduckgo.com/ip3/youtube.com.ico";
+            definedAliases = [ "@y" ];
+          };
+
           "Nix Packages" = {
             urls = [
               {
