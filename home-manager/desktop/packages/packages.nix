@@ -48,7 +48,7 @@ in
         jq
         killall
         lazygit
-        libreoffice-fresh
+        libreoffice-stable
         matlab
         pup
         python3Packages.huggingface-hub
@@ -67,6 +67,7 @@ in
             matplotlib
             numpy
             pandas
+            pyyaml
             requests
             rich
             scipy
