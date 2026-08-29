@@ -68,6 +68,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    skvpn = {
+      url = "github:rokokol/skvpn";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -86,18 +91,6 @@
     freesmlauncher = {
       url = "github:FreesmTeam/FreesmLauncher";
       inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    # sing-box routing rule-sets. Both `rule-set` branches are rebuilt upstream every few days
-    # and carry no tags, so the pin belongs in the lock file rather than in a hash beside the URL
-    sing-geoip = {
-      url = "github:SagerNet/sing-geoip/rule-set";
-      flake = false;
-    };
-
-    sing-geosite = {
-      url = "github:SagerNet/sing-geosite/rule-set";
-      flake = false;
     };
   };
 
@@ -187,6 +180,7 @@
           modules = [
             configuration
             inputs.virtual-media-devices.nixosModules.default
+            inputs.skvpn.nixosModules.default
 
             {
               nixpkgs.hostPlatform = system;

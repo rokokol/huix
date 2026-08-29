@@ -13,7 +13,7 @@
     ./system/appimage.nix
     ./system/cachix.nix
     ./system/nix-ld.nix
-    ./system/sing-box.nix
+    ./system/skvpn.nix
     ./system/sops.nix
     ./system/tailscale.nix
     ./tools/libre-translate.nix

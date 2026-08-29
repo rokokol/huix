@@ -411,8 +411,7 @@
         "nixpkgs-stable": "nixpkgs-stable",
         "nixvim": "nixvim",
         "rofi-wooordhunt": "rofi-wooordhunt",
-        "sing-geoip": "sing-geoip",
-        "sing-geosite": "sing-geosite",
+        "skvpn": "skvpn",
         "sops-nix": "sops-nix",
         "virtual-media-devices": "virtual-media-devices",
         "zen-browser": "zen-browser"
@@ -438,17 +437,39 @@
     "sing-geosite": {
       "flake": false,
       "locked": {
-        "lastModified": 1787189106,
-        "narHash": "sha256-Ig9XFqtYYIX/D9pJhB2o/US/AaqBi9iMkdAykks2dfE=",
+        "lastModified": 1787912769,
+        "narHash": "sha256-CS8Yyek81dZhfc/yeth3rIL9OMX0B/MGvhdiGTWthVo=",
         "owner": "SagerNet",
         "repo": "sing-geosite",
-        "rev": "a70ce9f1f078f129cd40500f0bc0aee6eb6d59cd",
+        "rev": "f0a27e83e462d93efa2632c999fd8ccfce971de8",
         "type": "github"
       },
       "original": {
         "owner": "SagerNet",
         "ref": "rule-set",
         "repo": "sing-geosite",
+        "type": "github"
+      }
+    },
+    "skvpn": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "sing-geoip": "sing-geoip",
+        "sing-geosite": "sing-geosite"
+      },
+      "locked": {
+        "lastModified": 1788003505,
+        "narHash": "sha256-7/bY/vus2mtKZ9yuPQ9NBzZ+e6kAEVjXh5i1PKnH03o=",
+        "owner": "rokokol",
+        "repo": "skvpn",
+        "rev": "92750cab3de28e6a785a68d4b34fa9d0fd356d61",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "skvpn",
         "type": "github"
       }
     },
