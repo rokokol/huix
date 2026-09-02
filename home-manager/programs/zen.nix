@@ -98,6 +98,11 @@ in
       enable = true;
 
       # Zen keeps its own NSS store and never reads /etc/ssl/certs, so the trust anchors come in through policies.json
+      # Disabling the policy clears trust but leaves imported entries behind. Close Zen, then purge both with:
+      # for kind in Root Sub; do
+      #   nix shell nixpkgs#nssTools --command certutil -D -d sql:$HOME/.config/zen/default \
+      #     -n "Russian Trusted $kind CA - The Ministry of Digital Development and Communications"
+      # done
       policies.Certificates.Install = lib.optionals config.rokokol.zen.russianTrustedCertificates [
         "${russianTrustedRootCA}"
         "${russianTrustedSubCA}"
