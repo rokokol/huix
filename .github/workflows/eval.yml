@@ -14,6 +14,9 @@ on:
         required: false
         default: ""
 
+permissions:
+  contents: read
+
 jobs:
   eval:
     runs-on: ubuntu-latest
@@ -69,4 +72,24 @@ jobs:
           nodes = [k for k in json.load(open("flake.lock"))["nodes"] if k.startswith("ddlc-palette")]
           if nodes != ["ddlc-palette"]:
               sys.exit(f"the lock holds {nodes} — an input is missing its ddlc-palette.follows")
+          EOF
+
+      # A dev override — url = "path:/home/…" while an input is worked on locally — reaches the
+      # lock through syssync's git add -A and then breaks every job on a path no runner has.
+      # Relative paths are left alone: those are subflakes of this repo and travel with it
+      - name: no absolute path inputs in the lock
+        run: |
+          python3 - <<'EOF'
+          import json, sys
+          nodes = json.load(open("flake.lock"))["nodes"]
+          if len(nodes) < 2:
+              sys.exit(f"flake.lock holds {len(nodes)} nodes — the guard is reading the wrong shape")
+          bad = sorted({
+              name
+              for name, node in nodes.items()
+              for ref in (node.get("locked", {}), node.get("original", {}))
+              if ref.get("type") == "path" and ref.get("path", "").startswith("/")
+          })
+          if bad:
+              sys.exit(f"{bad} locked to an absolute local path — a dev override reached the lock")
           EOF
