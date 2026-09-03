@@ -142,16 +142,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1788181003,
-        "narHash": "sha256-6YSBE0J9l2+c87SmTmX1Z/G9uRt91ULKdUPI8q62gsA=",
+        "lastModified": 1788341256,
+        "narHash": "sha256-JHz0/6GZYqfJNoFYxpAbaEYMQeodFCjmMCSWZ5XlTG8=",
         "owner": "rokokol",
-        "repo": "ddlc-terminal-themes",
-        "rev": "fa9bc10661d5fbfebbe9ec078bd27019114c53e1",
+        "repo": "ddlc-themes",
+        "rev": "b4e45ed36cea0dfc0533037e2f5dc4b922a15716",
         "type": "github"
       },
       "original": {
         "owner": "rokokol",
-        "repo": "ddlc-terminal-themes",
+        "repo": "ddlc-themes",
         "type": "github"
       }
     },
@@ -460,11 +460,11 @@
         "sing-geosite": "sing-geosite"
       },
       "locked": {
-        "lastModified": 1788131711,
-        "narHash": "sha256-V1sRwzb9R2OFPIO5sIj+QMf53xuqv7R/rl933ge9LWE=",
+        "lastModified": 1788296208,
+        "narHash": "sha256-ec2/oVIEpq7wr+cyP86OyLqG3O3Tar9jtgTkmTedfB4=",
         "owner": "rokokol",
         "repo": "skvpn",
-        "rev": "d418a5d9720e16950cda415691901a510bafb4e2",
+        "rev": "41aea0674107ed38ea9845bef18bb68a8f276582",
         "type": "github"
       },
       "original": {

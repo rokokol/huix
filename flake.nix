@@ -31,7 +31,7 @@
     };
 
     ddlc-terminal-themes = {
-      url = "github:rokokol/ddlc-terminal-themes";
+      url = "github:rokokol/ddlc-themes";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.ddlc-palette.follows = "ddlc-palette";
     };
