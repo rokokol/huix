@@ -14,7 +14,8 @@ Usage:
 
 The history is written by hand. The session/rebuild unit only fast-forwards, so it never
 rebases local commits and never touches a dirty tree — when it cannot fast-forward it just
-says so. Staging is -A, so a new file goes up without a separate git add
+says so. Staging is -A, so a new file goes up without a separate git add. The "[host]" the
+subject ends up with is put there by scripts/git-hooks/prepare-commit-msg, not by this script
 EOF
 }
 
@@ -45,7 +46,6 @@ DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"
 export DBUS_SESSION_BUS_ADDRESS
 HUIX_PATH="${HUIX:-$HOME/huix}"
 GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh -o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=2}"
-HOST_NAME="$(uname -n)"
 
 export GIT_SSH_COMMAND
 
@@ -100,7 +100,9 @@ git add -A
 if git diff --cached --quiet; then
   notify low "Nothing to commit (((o(*ﾟ▽ﾟ*)o)))"
 else
-  git commit -m "[$HOST_NAME] ${MESSAGE:-sync $(date -Iseconds)}"
+  # The host prefix comes from scripts/git-hooks/prepare-commit-msg, which every commit in this
+  # repository goes through — writing it here too would only produce it twice
+  git commit -m "${MESSAGE:-sync $(date -Iseconds)}"
 fi
 
 if [ "$(git rev-list --count '@{u}..HEAD')" -eq 0 ]; then
