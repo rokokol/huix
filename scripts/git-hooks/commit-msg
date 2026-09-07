@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+# git refuses a commit whose message is empty, and prepare-commit-msg would defeat that check by
+# itself: a draft holding nothing but "[nixos-pc]" is not empty, so leaving the editor untouched
+# would land a subjectless commit. This restores the refusal for exactly that shape
+
+set -euo pipefail
+
+MSG_FILE=$1
+
+BODY=$(grep -vE '^#' "$MSG_FILE" | sed -e "s/^\[[^]]*\][[:space:]]*//" -e '/^[[:space:]]*$/d')
+
+if [ -z "$BODY" ]; then
+  echo "commit-msg: the message carries the host prefix and nothing else — aborting" >&2
+  exit 1
+fi

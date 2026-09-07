@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+
+# Puts the host that writes the commit at the front of its subject — the convention this
+# repository's history follows, so a rebuild made on the laptop stays legible in a log that is
+# mostly PC commits. git calls this with the draft message file ($1) and where that draft came
+# from ($2), early enough that the prefix is already in the editor. syssync writes its own
+# prefix, so any subject that already opens with a bracket is left exactly as it is
+#
+# Reached only inside this repository: core.hooksPath points here from an includeIf on huixDir
+# (home-manager/programs/cli/git.nix), never from the global config
+
+set -euo pipefail
+
+MSG_FILE=$1
+SOURCE=${2:-}
+
+# merge and squash drafts are git's own text, and a template is the shape the user asked for
+case "$SOURCE" in
+  merge | squash | template)
+    exit 0
+    ;;
+esac
+
+PREFIX="[$(uname -n)]"
+
+# The subject is the first line that is neither blank nor one of git's comments. An interactive
+# commit has none of those yet, so the number stays empty rather than becoming a line address
+SUBJECT_NO=$(grep -nvE '^([[:space:]]*$|#)' "$MSG_FILE" | head -1 | cut -d: -f1 || true)
+SUBJECT=""
+if [ -n "$SUBJECT_NO" ]; then
+  SUBJECT=$(sed -n "${SUBJECT_NO}p" "$MSG_FILE")
+fi
+
+case "$SUBJECT" in
+  # Already prefixed by syssync or by hand, and the autosquash subjects have to match their
+  # target commit byte for byte or `git rebase --autosquash` stops seeing them
+  \[* | fixup!* | squash!* | amend!*)
+    exit 0
+    ;;
+esac
+
+TMP=$(mktemp)
+trap 'rm -f "$TMP"' EXIT
+
+if [ -n "$SUBJECT_NO" ]; then
+  awk -v prefix="$PREFIX " -v line="$SUBJECT_NO" 'NR == line { $0 = prefix $0 } { print }' \
+    "$MSG_FILE" >"$TMP"
+else
+  # An empty draft: the editor is about to open, so the prefix becomes the line to type after.
+  # A commit that never grows past it is refused by the commit-msg hook next to this one
+  {
+    printf '%s \n' "$PREFIX"
+    cat "$MSG_FILE"
+  } >"$TMP"
+fi
+
+# Rewrite in place rather than mv: the file may live on another filesystem than $TMPDIR
+cat "$TMP" >"$MSG_FILE"

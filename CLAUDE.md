@@ -78,10 +78,10 @@ The global rules (straight quotes, one-line comments, no trailing period, no har
 ## Committing
 
 - **Commit your work yourself after each finished change** — a descriptive `git add <files> && git commit` per logical change. Nothing else writes the history: what you leave uncommitted stays in the working tree until someone commits it by hand
-- **Prefix the subject with the current host**: `[nixos-pc] enable CUDA cache`, `[nixos-laptop] add lid mode toggle`
+- **The host prefix is put there by a hook, so do not type it** — write `enable CUDA cache` and `scripts/git-hooks/prepare-commit-msg` makes it `[nixos-pc] enable CUDA cache`. The hook reaches git through an `includeIf` on `huixDir` in `home-manager/programs/cli/git.nix` (`core.hooksPath`, this repository only), which means a fresh checkout writes bare subjects until the first `nixos-rebuild switch`. A subject that already opens with a bracket is left alone, as are the `fixup!` / `squash!` / merge shapes, and the `commit-msg` beside it refuses a message that never grew past the prefix
 - **Run `nix fmt` before committing, and keep a reformat in its own commit** — a formatting churn mixed into a behaviour change hides the change
 - **The sync service only fast-forwards** (`home-manager/desktop/sync.nix` → `scripts/sync.sh --pull-only`): on the start of the graphical session and after every `nixos-rebuild` it runs `git fetch` + `git merge --ff-only`, and when that is not possible it says so and leaves the tree alone. It never commits, never pushes and never rebases a local commit
-- **`syssync [message]` is the one command that publishes** — `git pull --rebase --autostash` → `git add -A` → `git commit -m "[host] <message>"` (a timestamp when the message is omitted) → `git push`. It stages everything, so a new file goes up without a separate `git add`, and anything in the tree you did not want in history has to be gone before you call it
+- **`syssync [message]` is the one command that publishes** — `git pull --rebase --autostash` → `git add -A` → `git commit -m "<message>"` (a timestamp when the message is omitted, the host prefix coming from the hook above) → `git push`. It stages everything, so a new file goes up without a separate `git add`, and anything in the tree you did not want in history has to be gone before you call it
 
 ## Editing gotchas
 
