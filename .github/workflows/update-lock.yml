@@ -1,20 +1,14 @@
 name: update-lock
 
-# flake.lock ages on its own and nothing else here moves it: dependabot watches only the uses:
-# pins. This takes every input's current revision weekly, runs the very same checks a push runs
-# — eval.yml itself, not a copy of its commands — and lands the bump only if they pass. The
-# point is the laptop: it is booted rarely, and a lock nobody has moved in a month is what makes
-# that first rebuild long. What this cannot do is build the closure — nixos-laptop's toplevel is
-# 40.8 GiB against a runner's 14, so "green" here means both hosts evaluate, not that they build
+# Takes every input's current revision, runs the very same checks a push runs — eval.yml itself,
+# not a copy of its commands — and lands the bump on master only if they pass. What this cannot
+# do is build the closure — nixos-laptop's toplevel is 40.8 GiB against a runner's 14, so "green"
+# here means both hosts evaluate, not that they build
 #
-# 07:00 is the tail of the family cascade: ddlc-palette takes nixpkgs at 05:00, every repo that
-# pins the palette bumps it at 06:00, and only then does this take the tree. The palette this
-# config builds against comes from the node locked below either way — every ddlc-* input carries
-# inputs.ddlc-palette.follows — so what the hour buys is that each sibling has already been
-# checked against the new palette before its revision arrives here
+# Manual only: an unattended bump landing on master turned every rebuild into a surprise, and a
+# lock is better moved when someone is ready to rebuild against it. `nix flake update` locally is
+# the other half of the same thing — this exists for the checks around it
 on:
-  schedule:
-    - cron: "0 7 * * 1"
   workflow_dispatch:
 
 # Two runs would push the same branch from different bases
