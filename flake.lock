@@ -460,11 +460,11 @@
         "sing-geosite": "sing-geosite"
       },
       "locked": {
-        "lastModified": 1788782344,
-        "narHash": "sha256-EIFIb/06Eiw3cVKAdCWiiiKY2Ubx9uH56OEs9yXcP80=",
+        "lastModified": 1788454577,
+        "narHash": "sha256-sddhARVG49HJmiYKg/5jjJqS4KswVKvp7aRlY/PcwkQ=",
         "owner": "rokokol",
         "repo": "skvpn",
-        "rev": "27a8a6226c387e2cc24ac7ab91b1ef5d61b2e6ee",
+        "rev": "cc1a681812674b797caa98ec664dc0d8cccec29b",
         "type": "github"
       },
       "original": {
