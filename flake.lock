@@ -374,6 +374,26 @@
         "type": "github"
       }
     },
+    "papers-skill": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1789069745,
+        "narHash": "sha256-oK8GIeaUCWxnINqPJByIwfNZmUBeZxxabyz9cro96Hg=",
+        "owner": "rokokol",
+        "repo": "papers-skill",
+        "rev": "593a96ad13cd7e6d71b02957f03c93192c54a24f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "papers-skill",
+        "type": "github"
+      }
+    },
     "rofi-wooordhunt": {
       "inputs": {
         "nixpkgs": [
@@ -410,6 +430,7 @@
         "nixpkgs": "nixpkgs",
         "nixpkgs-stable": "nixpkgs-stable",
         "nixvim": "nixvim",
+        "papers-skill": "papers-skill",
         "rofi-wooordhunt": "rofi-wooordhunt",
         "skvpn": "skvpn",
         "sops-nix": "sops-nix",

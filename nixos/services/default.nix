@@ -17,6 +17,7 @@
     ./system/sops.nix
     ./system/tailscale.nix
     ./tools/libre-translate.nix
+    ./tools/paper-search.nix
     ./tools/searxng.nix
     ./tools/syncthing.nix
     ./utils/docker.nix

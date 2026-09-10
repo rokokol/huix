@@ -73,6 +73,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    papers-skill = {
+      url = "github:rokokol/papers-skill";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -201,6 +206,7 @@
                   inputs.ddlc-rofi-theme.homeModules.default
                   inputs.claude-account.homeModules.default
                   inputs.virtual-media-devices.homeModules.default
+                  inputs.papers-skill.homeModules.default
                 ];
 
                 extraSpecialArgs = commonArgs;
