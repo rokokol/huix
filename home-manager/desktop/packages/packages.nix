@@ -125,7 +125,7 @@ in
           nodejs
 
           # --- Desktop apps ---
-          # empty 3D viewport on NVIDIA GL; routes through zink, which needs ReBAR — workarounds.md
+          # empty 3D viewport on NVIDIA GL; routes through zink, which needs ReBAR — WORKAROUNDS.md
           (bambu-studio.override { withNvidiaGLWorkaround = true; })
           stable.discord
           jan # local LLM chat client (Ollama frontend, KaTeX)

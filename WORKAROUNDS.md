@@ -156,27 +156,3 @@ Non-zero → upstream still ships it, keep the override. Zero → the argument i
 ```
 
 **Upstream:** [NixOS/nixpkgs#498311](https://github.com/NixOS/nixpkgs/issues/498311) (the blank viewport, closed by the option this entry sets), [OrcaSlicer#11698](https://github.com/OrcaSlicer/OrcaSlicer/issues/11698) (the same zink BAR1 crash in the sibling slicer)
-
----
-
-
-
-# Invariants
-
-Not workarounds — properties of this repo's own flake that nothing enforces on its own, so each carries a mechanical check and a note on what breaks without it
-
-## Exactly one `ddlc-palette` node, held by `follows` here
-
-**Where:** `flake.nix` — every `ddlc-*` input carries `inputs.ddlc-palette.follows = "ddlc-palette";` next to the `nixpkgs` one
-
-**Why it cannot move into the children:** `follows` rewrites an input's own dependency tree, and only the flake that owns that tree may declare it. A child repository can make *its* `nixpkgs` follow *its* input, but it cannot make its `ddlc-palette` resolve to a node in whoever consumes it — that node does not exist from where the child is written. This is not a gap to be closed in the children; the five lines here are the mechanism
-
-**What it costs to forget one:** the input pulls its own copy of the palette and the lock holds a suffixed second node. The lock did once hold five, at four revisions (`ddlc-rofi-theme` on `6a2277a`, `ddlc-sddm-theme` on `68eedcf`, two on `7b7300d`, root on its own). A colour corrected in the palette then reaches whichever theme was bumped and leaves the rest on the old hex — the one thing a single source of truth exists to prevent, and invisible except by reading the lock
-
-**Check** (also a CI step in `.github/workflows/eval.yml`):
-
-```sh
-python3 -c "import json;print([k for k in json.load(open('flake.lock'))['nodes'] if k.startswith('ddlc-palette')])"
-```
-
-Anything but `['ddlc-palette']` → a suffixed node is a second copy, and the `follows` for its parent is missing

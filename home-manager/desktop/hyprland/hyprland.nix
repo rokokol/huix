@@ -58,7 +58,7 @@ in
       configType = "hyprlang";
 
       # HM's session target would stop uwsm's compositor unit mid-login; Hyprland exports the
-      # vars itself (see workarounds.md)
+      # vars itself (see WORKAROUNDS.md)
       systemd.enable = false;
 
       settings = {
