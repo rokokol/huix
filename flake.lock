@@ -384,11 +384,11 @@
         "uv2nix": "uv2nix"
       },
       "locked": {
-        "lastModified": 1789073368,
-        "narHash": "sha256-1QV0Ozghb8WHb4KnB1V6GCF+P43dMmoJDmXiwMycFVc=",
+        "lastModified": 1789085642,
+        "narHash": "sha256-Qt5zfZoT8hVEFBesEUfzXXyIU3u+xqWILTdErhFT/bg=",
         "owner": "rokokol",
         "repo": "papers-skill",
-        "rev": "a0e383d1d00231058600ac6f21ee9614fececd4b",
+        "rev": "b8910656aee585cc84a05fece4edad7d0319949b",
         "type": "github"
       },
       "original": {
