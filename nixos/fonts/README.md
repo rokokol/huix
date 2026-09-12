@@ -1,3 +1,5 @@
+<img src="./assets/im-king-of-the-world.jpg" alt="im king of the world" width="320"/>
+
 # Шрифты
 
 [![huix](https://img.shields.io/badge/huix-наверх-222222?style=for-the-badge&logo=nixos&logoColor=white)](../../README.md)

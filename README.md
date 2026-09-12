@@ -89,7 +89,9 @@ nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHW
 
 <div align="center">
 
-<img src="./assets/im-king-of-the-world.jpg" alt="im king of the world" width="320"/>
+<img src="./assets/felix.png" alt="Felix Argail" width="480"/>
+  
+<em>an average nixos user :3</em>
 
 <br/><br/>
 
