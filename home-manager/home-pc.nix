@@ -16,7 +16,7 @@
     hyprland = {
       enable = true;
       monitorScale = "1";
-      wallpaperCollage = true;
+      wallpaperCollage = false; # for Felix wallspaper :3
       startupArgs = [
         "dex -a"
         "super-productivity"
