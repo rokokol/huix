@@ -93,7 +93,7 @@ nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHW
   
 <em>an average nixos user :3</em>
 
-<br/><br/>
+<br/>
 
 <table>
 <tr><td align="center">
