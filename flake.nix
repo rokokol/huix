@@ -149,31 +149,6 @@
         };
       };
 
-      # SDL3 dlopens the appindicator lib for tauon's tray, but nixpkgs keeps it off the
-      # wrapper's LD_LIBRARY_PATH (see WORKAROUNDS.md)
-      overlay-tauon = final: prev: {
-        tauon = prev.tauon.overrideAttrs (old: {
-          makeWrapperArgs = old.makeWrapperArgs ++ [
-            "--prefix LD_LIBRARY_PATH : ${prev.lib.makeLibraryPath [ prev.libayatana-appindicator ]}"
-          ];
-        });
-      };
-
-      # hyprland 0.56.1 doesn't build against nixpkgs' glaze 8.0.0, so pin it back to 7.2.0
-      # (see WORKAROUNDS.md)
-      overlay-hyprland = final: prev: {
-        hyprland = prev.hyprland.override {
-          glaze = prev.glaze.overrideAttrs (_: {
-            version = "7.2.0";
-            src = prev.fetchFromGitHub {
-              owner = "stephenberry";
-              repo = "glaze";
-              tag = "v7.2.0";
-              hash = "sha256-f3NVRi3SXKo42hn0WCw7JsOK3EkdOVJIcuzhPorKjFY=";
-            };
-          });
-        };
-      };
       mkHost =
         {
           configuration,
@@ -222,9 +197,7 @@
         configuration = ./nixos/configuration-pc.nix;
         home = ./home-manager/home-pc.nix;
         overlays = [
-          overlay-hyprland
           overlay-stable
-          overlay-tauon
           nix-matlab.overlay
         ];
       };
@@ -233,9 +206,7 @@
         configuration = ./nixos/configuration-laptop.nix;
         home = ./home-manager/home-laptop.nix;
         overlays = [
-          overlay-hyprland
           overlay-stable
-          overlay-tauon
           nix-matlab.overlay
         ];
       };

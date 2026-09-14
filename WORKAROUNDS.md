@@ -6,6 +6,47 @@ Rules for this file: one entry per workaround, and every entry must carry a **me
 
 ---
 
+## `stable.freecad`
+
+**Where:** `home-manager/desktop/packages/packages.nix` in the shared package group, so both hosts use the stable package set for FreeCAD
+
+**Symptom it prevents:** FreeCAD pulls `python3.14-ifcopenshell-0.8.0`, whose build fails in `IfcCShapeProfileDef.cpp` with `converting to 'boost::optional<double>' from initializer list would use explicit constructor`
+
+**Why it happens:** Boost 1.91 made the converting constructor of `boost::optional` unconditionally explicit, but IfcOpenShell 0.8.0 still initializes the optional radius through aggregate brace initialization. The stable package set builds the same FreeCAD 1.1.3 against Python 3.13 and Boost 1.89 and is available from the binary cache
+
+**Removal check:** build FreeCAD directly from the unstable package set rather than through `home.packages`
+
+```sh
+nix build --no-link .#nixosConfigurations.nixos-pc.pkgs.freecad
+```
+
+Fails in `IfcCShapeProfileDef.cpp` -> keep `stable.freecad`. Builds clean -> change it back to `freecad`
+
+**Upstream:** [IfcOpenShell#9138](https://github.com/IfcOpenShell/IfcOpenShell/pull/9138) (merged source fix), [NixOS/nixpkgs#563014](https://github.com/NixOS/nixpkgs/pull/563014) (pending nixpkgs patch)
+
+---
+
+## Separate Bambu Studio NVIDIA wrapper
+
+**Where:** `home-manager/desktop/packages/packages.nix` in the workstation package group
+
+**Symptom it prevents:** `(bambu-studio.override { withNvidiaGLWorkaround = true; })` changes the monolithic package derivation even though the option only adds four runtime environment variables. The default package from Cachix can no longer substitute it, so Nix recompiles Bambu Studio in 16 parallel jobs and exhausts system memory
+
+**Why this works:** `symlinkJoin` takes the cached default package and wraps only its executable with the same zink environment. The resulting local derivation contains a shell wrapper and a symlink rather than another C++ build
+
+**Removal check:** inspect the current nixpkgs package expression
+
+```sh
+nix eval --raw .#nixosConfigurations.nixos-pc.pkgs.bambu-studio.meta.position \
+  | cut -d: -f1 | xargs grep -c symlinkJoin
+```
+
+Zero -> keep the separate wrapper. Non-zero -> verify that the upstream `withNvidiaGLWorkaround` branch wraps a shared base derivation, replace this wrapper with the upstream override, and confirm with `nix build --dry-run` that Bambu Studio itself will be fetched rather than built
+
+**Upstream:** [NixOS/nixpkgs#498311](https://github.com/NixOS/nixpkgs/issues/498311) introduced the opt-in NVIDIA workaround
+
+---
+
 ## `wayland.windowManager.hyprland.systemd.enable = false`
 
 **Where:** `home-manager/desktop/hyprland/hyprland.nix` — a shared HM module, so it covers both hosts, and both need it since `withUWSM = true` lives in the shared `nixos/desktop/core-options.nix`
@@ -48,111 +89,3 @@ journalctl -b 0 | grep uwsm_waitenv   # shows which variable never arrived
 Note Hyprland's own flake does not change any of this: its `homeManagerModules.default` only sets `package` and defers to HM's module for everything else
 
 **Upstream:** [NixOS UWSM wiki](https://wiki.nixos.org/wiki/UWSM) (says to disable the integration), [hyprwm/Hyprland#9265](https://github.com/hyprwm/Hyprland/issues/9265)
-
----
-
-## `overlay-tauon` — appindicator on tauon's `LD_LIBRARY_PATH`
-
-**Where:** `flake.nix`
-
-**Symptom it prevents:** with the tray enabled (`settings` > `View` > `Tray`, or `--tray` — the pref is off by default) tauon dies on startup, not just losing the icon:
-
-```
-RuntimeError: SDL_CreateTray failed: Could not load AppIndicator libraries
-```
-
-**Why it happens:** since 11.1.1 the tray goes through SDL3's `SDL_CreateTray()` instead of pygobject, and SDL loads the indicator library at runtime with `dlopen()` by soname — `libayatana-appindicator3.so.1` first, then `libappindicator3.so.1`. nixpkgs lists `libappindicator` in `buildInputs` only, which reaches `GI_TYPELIB_PATH` (the typelib the tray no longer uses) and never the wrapper's `LD_LIBRARY_PATH`. So the library sits in the closure and stays invisible to `dlopen`
-
-gtk3 deliberately gets no such treatment even though SDL dlopens `libgtk-3.so.0` too: `SDL_CreateTray()` calls `init_appindicator()` first, and the indicator library pulls its own gtk3 in through RPATH, so the soname is already in the link map
-
-**Removal check:** build tauon as nixpkgs has it, with no overlay in the way, and look for an appindicator on its `LD_LIBRARY_PATH`
-
-```sh
-grep -o "LD_LIBRARY_PATH='[^']*'" \
-  "$(nix build --no-link --print-out-paths --impure --expr \
-    'let f = builtins.getFlake (toString ./.); in f.inputs.nixpkgs.legacyPackages.x86_64-linux.tauon')/bin/tauon" \
-  | grep -c appindicator
-```
-
-Prints `0` → keep the overlay. Non-zero → drop `overlay-tauon` from `flake.nix` and from both host overlay lists
-
-**Upstream:** [NixOS/nixpkgs#549538](https://github.com/NixOS/nixpkgs/issues/549538) (the bug), [NixOS/nixpkgs#549863](https://github.com/NixOS/nixpkgs/pull/549863) (our fix), [NixOS/nixpkgs#96420](https://github.com/NixOS/nixpkgs/issues/96420) (the standing "stop using dead libappindicator" issue it feeds)
-
----
-
-## `overlay-hyprland` — glaze pinned to 7.2.0
-
-**Where:** `flake.nix` — and it must sit in the overlay list of **both** hosts, since both run Hyprland. It was on `nixos-pc` only for a while, which left `nixos-laptop` unbuildable
-
-**Why:** nixpkgs carries `glaze` 8.0.0, which hyprland 0.56.1 does not build against, so the overlay pins hyprland's `glaze` **back** to 7.2.0 from GitHub. Note this is a downgrade — a newer nixpkgs `glaze` is therefore not by itself evidence the overlay can go. Without it the build fails like this, because hyprland's CMake falls back to fetching glaze over the network and the sandbox has no git:
-
-```
--- glaze dependency not found, retrieving v7.2.0 with FetchContent
-CMake Error: error: could not find git for clone of glaze
-```
-
-**Removal check:** build hyprland as nixpkgs has it, with no overlay in the way
-
-```sh
-nix build --no-link --impure --expr \
-  'let f = builtins.getFlake (toString ./.); in f.inputs.nixpkgs.legacyPackages.x86_64-linux.hyprland'
-```
-
-Builds clean → drop `overlay-hyprland` from `flake.nix` and from both host overlay lists. Still fails on `glaze` → keep it, and bump the pinned tag only if hyprland itself moved on
-
----
-
-## `bambu-studio.override { withNvidiaGLWorkaround = true; }`
-
-**Where:** `home-manager/desktop/packages/packages.nix`, inside the `rokokol.packages.pc` group — the laptop has no NVIDIA GPU and takes the package as nixpkgs ships it. The `NVreg_EnableResizableBar=1` line in `nixos/pc/nvidia.nix` is downstream of this entry: it exists to make this route usable, see below
-
-**Symptom it prevents:** on the proprietary NVIDIA GL driver the 3D viewport stays empty — the UI, the plater and the model list all render, the model does not. The option routes GL through Mesa's zink instead:
-
-```
---set __GLX_VENDOR_LIBRARY_NAME mesa
---set MESA_LOADER_DRIVER_OVERRIDE zink
---set GALLIUM_DRIVER zink
-```
-
-**What it costs — and why the ReBAR line exists:** zink streams geometry through `ZINK_HEAP_DEVICE_LOCAL_VISIBLE` (index 3 of `enum zink_heap` in `zink_types.h`), the Vulkan memory type that is both `DEVICE_LOCAL` and `HOST_VISIBLE`. On NVIDIA that is BAR1, and with Resizable BAR off BAR1 is 256 MiB no matter how much VRAM the card has. A model past a few hundred thousand triangles exhausts it mid-render and the process dies:
-
-```
-MESA: error: zink: couldn't allocate memory: heap=3 size=2097152
-MESA: error: ZINK: vkMapMemory failed (VK_ERROR_MEMORY_MAP_FAILED)
-```
-
-zink has a small-BAR mitigation (`zink_bo.c`: reclaim everything when that heap is `<= 256 MiB` on NVIDIA) and it is not enough. There is no env knob to steer allocations off that heap — `ZINK_DEBUG` has no heap flag. The only fix is to make BAR1 big, which is what `NVreg_EnableResizableBar=1` does; zink then sets `screen->resizable_bar` on its own, since it calls a BAR resizable once visible VRAM exceeds 90% of total VRAM
-
-With the BIOS side on (Above 4G Decoding + Re-Size BAR, CSM off) the card reports a 16 GiB BAR1 — the aperture rounds up to a power of two over 12 GiB of VRAM — and the separate 246 MiB Vulkan heap is gone: the one memory type carrying both `DEVICE_LOCAL` and `HOST_VISIBLE` now points at the 12 GiB heap, so the 90% condition holds and complex models render. Both halves have to be checked, since `nvidia-smi` can show a grown BAR1 while Vulkan still exposes the small heap, and only the Vulkan view is what zink reads:
-
-```sh
-nvidia-smi -q | grep -A3 "BAR1 Memory Usage"
-nix shell nixpkgs#vulkan-tools -c vulkaninfo | grep -E 'memoryHeaps\[|memoryTypes\[|heapIndex|MEMORY_PROPERTY_'
-```
-
-**Diagnostic trap:** the package is wrapped with `makeCWrapper --set`, which overwrites the environment rather than defaulting it. Every `__GLX_VENDOR_LIBRARY_NAME=nvidia` / `LIBGL_ALWAYS_SOFTWARE=1` / `MESA_LOADER_DRIVER_OVERRIDE=...` tried from a shell is silently discarded, so no shell experiment says anything about the GL path. `GDK_BACKEND=x11` does take, but it only moves the windowing backend and leaves zink in place — "tried X11, no change" is therefore not evidence
-
-**Rejected alternatives**, all tested on driver 595.84 with the same build, wrapper env reconstructed minus the four zink vars (`glxinfo -B` under it reports `NVIDIA GeForce RTX 3060`, so the GL path is genuinely native and not a broken environment):
-
-| route | result |
-| --- | --- |
-| native NVIDIA GL, Wayland | viewport empty, app otherwise healthy — it still slices |
-| native GL + `GDK_BACKEND=x11` | viewport still empty |
-| native GL + `GDK_BACKEND=x11` + GLX-built GLEW | segfault during startup |
-
-The third is worth spelling out, since the reasoning behind it looks convincing and is wrong. Upstream never defines `GLEW_EGL` on Linux — `deps/GLEW/glew/CMakeLists.txt` guards it with `if(NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")` under the comment `# we do not support wayland for now` — while nixpkgs `LD_PRELOAD`s its own `glew`, built `-DGLEW_EGL=ON` and linking `libEGL.so.1`. So the app does get a GLEW flavour upstream never builds against. Feeding it the matching GLX build (`glew` with `-DGLEW_EGL=OFF`, which drops `libEGL` from its `ldd`) does not fix the viewport — it crashes instead. The flavour mismatch is real and is not the cause
-
-**Removal check:** the option only exists in nixpkgs for this bug, so its disappearance is the trigger
-
-```sh
-nix eval --raw .#nixosConfigurations.nixos-pc.pkgs.bambu-studio.meta.position \
-  | cut -d: -f1 | xargs grep -c withNvidiaGLWorkaround
-```
-
-Non-zero → upstream still ships it, keep the override. Zero → the argument is gone, drop the override — but leave `NVreg_EnableResizableBar=1` alone. Resizable BAR is a PCIe feature enabled as intended and it serves everything on the GPU, not this package; it is described here only because it is what makes the zink route survivable. To re-test before the option disappears, build the package as nixpkgs has it and load any model — the viewport either draws it or does not:
-
-```sh
-"$(nix build --no-link --print-out-paths .#nixosConfigurations.nixos-pc.pkgs.bambu-studio)"/bin/bambu-studio
-```
-
-**Upstream:** [NixOS/nixpkgs#498311](https://github.com/NixOS/nixpkgs/issues/498311) (the blank viewport, closed by the option this entry sets), [OrcaSlicer#11698](https://github.com/OrcaSlicer/OrcaSlicer/issues/11698) (the same zink BAR1 crash in the sibling slicer)

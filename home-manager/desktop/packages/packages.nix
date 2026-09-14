@@ -28,7 +28,8 @@ in
         celluloid
         chromium
         evince
-        freecad
+        # IfcOpenShell fails against Boost 1.91; see WORKAROUNDS.md
+        stable.freecad
         geary
         gnome-disk-utility
         gnome-text-editor
@@ -125,8 +126,19 @@ in
           nodejs
 
           # --- Desktop apps ---
-          # empty 3D viewport on NVIDIA GL; routes through zink, which needs ReBAR — WORKAROUNDS.md
-          (bambu-studio.override { withNvidiaGLWorkaround = true; })
+          # Keep the NVIDIA-only wrapper separate so the main build remains substitutable; see WORKAROUNDS.md
+          (symlinkJoin {
+            name = "bambu-studio-nvidia";
+            paths = [ bambu-studio ];
+            nativeBuildInputs = [ makeWrapper ];
+            postBuild = ''
+              wrapProgram $out/bin/bambu-studio \
+                --set __GLX_VENDOR_LIBRARY_NAME mesa \
+                --set __EGL_VENDOR_LIBRARY_FILENAMES /run/opengl-driver/share/glvnd/egl_vendor.d/50_mesa.json \
+                --set MESA_LOADER_DRIVER_OVERRIDE zink \
+                --set GALLIUM_DRIVER zink
+            '';
+          })
           stable.discord
           jan # local LLM chat client (Ollama frontend, KaTeX)
           vial
