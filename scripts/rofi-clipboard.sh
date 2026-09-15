@@ -33,6 +33,8 @@ delete_entry() {
   rm -f "$tmp_dir/$id.png"
 }
 
+# rofi prints "INDEX TEXT": a history entry comes with its row index, while the typed text
+# (Control+Return, or Return when nothing matches) comes with index -1
 while true; do
   if selection=$(
     build_menu | rofi \
@@ -40,10 +42,12 @@ while true; do
       -i \
       -show-icons \
       -display-columns 2 \
+      -format 'i s' \
       \
       -p "📋" \
       \
       -kb-remove-char-forward "Delete" \
+      -kb-accept-custom "Control+Return" \
       -kb-custom-1 "Control+d"
   ); then
     status=0
@@ -51,18 +55,25 @@ while true; do
     status=$?
   fi
 
+  index="${selection%% *}"
+  text="${selection#* }"
+
   case "$status" in
   0)
-    [[ -n "${selection:-}" ]] || exit 0
-    printf '%s\n' "$selection" | cliphist decode | wl-copy
+    if [[ "$index" == -1 ]]; then
+      [[ -n "$text" ]] || exit 0
+      wl-copy -- "$text"
+    else
+      printf '%s\n' "$text" | cliphist decode | wl-copy
+    fi
     exit 0
     ;;
   1)
     exit 0
     ;;
   10)
-    [[ -n "${selection:-}" ]] || continue
-    delete_entry "$selection"
+    [[ -n "$index" && "$index" != -1 ]] || continue
+    delete_entry "$text"
     ;;
   *)
     exit 0
