@@ -12,7 +12,7 @@
 
 Рукописные shell-обёртки, рассчитанные на путь `$HUIX/scripts`. Лежат обычным bash-ом в живом чекауте, а не собираются в store: правка применяется сразу, без `nixos-rebuild` — можно допиливать скрипт по ходу дела и тут же дёргать его тем же биндом. Nix держит только список зависимостей, и даже те скрипты, что выставлены командами, обёрнуты через `writeShellApplication` в один `exec bash "$HUIX/scripts/<имя>.sh"` — в store уезжает обёртка, а не тело
 
-Кто их зовёт — видно с той стороны: бинды в [`hyprland.conf`](../home-manager/desktop/hyprland/README.md#хоткеи), systemd-юниты и Nix-обёртки (`writeShellApplication`, которые кладут зависимости в PATH) из [программ](../home-manager/programs/README.md). Что делает конкретный — его шапка и `usage`
+Кто их зовёт — видно с той стороны: бинды в [`hyprland.conf`](../home-manager/desktop/hyprland/README.md#хоткеи), systemd-юниты и Nix-обёртки (`writeShellApplication`, которые кладут зависимости в PATH) из [программ](../home-manager/programs/README.md). Что делает конкретный и как его звать — его `--help`, а в шапке только то, что нужно при правке
 
 ## Тонкости
 

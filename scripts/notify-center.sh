@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# DND is mako's native mechanism: the do-not-disturb mode with invisible=1 (man mako(5)). The
+# script just pokes makoctl mode and kicks waybar with a signal so the indicator refreshes
+# at once. makoctl has no history-clear command, so clear is a restore+dismiss of each entry
+# under the invisible silent mode (see mako.nix) so popups don't flash on screen
 
 set -euo pipefail
 
@@ -20,13 +24,8 @@ The only operation on an entry is copying the text; notification actions (button
 are available natively and only on visible popups: LMB — default action, RMB —
 makoctl menu. History is cleared only as a whole
 
-DND is mako's native mechanism: the do-not-disturb mode with invisible=1 (man
-mako(5)). The script just pokes makoctl mode and kicks waybar with a signal so the
-indicator refreshes at once. Modes live in the daemon's runtime: DND survives a
-Hyprland reload and nixos-rebuild, but resets when the session restarts
-
-makoctl has no history-clear command, so clear is a restore+dismiss of each entry
-under the invisible silent mode (see mako.nix) so popups don't flash on screen
+DND lives in the daemon's runtime: it survives a Hyprland reload and nixos-rebuild, but
+resets when the session restarts
 EOF
 }
 

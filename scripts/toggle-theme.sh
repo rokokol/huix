@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Theme/key names come from the env (Nix wrapper)
 
 set -euo pipefail
 
@@ -16,7 +17,7 @@ The theme lives at runtime, not in Nix: the script flips color-scheme + gtk-them
 in dconf, hands rofi's variant to ddlc-rofi-theme and swaps the libadwaita
 ~/.config/gtk-4.0/gtk.css (so libadwaita apps follow too). The choice is stored durably in
 ~/.local/state/huix/theme — dconf load on nixos-rebuild resets the theme, --sync
-brings it back. Theme/key names come from the env (Nix wrapper)
+brings it back
 EOF
 }
 

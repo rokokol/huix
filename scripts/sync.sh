@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# The "[host]" the subject ends up with is put there by scripts/git-hooks/prepare-commit-msg,
+# not by this script
 
 set -euo pipefail
 
@@ -14,8 +16,7 @@ Usage:
 
 The history is written by hand. The session/rebuild unit only fast-forwards, so it never
 rebases local commits and never touches a dirty tree — when it cannot fast-forward it just
-says so. Staging is -A, so a new file goes up without a separate git add. The "[host]" the
-subject ends up with is put there by scripts/git-hooks/prepare-commit-msg, not by this script
+says so. Staging is -A, so a new file goes up without a separate git add
 EOF
 }
 

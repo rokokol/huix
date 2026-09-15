@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Normally the lid is handled by logind (HandleLidSwitch=suspend) and by default it IGNORES
+# inhibitor locks on it (LidSwitchIgnoreInhibited=yes). On the laptop that ignore is
+# disabled (nixos/laptop/logind.nix), so the mode is just a live systemd-inhibit
+# --what=handle-lid-switch lock in the transient unit huix-lid-inhibit. State is NOT stored
+# in a file: the source of truth is whether the unit is active
 
 set -euo pipefail
 
@@ -14,17 +19,12 @@ Commands:
   status    print the current state (on|off) — for scripts
   help      this help
 
-How it works. Normally the lid is handled by logind (HandleLidSwitch=suspend) and
-by default it IGNORES inhibitor locks on it (LidSwitchIgnoreInhibited=yes). On the
-laptop that ignore is disabled (nixos/laptop/logind.nix), so the "mode" is just a
-live systemd-inhibit --what=handle-lid-switch lock in the transient unit
-huix-lid-inhibit: while it holds, logind doesn't touch the lid, and Hyprland via
-the switch binds blanks only the internal panel through dpms — an external monitor,
-if attached, keeps working
+While the mode is on, logind doesn't touch the lid, and Hyprland via the switch binds
+blanks only the internal panel through dpms — an external monitor, if attached, keeps
+working
 
-State is NOT stored in a file: the source of truth is whether the unit is active.
-So the mode lives only within the session, and after a reboot/relogin the laptop
-suspends on the lid again — deliberately, so you don't leave it enabled in a bag
+The mode lives only within the session, and after a reboot/relogin the laptop suspends
+on the lid again — deliberately, so you don't leave it enabled in a bag
 EOF
 }
 
