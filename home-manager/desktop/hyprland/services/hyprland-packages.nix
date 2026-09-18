@@ -18,27 +18,7 @@
     cliphist
     grim
     slurp
-    (pkgs.satty.overrideAttrs (
-      _:
-      let
-        src = pkgs.fetchFromGitHub {
-          owner = "rokokol";
-          repo = "Satty";
-          rev = "feat/image-tool";
-          hash = "sha256-12UXatLyjI/ZliomKHhQjrTF9AFbACzBJEhdoU1ej4Y=";
-        };
-      in
-      {
-        version = "unstable";
-
-        inherit src;
-
-        cargoDeps = pkgs.rustPlatform.fetchCargoVendor {
-          inherit src;
-          hash = "sha256-IzJQ/5yRZrWuM4M9shGm87k7HQkU1p1OiEtCku4+8p0=";
-        };
-      }
-    ))
+    satty
     jq
     curl
     imagemagick
