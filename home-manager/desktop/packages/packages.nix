@@ -129,6 +129,7 @@ in
           # ReVa is a Ghidra extension that is itself the MCP server; agents reach it over
           # http://127.0.0.1:8080/mcp/message while Ghidra runs, so no bridge is packaged beside it
           (ghidra.withExtensions (p: [ p.reva ]))
+          detect-it-easy
 
           # --- Desktop apps ---
           # Keep the NVIDIA-only wrapper separate so the main build remains substitutable; see WORKAROUNDS.md
