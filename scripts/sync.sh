@@ -39,10 +39,10 @@ notify() {
   fi
 }
 
-# Fast-forward every repository under PROJECTS_DIR. Fetching is the slow half and the
-# repositories are independent, so it runs in parallel; merging is local and stays serial
+# Catch every repository under PROJECTS_PATH up to its upstream. Fetching is the slow half and
+# the repositories are independent, so it runs in parallel; moving a branch is local and serial
 sweep_projects() {
-  local dir="${PROJECTS_DIR:-$HOME/Projects}"
+  local dir="$PROJECTS_PATH"
   [ -d "$dir" ] || return 0
 
   local repo behind updated=0 held=0 names=""
@@ -118,6 +118,9 @@ MESSAGE="$*"
 DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"
 export DBUS_SESSION_BUS_ADDRESS
 HUIX_PATH="${HUIX:-$HOME/huix}"
+# Both paths come from the unit's Environment, where the flake spells them once; the fallbacks
+# are for a hand call from a terminal, which inherits neither
+PROJECTS_PATH="${PROJECTS_DIR:-$HOME/Projects}"
 GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh -o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=2}"
 
 export GIT_SSH_COMMAND

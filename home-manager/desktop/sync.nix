@@ -2,6 +2,7 @@
   lib,
   pkgs,
   huixDir,
+  projectsDir,
   ...
 }:
 
@@ -36,6 +37,7 @@ in
         Environment = [
           "PATH=${lib.makeBinPath syncDeps}"
           "HUIX=${huixDir}"
+          "PROJECTS_DIR=${projectsDir}"
         ];
       };
       # Runs when the graphical session starts (after boot / login)

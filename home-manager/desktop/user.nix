@@ -1,6 +1,7 @@
 {
   huixDir,
   myWikiDir,
+  projectsDir,
   rokokolName,
   ...
 }:
@@ -8,7 +9,6 @@
 let
   homeDir = "/home/${rokokolName}";
   downloadsDir = "${homeDir}/Downloads";
-  projectsDir = "${homeDir}/Projects";
   tempDir = "/tmp/Temp";
 in
 {

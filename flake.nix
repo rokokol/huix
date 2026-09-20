@@ -114,6 +114,8 @@
       huixDir = "/home/${rokokolName}/huix";
       # Same on both hosts on purpose: absolute paths into the vault travel through Syncthing
       myWikiDir = "/home/${rokokolName}/myWiki";
+      # Read by two modules that never meet: the XDG bookmarks and the sync unit's sweep
+      projectsDir = "/home/${rokokolName}/Projects";
 
       # Nothing in this repo names a colour: hexes, their bare and rgba spellings and the two
       # terminal schemes all come from ddlc-palette, which reads them off ddlc.moe
@@ -129,6 +131,7 @@
           inputs
           myWikiDir
           palette
+          projectsDir
           rokokolName
           system
           ;
