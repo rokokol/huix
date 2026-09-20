@@ -45,7 +45,7 @@ nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHW
 
 | Host           | Точка входа                                                       | Чем выделяется                                                                                                                            |
 | -------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `nixos-pc`     | `nixos/configuration-pc.nix` + `home-manager/home-pc.nix`         | NVIDIA/CUDA, `ollama-cuda`, SearxNG, виртуализация, печать, планшет, виртуальная камера, Steam, тяжёлый creative-стек, NTFS-маунт `govno` |
+| `nixos-pc`     | `nixos/configuration-pc.nix` + `home-manager/home-pc.nix`         | NVIDIA/CUDA, `ollama-cuda`, SearxNG, виртуализация, печать, планшет, виртуальная камера, Steam, тяжёлый creative-стек |
 | `nixos-laptop` | `nixos/configuration-laptop.nix` + `home-manager/home-laptop.nix` | CPU-only `ollama-cpu`, Bluetooth, powertop, батарея и подсветка в баре, тумблер "крышка не усыпляет"                                      |
 
 ## Карта репозитория

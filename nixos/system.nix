@@ -1,9 +1,9 @@
 { pkgs, rokokolName, ... }:
 
 # Shared system baseline for both hosts. The truly host-specific bits
-# (hostName, user description, govno mounting) live in
-# nixos/<host>/system.nix; membership in groups owned by modules
-# (docker, nvidia, …) stays in those modules themselves
+# (hostName, user description) live in nixos/<host>/system.nix; membership
+# in groups owned by modules (docker, nvidia, …) stays in those modules
+# themselves
 {
   networking.networkmanager.enable = true;
 

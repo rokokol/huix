@@ -50,11 +50,6 @@
     ];
   };
 
-  fileSystems."/home/rokokol/govno" = {
-    device = "/dev/disk/by-uuid/014B8F2D5325F68F";
-    fsType = "ntfs3";
-  };
-
   swapDevices = [ ];
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";

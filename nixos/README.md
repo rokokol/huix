@@ -12,4 +12,3 @@
 
 - `system.stateVersion` зафиксирован на `25.11`
 - `users.users.<имя>.extraGroups` доезжает из нескольких модулей (`system.nix`, `nvidia.nix`, `docker.nix`, `virtualization.nix`)
-- на ПК NTFS-раздел с меткой `govno` монтируется в `/home/rokokol/govno` с `nofail` — отсутствие маунта не ломает boot, но ломает часть `xdg.userDirs`

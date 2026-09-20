@@ -1,4 +1,4 @@
-{ govnoDir, ... }:
+{ rokokolName, ... }:
 
 {
   imports = [
@@ -7,7 +7,7 @@
   ];
 
   rokokol = {
-    home.dataDir = govnoDir;
+    home.dataDir = "/home/${rokokolName}";
 
     btop.withCuda = true;
 
