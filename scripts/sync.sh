@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Needs bash 4.0 for arrays with +=; runs only on this NixOS pair, never on macOS
 # The "[host]" the subject ends up with is put there by scripts/git-hooks/prepare-commit-msg,
 # not by this script
 
@@ -12,9 +13,16 @@ Usage:
   sync.sh                pull --rebase, stage everything, commit "[host] sync <date>", push
   sync.sh "message"      the same, with your own commit subject
   sync.sh --pull-only    fetch + merge --ff-only and nothing else (what sync.service runs)
+  sync.sh --no-projects  skip the Projects sweep, huix only
   sync.sh --help         this help
 
-The history is written by hand. The session/rebuild unit only fast-forwards, so it never
+Both modes end by fast-forwarding every git repository under ~/Projects (PROJECTS_DIR
+overrides it). That sweep only ever fast-forwards: it never rebases, never commits, never
+pushes and never touches a repository that would lose work by moving — one that has no
+upstream, or whose branch has diverged, is counted and left alone. A repository holding a
+.nosync file is skipped before it is even fetched
+
+The huix history is written by hand. The session/rebuild unit only fast-forwards, so it never
 rebases local commits and never touches a dirty tree — when it cannot fast-forward it just
 says so. Staging is -A, so a new file goes up without a separate git add
 EOF
@@ -30,17 +38,66 @@ notify() {
   fi
 }
 
+# Fast-forward every repository under PROJECTS_DIR. Fetching is the slow half and the
+# repositories are independent, so it runs in parallel; merging is local and stays serial
+sweep_projects() {
+  local dir="${PROJECTS_DIR:-$HOME/Projects}"
+  [ -d "$dir" ] || return 0
+
+  local repo behind updated=0 held=0 names=""
+  local -a repos=()
+  for repo in "$dir"/*/; do
+    [ -d "$repo.git" ] || continue
+    # An opt-out for a repository whose fetch is not worth the login: a nixpkgs clone costs
+    # seconds and megabytes to learn it is still a million commits behind
+    [ -e "$repo.nosync" ] && continue
+    # No upstream means nothing to fast-forward to, not a failure worth reporting
+    git -C "$repo" rev-parse --symbolic-full-name '@{u}' >/dev/null 2>&1 || continue
+    repos+=("$repo")
+  done
+  [ "${#repos[@]}" -gt 0 ] || return 0
+
+  # A dead remote must not hold the login hostage, so each fetch carries its own timeout and
+  # a failure only means that repository stays where it is
+  printf '%s\0' "${repos[@]}" |
+    xargs -0 -P 8 -I{} timeout 30 git -C {} fetch --quiet || true
+
+  for repo in "${repos[@]}"; do
+    behind=$(git -C "$repo" rev-list --count 'HEAD..@{u}' 2>/dev/null || echo 0)
+    [ "$behind" -gt 0 ] || continue
+    if git -C "$repo" merge --ff-only '@{u}' >/dev/null 2>&1; then
+      updated=$((updated + 1))
+      names="$names $(basename "$repo")"
+    else
+      # Diverged, or a dirty file in the way: both are the user's call, never ours
+      held=$((held + 1))
+    fi
+  done
+
+  [ "$updated" -gt 0 ] && notify low "Projects: $updated updated (⌒‿⌒)" "${names# }"
+  [ "$held" -gt 0 ] && notify normal "Projects: $held held back (・_・;)" "diverged or dirty — sync them by hand"
+  return 0
+}
+
 MODE=commit
-case "${1:-}" in
-  -h | --help)
-    usage
-    exit 0
-    ;;
-  --pull-only)
-    MODE=pull
-    shift
-    ;;
-esac
+PROJECTS=yes
+while :; do
+  case "${1:-}" in
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    --pull-only)
+      MODE=pull
+      shift
+      ;;
+    --no-projects)
+      PROJECTS=no
+      shift
+      ;;
+    *) break ;;
+  esac
+done
 MESSAGE="$*"
 
 DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"
@@ -49,6 +106,13 @@ HUIX_PATH="${HUIX:-$HOME/huix}"
 GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh -o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=2}"
 
 export GIT_SSH_COMMAND
+
+# On EXIT rather than at the end: huix leaves through five different exits, and a trap cannot
+# forget one of them. It also means a huix failure still lets the other repositories catch up.
+# The handler returns without exiting, so the script's own status survives it
+if [ "$PROJECTS" = yes ]; then
+  trap sweep_projects EXIT
+fi
 
 cd "$HUIX_PATH" || {
   notify critical "No dir $HUIX_PATH 💀"

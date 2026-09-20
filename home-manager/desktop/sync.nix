@@ -11,6 +11,7 @@ let
     git
     libnotify
     coreutils
+    findutils # xargs, which fans the Projects fetches out
     bash
     openssh
   ];
@@ -19,7 +20,7 @@ in
   systemd.user.services = {
     "sync" = {
       Unit = {
-        Description = "Fast-forward the huix repository to upstream (sync.sh --pull-only)";
+        Description = "Fast-forward huix and every repository under ~/Projects (sync.sh --pull-only)";
         After = [
           "graphical-session.target"
           "gcr-ssh-agent.service"
