@@ -1,4 +1,4 @@
-{ huixDir, rokokolName, ... }:
+{ huixDir, ... }:
 
 {
   imports = [
@@ -7,8 +7,6 @@
   ];
 
   rokokol = {
-    home.dataDir = "/home/${rokokolName}";
-
     packages.laptop = true;
 
     hyprland = {

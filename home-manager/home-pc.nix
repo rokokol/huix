@@ -1,4 +1,4 @@
-{ rokokolName, ... }:
+{ ... }:
 
 {
   imports = [
@@ -7,8 +7,6 @@
   ];
 
   rokokol = {
-    home.dataDir = "/home/${rokokolName}";
-
     btop.withCuda = true;
 
     packages.pc = true;
