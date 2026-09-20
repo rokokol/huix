@@ -16,11 +16,12 @@ Usage:
   sync.sh --no-projects  skip the Projects sweep, huix only
   sync.sh --help         this help
 
-Both modes end by fast-forwarding every git repository under ~/Projects (PROJECTS_DIR
-overrides it). That sweep only ever fast-forwards: it never rebases, never commits, never
-pushes and never touches a repository that would lose work by moving — one that has no
-upstream, or whose branch has diverged, is counted and left alone. A repository holding a
-.nosync file is skipped before it is even fetched
+Both modes end by catching every git repository under ~/Projects up to its upstream
+(PROJECTS_DIR overrides the directory). Without local commits it fast-forwards; with them it
+rebases them on top, autostashing a dirty tree, and winds the whole thing back if that would
+conflict. It never commits and never pushes, a repository with no upstream is left alone, and
+one holding a .git/nosync file is skipped before it is even fetched. A name marked * in the
+summary was rebased rather than fast-forwarded
 
 The huix history is written by hand. The session/rebuild unit only fast-forwards, so it never
 rebases local commits and never touches a dirty tree — when it cannot fast-forward it just
@@ -49,8 +50,9 @@ sweep_projects() {
   for repo in "$dir"/*/; do
     [ -d "$repo.git" ] || continue
     # An opt-out for a repository whose fetch is not worth the login: a nixpkgs clone costs
-    # seconds and megabytes to learn it is still a million commits behind
-    [ -e "$repo.nosync" ] && continue
+    # seconds and megabytes to learn it is still a million commits behind. The marker lives
+    # inside .git, where no .gitignore is needed and no status line appears for it
+    [ -e "$repo.git/nosync" ] && continue
     # No upstream means nothing to fast-forward to, not a failure worth reporting
     git -C "$repo" rev-parse --symbolic-full-name '@{u}' >/dev/null 2>&1 || continue
     repos+=("$repo")
@@ -62,14 +64,27 @@ sweep_projects() {
   printf '%s\0' "${repos[@]}" |
     xargs -0 -P 8 -I{} timeout 30 git -C {} fetch --quiet || true
 
+  local ahead
   for repo in "${repos[@]}"; do
     behind=$(git -C "$repo" rev-list --count 'HEAD..@{u}' 2>/dev/null || echo 0)
     [ "$behind" -gt 0 ] || continue
-    if git -C "$repo" merge --ff-only '@{u}' >/dev/null 2>&1; then
+    ahead=$(git -C "$repo" rev-list --count '@{u}..HEAD' 2>/dev/null || echo 0)
+
+    if [ "$ahead" -eq 0 ]; then
+      if git -C "$repo" merge --ff-only '@{u}' >/dev/null 2>&1; then
+        updated=$((updated + 1))
+        names="$names $(basename "$repo")"
+      else
+        # A dirty file standing where the incoming one lands: the user's call, never ours
+        held=$((held + 1))
+      fi
+    elif git -C "$repo" rebase --autostash '@{u}' >/dev/null 2>&1; then
       updated=$((updated + 1))
-      names="$names $(basename "$repo")"
+      names="$names $(basename "$repo")*"
     else
-      # Diverged, or a dirty file in the way: both are the user's call, never ours
+      # A conflicting rebase must not be left half-applied in a background job at login, so
+      # it is wound all the way back and the repository is reported instead
+      git -C "$repo" rebase --abort >/dev/null 2>&1 || true
       held=$((held + 1))
     fi
   done
