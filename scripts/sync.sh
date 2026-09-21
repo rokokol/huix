@@ -45,29 +45,63 @@ sweep_projects() {
   local dir="$PROJECTS_PATH"
   [ -d "$dir" ] || return 0
 
-  local repo behind updated=0 held=0 names=""
+  local repo behind ahead
+  local updated=0 held=0 failed=0
+  local names="" held_names="" failed_names=""
   local -a repos=()
+
   for repo in "$dir"/*/; do
     [ -d "$repo.git" ] || continue
+
     # An opt-out for a repository whose fetch is not worth the login: a nixpkgs clone costs
     # seconds and megabytes to learn it is still a million commits behind. The marker lives
     # inside .git, where no .gitignore is needed and no status line appears for it
     [ -e "$repo.git/nosync" ] && continue
+
     # No upstream means nothing to fast-forward to, not a failure worth reporting
     git -C "$repo" rev-parse --symbolic-full-name '@{u}' >/dev/null 2>&1 || continue
+
     repos+=("$repo")
   done
+
   [ "${#repos[@]}" -gt 0 ] || return 0
 
-  # A dead remote must not hold the login hostage, so each fetch carries its own timeout and
-  # a failure only means that repository stays where it is
-  printf '%s\0' "${repos[@]}" |
-    xargs -0 -P 8 -I{} timeout 30 git -C {} fetch --quiet || true
+  # Parallel fetches cannot mutate our arrays, so failed repository paths are written to a
+  # temporary file and collected afterwards.
+  local failed_file
+  failed_file=$(mktemp)
+  trap 'rm -f "$failed_file"' RETURN
 
-  local ahead
+  export failed_file
+
+  printf '%s\0' "${repos[@]}" |
+    xargs -0 -P 8 -I{} bash -c '
+      repo=$1
+
+      if ! timeout 30 git -C "$repo" fetch --quiet; then
+        name=$(basename "$repo")
+        printf "Fetch failed: %s\n" "$name" >&2
+        printf "%s\n" "$repo" >>"$failed_file"
+      fi
+    ' _ {}
+
+  local -A fetch_failed=()
+  while IFS= read -r repo; do
+    [ -n "$repo" ] || continue
+    fetch_failed["$repo"]=1
+    failed=$((failed + 1))
+    failed_names="$failed_names $(basename "$repo")"
+  done <"$failed_file"
+
   for repo in "${repos[@]}"; do
+    # Do not move a repository when its remote could not be fetched: @{u} may be stale.
+    if [[ -n "${fetch_failed[$repo]:-}" ]]; then
+      continue
+    fi
+
     behind=$(git -C "$repo" rev-list --count 'HEAD..@{u}' 2>/dev/null || echo 0)
     [ "$behind" -gt 0 ] || continue
+
     ahead=$(git -C "$repo" rev-list --count '@{u}..HEAD' 2>/dev/null || echo 0)
 
     if [ "$ahead" -eq 0 ]; then
@@ -75,23 +109,30 @@ sweep_projects() {
         updated=$((updated + 1))
         names="$names $(basename "$repo")"
       else
-        # A dirty file standing where the incoming one lands: the user's call, never ours
         held=$((held + 1))
+        held_names="$held_names $(basename "$repo")"
       fi
     elif git -C "$repo" rebase --autostash '@{u}' >/dev/null 2>&1; then
       updated=$((updated + 1))
       names="$names $(basename "$repo")*"
     else
-      # A conflicting rebase must not be left half-applied in a background job at login, so
-      # it is wound all the way back and the repository is reported instead
       git -C "$repo" rebase --abort >/dev/null 2>&1 || true
-      echo "error: $repo"
       held=$((held + 1))
+      held_names="$held_names $(basename "$repo")"
     fi
   done
 
-  [ "$updated" -gt 0 ] && notify low "Projects: $updated updated (⌒‿⌒)" "${names# }"
-  [ "$held" -gt 0 ] && notify normal "Projects: $held held back (・_・;)" "diverged or dirty — sync them by hand"
+  [ "$updated" -gt 0 ] &&
+    notify low "Projects: $updated updated (⌒‿⌒)" "${names# }"
+
+  [ "$held" -gt 0 ] &&
+    notify normal "Projects: $held held back (・_・;)" \
+      "${held_names# }"$'\n'"diverged, conflicting or dirty — sync them by hand"
+
+  [ "$failed" -gt 0 ] &&
+    notify normal "Projects: $failed fetch failed (╥﹏╥)" \
+      "${failed_names# }"
+
   return 0
 }
 
