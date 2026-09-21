@@ -17,11 +17,12 @@ Usage:
   sync.sh --help         this help
 
 Both modes end by catching every git repository under ~/Projects up to its upstream
-(PROJECTS_DIR overrides the directory). Without local commits it fast-forwards; with them it
-rebases them on top, autostashing a dirty tree, and winds the whole thing back if that would
-conflict. It never commits and never pushes, a repository with no upstream is left alone, and
-one holding a .git/nosync file is skipped before it is even fetched. A name marked * in the
-summary was rebased rather than fast-forwarded
+(PROJECTS_DIR overrides the directory). The search is recursive, but stops at the first
+directory containing .git. Without local commits it fast-forwards; with them it rebases them on
+top, autostashing a dirty tree, and winds the whole thing back if that would conflict. It never
+commits and never pushes, a repository with no upstream is left alone, and one holding a
+.git/nosync file is skipped before it is even fetched. A name marked * in the summary was
+rebased rather than fast-forwarded
 
 The huix history is written by hand. The session/rebuild unit only fast-forwards, so it never
 rebases local commits and never touches a dirty tree — when it cannot fast-forward it just
@@ -50,19 +51,22 @@ sweep_projects() {
   local names="" held_names="" failed_names=""
   local -a repos=()
 
-  for repo in "$dir"/*/; do
-    [ -d "$repo.git" ] || continue
+  collect_repos() {
+    local current_dir=$1 child
 
-    # An opt-out for a repository whose fetch is not worth the login: a nixpkgs clone costs
-    # seconds and megabytes to learn it is still a million commits behind. The marker lives
-    # inside .git, where no .gitignore is needed and no status line appears for it
-    [ -e "$repo.git/nosync" ] && continue
+    [ -e "$current_dir/.git" ] && {
+      git -C "$current_dir" rev-parse --symbolic-full-name '@{u}' >/dev/null 2>&1 || return 0
+      [ -e "$current_dir/.git/nosync" ] || repos+=("$current_dir")
+      return 0
+    }
 
-    # No upstream means nothing to fast-forward to, not a failure worth reporting
-    git -C "$repo" rev-parse --symbolic-full-name '@{u}' >/dev/null 2>&1 || continue
+    for child in "$current_dir"/*/ "$current_dir"/.[!.]*/ "$current_dir"/..?*/; do
+      [ -d "$child" ] || continue
+      collect_repos "$child"
+    done
+  }
 
-    repos+=("$repo")
-  done
+  collect_repos "$dir"
 
   [ "${#repos[@]}" -gt 0 ] || return 0
 
