@@ -6,6 +6,6 @@
   hardware.bluetooth.powerOnBoot = true;
   services.blueman.enable = true;
 
-  # --- Other ___
+  # --- Other ---
   powerManagement.powertop.enable = true;
 }
