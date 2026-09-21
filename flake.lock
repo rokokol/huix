@@ -7,11 +7,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1789991076,
-        "narHash": "sha256-n2kR/ViiXntiOgR6ZmHvWhhkbEK1p+bIgnivSR9aOsM=",
+        "lastModified": 1790000716,
+        "narHash": "sha256-hOXBiNFvxwXz5RJQj31NElB9nSk0nr4UBBBW8mHLnlw=",
         "owner": "rokokol",
         "repo": "claude-account",
-        "rev": "a3615e09696f46c881ab9fb822074c772f8d3273",
+        "rev": "fb191510c7f7cd8215a8ff0d4d01d3e59358b32b",
         "type": "github"
       },
       "original": {
@@ -30,11 +30,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1789992945,
-        "narHash": "sha256-OFsNyriXaFMvJkvoo2nMv9+n1xp7/rnmotrT0+OOS6s=",
+        "lastModified": 1790000716,
+        "narHash": "sha256-iJgc23ZK75IrazjaCKXYjxqqwxL2eNV1xP1+BEsOSBo=",
         "owner": "rokokol",
         "repo": "ddlc-hyprlock",
-        "rev": "2dac09144a40a184fcaef7d94d6dc68fa236ccbc",
+        "rev": "2764a08dcd47875c5f44123cb32ba448e1a5dd1c",
         "type": "github"
       },
       "original": {
@@ -53,11 +53,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1789989362,
-        "narHash": "sha256-vnbPbzB1A+jfwlkidwswDIVHCcT+pM/0z5s7zOaxLLo=",
+        "lastModified": 1790000716,
+        "narHash": "sha256-Pt2olHTkLpcAXMLEpmfwbKfeR1n0eYH+ICFo++2HIi0=",
         "owner": "rokokol",
         "repo": "ddlc.nvim",
-        "rev": "5f9ceea8c0c9e1a41446059a5b129f31d2193b3b",
+        "rev": "18e6184f3b3b8397ae2cd0a36b15066d07d495f8",
         "type": "github"
       },
       "original": {
@@ -96,11 +96,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1789989761,
-        "narHash": "sha256-R9dV7VtXzpMVB2vuGouBJpqEOW4SkXGUX7+Fp1Wgo28=",
+        "lastModified": 1790000716,
+        "narHash": "sha256-W6y3ayN47bfghFsY8mGjRWkSDKGW7ZvIGWIFNG4Hvss=",
         "owner": "rokokol",
         "repo": "ddlc-rofi-theme",
-        "rev": "b82ab308dad7575ca2b7f672e88fb42f57e837b0",
+        "rev": "3d67614ce7950b8f04f818901a5d85a32876313c",
         "type": "github"
       },
       "original": {
@@ -119,11 +119,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1789993747,
-        "narHash": "sha256-obis+gfV6zR+KphF+I05jwzFKWCVrIa95ZC/LBB8iMY=",
+        "lastModified": 1790000716,
+        "narHash": "sha256-lespKn33LjFsz29UI1f7Xq7X8a8nqFmxzK9JbcjoMwo=",
         "owner": "rokokol",
         "repo": "ddlc-sddm-theme",
-        "rev": "c725cb122373e42e9a1db4aebcc1c47a9270765b",
+        "rev": "b485098f9c4ef2351f3085a49766c3201d420d25",
         "type": "github"
       },
       "original": {
@@ -142,11 +142,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1789992778,
-        "narHash": "sha256-usUqXTK6hFZDjVnKFdMbeS3wCcBDHDsGqb3FMI9w+ZM=",
+        "lastModified": 1790000716,
+        "narHash": "sha256-Na+uy6NmCqsakW5MDD/R1PTj1xOGCEb48zHgYp2/tHA=",
         "owner": "rokokol",
         "repo": "ddlc-themes",
-        "rev": "a3f4541d9b67f88a09c483e5d374c5b706d4a12c",
+        "rev": "1b375709d6708c66affb3c4e2a9d1fc5a34b347c",
         "type": "github"
       },
       "original": {
@@ -241,11 +241,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1789991948,
-        "narHash": "sha256-rOYDRCmVv2wLa4/vK1n8w2I/tmAcAvyIbZkjdLfU3rg=",
+        "lastModified": 1790000716,
+        "narHash": "sha256-qELUwJRQHbgZqw1zVcfc/IXwvxJtOhok4JwKF8csnaA=",
         "owner": "rokokol",
         "repo": "hyprland-screen-shader",
-        "rev": "8feb1971a96ec6e6eebd08ebad982147069dd521",
+        "rev": "9504452c39412ea3960c0ae191f6dc9b90802e06",
         "type": "github"
       },
       "original": {
@@ -454,11 +454,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1789983829,
-        "narHash": "sha256-aYCR08Slj+j9Z7hH8CAUXCZlF3TuGxr8XR5U35dYW50=",
+        "lastModified": 1790000716,
+        "narHash": "sha256-dCEe7EaxbbvU76kuWYHvXpZa5KDAoaBr4+1TAOMwXso=",
         "owner": "rokokol",
         "repo": "rofi-wooordhunt",
-        "rev": "6e2b3474f0a614c94a022a6a7f9afdda8dbe1202",
+        "rev": "a284dc862197de0cd9cf53547d0d682c1d8d6ec0",
         "type": "github"
       },
       "original": {
@@ -616,11 +616,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1789993938,
-        "narHash": "sha256-ILFz1RWJKBTDosNeE6tTkwjmhxIEaoVH3SlqIegSKgg=",
+        "lastModified": 1790000716,
+        "narHash": "sha256-h6QO3y/ksk9K+/R+YCN4TTmxXDGD+t1m6cHpWDPrUu8=",
         "owner": "rokokol",
         "repo": "virtual-media-devices",
-        "rev": "9b8e2d92a5e9151af7f4c00bd21b42bb37ee0dd8",
+        "rev": "1c19d05c37a818ed1e5ca4ef23748d7a94eb337d",
         "type": "github"
       },
       "original": {
