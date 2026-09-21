@@ -85,7 +85,7 @@ sweep_projects() {
       # A conflicting rebase must not be left half-applied in a background job at login, so
       # it is wound all the way back and the repository is reported instead
       git -C "$repo" rebase --abort >/dev/null 2>&1 || true
-      echo $repo
+      echo "error: $repo"
       held=$((held + 1))
     fi
   done
