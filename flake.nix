@@ -137,6 +137,15 @@
           ;
       };
 
+      # The palette is one node only because every ddlc-* input follows it. A forgotten
+      # follows appears as a suffixed second node and as nothing else, and the colours then
+      # diverge silently. This reads flake.lock as the JSON it is, forces no input and
+      # reaches no network, so every rebuild and every `nix eval` asks it. A guard that
+      # lives in CI answers after the work has left the machine
+      paletteNodes = builtins.filter (n: builtins.match "ddlc-palette(_[0-9]+)?" n != null) (
+        builtins.attrNames (builtins.fromJSON (builtins.readFile ./flake.lock)).nodes
+      );
+
       nixpkgsConfig = {
         allowUnfree = true;
         # CUDA codegen target for this GPU (RTX 3060 = sm_86) — change on GPU swap
@@ -193,6 +202,9 @@
           ];
         };
     in
+    assert
+      paletteNodes == [ "ddlc-palette" ]
+      || throw "flake.lock holds ${builtins.concatStringsSep ", " paletteNodes} — an input is missing its ddlc-palette.follows";
     {
       nixosConfigurations.nixos-pc = mkHost {
         configuration = ./nixos/configuration-pc.nix;
