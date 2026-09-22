@@ -13,5 +13,5 @@
   # The agent that answers these prompts is hyprpolkitagent, started from hyprland.conf
   security.polkit.enable = true;
 
-  services.xserver.excludePackages = [ pkgs.xterm ];
+  services.xserver.excludePackages = with pkgs; [ xterm ];
 }

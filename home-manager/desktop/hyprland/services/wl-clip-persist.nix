@@ -4,7 +4,7 @@
 # alongside the other graphical-session units (mako, hypridle, swayosd) rather
 # than in nixos/. wl-clipboard (wl-copy/wl-paste) comes from other HM modules
 {
-  home.packages = [ pkgs.wl-clip-persist ];
+  home.packages = with pkgs; [ wl-clip-persist ];
 
   systemd.user.services.wl-clip-persist = {
     Unit = {

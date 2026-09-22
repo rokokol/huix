@@ -1,7 +1,7 @@
 { pkgs, ... }:
 
 {
-  environment.systemPackages = [ pkgs.cachix ];
+  environment.systemPackages = with pkgs; [ cachix ];
 
   # The tunnel's IPv6 route to Yandex's AS resets the TLS handshake (other IPv6 hosts work
   # fine); pin IPv4 to skip it

@@ -3,7 +3,7 @@
 let
   antigravity-cli-patched = pkgs.antigravity-cli.overrideAttrs (oldAttrs: {
     pname = "antigravity-cli-patched";
-    nativeBuildInputs = oldAttrs.nativeBuildInputs ++ [ pkgs.perl ];
+    nativeBuildInputs = oldAttrs.nativeBuildInputs ++ (with pkgs; [ perl ]);
     postFixup = (oldAttrs.postFixup or "") + ''
       grep -aq 'ineligible' "$out/bin/agy"
       perl -0pi -e 's/ineligible/inexigible/g' "$out/bin/agy"

@@ -75,7 +75,7 @@ in
       langremap = true;
     };
 
-    extraPlugins = [ pkgs.vimPlugins.langmapper-nvim ];
+    extraPlugins = with pkgs; [ vimPlugins.langmapper-nvim ];
 
     extraConfigLua = ''
       local ok, lm = pcall(require, 'langmapper')

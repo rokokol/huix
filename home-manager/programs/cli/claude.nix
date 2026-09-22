@@ -2,7 +2,7 @@
 
 # Profile switching and shared OpenCode config live in rokokol/claude-account
 {
-  home.packages = [ pkgs.claude-code ];
+  home.packages = with pkgs; [ claude-code ];
 
   programs.claude-account = {
     enable = true;

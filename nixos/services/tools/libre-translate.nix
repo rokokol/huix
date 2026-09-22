@@ -59,7 +59,7 @@ in
     };
   };
 
-  environment.systemPackages = [ pkgs.libretranslate ];
+  environment.systemPackages = with pkgs; [ libretranslate ];
 
   environment.sessionVariables = {
     LIBRE_TRANSLATE_PORT = port;
