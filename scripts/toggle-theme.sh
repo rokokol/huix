@@ -165,8 +165,8 @@ help | -h | --help)
   ;;
 esac
 
-# The toggle flips relative to the saved choice, and dconf is not re-queried
-# detect_theme_state is needed only on the first run, when the state file doesn't
+# The toggle flips relative to the saved choice, and dconf is not re-queried.
+# detect_theme_state is needed only on the first run, when the state file does not
 # exist yet (unset → as before via sync=light: net result dark)
 case "$(read_state)" in
 dark) current="dark" ;;

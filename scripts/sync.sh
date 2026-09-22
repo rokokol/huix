@@ -71,8 +71,8 @@ sweep_projects() {
 
   [ "${#repos[@]}" -gt 0 ] || return 0
 
-  # Parallel fetches cannot mutate our arrays, so failed repository paths are written to a
-  # temporary file and collected afterwards.
+  # Parallel fetches cannot mutate the caller's arrays, so failed repository paths are
+  # written to a temporary file and collected afterwards.
   local failed_file
   failed_file=$(mktemp)
   trap 'rm -f "$failed_file"' RETURN
