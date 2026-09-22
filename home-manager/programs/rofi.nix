@@ -36,8 +36,8 @@
     };
   };
 
-  # The theme and its light/dark switch live in rokokol/ddlc-rofi-theme; only the fonts
-  # are ours, because it ships none. toggle-theme.sh calls ddlc-rofi-theme on SUPER+A
+  # The theme and its light/dark switch come from rokokol/ddlc-rofi-theme; only the fonts
+  # are set here, because it ships none. toggle-theme.sh calls ddlc-rofi-theme on SUPER+A
   # No config.rasi and no configPath override: rofi resolves a theme name in
   # ~/.config/rofi/themes by itself, which is where the module puts both variants
   ddlc.rofi = {

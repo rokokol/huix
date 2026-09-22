@@ -132,7 +132,8 @@ in
           detect-it-easy
 
           # --- Desktop apps ---
-          # Keep the NVIDIA-only wrapper separate so the main build remains substitutable; see WORKAROUNDS.md
+          # Keep the NVIDIA-only wrapper separate, so the main build remains
+          # substitutable — see WORKAROUNDS.md
           (symlinkJoin {
             name = "bambu-studio-nvidia";
             paths = [ bambu-studio ];

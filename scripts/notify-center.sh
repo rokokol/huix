@@ -95,7 +95,7 @@ cmd_status() {
 
 # The field separator is exactly \x1f, NOT a tab: entries without an icon have an
 # empty middle field, and TAB is IFS-whitespace, so bash collapses consecutive
-# whitespace separators and loses empty fields. We strip \x1f from the text itself
+# whitespace separators and loses empty fields. The \x1f is stripped from the text itself
 cmd_menu() {
   feed_json | jq -r '
     .[] | [

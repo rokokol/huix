@@ -8,7 +8,8 @@
 let
   nixSnowflakeIcon = "https://wiki.nixos.org/favicon.ico";
 
-  # Ministry of Digital Development CAs, vendored because gu-st.ru drops the TLS handshake from non-RU addresses
+  # Ministry of Digital Development CAs, vendored here: gu-st.ru drops the TLS handshake
+  # from addresses outside Russia
   # root SHA-256 D2:6D:2D:02:31:B7:C3:9F:92:CC:73:85:12:BA:54:10:35:19:E4:40:5D:68:B5:BD:70:3E:97:88:CA:8E:CF:31, valid until 2032-02-27
   # sub  SHA-256 BB:BD:E2:10:3E:79:0B:99:9E:C6:2B:D0:3C:F6:25:A5:A2:E7:C3:16:E1:0A:FE:6A:49:0E:ED:EA:D8:B3:FD:9B, valid until 2027-03-06
   russianTrustedRootCA = pkgs.writeText "russian-trusted-root-ca.pem" ''
@@ -97,8 +98,10 @@ in
     programs.zen-browser = {
       enable = true;
 
-      # Zen keeps its own NSS store and never reads /etc/ssl/certs, so the trust anchors come in through policies.json
-      # Disabling the policy clears trust but leaves imported entries behind. Close Zen, then purge both with:
+      # Zen keeps its own NSS store and never reads /etc/ssl/certs. The trust anchors come
+      # in through policies.json
+      # A disabled policy clears trust but leaves imported entries behind. Close Zen, then
+      # purge both with:
       # for kind in Root Sub; do
       #   nix shell nixpkgs#nssTools --command certutil -D -d sql:$HOME/.config/zen/default \
       #     -n "Russian Trusted $kind CA - The Ministry of Digital Development and Communications"

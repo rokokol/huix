@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
-# Pins a selected region above all windows: grim screenshot → swayimg (class desktop-pin, float rules in hyprland.conf)
-# Position via hyprctl, not swayimg flags: swayimg 5.4 ignores --position/--size on Hyprland fractional scale
+# Pins a selected region above all windows: a grim screenshot into swayimg, class
+# desktop-pin, with float rules in hyprland.conf
+# Position via hyprctl, not swayimg flags: swayimg 5.4 ignores --position and --size on
+# a Hyprland fractional scale
 
 GEOM=$(slurp -b ffffff66 -w 1 -f "%x %y %w %h")
 [ -z "$GEOM" ] && exit 0

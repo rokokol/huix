@@ -75,7 +75,7 @@ read_current_scheme() {
 }
 
 # libadwaita ignores gtk-theme-name; it only reads ~/.config/gtk-4.0/gtk.css.
-# Colours alone recolour it — assets are for the full sheet we deliberately skip
+# Colours alone recolour it — assets are for the full sheet, which is deliberately skipped
 set_libadwaita_css() {
   local src="$1"
   local dst="${XDG_CONFIG_HOME:-$HOME/.config}/gtk-4.0"
@@ -85,7 +85,7 @@ set_libadwaita_css() {
   rm -f "$dst/assets"
 
   # to make swayosd notice the changes. Best-effort on purpose: aborting here would
-  # leave the state file disagreeing with the dconf we have already written
+  # leave the state file disagreeing with the dconf already written
   systemctl --user restart swayosd || notify_error "swayosd restart failed"
 }
 
@@ -165,7 +165,7 @@ help | -h | --help)
   ;;
 esac
 
-# The toggle flips relative to the saved choice; we don't re-query dconf
+# The toggle flips relative to the saved choice, and dconf is not re-queried
 # detect_theme_state is needed only on the first run, when the state file doesn't
 # exist yet (unset → as before via sync=light: net result dark)
 case "$(read_state)" in

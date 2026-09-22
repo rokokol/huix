@@ -9,8 +9,9 @@ let
   gruvbox = pkgs.callPackage ./gruvbox-gtk-theme.nix { };
 in
 {
-  # gtk-theme is toggled by toggle-theme.sh at runtime, so we don't pin the theme
-  # name declaratively — we only install the package (gruvbox-gtk-theme below ships both variants)
+  # toggle-theme.sh flips gtk-theme at runtime, so the theme name is not pinned
+  # declaratively. Only the package is installed, and gruvbox-gtk-theme below ships both
+  # variants
   gtk = {
     enable = true;
 
@@ -19,7 +20,7 @@ in
       package = pkgs.mint-y-icons;
     };
 
-    # We write gtk-theme-name ONLY to settings.ini (via extraConfig), NOT to dconf.
+    # gtk-theme-name is written ONLY to settings.ini (via extraConfig), NOT to dconf
     # This is the baseline theme for apps that don't hook into the GtkSettings↔dconf bridge
     gtk3.extraConfig = {
       gtk-application-prefer-dark-theme = 0;

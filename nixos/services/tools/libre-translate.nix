@@ -39,7 +39,7 @@ in
       Type = "oneshot";
       User = "libretranslate";
       Group = "libretranslate";
-      # Cheap probe: the argos model index is unreachable, so we are offline
+      # Cheap probe: an unreachable argos model index means the host is offline
       ExecCondition = "${pkgs.curl}/bin/curl -sfm 10 -o /dev/null https://raw.githubusercontent.com/argosopentech/argospm-index/main/index.json";
       ExecStart = updateScript;
       # Restart the server so it picks up the refreshed models

@@ -7,8 +7,8 @@
   # Deepcool hardware support
   services.hardware.deepcool-digital-linux.enable = true;
 
-  # Touchpad support; disable for the sake of the graphics tablet
-  # services.xserver.libinput.enable = true;
+  # libinput reads the graphics tablet as a touchpad, so it is off on this host
+  services.libinput.enable = false;
 
   services.udev.extraRules = ''
     # For Vial to work correctly

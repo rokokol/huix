@@ -19,7 +19,7 @@ in
       exec = "${huixDir}/scripts/notify-center.sh status";
       return-type = "json";
       format = "{}";
-      # The signal covers our actions, the interval covers incoming notifications:
+      # The signal covers actions taken here, the interval covers incoming notifications:
       # mako has no "on new notification" hook
       interval = 5;
       signal = notifSignal;

@@ -30,7 +30,7 @@ stdenvNoCC.mkDerivation {
       --replace-fail '$default-dark: $blue-dark;' '$default-dark: #6C4681;'
   '';
 
-  # Default install ships Light/Dark (+hdpi/xhdpi), which is all we toggle between
+  # Default install ships Light/Dark (+hdpi/xhdpi), which is the whole set the toggle uses
   installPhase = ''
     runHook preInstall
     mkdir -p $out/share/themes

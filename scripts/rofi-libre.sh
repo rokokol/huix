@@ -9,7 +9,8 @@ print_message() {
   printf '\0message\x1f%s\n' "$1"
 }
 
-# Errors are entries too, so Enter on one copies the text — keep the kaomoji out of it, in the message line
+# Errors are entries too, so Enter on one copies the text. Keep the kaomoji out of it,
+# in the message line
 fail() {
   print_message "Translation failed ┬┴┬┴┤(･_├┬┴┬┴"
   echo "✖ $1"
@@ -56,6 +57,6 @@ if [[ -z "$translation" ]]; then
   fail "$(jq -r '.error // "Translation error"' <<<"$response")"
 fi
 
-# Print the result with a prefix so we can catch it on the next Enter
+# Print the result with a prefix so it can be caught on the next Enter
 print_message "From \"$USER_INPUT\" o(^▽^)o"
 echo "✔ $translation"

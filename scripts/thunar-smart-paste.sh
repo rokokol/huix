@@ -41,7 +41,8 @@ elif grep -qx 'text/plain' <<<"$types"; then
   ext="txt"
   mime="text/plain"
 elif grep -qx 'text/uri-list' <<<"$types"; then
-  # clipboard = a file copy; on purpose we write the path as a text file rather than copying the file
+  # clipboard = a file copy; the path is written as a text file on purpose, rather than
+  # the file being copied
   base="text"
   ext="txt"
   mime="text/uri-list"
