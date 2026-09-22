@@ -10,7 +10,7 @@ The following are derived from or contain official DDLC assets:
 
 | Path                                                                       | What                                               |
 | -------------------------------------------------------------------------- | -------------------------------------------------- |
-| `nixos/fonts/doki.otf`, `Doki_patched.ttf`, `DokiNerdFontMono-Regular.otf` | the in-game font, and a Nerd-patched variant of it |
+| `nixos/fonts/doki.otf`, `doki-patched.ttf`, `doki-nerd-font-mono-regular.otf` | the in-game font, and a Nerd-patched variant of it |
 
 The greeter sprites and the greeter cursor left with the theme — they live in [rokokol/ddlc-sddm-theme](https://github.com/rokokol/ddlc-sddm-theme) now, under the same conditions. The lock screen's background, its dialog box and every line it types went the same way, into [rokokol/ddlc-hyprlock](https://github.com/rokokol/ddlc-hyprlock)
 
@@ -26,7 +26,7 @@ It is not my artwork and it is not the greeter cursor — that one is cut from t
 
 ## Other bundled fonts
 
-`nixos/fonts/DepartureMono*` — [Departure Mono](https://departuremono.com/), Nerd Fonts patched. Check the upstream licence before redistributing
+`nixos/fonts/departure-mono-*` — [Departure Mono](https://departuremono.com/), Nerd Fonts patched. Check the upstream licence before redistributing
 
 ## Everything else
 
