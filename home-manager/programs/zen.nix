@@ -114,6 +114,20 @@ in
       profiles.default = {
         isDefault = true;
 
+        settings = {
+          # Region and location spoofing/pinning
+          "browser.region.update.enabled" = false;
+          "browser.region.network.scan" = false;
+          "browser.search.region" = "SE";
+          "doh-rollout.home-region" = "SE";
+
+          # Prevent websites from asking/querying HTML5 Geolocation API
+          "geo.enabled" = false;
+
+          # Preferred content languages
+          "intl.accept_languages" = "ru-RU, ru, en-US, en";
+        };
+
         mods = [
           "03a8e7ef-cf00-4f41-bf24-a90deeafc9db" # colorful picker
           "a6335949-4465-4b71-926c-4a52d34bc9c0" # better search

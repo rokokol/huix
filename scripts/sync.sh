@@ -43,9 +43,6 @@ notify() {
 # Catch every repository under PROJECTS_PATH up to its upstream. Fetching is the slow half and
 # the repositories are independent, so it runs in parallel; moving a branch is local and serial
 sweep_projects() {
-  local dir="$PROJECTS_PATH"
-  [ -d "$dir" ] || return 0
-
   local repo behind ahead
   local updated=0 held=0 failed=0
   local names="" held_names="" failed_names=""
@@ -66,7 +63,11 @@ sweep_projects() {
     done
   }
 
-  collect_repos "$dir"
+  local path_entry
+  IFS=':' read -ra path_entries <<< "$PROJECTS_PATH"
+  for path_entry in "${path_entries[@]}"; do
+    [ -d "$path_entry" ] && collect_repos "$path_entry"
+  done
 
   [ "${#repos[@]}" -gt 0 ] || return 0
 

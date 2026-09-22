@@ -37,7 +37,7 @@ in
         Environment = [
           "PATH=${lib.makeBinPath syncDeps}"
           "HUIX=${huixDir}"
-          "PROJECTS_DIR=${projectsDir}"
+          "PROJECTS_DIR=${projectsDir}:/home/rokokol/.local/share/claude-shared/skills"
         ];
       };
       # Runs when the graphical session starts (after boot / login)
