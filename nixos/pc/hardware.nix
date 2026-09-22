@@ -1,4 +1,4 @@
-{ ... }:
+_:
 
 {
   # CPU frequency control

@@ -1,4 +1,4 @@
-{ ... }:
+_:
 
 {
   # Power key → Hyprland (XF86PowerOff → rofi-power.sh); without ignore logind would poweroff

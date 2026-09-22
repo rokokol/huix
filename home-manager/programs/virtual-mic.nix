@@ -1,4 +1,4 @@
-{ ... }:
+_:
 
 # The camera half is a system concern (kernel module) and lives in configuration-pc.nix
 {

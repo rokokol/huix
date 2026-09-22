@@ -1,4 +1,4 @@
-{ ... }:
+_:
 
 # gcr's agent instead of OpenSSH's: it keeps key passphrases in the keyring from
 # gnome-keyring.nix and asks through its own GTK prompt, so a passphrase is typed once ever

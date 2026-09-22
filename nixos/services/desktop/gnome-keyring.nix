@@ -1,4 +1,4 @@
-{ ... }:
+_:
 
 # Secret Service for libsecret clients — Geary keeps its IMAP passwords here and refuses to
 # store them without one. The module wires pam_gnome_keyring into "login", which SDDM's own

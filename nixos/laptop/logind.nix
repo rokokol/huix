@@ -1,4 +1,4 @@
-{ ... }:
+_:
 
 {
   # "no" makes inhibitor locks effective: lid-mode.sh (SUPER+SHIFT+A) can block lid suspend;
