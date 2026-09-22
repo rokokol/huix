@@ -36,7 +36,7 @@ There is no per-module test, and no check builds a host closure: `ollama-cuda` m
 
 ## Architecture you must internalize
 
-1. **One flake, two systems.** `flake.nix` defines `nixosConfigurations.nixos-pc` and `nixosConfigurations.nixos-laptop`. There is no separate Home Manager deployment — HM is loaded as a NixOS module with `useGlobalPkgs = true`, so both layers share one package set and overlays. The consequence: `nixpkgs.config` and `nixpkgs.overlays` set inside an HM module are **ignored**, so all package and overlay config lives in `flake.nix`
+1. **One flake, two systems.** `flake.nix` defines `nixosConfigurations.nixos-pc` and `nixosConfigurations.nixos-laptop`. There is no separate Home Manager deployment — HM is loaded as a NixOS module with `useGlobalPkgs = true`. What that setting does to `nixpkgs.*` inside an HM module is the skill's `references/modules.md`; the consequence here is that all package and overlay config lives in `flake.nix` and nowhere else
 
 2. **Two package sources, always be explicit which one you use.** `pkgs` is `nixos-unstable`; `pkgs.stable` is the last release, exposed by `overlay-stable` on both hosts. Mixing them silently rebuilds huge ML stacks. CUDA workloads come from dedicated attrs (`ollama-cuda`, `btop-cuda`), never a global `cudaSupport` overlay — `cudaCapabilities = [ "8.6" ]` in `nixpkgsConfig` narrows codegen to this GPU without enabling it, and it only reaches a derivation whose `cudaSupport` is already on. **Torch does not come from nixpkgs at all**: the CUDA wheels there disagree on their CUDA version across `torch` / `torchvision` / `torchaudio`, and every consumer of them (ComfyUI, Open WebUI, Jupyter) runs in Docker instead — `hardware.nvidia-container-toolkit.enable` in `nixos/pc/nvidia.nix` is what makes that work
 
@@ -62,17 +62,20 @@ Package layering follows the same split: system packages and feature toggles in 
 
 ## Style
 
-The global rules (straight quotes, one-line comments, no trailing period, no hard-wrapped Markdown) apply here too and are not repeated. `nix fmt` (`nixfmt-tree`) owns layout — indentation, line breaks, list wrapping — and CI runs it with `--ci`, so nothing about layout is written down here. What follows is what the formatter cannot check:
+The global rules (straight quotes, one-line comments, no trailing period, no hard-wrapped Markdown) apply here too and are not repeated. `nix fmt` (`nixfmt-tree`) owns layout. The [nix-best-practices](https://github.com/rokokol/nix-best-practices-skill) skill owns everything the formatter cannot check, and its `check-nix.sh` decides the half a machine can: the order and the line shape of a module's arguments, where a file comment sits, kebab-case names, `pkgs.lib` beside a `lib` argument, a `default.nix` that binds anything but `imports`, a lookup path, a derivation with no `meta`, a list of nothing but `pkgs` attributes, an option under a prefix this repository has not claimed. It arrives as a flake input, so no copy of it lives here:
 
-- **Module arguments in a fixed order**: the standard ones first (`config`, `lib`, `pkgs`, `osConfig`), then the `commonArgs` extras alphabetically, then `...`. Up to two named arguments go on one line (`{ config, lib, ... }:`), three or more one per line — nixfmt preserves either form, so it is on you
-- **A file-level comment sits after the argument header**, immediately before the body `{`, with no blank line between. Attribution for vendored third-party work goes above the header instead, like a licence header — `theme/cursor.nix` credits its author there, and `theme/gruvbox-gtk-theme.nix` and `waybar/style.nix`, which are not modules, keep theirs on line 1 as well. The generated `hardware-configuration.nix` pair is not touched at all
-- **Prose comments wrap at 100 columns**, `imports` comes first in the body, single-element lists stay inline unless nixfmt wraps them, and `cfg = config.rokokol.<name>` is bound only when the config is read more than once — a `let` for a single reference is noise
-- **`inherit x`, never `x = x`**; **`lib.mkForce`, never `pkgs.lib.mkForce`** when `lib` is already an argument. `with lib;` is not used anywhere — call `lib.*` by name
-- **All repo files are kebab-case**, including assets — no `snake_case`, `CamelCase` or spaces. When renaming, `git mv` and grep the whole tree for references (they live in `.nix`, `.sh`, `.conf`, README). Deliberate exceptions: conventional root metadata (`README.md`, `CLAUDE.md`, `LICENSE`, `ASSETS.md`, `WORKAROUNDS.md`, `DEVIATIONS.md`, `PITFALLS.md`) and the vendored fonts under `nixos/fonts/`, which are canonical branding and referenced by glob
-- **All text is English** — prose comments and every user-facing string (notify-send, rofi prompts, `usage()`, waybar tooltips). The sole exception is `README.md` files, which stay in Russian
-- **No dates in comments.** Don't anchor a comment to a moment ("removed on 2026-07-22") — state the durable reason instead ("removed from nixpkgs because it needed GTK2"). Version pins live in `flake.lock`, not in prose
-- Small composable modules over monoliths; `default.nix` is reserved for aggregators that only do `imports = [ ... ]`
-- Prefer flake-pure patterns — no `nix-channel`, `NIX_PATH`, `<nixpkgs>`
+```sh
+nix flake check              # among other things, checks.nix-lint — the checker in a build sandbox
+nix run .#check-nix -- -N rokokol   # the whole checker, including what the sandbox cannot reach
+```
+
+**Comments.** The rules live in the [code-comments](https://github.com/rokokol/code-comments-skill) skill and are not restated here. Its `check-comments.sh` decides the half a machine can — the 100-column width, a `TODO`/`FIXME`/`XXX`/`HACK` marker, a non-English alphabet, an invisible character, commented-out code where the language offers a live way to switch a thing off, a comment anchored to a moment rather than to its durable reason, and a comment that retells `WORKAROUNDS.md` or `CLAUDE.md` instead of pointing at it. It reads comments out of each file's syntax tree, so a `#` inside a Nix string is never mistaken for one
+
+What neither checker can know, because it is this repository's own:
+
+- **`cfg = config.rokokol.<name>` is bound only when the config is read more than once** — a `let` for a single reference is noise
+- **All user-facing text is English** — every notify-send, rofi prompt, `usage()` and waybar tooltip. The sole exception is `README.md` files, which stay in Russian
+- **`check-nix.allow` carries the exceptions**, one line each, and an entry that excuses nothing is itself a finding. There is one: the X11 cursor names under `assets/sayori-cursor-v2/cursors/`, which are a protocol rather than a choice
 - Don't touch `system.stateVersion` / `home.stateVersion` unless doing an explicit migration
 
 ## Committing
