@@ -270,6 +270,26 @@
         "type": "github"
       }
     },
+    "nix-best-practices": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1790089352,
+        "narHash": "sha256-8J3afERGw2VhzMucP9cjPdL/8wTJj//DXnIPmk9wapo=",
+        "owner": "rokokol",
+        "repo": "nix-best-practices-skill",
+        "rev": "a137d97639e197ed45ad806e6801afe93f236d3c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "nix-best-practices-skill",
+        "type": "github"
+      }
+    },
     "nix-filter": {
       "locked": {
         "lastModified": 1757882181,
@@ -479,6 +499,7 @@
         "freesmlauncher": "freesmlauncher",
         "home-manager": "home-manager",
         "hyprland-screen-shader": "hyprland-screen-shader",
+        "nix-best-practices": "nix-best-practices",
         "nix-matlab": "nix-matlab",
         "nixpkgs": "nixpkgs",
         "nixpkgs-stable": "nixpkgs-stable",

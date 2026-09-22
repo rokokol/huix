@@ -62,34 +62,9 @@ jobs:
 
       - run: nix fmt -- --ci
 
-      # The palette is one node only because every ddlc-* input follows it. A forgotten
-      # follows shows up as a suffixed second node and nothing else — the colours then
-      # diverge silently, which is the one thing a single source of truth exists to prevent
-      - name: exactly one ddlc-palette in the lock
-        run: |
-          python3 - <<'EOF'
-          import json, sys
-          nodes = [k for k in json.load(open("flake.lock"))["nodes"] if k.startswith("ddlc-palette")]
-          if nodes != ["ddlc-palette"]:
-              sys.exit(f"the lock holds {nodes} — an input is missing its ddlc-palette.follows")
-          EOF
-
-      # A dev override — url = "path:/home/…" while an input is worked on locally — reaches the
-      # lock through syssync's git add -A and then breaks every job on a path no runner has.
-      # Relative paths are left alone: those are subflakes of this repo and travel with it
-      - name: no absolute path inputs in the lock
-        run: |
-          python3 - <<'EOF'
-          import json, sys
-          nodes = json.load(open("flake.lock"))["nodes"]
-          if len(nodes) < 2:
-              sys.exit(f"flake.lock holds {len(nodes)} nodes — the guard is reading the wrong shape")
-          bad = sorted({
-              name
-              for name, node in nodes.items()
-              for ref in (node.get("locked", {}), node.get("original", {}))
-              if ref.get("type") == "path" and ref.get("path", "").startswith("/")
-          })
-          if bad:
-              sys.exit(f"{bad} locked to an absolute local path — a dev override reached the lock")
-          EOF
+      # nix flake check above already runs checks.nix-lint, which is the same checker in a
+      # build sandbox. That sandbox has no network, so it leaves out the rules that need
+      # this flake's inputs, and it sees no git repository, so it checks no file name.
+      # This step is the whole checker, from the revision flake.lock pins
+      - name: check-nix, including the rules the sandbox cannot reach
+        run: nix run .#check-nix -- -N rokokol

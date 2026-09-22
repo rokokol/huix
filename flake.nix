@@ -78,6 +78,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    nix-best-practices = {
+      url = "github:rokokol/nix-best-practices-skill";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -228,13 +233,33 @@
       # reaches this package, so picking a host would only make it look like one owns it
       formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt-tree;
 
-      # nix flake check already evaluates both hosts. This adds the one thing evaluation
-      # cannot say: whether the Lua nixvim assembles out of every module is parseable —
-      # nixvim runs stylua over the generated init.lua, so a syntax error fails the build
-      checks.${system} = nixpkgs.lib.mapAttrs' (
-        name: cfg:
-        nixpkgs.lib.nameValuePair "nixvim-init-${name}"
-          cfg.config.home-manager.users.${rokokolName}.programs.nixvim.build.initFile
-      ) inputs.self.nixosConfigurations;
+      # nix flake check already evaluates both hosts. The nixvim entries add the one thing
+      # evaluation cannot say: whether the Lua nixvim assembles out of every module is
+      # parseable — nixvim runs stylua over the generated init.lua, so a syntax error fails
+      # the build.
+      # nix-lint holds every .nix file here to the standard the skill carries. It runs in a
+      # build sandbox, so it leaves out the rules that need this flake's inputs; the eval
+      # job runs the whole checker through apps.check-nix, where the inputs are there
+      checks.${system} =
+        nixpkgs.lib.mapAttrs' (
+          name: cfg:
+          nixpkgs.lib.nameValuePair "nixvim-init-${name}"
+            cfg.config.home-manager.users.${rokokolName}.programs.nixvim.build.initFile
+        ) inputs.self.nixosConfigurations
+        // {
+          nix-lint = inputs.nix-best-practices.lib.mkCheck {
+            pkgs = nixpkgs.legacyPackages.${system};
+            root = ./.;
+            namespaces = [ "rokokol" ];
+          };
+        };
+
+      # `nix run .#check-nix -- -N rokokol` — the whole checker, pinned by flake.lock rather
+      # than looked up at the moment a job runs
+      apps.${system}.check-nix = {
+        type = "app";
+        program = nixpkgs.lib.getExe inputs.nix-best-practices.packages.${system}.check-nix;
+        meta.description = "Hold this repository to the standard nix-best-practices carries";
+      };
     };
 }
