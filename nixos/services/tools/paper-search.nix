@@ -1,8 +1,4 @@
-{
-  config,
-  rokokolName,
-  ...
-}:
+{ config, rokokolName, ... }:
 
 # The API keys for paper-search-mcp, the paper search server behind the papers skill. The
 # server reads them from an env file, so sops renders one from three secrets and the user

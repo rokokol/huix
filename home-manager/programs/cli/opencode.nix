@@ -1,7 +1,4 @@
-{
-  pkgs,
-  ...
-}:
+{ pkgs, ... }:
 
 # Headless OpenCode server for local tools and Claude Code MCP integration
 {
