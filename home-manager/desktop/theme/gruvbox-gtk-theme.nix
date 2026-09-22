@@ -1,6 +1,7 @@
 # Vendored because nixpkgs dropped gruvbox-gtk-theme along with its GTK2 murrine engine.
 # murrine is skipped on purpose — it only backs the unused gtk-2.0 subtheme
 {
+  lib,
   stdenvNoCC,
   fetchFromGitHub,
   sassc,
@@ -46,4 +47,11 @@ stdenvNoCC.mkDerivation {
       grep '^@define-color' "$dir/gtk.css" >"$dir/gtk-colors.css"
     done
   '';
+
+  meta = {
+    description = "GTK3 and GTK4 theme in gruvbox colours, accent recoloured to the ddlc palette";
+    homepage = "https://github.com/Fausto-Korpsvart/Gruvbox-GTK-Theme";
+    license = lib.licenses.gpl3Only;
+    platforms = lib.platforms.linux;
+  };
 }

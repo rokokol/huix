@@ -19,6 +19,14 @@
         find $src -name "*.ttf" -exec cp {} $out/share/fonts/truetype/ \;
         find $src -name "*.otf" -exec cp {} $out/share/fonts/opentype/ \;
       '';
+
+      meta = {
+        description = "Font files this repository carries directly, outside nixpkgs";
+        # The set holds the DDLC game font, which Team Salvato owns, so the whole
+        # derivation is unfree. ASSETS.md names each file and its owner
+        license = lib.licenses.unfree;
+        platforms = lib.platforms.all;
+      };
     })
     inter
     (google-fonts.override { fonts = [ "Spectral" ]; })
