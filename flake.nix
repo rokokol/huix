@@ -256,10 +256,19 @@
 
       # `nix run .#check-nix -- -N rokokol` — the whole checker, pinned by flake.lock rather
       # than looked up at the moment a job runs
-      apps.${system}.check-nix = {
-        type = "app";
-        program = nixpkgs.lib.getExe inputs.nix-best-practices.packages.${system}.check-nix;
-        meta.description = "Hold this repository to the standard nix-best-practices carries";
+      apps.${system} = {
+        check-nix = {
+          type = "app";
+          program = nixpkgs.lib.getExe inputs.nix-best-practices.packages.${system}.check-nix;
+          meta.description = "Hold this repository to the standard nix-best-practices carries";
+        };
+
+        # `nix run .#drv-diff` — both hosts and every check, here and at another revision
+        drv-diff = {
+          type = "app";
+          program = nixpkgs.lib.getExe inputs.nix-best-practices.packages.${system}.drv-diff;
+          meta.description = "Say whether a change moved any derivation this flake builds";
+        };
       };
     };
 }
