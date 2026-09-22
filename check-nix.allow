@@ -1,1 +1,0 @@
-file-kebab-case assets/sayori-cursor-v2/cursors/ an X11 cursor is addressed by name, and the names are the protocol: left_ptr, watch, sb_h_double_arrow. A rename makes the theme fall back to the stock cursor

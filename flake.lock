@@ -277,11 +277,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1790111569,
-        "narHash": "sha256-72tWrISX52hrEOG7b9KJfDManZfZuafaCszMC31o0VU=",
+        "lastModified": 1790114675,
+        "narHash": "sha256-dY2Daw2CFOAnlM288Rtlwx7kGEtMkZG4XCu7RaO0HGY=",
         "owner": "rokokol",
         "repo": "nix-best-practices-skill",
-        "rev": "49b24a32669336c34ff5baa67cab2d4d92241bd2",
+        "rev": "d648807775b365694c9e36e1d55b41681c276aaa",
         "type": "github"
       },
       "original": {

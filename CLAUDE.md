@@ -62,7 +62,7 @@ Package layering follows the same split: system packages and feature toggles in 
 
 ## Style
 
-The global rules (straight quotes, one-line comments, no trailing period, no hard-wrapped Markdown) apply here too and are not repeated. `nix fmt` (`nixfmt-tree`) owns layout. The [nix-best-practices](https://github.com/rokokol/nix-best-practices-skill) skill owns everything the formatter cannot check, and its `check-nix.sh` decides the half a machine can: the order and the line shape of a module's arguments, where a file comment sits, kebab-case names, `pkgs.lib` beside a `lib` argument, a `default.nix` that binds anything but `imports`, a lookup path, a derivation with no `meta`, a list of nothing but `pkgs` attributes, an option under a prefix this repository has not claimed. It arrives as a flake input, so no copy of it lives here:
+The global rules (straight quotes, one-line comments, no trailing period, no hard-wrapped Markdown) apply here too and are not repeated. `nix fmt` (`nixfmt-tree`) owns layout. The [nix-best-practices](https://github.com/rokokol/nix-best-practices-skill) skill owns everything the formatter cannot check, and its `check-nix.sh` decides the half a machine can: the order and the line shape of a module's arguments, where a file comment sits, kebab-case `.nix` paths, `pkgs.lib` beside a `lib` argument, a `default.nix` that binds anything but `imports`, a lookup path, a derivation with no `meta`, a list of nothing but `pkgs` attributes, an option under a prefix this repository has not claimed. It arrives as a flake input, so no copy of it lives here:
 
 ```sh
 nix flake check              # among other things, checks.nix-lint — the checker in a build sandbox
@@ -75,7 +75,8 @@ What neither checker can know, because it is this repository's own:
 
 - **`cfg = config.rokokol.<name>` is bound only when the config is read more than once** — a `let` for a single reference is noise
 - **All user-facing text is English** — every notify-send, rofi prompt, `usage()` and waybar tooltip. The sole exception is `README.md` files, which stay in Russian
-- **`check-nix.allow` carries the exceptions**, one line each, and an entry that excuses nothing is itself a finding. There is one: the X11 cursor names under `assets/sayori-cursor-v2/cursors/`, which are a protocol rather than a choice
+- **Every path in this repository is kebab-case, not only the `.nix` ones** — assets included. The checker judges `.nix` paths alone, because elsewhere it met Cargo, pytest and X11, which choose their own names; here every file is yours, so the wider rule holds and a human keeps it. When renaming, `git mv` and grep the tree for references. The exceptions are conventional root metadata (`README.md`, `LICENSE`, `ASSETS.md`, `WORKAROUNDS.md`, `DEVIATIONS.md`) and the X11 cursor names under `assets/sayori-cursor-v2/cursors/`, which are a protocol
+- **An exception the checker must know goes in `check-nix.allow`**, one line each; an entry that excuses nothing is itself a finding. There is none at the moment
 - Don't touch `system.stateVersion` / `home.stateVersion` unless doing an explicit migration
 
 ## Committing
