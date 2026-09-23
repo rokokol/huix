@@ -4,6 +4,7 @@
   pkgs,
   huixDir,
   inputs,
+  projectsDir,
   ...
 }:
 
@@ -84,6 +85,7 @@ in
         VISUAL = "nvim";
         TERMINAL = "kitty";
         HUIX = huixDir;
+        PROJECTS_DIR = projectsDir;
         NIXOS_OZONE_WL = "1";
       };
 

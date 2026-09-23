@@ -1,13 +1,17 @@
 {
+  config,
   lib,
   pkgs,
   huixDir,
-  projectsDir,
   ...
 }:
 
 let
   scriptsDir = "${huixDir}/scripts";
+  # A user unit reads none of the session variables, so the sweep targets are passed in here.
+  # Taken from the session rather than from commonArgs, so a hand call of sync.sh in a terminal
+  # and the unit always sweep the same directories
+  inherit (config.home.sessionVariables) PROJECTS_DIR SKILLS_DIR;
   syncDeps = with pkgs; [
     git
     libnotify
@@ -37,7 +41,8 @@ in
         Environment = [
           "PATH=${lib.makeBinPath syncDeps}"
           "HUIX=${huixDir}"
-          "PROJECTS_DIR=${projectsDir}:/home/rokokol/.local/share/claude-shared/skills"
+          "PROJECTS_DIR=${PROJECTS_DIR}"
+          "SKILLS_DIR=${SKILLS_DIR}"
         ];
       };
       # Runs when the graphical session starts (after boot / login)

@@ -13,16 +13,16 @@ Usage:
   sync.sh                pull --rebase, stage everything, commit "[host] sync <date>", push
   sync.sh "message"      the same, with your own commit subject
   sync.sh --pull-only    fetch + merge --ff-only and nothing else (what sync.service runs)
-  sync.sh --no-projects  skip the Projects sweep, huix only
+  sync.sh --no-projects  skip the sweep below, huix only
   sync.sh --help         this help
 
-Both modes end by catching every git repository under ~/Projects up to its upstream
-(PROJECTS_DIR overrides the directory). The search is recursive, but stops at the first
-directory containing .git. Without local commits it fast-forwards; with them it rebases them on
-top, autostashing a dirty tree, and winds the whole thing back if that would conflict. It never
-commits and never pushes, a repository with no upstream is left alone, and one holding a
-.git/nosync file is skipped before it is even fetched. A name marked * in the summary was
-rebased rather than fast-forwarded
+Both modes end by catching every git repository under ~/Projects and under the shared Claude
+skills up to its upstream; PROJECTS_DIR and SKILLS_DIR name those two directories. The search
+is recursive, but stops at the first directory containing .git. Without local commits it
+fast-forwards; with them it rebases them on top, autostashing a dirty tree, and winds the whole
+thing back if that would conflict. It never commits and never pushes, a repository with no
+upstream is left alone, and one holding a .git/nosync file is skipped before it is even
+fetched. A name marked * in the summary was rebased rather than fast-forwarded
 
 The huix history is written by hand. The session/rebuild unit only fast-forwards, so it never
 rebases local commits and never touches a dirty tree — when it cannot fast-forward it just
@@ -40,8 +40,9 @@ notify() {
   fi
 }
 
-# Catch every repository under PROJECTS_PATH up to its upstream. Fetching is the slow half and
-# the repositories are independent, so it runs in parallel; moving a branch is local and serial
+# Catch every repository under the PROJECTS_PATH entries up to its upstream. Fetching is the
+# slow half and the repositories are independent, so it runs in parallel; moving a branch is
+# local and serial
 sweep_projects() {
   local repo behind ahead
   local updated=0 held=0 failed=0
@@ -164,10 +165,10 @@ MESSAGE="$*"
 
 DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"
 export DBUS_SESSION_BUS_ADDRESS
+# Home Manager sets all three for the session and repeats the last two in the unit, which
+# inherits no session variable. The fallback is for a call from a shell that has neither
 HUIX_PATH="${HUIX:-$HOME/huix}"
-# Both paths come from the unit's Environment, where the flake spells them once; the fallbacks
-# are for a hand call from a terminal, which inherits neither
-PROJECTS_PATH="${PROJECTS_DIR:-$HOME/Projects}"
+PROJECTS_PATH="${PROJECTS_DIR:-$HOME/Projects}${SKILLS_DIR:+:$SKILLS_DIR}"
 GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh -o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=2}"
 
 export GIT_SSH_COMMAND
