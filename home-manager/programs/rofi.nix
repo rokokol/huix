@@ -9,9 +9,9 @@
       rofi-calc
     ];
 
-    font = "Doki 12";
+    settings = {
+      font = "Doki 12";
 
-    extraConfig = {
       modi = "drun,calc";
       show-icons = false;
 
