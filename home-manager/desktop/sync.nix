@@ -25,7 +25,7 @@ in
   systemd.user.services = {
     "sync" = {
       Unit = {
-        Description = "Fast-forward huix and every repository under ~/Projects (sync.sh --pull-only)";
+        Description = "Fast-forward huix, ~/Projects and the shared skills (sync.sh --pull-only)";
         After = [
           "graphical-session.target"
           "gcr-ssh-agent.service"
