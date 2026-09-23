@@ -508,6 +508,7 @@
         "rofi-wooordhunt": "rofi-wooordhunt",
         "skvpn": "skvpn",
         "sops-nix": "sops-nix",
+        "telegram-skill": "telegram-skill",
         "virtual-media-devices": "virtual-media-devices",
         "zen-browser": "zen-browser"
       }
@@ -602,6 +603,26 @@
         "owner": "nix-systems",
         "ref": "future-26.11",
         "repo": "default",
+        "type": "github"
+      }
+    },
+    "telegram-skill": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1790184348,
+        "narHash": "sha256-YVUKLTe8y097oUaw2aEn2NHTdcMQuti58wcsiy7y8lc=",
+        "owner": "rokokol",
+        "repo": "telegram-skill",
+        "rev": "95c88a1d26fd4a1ed18c31a69e7e0462416c2a63",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "telegram-skill",
         "type": "github"
       }
     },

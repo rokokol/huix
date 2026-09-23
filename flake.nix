@@ -83,6 +83,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    telegram-skill = {
+      url = "github:rokokol/telegram-skill";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -176,6 +181,7 @@
             configuration
             inputs.virtual-media-devices.nixosModules.default
             inputs.skvpn.nixosModules.default
+            inputs.telegram-skill.nixosModules.default
 
             {
               nixpkgs.hostPlatform = system;

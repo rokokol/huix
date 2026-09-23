@@ -17,6 +17,7 @@
 
   rokokol = {
     searxng.enable = true;
+    telegram-agent.enable = true;
 
     printer.enable = true;
     tablet.enable = true;

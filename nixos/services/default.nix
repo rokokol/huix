@@ -20,6 +20,7 @@
     ./tools/paper-search.nix
     ./tools/searxng.nix
     ./tools/syncthing.nix
+    ./tools/telegram-agent.nix
     ./utils/docker.nix
     ./utils/embedded.nix
     ./utils/virtualization.nix
