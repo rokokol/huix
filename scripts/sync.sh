@@ -16,6 +16,9 @@ Usage:
   sync.sh --no-projects  skip the sweep below, huix only
   sync.sh --help         this help
 
+Exit 0 when huix is in sync, 1 when a git step failed, timed out or left a conflict. The
+sweep never decides the status: a repository it could not move is reported and passed over
+
 Both modes end by catching every git repository under ~/Projects and under the shared Claude
 skills up to its upstream; PROJECTS_DIR and SKILLS_DIR name those two directories. The search
 is recursive, but stops at the first directory containing .git. Without local commits it
