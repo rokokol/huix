@@ -42,7 +42,7 @@ There is no per-module test, and no check builds a host closure: `ollama-cuda` m
 
 3. **`commonArgs` is the only way arguments cross the flake boundary.** `flake.nix` builds it (`rokokolName`, `huixDir`, `myWikiDir`, `projectsDir`, `palette`, `base16`, `system`, `inputs`) and passes it via both `specialArgs` (NixOS) and `extraSpecialArgs` (HM), so any module can pull them out of its arguments. A new constant that several modules need goes here, not into a `let` scattered across files
 
-4. **Host composition is layered. Edit the narrowest layer.**
+4. **Host composition is layered. Edit the narrowest layer**
    - `nixos/configuration-<host>.nix` — the per-host _input_: imports, the settings that genuinely differ (`ollama.package`, `stateVersion`) and the `rokokol.*.enable` flags
    - `nixos/default.nix` — shared by both hosts; `nixos/<host>/` — hardware and host-specific options
    - `nixos/services/default.nix` — the single aggregator importing _all_ service modules on both hosts. Shared services are unconditional; host-specific ones are gated by `rokokol.<name>.enable` declared in their own module. Adding or removing a service from a host means flipping that flag in `configuration-<host>.nix`, not editing the module
