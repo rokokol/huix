@@ -16,7 +16,7 @@
   }
 
   /* Three panels — left / center / right — instead of an island per module.
-     The waybar layer is blurred in hyprland.conf, so a translucent panel frosts */
+     The waybar layer is blurred in hyprland.lua, so a translucent panel frosts */
   .modules-left, .modules-center, .modules-right {
       background: ${palette.rgba.yuriShadow "0.62"};
       color: ${palette.dot};

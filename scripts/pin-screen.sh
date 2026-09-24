@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Pins a selected region above all windows: a grim screenshot into swayimg, class
-# desktop-pin, with float rules in hyprland.conf
+# desktop-pin, with float rules in hyprland.lua
 # Position via hyprctl, not swayimg flags: swayimg 5.4 ignores --position and --size on
 # a Hyprland fractional scale
 
