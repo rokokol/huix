@@ -173,6 +173,15 @@
         };
       };
 
+      # hyprbars draws its button icons with a hard-coded font (see WORKAROUNDS.md)
+      overlay-hyprland-plugins = _final: prev: {
+        hyprlandPlugins = prev.hyprlandPlugins // {
+          hyprbars = prev.hyprlandPlugins.hyprbars.overrideAttrs (previous: {
+            patches = (previous.patches or [ ]) ++ [ ./patches/hyprbars-icon-font.patch ];
+          });
+        };
+      };
+
       mkHost =
         {
           configuration,
@@ -235,6 +244,7 @@
         home = ./home-manager/home-laptop.nix;
         overlays = [
           overlay-stable
+          overlay-hyprland-plugins
         ];
       };
 

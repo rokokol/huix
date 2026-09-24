@@ -19,6 +19,8 @@ in
     ./services/rofi-wooordhunt.nix
     ./services/screen-shader.nix
     ./services/tablet-mode.nix
+    ./services/titlebars.nix
+    ./services/touch-gestures.nix
     ./services/wl-clip-persist.nix
     ./services/waybar
   ];

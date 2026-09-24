@@ -15,6 +15,10 @@
       touchpadNaturalScroll = true;
       lidNoSleep = true;
       tabletMode = true;
+      titlebars = true;
+      # Off until nixpkgs ships a hyprgrass that builds against this Hyprland and still speaks
+      # hyprlang, see WORKAROUNDS.md
+      touchGestures = false;
       wallpaperImage = "${huixDir}/assets/say-sketch2.webp";
     };
 

@@ -109,3 +109,44 @@ journalctl -b 0 | grep uwsm_waitenv   # shows which variable never arrived
 Note Hyprland's own flake does not change any of this: its `homeManagerModules.default` only sets `package` and defers to HM's module for everything else
 
 **Upstream:** [NixOS UWSM wiki](https://wiki.nixos.org/wiki/UWSM) (says to disable the integration), [hyprwm/Hyprland#9265](https://github.com/hyprwm/Hyprland/issues/9265)
+
+---
+
+## hyprbars button icons take `bar_text_font`
+
+**Where:** `patches/hyprbars-icon-font.patch`, applied by `overlay-hyprland-plugins` in `flake.nix` on the laptop, for `home-manager/desktop/hyprland/services/titlebars.nix`
+
+**Symptom it prevents:** the close and fullscreen buttons are Nerd Font glyphs, but hyprbars renders every button icon with the font literal `"sans"` (`barDeco.cpp`, the `renderText` call under `// render icon`), and `bar_text_font` reaches the title only. Which font then draws a private-use glyph is fontconfig's fallback choice among every Nerd Font installed, so the buttons could come out of Doki Nerd Font Mono on one rebuild and DepartureMono on the next
+
+**Why this works:** the patch is one line, the icon call takes `barTextFont` from the plugin's own config the way the title call already does
+
+**Removal check:** look at the packaged source
+
+```sh
+grep -n '"sans"' "$(nix eval --raw .#nixosConfigurations.nixos-pc.pkgs.hyprlandPlugins.hyprbars.src)/barDeco.cpp"
+```
+
+A hit -> keep the patch. No hit -> the release renders icons with the configured font; drop the patch and its line in the overlay
+
+**Upstream:** a pull request to hyprwm/hyprland-plugins with the same change
+
+---
+
+## Touchscreen gestures stay off
+
+**Where:** `rokokol.hyprland.touchGestures = false` in `home-manager/home-laptop.nix`; the module it would enable is `home-manager/desktop/hyprland/services/touch-gestures.nix`, written for the plugin's hyprlang keywords
+
+**Symptom it prevents:** the laptop closure does not build. `hyprlandPlugins.hyprgrass` (0.8.2-unstable-2026-06-10) was written against a Hyprland of June 2026: it includes `hyprland/src/helpers/Monitor.hpp`, which 0.56.2 keeps under `src/output/`, and its `PinchAction::exceeds_tolerance` overrides a wf-touch method that neither the packaged wf-touch nor the one before it declares. The first upstream revision that pins Hyprland 0.56.2 (`0508495`, 2026-09-04) compiles, but by then the plugin had dropped its hyprlang configuration for Lua: `touch_gestures`, `hyprgrass-bind` and `hyprgrass-gesture` are gone from `src/main.cpp`, and this repository's Hyprland config is hyprlang
+
+**Why this works:** with the flag off, nothing pulls the plugin in, and the module keeps the gestures ready for the day one of the two blockers moves
+
+**Removal check:** the plugin nixpkgs ships must build against the packaged Hyprland and still speak hyprlang
+
+```sh
+nix build --no-link .#nixosConfigurations.nixos-pc.pkgs.hyprlandPlugins.hyprgrass \
+  && grep -c '"touch_gestures"' "$(nix eval --raw .#nixosConfigurations.nixos-pc.pkgs.hyprlandPlugins.hyprgrass.src)/src/main.cpp"
+```
+
+A build failure or a zero count -> keep the flag off. A clean build and a non-zero count -> set the flag, rebuild, and check `hyprctl plugin list` and the gestures on the screen. The other exit is this repository moving its Hyprland config to Lua, after which the module is rewritten for `hl.plugin.hyprgrass.bind` and the flag goes on with any revision that pins the packaged Hyprland
+
+**Upstream:** [horriblename/hyprgrass](https://github.com/horriblename/hyprgrass) commits `a51a30c` (include paths) and `494088f` (pin 0.56.2), its `docs/lua_migration.md` for the config that replaced hyprlang
