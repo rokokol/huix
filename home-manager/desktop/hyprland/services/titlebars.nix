@@ -22,19 +22,21 @@ in
       settings.plugin.hyprbars = {
         enabled = false;
         bar_height = 22;
-        bar_color = "rgba(${bare.jacket}ee)";
+        bar_color = "rgba(${bare.yuriShadow}ee)";
         "col.text" = "rgb(${bare.paper})";
         # A Nerd Font, because the buttons are its glyphs (the icon font is patched to follow
         # this option, see WORKAROUNDS.md)
         bar_text_font = "DepartureMono Nerd Font Mono";
         bar_text_size = 11;
         bar_buttons_alignment = "right";
+        bar_button_padding = 4;
         bar_part_of_window = true;
         bar_precedence_over_border = true;
-        # The fullscreen button does what SUPER+F does
+        # The buttons fill the bar's height. Fullscreen 1 (maximize) rather than 0: a window
+        # in mode 0 covers its own bar, and this button is the only way back for a finger
         "hyprbars-button" = [
-          "rgb(${bare.bow}), 14, 󰖭, hyprctl dispatch killactive"
-          "rgb(${bare.plum}), 14, 󰊓, hyprctl dispatch fullscreen 0"
+          "rgb(${bare.bow}), 20, 󰖭, hyprctl dispatch killactive"
+          "rgb(${bare.plum}), 20, 󰊓, hyprctl dispatch fullscreen 1"
         ];
       };
 
