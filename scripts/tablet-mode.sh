@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 # The mode is two user units, huix-auto-rotate and huix-virt-keyboard, declared in
 # home-manager/desktop/hyprland/services/tablet-mode.nix; whether the first one is active is
-# the state, and nothing is stored in a file. The titlebars are a hyprbars keyword, which a
-# Hyprland reload resets together with the monitor transform, so sync runs on every reload
-# and re-applies both. The bar's keyboard button doubles as the mode indicator, so a
-# change pokes waybar instead of sending a notification
+# the state, and nothing is stored in a file. The titlebars and the hidden cursor are
+# config options, which a Hyprland reload resets together with the monitor transform, so
+# sync runs on every reload and re-applies them. The bar's keyboard button doubles as the
+# mode indicator, so a change pokes waybar instead of sending a notification
 # Needs systemctl, hyprctl, evtest, pgrep and pkill
 set -euo pipefail
 
 usage() {
   cat <<'EOF'
-tablet-mode.sh — the folded-laptop mode: auto-rotation, titlebars and the on-screen keyboard
+tablet-mode.sh — the folded-laptop mode: auto-rotation, titlebars, no cursor, on-screen keyboard
 
   tablet-mode.sh on                                 enter the mode
   tablet-mode.sh off                                leave it
@@ -19,7 +19,7 @@ tablet-mode.sh — the folded-laptop mode: auto-rotation, titlebars and the on-s
   tablet-mode.sh status                             print on or off
   tablet-mode.sh virt-keyboard toggle|show|hide     the on-screen keyboard, in either mode
   tablet-mode.sh virt-keyboard status               the bar button as waybar JSON: the
-                                                    keyboard glyph, class on in the mode, off outside
+                                                    keyboard glyph in the mode, nothing outside it
 
 sync is for the start of the session and every Hyprland reload: switch binds fire only on
 a change, and a reload resets the transform and the titlebars to the config
@@ -68,15 +68,23 @@ titlebars() {
   hyprctl eval "hl.config({ plugin = { hyprbars = { enabled = $1 } } })" >/dev/null 2>&1 || true
 }
 
+# A finger needs no cursor, and hide_on_touch alone does not hold: the gesture plugin warps
+# the pointer to every touch, which shows the cursor again
+cursor_hidden() {
+  hyprctl eval "hl.config({ cursor = { invisible = $1 } })" >/dev/null
+}
+
 enter() {
   systemctl --user start "$ROTATE_UNIT" "$OSK_UNIT" || fail "the tablet-mode units did not start"
   titlebars true
+  cursor_hidden true
   signal_bar
 }
 
 leave() {
   systemctl --user stop "$ROTATE_UNIT" "$OSK_UNIT" || fail "the tablet-mode units did not stop"
   titlebars false
+  cursor_hidden false
   bash "$HERE/rotate-screen.sh" set 0
   signal_bar
 }
@@ -112,6 +120,7 @@ cmd_sync() {
         # The sensor reports only changes; a restart makes it state the orientation again
         systemctl --user restart "$ROTATE_UNIT"
         titlebars true
+        cursor_hidden true
       else
         enter
       fi
@@ -140,12 +149,11 @@ cmd_virt_keyboard() {
   (($# == 1)) || die "virt-keyboard needs toggle, show, hide or status"
   case "$1" in
     status)
-      # The glyph is always there, so the button keeps its place in the bar; the class
-      # decides whether it is visible
+      # An empty text makes waybar hide the module, so outside the mode there is no button
       if is_on; then
         printf '{"text":"⌨️","class":"on"}\n'
       else
-        printf '{"text":"⌨️","class":"off"}\n'
+        printf '{"text":"","class":"off"}\n'
       fi
       ;;
     toggle)
