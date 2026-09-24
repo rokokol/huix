@@ -11,6 +11,6 @@
     openFirewall = true;
   };
 
-  # Peers on the tailnet reach services bound on this host, and every one of them is mine
+  # Peers on the tailnet reach services bound on this host; the tailnet policy decides which
   networking.firewall.trustedInterfaces = [ config.services.tailscale.interfaceName ];
 }

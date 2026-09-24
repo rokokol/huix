@@ -17,8 +17,8 @@
       path = "${inputs.self}/secrets/secrets.yaml";
     };
 
-    # A personal age key, not sops.age.sshKeyPaths: neither host runs sshd, so there is no
-    # /etc/ssh/ssh_host_ed25519_key to derive a recipient from. Keep it off /home: sops-nix
+    # A personal age key, not sops.age.sshKeyPaths: a host key is regenerated on reinstall,
+    # and every recipient change means re-encrypting the secrets. Keep it off /home: sops-nix
     # decrypts secrets during early activation, before a separate /home may be mounted.
     # Back this file up — losing it means re-encrypting secrets/secrets.yaml from scratch
     age.keyFile = "/var/lib/sops-nix/key.txt";

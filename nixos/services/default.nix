@@ -15,6 +15,7 @@
     ./system/nix-ld.nix
     ./system/skvpn.nix
     ./system/sops.nix
+    ./system/sshd.nix
     ./system/tailscale.nix
     ./tools/libre-translate.nix
     ./tools/paper-search.nix
