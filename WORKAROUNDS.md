@@ -167,3 +167,23 @@ grep -c 'wl_seat_get_touch' "$(nix eval --raw .#nixosConfigurations.nixos-laptop
 **Removal check:** rofi closing on a tap outside its window on Wayland by itself, with `click-to-exit` set; then the bind goes
 
 **Upstream:** not reported yet
+
+---
+
+## blueman connects a device on `row-activated`
+
+**Where:** `patches/blueman-row-activated.patch`, applied by `overlay-blueman` in `flake.nix` on the laptop, the host with `services.blueman.enable`
+
+**Symptom it prevents:** in blueman-manager a double tap on a device only selects it; connecting needs a mouse. The device list connects on `button-press-event` and acts only when the event is `_2BUTTON_PRESS` (`ManagerDeviceList.py`, `_on_event_clicked`). GDK emulates a pointer press from each touch, but never a double press, so that branch does not run for a finger, however the taps land: measured with a GTK3 tree view under `WAYLAND_DEBUG`, every tap arrived as a single `button-press` and the double tap arrived only as `row-activated`
+
+**Why this works:** `row-activated` is the tree view's own activation, emitted by its press gesture for a mouse double-click and a double tap alike, and for Enter. The patch moves the connect and disconnect there and leaves the raw handler the right-click menu only. The double tap counts within `gtk-double-click-distance`, which is why `home-manager/desktop/theme/theme.nix` widens it from the stock 5 px to 24
+
+**Removal check:** look at the device list as nixpkgs ships it; the source is a tarball
+
+```sh
+tar -xOf "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.blueman.src)" --wildcards '*/blueman/gui/manager/ManagerDeviceList.py' | grep -c 'row-activated'
+```
+
+`0` -> keep the patch. Anything else -> blueman activates rows itself; drop the patch and the overlay, then check that a double tap still connects
+
+**Upstream:** a pull request to blueman-project/blueman with the same change
