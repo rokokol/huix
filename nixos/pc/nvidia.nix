@@ -37,11 +37,13 @@
     ];
   };
 
+  # btop-cuda and the cudaPackages closure come from here, because cache.nixos.org builds no
+  # unfree package. ollama-cuda does not: cudaCapabilities moves its hash out of every cache
   nix.settings = {
-    substituters = [ "https://cuda-maintainers.cachix.org" ];
+    substituters = [ "https://cache.nixos-cuda.org" ];
 
     trusted-public-keys = [
-      "cuda-maintainers.cachix.org-1:0dq3bujKpuEPMCX6U4WylrUDZ9JyUG0VpVZa7CNfq5E="
+      "cache.nixos-cuda.org:74DUi4Ye579gUqzH4ziL9IyiJBlDpMRn9MBN8oNan9M="
     ];
   };
 }
