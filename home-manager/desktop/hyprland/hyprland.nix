@@ -44,12 +44,6 @@ in
       default = null;
       description = "static wallpaper via awww; null — none (see wallpaperCollage)";
     };
-
-    startupArgs = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      default = [ ];
-      description = "applications to autostart";
-    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -89,12 +83,10 @@ in
           };
         };
 
-        exec-once =
-          cfg.startupArgs
-          ++ lib.optionals (cfg.wallpaperImage != null) [
-            "awww init"
-            "awww img ${cfg.wallpaperImage}"
-          ];
+        exec-once = lib.optionals (cfg.wallpaperImage != null) [
+          "awww init"
+          "awww img ${cfg.wallpaperImage}"
+        ];
       };
     };
   };

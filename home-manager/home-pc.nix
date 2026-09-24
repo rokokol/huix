@@ -17,10 +17,6 @@
       enable = true;
       monitorScale = "1";
       wallpaperCollage = false; # for Felix wallspaper :3
-      startupArgs = [
-        "dex -a"
-        "super-productivity"
-      ];
     };
 
     waybar = {
