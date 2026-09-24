@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# waybar's own memory module has thresholds on the RAM percentage only and no class that
-# follows the swap, so the number the bar shows and the colour it turns come from here
+# waybar's own memory module shows the RAM alone, so the number with the swap beside it
+# comes from here. No class follows the swap: the amount in use says nothing about whether
+# the machine pages right now
 # Needs awk beside bash
 set -euo pipefail
 
@@ -8,15 +9,11 @@ usage() {
   cat <<'EOF'
 memory-status.sh — used RAM, and used swap when there is any, as one waybar JSON line
 
-  memory-status.sh status [-w MB]   print {"text":…,"tooltip":…,"class":…}
-  memory-status.sh help             this text
+  memory-status.sh status   print {"text":…,"tooltip":…}
+  memory-status.sh help     this text
 
-  -w MB   swap in use above which the class is "swap" (default: $HUIX_SWAP_WARN_MB, else 500)
-
-The text is "<ram>Gb 🧠" with no swap device, and "<ram>/<swap>Gb 🧠" with one; the
-class is "swap" above the threshold and "ok" otherwise
-Environment: HUIX_SWAP_WARN_MB is the threshold when -w is not given; HUIX_MEMINFO is
-the file read (default /proc/meminfo)
+The text is "<ram>Gb 🧠" with no swap device, and "<ram>/<swap>Gb 🧠" with one
+Environment: HUIX_MEMINFO is the file read (default /proc/meminfo)
 Nothing here reaches the network
 Exit 0 done, 1 when the memory file cannot be read, 2 on a usage error
 EOF
@@ -33,22 +30,11 @@ die() { # the request itself is wrong
 }
 
 cmd_status() {
-  local warn="${HUIX_SWAP_WARN_MB:-500}" meminfo="${HUIX_MEMINFO:-/proc/meminfo}"
-  while (($#)); do
-    case "$1" in
-      -w)
-        (($# >= 2)) || die "-w needs a number of megabytes"
-        warn=$2
-        shift 2
-        ;;
-      -*) die "no such flag: $1" ;;
-      *) die "status takes no argument: $1" ;;
-    esac
-  done
-  [[ "$warn" =~ ^[0-9]+$ ]] || die "the threshold is a whole number of megabytes, not $warn"
+  local meminfo="${HUIX_MEMINFO:-/proc/meminfo}"
+  (($# == 0)) || die "status takes no argument: $1"
   [ -r "$meminfo" ] || fail "cannot read $meminfo"
   # Used RAM is what the kernel could not hand out on request; used swap is total minus free
-  awk -v warn="$warn" '
+  awk '
     /^MemTotal:/ { total = $2 }
     /^MemAvailable:/ { available = $2 }
     /^SwapTotal:/ { swap_total = $2 }
@@ -63,8 +49,7 @@ cmd_status() {
         text = sprintf("%.1fGb 🧠", used)
         tooltip = sprintf("RAM %.1f of %.1f Gb, no swap", used, total / 1048576)
       }
-      class = (swap_used * 1024 > warn) ? "swap" : "ok"
-      printf "{\"text\":\"%s\",\"tooltip\":\"%s\",\"class\":\"%s\"}\n", text, tooltip, class
+      printf "{\"text\":\"%s\",\"tooltip\":\"%s\"}\n", text, tooltip
     }
   ' "$meminfo"
 }

@@ -66,7 +66,7 @@
       color: ${palette.jacket};
   }
 
-  #temperature.critical, #battery.critical, #custom-memory.swap {
+  #temperature.critical, #battery.critical {
       color: ${palette.bow};
   }
 

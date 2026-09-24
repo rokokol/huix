@@ -247,10 +247,8 @@ MemAvailable:    2097152 kB
 SwapTotal:       4194304 kB
 SwapFree:        3407872 kB
 EOF
-is "status shows used RAM and used swap, red above the threshold" \
-  '{"text":"6.0/0.8Gb 🧠","tooltip":"RAM 6.0 of 8.0 Gb, swap 0.8 of 4.0 Gb","class":"swap"}' "$(bash "$memory" status)"
-is "a higher threshold keeps the class ok" '"class":"ok"' "$(bash "$memory" status -w 1024 | grep -o '"class":"[a-z]*"')"
-is "the environment sets the threshold too" '"class":"ok"' "$(HUIX_SWAP_WARN_MB=1024 bash "$memory" status | grep -o '"class":"[a-z]*"')"
+is "status shows used RAM and used swap" \
+  '{"text":"6.0/0.8Gb 🧠","tooltip":"RAM 6.0 of 8.0 Gb, swap 0.8 of 4.0 Gb"}' "$(bash "$memory" status)"
 cat >"$HUIX_MEMINFO" <<'EOF'
 MemTotal:        8388608 kB
 MemAvailable:    2097152 kB
@@ -258,9 +256,9 @@ SwapTotal:             0 kB
 SwapFree:              0 kB
 EOF
 is "without a swap device only the RAM is shown" \
-  '{"text":"6.0Gb 🧠","tooltip":"RAM 6.0 of 8.0 Gb, no swap","class":"ok"}' "$(bash "$memory" status)"
-bash "$memory" status -w many >/dev/null 2>&1
-is "a threshold that is not a number is a usage error" 2 "$?"
+  '{"text":"6.0Gb 🧠","tooltip":"RAM 6.0 of 8.0 Gb, no swap"}' "$(bash "$memory" status)"
+bash "$memory" status extra >/dev/null 2>&1
+is "status takes no argument" 2 "$?"
 HUIX_MEMINFO=$work/missing bash "$memory" status >/dev/null 2>&1
 is "an unreadable memory file is a failure" 1 "$?"
 
