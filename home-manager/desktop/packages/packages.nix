@@ -51,7 +51,6 @@ in
         killall
         lazygit
         libreoffice-stable
-        matlab
         pup
         python3Packages.huggingface-hub
         ripgrep
@@ -114,6 +113,7 @@ in
           # NVENC/NVDEC work in stock ffmpeg (nv-codec-headers included);
           # cudaSupport is only needed for CUDA filters (scale_cuda etc.)
           ffmpeg-headless
+          matlab
           nvtopPackages.nvidia
 
           # --- Development ---
