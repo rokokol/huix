@@ -125,7 +125,7 @@ in
           "geo.enabled" = false;
 
           # Preferred content languages
-          "intl.accept_languages" = "ru-RU, ru, en-US, en";
+          "intl.accept_languages" = "en-US, en, ru-RU, ru";
         };
 
         mods = [
