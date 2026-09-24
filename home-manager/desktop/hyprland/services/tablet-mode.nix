@@ -79,12 +79,11 @@ in
           After = [ "graphical-session.target" ];
         };
         Service = {
-          # --auto shows and hides it with the focused text field over input-method-v2, which
-          # nothing else here claims; --hidden keeps it away until then
+          # Hidden until the bar button asks: the input-method --auto mode raised it for every
+          # focused terminal the moment the mode began
           ExecStart = lib.concatStringsSep " " [
             (lib.getExe' pkgs.wvkbd "wvkbd-mobintl")
             "--hidden"
-            "--auto"
             "-L 300"
             "-H 320"
             "-l full,special,cyrillic,emoji"
