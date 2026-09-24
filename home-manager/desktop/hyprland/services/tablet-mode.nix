@@ -13,11 +13,6 @@ let
   cfg = config.rokokol.hyprland;
   scriptsDir = "${huixDir}/scripts";
   inherit (palette) bare;
-  # The layers after the letters and the numbers, in the order the keyboard key at the
-  # bottom left steps through them. wvkbd reads one list on a portrait screen and another
-  # on a landscape one, which a laptop panel is in any orientation but 90°, and only the
-  # first two names differ between the lists
-  extraLayers = "cyrillic,emoji";
   rotateDeps = with pkgs; [
     bash
     coreutils # stdbuf, which keeps the sensor pipe line-buffered
@@ -91,8 +86,11 @@ in
             "--hidden"
             "-L 300"
             "-H 320"
-            "-l full,special,${extraLayers}"
-            "--landscape-layers landscape,landscapespecial,${extraLayers}"
+            # wvkbd reads one list on a portrait screen and another on a landscape one, which
+            # a laptop panel is in any orientation but 90°; the keyboard key at the bottom
+            # left steps through the list in order, and the emoji layer opens from the numbers
+            "-l full,special,cyrillic"
+            "--landscape-layers landscape,landscapespecial,cyrillic"
             "--fn 'Doki 14'"
             "--bg ${bare.ink}"
             "--fg ${bare.jacket}"

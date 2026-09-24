@@ -29,7 +29,8 @@
 
   /* Modules ride on the panel and carry no ground of their own */
   #window, #clock, #cpu, #memory, #temperature, #pulseaudio, #network, #language,
-  #custom-gpu, #custom-shader, #custom-notifications, #backlight, #battery {
+  #custom-gpu, #custom-shader, #custom-notifications, #custom-launcher, #custom-keyboard,
+  #backlight, #battery {
       background: transparent;
       border: none;
       margin: 0;
@@ -37,9 +38,9 @@
       color: ${palette.dot};
   }
 
-  /* Machine stats read as a block inside the right panel; the two buttons on the left get
-     the same chip, so a finger sees where to press */
-  #hardware, #tray, #custom-launcher, #custom-keyboard {
+  /* Machine stats read as a block inside the right panel; the button group on the left
+     gets the same chip, so a finger sees where to press */
+  #hardware, #tray, #buttons {
       background: ${palette.rgba.paper "0.07"};
       border: none;
       border-radius: 10px;
