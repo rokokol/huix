@@ -18,6 +18,7 @@ in
     ./services/lid-mode.nix
     ./services/rofi-wooordhunt.nix
     ./services/screen-shader.nix
+    ./services/tablet-mode.nix
     ./services/wl-clip-persist.nix
     ./services/waybar
   ];

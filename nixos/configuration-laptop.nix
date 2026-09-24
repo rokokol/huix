@@ -10,6 +10,8 @@
   system.stateVersion = "25.11";
   services.ollama.package = pkgs.ollama-cpu;
 
+  rokokol.sensors.enable = true;
+
   rokokol.btrfs.mounts = [
     "/"
     "/home"

@@ -120,6 +120,10 @@
 
     let
       system = "x86_64-linux";
+      # Straight from nixpkgs, not from a host: nothing in nixpkgsConfig or the overlays
+      # reaches the formatter or the checks, so picking a host would only make it look like
+      # one owns them
+      pkgs = nixpkgs.legacyPackages.${system};
       rokokolName = "rokokol";
       huixDir = "/home/${rokokolName}/huix";
       # Same on both hosts on purpose: absolute paths into the vault travel through Syncthing
@@ -234,9 +238,7 @@
         ];
       };
 
-      # Straight from nixpkgs, not from a host: nothing in nixpkgsConfig or the overlays
-      # reaches this package, so picking a host would only make it look like one owns it
-      formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt-tree;
+      formatter.${system} = pkgs.nixfmt-tree;
 
       # nix flake check already evaluates both hosts. The nixvim entries add the one thing
       # evaluation cannot say: whether the Lua nixvim assembles out of every module is
@@ -253,10 +255,26 @@
         ) inputs.self.nixosConfigurations
         // {
           nix-lint = inputs.nix-best-practices.lib.mkCheck {
-            pkgs = nixpkgs.legacyPackages.${system};
+            inherit pkgs;
             root = ./.;
             namespaces = [ "rokokol" ];
           };
+
+          # The scripts against stubbed commands: every keyword rotate-screen.sh and
+          # tablet-mode.sh emit is asserted here, where there is no compositor to ask
+          script-tests =
+            pkgs.runCommand "script-tests"
+              {
+                nativeBuildInputs = with pkgs; [ jq ];
+                scripts = builtins.path {
+                  name = "huix-scripts";
+                  path = ./scripts;
+                };
+              }
+              ''
+                bash "$scripts/tests/run.sh"
+                touch "$out"
+              '';
         };
 
       # `nix run .#check-nix -- -N rokokol` — the whole checker, pinned by flake.lock rather

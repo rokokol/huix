@@ -28,6 +28,9 @@ on the lid again — deliberately, so you don't leave it enabled in a bag
 EOF
 }
 
+HERE=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+. "$HERE/lib/hyprland.sh"
+
 UNIT="huix-lid-inhibit"
 LOGIND_CONF="/etc/systemd/logind.conf"
 
@@ -48,11 +51,6 @@ is_on() {
 
 # Blank only the internal panel: with an external monitor attached a closed lid
 # shouldn't blank it too. If no internal output is found — blank everything
-internal_monitor() {
-  hyprctl monitors -j 2>/dev/null |
-    jq -r 'map(select(.name | test("^(eDP|LVDS|DSI)"; "i"))) | .[0].name // empty' 2>/dev/null || true
-}
-
 dpms() {
   local mon
   mon="$(internal_monitor)"

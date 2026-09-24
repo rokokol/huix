@@ -9,6 +9,7 @@
     ./desktop/sddm.nix
     ./desktop/ssh-agent.nix
     ./devices/printer.nix
+    ./devices/sensors.nix
     ./devices/tablet.nix
     ./system/appimage.nix
     ./system/cachix.nix
