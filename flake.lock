@@ -241,11 +241,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1790118360,
-        "narHash": "sha256-x4gcbSISJe2A8oD/lMQOVVneJ/F8F5nWNhTaB1Bu0KY=",
+        "lastModified": 1790268946,
+        "narHash": "sha256-52zLhm0F6u+dQGwnqSiKzQ/V7BigkQkSrkUEOOCeYaM=",
         "owner": "rokokol",
         "repo": "hyprland-screen-shader",
-        "rev": "6b7279096a19a73e3dae39f2f94da8b02482fb25",
+        "rev": "d1bd6b0d6d36d7861ad1647c8cbefb36982e5f07",
         "type": "github"
       },
       "original": {
