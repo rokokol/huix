@@ -28,6 +28,15 @@
   # The dialog costs two shell-spawning labels at 10 Hz plus a render loop — not on battery
   ddlc.hyprlock.dialog = false;
 
+  # The built-in pen is mapped to the built-in panel: with nothing said, Hyprland stretches a
+  # tablet over every monitor, so an external screen would take half of the digitizer
+  wayland.windowManager.hyprland.settings.device = [
+    {
+      name = "wacom-pen-and-multitouch-sensor-pen";
+      output = "eDP-1";
+    }
+  ];
+
   # Forwards AVRCP commands from Bluetooth headphones (tap, wear sensor) to MPRIS players
   services.mpris-proxy.enable = true;
 
