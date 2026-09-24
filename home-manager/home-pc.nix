@@ -11,6 +11,8 @@
 
     packages.pc = true;
 
+    opencode.server = true;
+
     hyprland = {
       enable = true;
       monitorScale = "1";
