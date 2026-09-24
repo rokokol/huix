@@ -21,5 +21,6 @@
 
   users.users.${rokokolName}.openssh.authorizedKeys.keys = [
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIC8GfEFui86+w9eiayXAsDHkjsOak0C7ZfPWZTbb/DwG nixos-pc"
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKwffiOLy9s8L79Tpkj8RQ8E62UQFgVr8sjLMPfiY2pU"
   ];
 }
