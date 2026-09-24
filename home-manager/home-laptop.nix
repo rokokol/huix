@@ -28,6 +28,9 @@
   # The dialog costs two shell-spawning labels at 10 Hz plus a render loop — not on battery
   ddlc.hyprlock.dialog = false;
 
+  # Forwards AVRCP commands from Bluetooth headphones (tap, wear sensor) to MPRIS players
+  services.mpris-proxy.enable = true;
+
   # Files
   home.file.".octaverc".text = ''
     PS1('>> ');
