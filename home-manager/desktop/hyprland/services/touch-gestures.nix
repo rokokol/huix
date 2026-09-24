@@ -159,15 +159,8 @@ in
               end
             '';
           }
-          # mouse: the dispatcher follows the fingers, as a mouse bind follows the pointer
-          {
-            pattern = {
-              kind = "longpress";
-              fingers = 2;
-            };
-            action = mkLuaInline "hl.dsp.window.drag()";
-            mouse = true;
-          }
+          # mouse: the dispatcher follows the fingers, as a mouse bind follows the pointer. A
+          # window moves by its titlebar in tablet mode, so no gesture drags it
           {
             pattern = {
               kind = "longpress";
