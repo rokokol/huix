@@ -22,10 +22,6 @@
 
       # systembus-notify alone gets no alerts, see WORKAROUNDS.md
       wall.enable = true;
-
-      # The default follows services.xserver.enable, which laptop/keyboard.nix turns on. The
-      # session is Hyprland on Wayland, where systembus-notify shows the alert and xmessage is X11
-      x11.enable = false;
     };
   };
 
