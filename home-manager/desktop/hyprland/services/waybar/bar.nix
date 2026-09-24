@@ -39,7 +39,7 @@ in
 
           # The only place where module order is set: features declare only
           # their own settings, otherwise order would depend on the imports order
-          modules-left = lib.optional (cfg.launcher || cfg.keyboard) "group/buttons" ++ [
+          modules-left = lib.optional (cfg.launcher || cfg.virtKeyboard) "group/buttons" ++ [
             "hyprland/workspaces"
             "hyprland/window"
           ];
@@ -114,7 +114,7 @@ in
           "group/buttons" = {
             orientation = "horizontal";
             modules =
-              lib.optional cfg.launcher "custom/launcher" ++ lib.optional cfg.keyboard "custom/keyboard";
+              lib.optional cfg.launcher "custom/launcher" ++ lib.optional cfg.virtKeyboard "custom/virt-keyboard";
           };
 
           "cpu" = {

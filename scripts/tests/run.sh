@@ -180,17 +180,26 @@ is "no subcommand is a usage error" 2 "$?"
 export STUB_MONITORS='[{"name":"eDP-1","width":1920,"height":1080,"refreshRate":59.98400,"x":0,"y":0,"scale":1.3333334,"transform":1,"focused":true}]'
 
 reset_log
+STUB_ACTIVE=0 HUIX_TABLET_SIGNAL=10 bash "$tablet" on >/dev/null 2>&1
+is "on starts both units, shows the titlebars and pokes the bar" \
+  "systemctl --user start huix-auto-rotate.service huix-virt-keyboard.service
+hyprctl keyword plugin:hyprbars:enabled 1
+pkill -RTMIN+10 -x waybar" "$(grep -E '^(systemctl --user start|hyprctl keyword plugin|pkill)' "$STUB_LOG")"
+
+reset_log
 STUB_ACTIVE=0 bash "$tablet" on >/dev/null 2>&1
-is "on starts both units and shows the titlebars" \
-  "systemctl --user start huix-auto-rotate.service huix-osk.service
-hyprctl keyword plugin:hyprbars:enabled 1" "$(grep -E '^(systemctl --user start|hyprctl keyword plugin)' "$STUB_LOG")"
+is "without a bar signal declared nothing is poked" "" "$(grep '^pkill' "$STUB_LOG")"
 
 reset_log
 STUB_ACTIVE=1 bash "$tablet" off >/dev/null 2>&1
 is "off stops both units, hides the titlebars and puts the screen upright" \
-  "systemctl --user stop huix-auto-rotate.service huix-osk.service
+  "systemctl --user stop huix-auto-rotate.service huix-virt-keyboard.service
 hyprctl keyword plugin:hyprbars:enabled 0
 hyprctl keyword monitor eDP-1,1920x1080@59.98400,0x0,1.3333334,transform,0" "$(grep -E '^(systemctl --user stop|hyprctl keyword (plugin|monitor))' "$STUB_LOG")"
+
+is "the bar button is the keyboard glyph in the mode and nothing outside it" \
+  '{"text":"⌨️","class":"on"} {"text":"","class":"off"}' \
+  "$(STUB_ACTIVE=1 bash "$tablet" virt-keyboard status 2>/dev/null) $(STUB_ACTIVE=0 bash "$tablet" virt-keyboard status 2>/dev/null)"
 
 is "status reads the auto-rotate unit" "on off" "$(STUB_ACTIVE=1 bash "$tablet" status 2>/dev/null) $(STUB_ACTIVE=0 bash "$tablet" status 2>/dev/null)"
 
@@ -198,12 +207,12 @@ reset_log
 STUB_ACTIVE=0 STUB_EVTEST=10 bash "$tablet" sync >/dev/null 2>&1
 is "sync enters the mode when the switch is on and asks the device evtest named" \
   "evtest --query /dev/input/event7 EV_SW SW_TABLET_MODE
-systemctl --user start huix-auto-rotate.service huix-osk.service" "$(grep -E '^(evtest|systemctl --user start)' "$STUB_LOG")"
+systemctl --user start huix-auto-rotate.service huix-virt-keyboard.service" "$(grep -E '^(evtest|systemctl --user start)' "$STUB_LOG")"
 
 reset_log
 STUB_ACTIVE=1 STUB_EVTEST=0 bash "$tablet" sync >/dev/null 2>&1
 is "sync leaves the mode when the switch is off" \
-  "systemctl --user stop huix-auto-rotate.service huix-osk.service" "$(grep '^systemctl --user stop' "$STUB_LOG")"
+  "systemctl --user stop huix-auto-rotate.service huix-virt-keyboard.service" "$(grep '^systemctl --user stop' "$STUB_LOG")"
 
 reset_log
 STUB_ACTIVE=1 STUB_EVTEST=10 bash "$tablet" sync >/dev/null 2>&1
@@ -211,21 +220,21 @@ is "sync in the mode restarts auto-rotate so the sensor speaks again after a rel
   "systemctl --user restart huix-auto-rotate.service" "$(grep '^systemctl --user restart' "$STUB_LOG")"
 
 reset_log
-STUB_ACTIVE=1 bash "$tablet" keyboard toggle >/dev/null 2>&1
-is "keyboard toggle with the keyboard running sends SIGRTMIN" "pkill -RTMIN -x wvkbd-mobintl" "$(grep '^pkill' "$STUB_LOG")"
+STUB_ACTIVE=1 bash "$tablet" virt-keyboard toggle >/dev/null 2>&1
+is "virt-keyboard toggle with the keyboard running sends SIGRTMIN" "pkill -RTMIN -x wvkbd-mobintl" "$(grep '^pkill' "$STUB_LOG")"
 
 reset_log
-STUB_ACTIVE=0 bash "$tablet" keyboard toggle >/dev/null 2>&1
-is "keyboard toggle without the keyboard starts its unit and shows it" \
-  "systemctl --user start huix-osk.service
+STUB_ACTIVE=0 bash "$tablet" virt-keyboard toggle >/dev/null 2>&1
+is "virt-keyboard toggle without the keyboard starts its unit and shows it" \
+  "systemctl --user start huix-virt-keyboard.service
 pkill -USR2 -x wvkbd-mobintl" "$(grep -E '^(systemctl --user start|pkill)' "$STUB_LOG")"
 
 reset_log
-STUB_ACTIVE=1 bash "$tablet" keyboard hide >/dev/null 2>&1
-is "keyboard hide sends SIGUSR1" "pkill -USR1 -x wvkbd-mobintl" "$(grep '^pkill' "$STUB_LOG")"
+STUB_ACTIVE=1 bash "$tablet" virt-keyboard hide >/dev/null 2>&1
+is "virt-keyboard hide sends SIGUSR1" "pkill -USR1 -x wvkbd-mobintl" "$(grep '^pkill' "$STUB_LOG")"
 
-bash "$tablet" keyboard >/dev/null 2>&1
-is "keyboard without an action is a usage error" 2 "$?"
+bash "$tablet" virt-keyboard >/dev/null 2>&1
+is "virt-keyboard without an action is a usage error" 2 "$?"
 
 # memory-status.sh, over a copy of /proc/meminfo: 8 GiB of RAM with 2 GiB available,
 # 4 GiB of swap with 0.75 GiB in use

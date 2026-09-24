@@ -9,7 +9,7 @@
     ./backlight.nix
     ./battery.nix
     ./launcher.nix
-    ./keyboard.nix
+    ./virt-keyboard.nix
     ./memory.nix
   ];
 }

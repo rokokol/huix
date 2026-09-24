@@ -8,7 +8,7 @@
 }:
 
 # The mode itself is two user units and the switch binds; what happens on the way in and
-# out is tablet-mode.sh, which is also what the waybar keyboard button calls
+# out is tablet-mode.sh, which is also what the waybar virt-keyboard button calls
 let
   cfg = config.rokokol.hyprland;
   scriptsDir = "${huixDir}/scripts";
@@ -72,9 +72,9 @@ in
         };
       };
 
-      huix-osk = {
+      huix-virt-keyboard = {
         Unit = {
-          Description = "The on-screen keyboard, shown by a text field or the bar button (wvkbd)";
+          Description = "The on-screen keyboard, shown by the bar button (wvkbd)";
           PartOf = [ "graphical-session.target" ];
           After = [ "graphical-session.target" ];
         };
@@ -88,9 +88,10 @@ in
             "-H 320"
             # wvkbd reads one list on a portrait screen and another on a landscape one, which
             # a laptop panel is in any orientation but 90°; the keyboard key at the bottom
-            # left steps through the list in order, and the emoji layer opens from the numbers
-            "-l full,special,cyrillic"
-            "--landscape-layers landscape,landscapespecial,cyrillic"
+            # left steps through the list in order, so the numbers follow both alphabets,
+            # and the emoji layer opens from the numbers
+            "-l full,special,cyrillic,special"
+            "--landscape-layers landscape,landscapespecial,cyrillic,landscapespecial"
             "--fn 'Doki 14'"
             "--bg ${bare.ink}"
             "--fg ${bare.jacket}"

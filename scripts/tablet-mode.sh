@@ -1,28 +1,32 @@
 #!/usr/bin/env bash
-# The mode is two user units, huix-auto-rotate and huix-osk, declared in
+# The mode is two user units, huix-auto-rotate and huix-virt-keyboard, declared in
 # home-manager/desktop/hyprland/services/tablet-mode.nix; whether the first one is active is
 # the state, and nothing is stored in a file. The titlebars are a hyprbars keyword, which a
 # Hyprland reload resets together with the monitor transform, so sync runs on every reload
-# and re-applies both
-# Needs systemctl, hyprctl, evtest, pgrep, pkill and notify-send
+# and re-applies both. The bar's keyboard button doubles as the mode indicator, so a
+# change pokes waybar instead of sending a notification
+# Needs systemctl, hyprctl, evtest, pgrep and pkill
 set -euo pipefail
 
 usage() {
   cat <<'EOF'
 tablet-mode.sh — the folded-laptop mode: auto-rotation, titlebars and the on-screen keyboard
 
-  tablet-mode.sh on                         enter the mode, with a notification
-  tablet-mode.sh off                        leave it, with a notification
-  tablet-mode.sh toggle                     one or the other
-  tablet-mode.sh sync                       follow the tablet-mode switch, silently
-  tablet-mode.sh status                     print on or off
-  tablet-mode.sh keyboard toggle|show|hide  the on-screen keyboard, in either mode
+  tablet-mode.sh on                                 enter the mode
+  tablet-mode.sh off                                leave it
+  tablet-mode.sh toggle                             one or the other
+  tablet-mode.sh sync                               follow the tablet-mode switch
+  tablet-mode.sh status                             print on or off
+  tablet-mode.sh virt-keyboard toggle|show|hide     the on-screen keyboard, in either mode
+  tablet-mode.sh virt-keyboard status               the bar button as waybar JSON: the
+                                                    keyboard glyph in the mode, nothing outside it
 
 sync is for the start of the session and every Hyprland reload: switch binds fire only on
 a change, and a reload resets the transform and the titlebars to the config
 Environment: HUIX_TABLET_SWITCH names the switch device sync reads (as hyprctl devices
 prints it); HUIX_INPUT_DEVICES is where the kernel lists input devices (default
-/proc/bus/input/devices)
+/proc/bus/input/devices); HUIX_TABLET_SIGNAL is the N of the SIGRTMIN+N waybar refreshes
+the button on, unset when no bar shows one
 Nothing here reaches the network
 Exit 0 done, 1 when a unit, the switch or the keyboard cannot be reached, 2 on a usage error
 EOF
@@ -41,11 +45,13 @@ die() { # the request itself is wrong
 HERE=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 
 ROTATE_UNIT=huix-auto-rotate.service
-OSK_UNIT=huix-osk.service
+OSK_UNIT=huix-virt-keyboard.service
 OSK_PROCESS=wvkbd-mobintl
 
-notify_info() {
-  command -v notify-send >/dev/null 2>&1 && notify-send -u low "$1" "$2" || true
+# waybar re-reads the button on the RT signal the bar declared; no bar, no signal
+signal_bar() {
+  [ -n "${HUIX_TABLET_SIGNAL:-}" ] || return 0
+  pkill "-RTMIN+$HUIX_TABLET_SIGNAL" -x waybar || true
 }
 
 is_on() {
@@ -64,26 +70,18 @@ titlebars() {
 enter() {
   systemctl --user start "$ROTATE_UNIT" "$OSK_UNIT" || fail "the tablet-mode units did not start"
   titlebars 1
+  signal_bar
 }
 
 leave() {
   systemctl --user stop "$ROTATE_UNIT" "$OSK_UNIT" || fail "the tablet-mode units did not stop"
   titlebars 0
   bash "$HERE/rotate-screen.sh" set 0
-}
-
-cmd_on() {
-  enter
-  notify_info "Tablet mode (｡•̀ᴗ-)✧" "The screen follows the tilt, windows carry titlebars"
-}
-
-cmd_off() {
-  leave
-  notify_info "Laptop mode (´｡• ᵕ •｡\`)" "Upright screen, no titlebars"
+  signal_bar
 }
 
 cmd_toggle() {
-  if is_on; then cmd_off; else cmd_on; fi
+  if is_on; then leave; else enter; fi
 }
 
 # The event node of the switch, by the name the kernel gives it
@@ -137,9 +135,16 @@ osk_start() {
 }
 
 # The keyboard starts hidden; SIGUSR1 hides, SIGUSR2 shows, SIGRTMIN toggles
-cmd_keyboard() {
-  (($# == 1)) || die "keyboard needs toggle, show or hide"
+cmd_virt_keyboard() {
+  (($# == 1)) || die "virt-keyboard needs toggle, show, hide or status"
   case "$1" in
+    status)
+      if is_on; then
+        printf '{"text":"⌨️","class":"on"}\n'
+      else
+        printf '{"text":"","class":"off"}\n'
+      fi
+      ;;
     toggle)
       if osk_running; then
         pkill -RTMIN -x "$OSK_PROCESS"
@@ -153,19 +158,19 @@ cmd_keyboard() {
       pkill -USR2 -x "$OSK_PROCESS"
       ;;
     hide) ! osk_running || pkill -USR1 -x "$OSK_PROCESS" ;;
-    *) die "keyboard needs toggle, show or hide, not $1" ;;
+    *) die "virt-keyboard needs toggle, show, hide or status, not $1" ;;
   esac
 }
 
 cmd="${1:-}"
 (($# == 0)) || shift
 case "$cmd" in
-  on) cmd_on "$@" ;;
-  off) cmd_off "$@" ;;
+  on) enter "$@" ;;
+  off) leave "$@" ;;
   toggle) cmd_toggle "$@" ;;
   sync) cmd_sync "$@" ;;
   status) cmd_status "$@" ;;
-  keyboard) cmd_keyboard "$@" ;;
+  virt-keyboard) cmd_virt_keyboard "$@" ;;
   -h | --help | help) usage ;;
   '')
     usage >&2

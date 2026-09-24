@@ -28,7 +28,7 @@
       backlight = true;
       battery = true;
       launcher = true;
-      keyboard = true;
+      virtKeyboard = true;
       swap = true;
     };
   };
