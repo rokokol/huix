@@ -72,8 +72,14 @@ in
       # colour-free and host-free
       settings = {
         config = {
-          general = {
-            active_border = "rgba(${bare.pink}ee) rgba(${bare.plum}ee) 45deg";
+          general.col = {
+            active_border = {
+              colors = [
+                "rgba(${bare.pink}ee)"
+                "rgba(${bare.plum}ee)"
+              ];
+              angle = 45;
+            };
             inactive_border = "rgba(${bare.jacket}aa)";
           };
 
