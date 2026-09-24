@@ -28,9 +28,9 @@
   }
 
   /* Modules ride on the panel and carry no ground of their own */
-  #window, #clock, #cpu, #memory, #temperature, #pulseaudio, #network, #language,
-  #custom-gpu, #custom-shader, #custom-notifications, #custom-launcher, #custom-keyboard,
-  #backlight, #battery {
+  #window, #clock, #cpu, #memory, #custom-memory, #temperature, #pulseaudio, #network,
+  #language, #custom-gpu, #custom-shader, #custom-notifications, #custom-launcher,
+  #custom-keyboard, #backlight, #battery {
       background: transparent;
       border: none;
       margin: 0;
@@ -66,7 +66,7 @@
       color: ${palette.jacket};
   }
 
-  #temperature.critical, #battery.critical {
+  #temperature.critical, #battery.critical, #custom-memory.swap {
       color: ${palette.bow};
   }
 

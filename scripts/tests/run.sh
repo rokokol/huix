@@ -227,6 +227,34 @@ is "keyboard hide sends SIGUSR1" "pkill -USR1 -x wvkbd-mobintl" "$(grep '^pkill'
 bash "$tablet" keyboard >/dev/null 2>&1
 is "keyboard without an action is a usage error" 2 "$?"
 
+# memory-status.sh, over a copy of /proc/meminfo: 8 GiB of RAM with 2 GiB available,
+# 4 GiB of swap with 0.75 GiB in use
+memory=$SCRIPTS/memory-status.sh
+export HUIX_MEMINFO=$work/meminfo
+cat >"$HUIX_MEMINFO" <<'EOF'
+MemTotal:        8388608 kB
+MemFree:          524288 kB
+MemAvailable:    2097152 kB
+SwapTotal:       4194304 kB
+SwapFree:        3407872 kB
+EOF
+is "status shows used RAM and used swap, red above the threshold" \
+  '{"text":"6.0/0.8Gb 🧠","tooltip":"RAM 6.0 of 8.0 Gb, swap 0.8 of 4.0 Gb","class":"swap"}' "$(bash "$memory" status)"
+is "a higher threshold keeps the class ok" '"class":"ok"' "$(bash "$memory" status -w 1024 | grep -o '"class":"[a-z]*"')"
+is "the environment sets the threshold too" '"class":"ok"' "$(HUIX_SWAP_WARN_MB=1024 bash "$memory" status | grep -o '"class":"[a-z]*"')"
+cat >"$HUIX_MEMINFO" <<'EOF'
+MemTotal:        8388608 kB
+MemAvailable:    2097152 kB
+SwapTotal:             0 kB
+SwapFree:              0 kB
+EOF
+is "without a swap device only the RAM is shown" \
+  '{"text":"6.0Gb 🧠","tooltip":"RAM 6.0 of 8.0 Gb, no swap","class":"ok"}' "$(bash "$memory" status)"
+bash "$memory" status -w many >/dev/null 2>&1
+is "a threshold that is not a number is a usage error" 2 "$?"
+HUIX_MEMINFO=$work/missing bash "$memory" status >/dev/null 2>&1
+is "an unreadable memory file is a failure" 1 "$?"
+
 if ((failures)); then
   printf 'run.sh: %d test(s) failed\n' "$failures" >&2
   exit 1

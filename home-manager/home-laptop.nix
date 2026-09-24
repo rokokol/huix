@@ -29,6 +29,7 @@
       battery = true;
       launcher = true;
       keyboard = true;
+      swap = true;
     };
   };
 

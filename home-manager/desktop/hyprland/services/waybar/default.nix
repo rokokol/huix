@@ -10,5 +10,6 @@
     ./battery.nix
     ./launcher.nix
     ./keyboard.nix
+    ./memory.nix
   ];
 }

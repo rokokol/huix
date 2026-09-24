@@ -105,7 +105,7 @@ in
             orientation = "horizontal";
             modules = [
               "cpu"
-              "memory"
+              (if cfg.swap then "custom/memory" else "memory")
               "temperature"
             ];
           };
