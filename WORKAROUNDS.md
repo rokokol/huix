@@ -47,6 +47,26 @@ Zero -> keep the separate wrapper. Non-zero -> verify that the upstream `withNvi
 
 ---
 
+## smartd keeps `notifications.wall.enable = true`
+
+**Where:** `nixos/services/system/smartd.nix`, shared by both hosts
+
+**Symptom it prevents:** with `systembus-notify` as the only notification channel, a failing disk sends no desktop alert. smartd writes the problem to the journal and nothing more
+
+**Why it happens:** the nixpkgs smartd module passes `-M exec <notify script>` to smartd only when `mail`, `wall` or `x11` is on. The condition omits `systembus-notify`, so its `dbus-send` line is in the script, but smartd never runs the script. With `wall` on, smartd runs the script, and the script sends both the wall message and the D-Bus alert
+
+**Removal check:** read the condition in the pinned nixpkgs module
+
+```sh
+grep -A1 'notifyOpts =' "$(nix eval --raw .#nixosConfigurations.nixos-pc.pkgs.path)/nixos/modules/services/monitoring/smartd.nix"
+```
+
+No `ns.enable` in the condition -> keep `wall`. `ns.enable` is in it -> `wall` becomes a free choice
+
+**Upstream:** not reported yet
+
+---
+
 ## `wayland.windowManager.hyprland.systemd.enable = false`
 
 **Where:** `home-manager/desktop/hyprland/hyprland.nix` — a shared HM module, so it covers both hosts, and both need it since `withUWSM = true` lives in the shared `nixos/desktop/core-options.nix`

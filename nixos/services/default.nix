@@ -14,6 +14,7 @@
     ./system/cachix.nix
     ./system/nix-ld.nix
     ./system/skvpn.nix
+    ./system/smartd.nix
     ./system/sops.nix
     ./system/sshd.nix
     ./system/tailscale.nix
