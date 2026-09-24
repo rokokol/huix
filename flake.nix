@@ -202,6 +202,15 @@
         };
       };
 
+      # rofi's Wayland backend binds no wl_touch, so a finger does nothing in it; the patch
+      # makes the first finger the pointer (see WORKAROUNDS.md). The wrapper and every
+      # plugin take the unwrapped package from the overlay, so nothing else changes
+      overlay-rofi = _final: prev: {
+        rofi-unwrapped = prev.rofi-unwrapped.overrideAttrs (previous: {
+          patches = (previous.patches or [ ]) ++ [ ./patches/rofi-wayland-touch.patch ];
+        });
+      };
+
       mkHost =
         {
           configuration,
@@ -256,6 +265,7 @@
         overlays = [
           overlay-stable
           overlay-hyprland
+          overlay-rofi
           nix-matlab.overlay
         ];
       };
@@ -266,6 +276,7 @@
         overlays = [
           overlay-stable
           overlay-hyprland
+          overlay-rofi
         ];
       };
 

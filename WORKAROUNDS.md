@@ -129,3 +129,23 @@ grep -n '"sans"' "$(nix eval --raw .#nixosConfigurations.nixos-pc.pkgs.hyprlandP
 A hit -> keep the patch. No hit -> the plugin renders icons with the configured font; drop the patch and its line in the overlay
 
 **Upstream:** a pull request to hyprwm/hyprland-plugins with the same change
+
+---
+
+## rofi takes a finger on Wayland
+
+**Where:** `patches/rofi-wayland-touch.patch`, applied by `overlay-rofi` in `flake.nix` to `rofi-unwrapped` on both hosts; the wrapper and the rofi plugins take the unwrapped package from the overlay
+
+**Symptom it prevents:** rofi's Wayland backend binds `wl_pointer` and `wl_keyboard` from the seat and never `wl_touch` (`source/wayland/display.c`, `wayland_seat_capabilities`), so a tap on its list does nothing and a swipe does nothing: the launcher button on the bar and the bottom-edge swipe open a menu a finger cannot use
+
+**Why this works:** the patch binds `wl_touch` beside the pointer and drives the same `wayland_pointer_send_events` from it. The first finger is the pointer; further fingers are ignored until it lifts. A finger that stays within 8 px is a left click sent as a press and a release when it lifts, so one tap selects and a second one accepts, as rofi's `me-select-entry` and `me-accept-entry` already say. A finger that moves past 8 px is never a click: every 30 px of travel is one wheel step against the motion, so the list follows the finger
+
+**Removal check:** look at the backend as nixpkgs ships it
+
+```sh
+grep -c 'wl_seat_get_touch' "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.rofi-unwrapped.src)/source/wayland/display.c"
+```
+
+`0` -> keep the patch. Anything else -> rofi binds touch itself; drop the patch and the overlay, then check that a tap still selects and a swipe still scrolls, since upstream may map them differently
+
+**Upstream:** a pull request to davatorium/rofi with the same change
