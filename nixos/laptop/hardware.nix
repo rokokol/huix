@@ -1,15 +1,6 @@
-{ lib, ... }:
+_:
 
 {
-  # hardware-configuration.nix regenerates, so these belong here instead. btrfs takes
-  # compress for the whole volume from whichever subvolume mounts first, hence all three
-  fileSystems = lib.genAttrs [ "/" "/home" "/nix" ] (_: {
-    options = [
-      "compress=zstd"
-      "noatime"
-    ];
-  });
-
   # Essential for Intel
   services.thermald.enable = true;
   services.tlp = {

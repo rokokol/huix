@@ -16,6 +16,11 @@
   };
 
   rokokol = {
+    btrfs.mounts = [
+      "/"
+      "/home"
+    ];
+
     searxng.enable = true;
     telegram-agent.enable = true;
 

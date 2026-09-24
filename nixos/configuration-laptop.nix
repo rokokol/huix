@@ -9,4 +9,10 @@
 
   system.stateVersion = "25.11";
   services.ollama.package = pkgs.ollama-cpu;
+
+  rokokol.btrfs.mounts = [
+    "/"
+    "/home"
+    "/nix"
+  ];
 }
