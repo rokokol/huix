@@ -164,9 +164,15 @@ grep -c 'wl_seat_get_touch' "$(nix eval --raw .#nixosConfigurations.nixos-laptop
 
 **Possible improvement:** gate the bind with a flag set by `hl.on("layer.opened")` and cleared by `hl.on("layer.closed")` for the `rofi` namespace, so a tap while rofi is closed costs one comparison and no layer lookup; hyprgrass has no way to remove a bind, so the bind itself stays
 
-**Removal check:** rofi closing on a tap outside its window on Wayland by itself, with `click-to-exit` set; then the bind goes
+**Removal check:** rofi closing on a tap outside its window on Wayland by itself, with `click-to-exit` set; then the bind goes. The first release after 2.0.0 should pass it: rofi's `next` branch covers the screen with a transparent surface and cancels on a press outside the menu, and the touch patch drives a tap through that same press path
 
-**Upstream:** not reported yet
+```sh
+grep -c 'click_to_exit' "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.rofi-unwrapped.src)/source/wayland/display.c"
+```
+
+`0` -> keep the bind. Anything else -> open rofi, tap outside it, and drop the bind if rofi closes
+
+**Upstream:** [davatorium/rofi@6d2a528](https://github.com/davatorium/rofi/commit/6d2a528) "wayland: add click-to-exit", on `next`, not in a release yet
 
 ---
 
@@ -186,4 +192,4 @@ tar -xOf "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.blueman.src)"
 
 `0` -> keep the patch. Anything else -> blueman activates rows itself; drop the patch and the overlay, then check that a double tap still connects
 
-**Upstream:** a pull request to blueman-project/blueman with the same change
+**Upstream:** [blueman-project/blueman#3378](https://github.com/blueman-project/blueman/pull/3378) (the same change, open)
