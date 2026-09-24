@@ -231,7 +231,6 @@
         home = ./home-manager/home-laptop.nix;
         overlays = [
           overlay-stable
-          nix-matlab.overlay
         ];
       };
 
