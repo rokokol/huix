@@ -19,17 +19,17 @@ local getScreen = 'grim -g "$(slurp -b ffffff66 -w 1 && sleep 0.2)"'
 -- steps away from the active one, wrapping around. A function, so the active workspace
 -- is read at press time and no shell is spawned
 local function tab(offset, dispatcher)
-    return function()
-        local id = hl.get_active_workspace().id
-        local target = tostring(((id - 1 + offset) % tabsNum) + 1)
-        hl.dispatch(dispatcher(target))
-    end
+  return function()
+    local id = hl.get_active_workspace().id
+    local target = tostring(((id - 1 + offset) % tabsNum) + 1)
+    hl.dispatch(dispatcher(target))
+  end
 end
 local function focusWorkspace(target)
-    return hl.dsp.focus({ workspace = target })
+  return hl.dsp.focus({ workspace = target })
 end
 local function moveToWorkspace(target)
-    return hl.dsp.window.move({ workspace = target })
+  return hl.dsp.window.move({ workspace = target })
 end
 
 ---------------
@@ -37,33 +37,33 @@ end
 ---------------
 
 hl.on("hyprland.start", function()
-    hl.exec_cmd("systemctl --user start hyprpolkitagent.service")
-    hl.exec_cmd("systemctl --user start swayosd.service")
+  hl.exec_cmd("systemctl --user start hyprpolkitagent.service")
+  hl.exec_cmd("systemctl --user start swayosd.service")
 
-    hl.exec_cmd("waybar")
-    hl.exec_cmd("awww-daemon -q >/dev/null 2>&1")
-    -- the mako package ships a Type=dbus unit -- a bare "mako" would take the bus
-    -- name outside systemd
-    hl.exec_cmd("systemctl --user start mako.service")
-    hl.exec_cmd("wl-paste --type text --watch cliphist store -max-items 500 store")
-    hl.exec_cmd("wl-paste --type image --watch cliphist store -max-items 1000 store")
-    hl.exec_cmd("dex -a")
-    hl.exec_cmd("super-productivity")
-    -- fixes a broken software cursor: a round trip through software cursors
-    hl.exec_cmd(
-        "hyprctl eval 'hl.config({ cursor = { no_hardware_cursors = 1 } })' && "
-            .. "hyprctl eval 'hl.config({ cursor = { no_hardware_cursors = 0 } })'"
-    )
+  hl.exec_cmd("waybar")
+  hl.exec_cmd("awww-daemon -q >/dev/null 2>&1")
+  -- the mako package ships a Type=dbus unit -- a bare "mako" would take the bus
+  -- name outside systemd
+  hl.exec_cmd("systemctl --user start mako.service")
+  hl.exec_cmd("wl-paste --type text --watch cliphist store -max-items 500 store")
+  hl.exec_cmd("wl-paste --type image --watch cliphist store -max-items 1000 store")
+  hl.exec_cmd("dex -a")
+  hl.exec_cmd("super-productivity")
+  -- fixes a broken software cursor: a round trip through software cursors
+  hl.exec_cmd(
+    "hyprctl eval 'hl.config({ cursor = { no_hardware_cursors = 1 } })' && "
+    .. "hyprctl eval 'hl.config({ cursor = { no_hardware_cursors = 0 } })'"
+  )
 
-    -- also runs on every reload below (config.reloaded), like the original
-    -- "exec = ..." line, which unlike "exec-once" fires again on every reload
-    hl.exec_cmd(HUIX.scripts .. "/toggle-theme.sh --sync")
+  -- also runs on every reload below (config.reloaded), like the original
+  -- "exec = ..." line, which unlike "exec-once" fires again on every reload
+  hl.exec_cmd(HUIX.scripts .. "/toggle-theme.sh --sync")
 end)
 
 -- runs on every reload, mirroring the original plain "exec = ..." line; see the
 -- comment at the end of the hyprland.start handler above for why it is in both
 hl.on("config.reloaded", function()
-    hl.exec_cmd(HUIX.scripts .. "/toggle-theme.sh --sync")
+  hl.exec_cmd(HUIX.scripts .. "/toggle-theme.sh --sync")
 end)
 
 -----------------------------
@@ -77,11 +77,11 @@ hl.env("XDG_SESSION_DESKTOP", "Hyprland")
 hl.env("XDG_SESSION_TYPE", "wayland")
 
 hl.config({
-    cursor = {
-        -- 0 disables hardware cursors outright (the hyprlang value was the
-        -- boolean "false"; the Lua option is documented as an int, 0 - 2)
-        no_hardware_cursors = 0,
-    },
+  cursor = {
+    -- 0 disables hardware cursors outright (the hyprlang value was the
+    -- boolean "false"; the Lua option is documented as an int, 0 - 2)
+    no_hardware_cursors = 0,
+  },
 })
 
 -----------------
@@ -95,9 +95,9 @@ hl.config({
 
 hl.permission({ binary = "/usr/(bin|local/bin)/grim", type = "screencopy", mode = "allow" })
 hl.permission({
-    binary = "/usr/(lib|libexec|lib64)/xdg-desktop-portal-hyprland",
-    type = "screencopy",
-    mode = "allow",
+  binary = "/usr/(lib|libexec|lib64)/xdg-desktop-portal-hyprland",
+  type = "screencopy",
+  mode = "allow",
 })
 -- hl.permission({ binary = "/usr/(bin|local/bin)/hyprpm", type = "plugin", mode = "ask" })
 
@@ -106,55 +106,55 @@ hl.permission({
 ------------------
 
 hl.config({
-    general = {
-        gaps_in = 5,
-        gaps_out = 10,
+  general = {
+    gaps_in = 5,
+    gaps_out = 10,
 
-        border_size = 2,
+    border_size = 2,
 
-        -- border colours come from the palette, set before this file is loaded
+    -- border colours come from the palette, set before this file is loaded
 
-        -- true -- resize windows by dragging their borders and gaps
-        resize_on_border = false,
+    -- true -- resize windows by dragging their borders and gaps
+    resize_on_border = false,
 
-        -- read https://wiki.hypr.land/Configuring/Tearing/ before enabling
-        allow_tearing = false,
+    -- read https://wiki.hypr.land/Configuring/Tearing/ before enabling
+    allow_tearing = false,
 
-        layout = "dwindle",
-    },
+    layout = "dwindle",
+  },
 })
 
 hl.config({
-    decoration = {
-        rounding = 7,
-        rounding_power = 2,
+  decoration = {
+    rounding = 7,
+    rounding_power = 2,
 
-        -- opacity of the active and inactive window
-        active_opacity = 1.0,
-        inactive_opacity = 0.95,
+    -- opacity of the active and inactive window
+    active_opacity = 1.0,
+    inactive_opacity = 0.95,
 
-        shadow = {
-            enabled = true,
-            range = 4,
-            render_power = 3,
-            -- colour set before this file is loaded
-        },
-
-        blur = {
-            enabled = true,
-            size = 3,
-            passes = 1,
-
-            vibrancy = 0.1696,
-        },
+    shadow = {
+      enabled = true,
+      range = 4,
+      render_power = 3,
+      -- colour set before this file is loaded
     },
+
+    blur = {
+      enabled = true,
+      size = 3,
+      passes = 1,
+
+      vibrancy = 0.1696,
+    },
+  },
 })
 
 hl.config({
-    animations = {
-        -- "enabled = yes, please :)" in the old config is just true
-        enabled = true,
-    },
+  animations = {
+    -- "enabled = yes, please :)" in the old config is just true
+    enabled = true,
+  },
 })
 
 -- default curves
@@ -169,53 +169,53 @@ hl.animation({ leaf = "global", enabled = true, speed = 10, bezier = "default" }
 hl.animation({ leaf = "border", enabled = true, speed = 5.39, bezier = "easeOutQuint" })
 hl.animation({ leaf = "windows", enabled = true, speed = 4.79, bezier = "easeOutQuint" })
 hl.animation({
-    leaf = "windowsIn",
-    enabled = true,
-    speed = 4.1,
-    bezier = "easeOutQuint",
-    style = "popin 87%",
+  leaf = "windowsIn",
+  enabled = true,
+  speed = 4.1,
+  bezier = "easeOutQuint",
+  style = "popin 87%",
 })
 hl.animation({
-    leaf = "windowsOut",
-    enabled = true,
-    speed = 1.49,
-    bezier = "linear",
-    style = "popin 87%",
+  leaf = "windowsOut",
+  enabled = true,
+  speed = 1.49,
+  bezier = "linear",
+  style = "popin 87%",
 })
 hl.animation({ leaf = "fadeIn", enabled = true, speed = 1.73, bezier = "almostLinear" })
 hl.animation({ leaf = "fadeOut", enabled = true, speed = 1.46, bezier = "almostLinear" })
 hl.animation({ leaf = "fade", enabled = true, speed = 3.03, bezier = "quick" })
 hl.animation({ leaf = "layers", enabled = true, speed = 3.81, bezier = "easeOutQuint" })
 hl.animation({
-    leaf = "layersIn",
-    enabled = true,
-    speed = 4,
-    bezier = "easeOutQuint",
-    style = "fade",
+  leaf = "layersIn",
+  enabled = true,
+  speed = 4,
+  bezier = "easeOutQuint",
+  style = "fade",
 })
 hl.animation({ leaf = "layersOut", enabled = true, speed = 1.5, bezier = "linear", style = "fade" })
 hl.animation({ leaf = "fadeLayersIn", enabled = true, speed = 1.79, bezier = "almostLinear" })
 hl.animation({ leaf = "fadeLayersOut", enabled = true, speed = 1.39, bezier = "almostLinear" })
 hl.animation({
-    leaf = "workspaces",
-    enabled = true,
-    speed = 1.94,
-    bezier = "almostLinear",
-    style = "fade",
+  leaf = "workspaces",
+  enabled = true,
+  speed = 1.94,
+  bezier = "almostLinear",
+  style = "fade",
 })
 hl.animation({
-    leaf = "workspacesIn",
-    enabled = true,
-    speed = 1.21,
-    bezier = "almostLinear",
-    style = "fade",
+  leaf = "workspacesIn",
+  enabled = true,
+  speed = 1.21,
+  bezier = "almostLinear",
+  style = "fade",
 })
 hl.animation({
-    leaf = "workspacesOut",
-    enabled = true,
-    speed = 1.94,
-    bezier = "almostLinear",
-    style = "fade",
+  leaf = "workspacesOut",
+  enabled = true,
+  speed = 1.94,
+  bezier = "almostLinear",
+  style = "fade",
 })
 hl.animation({ leaf = "zoomFactor", enabled = true, speed = 7, bezier = "quick" })
 
@@ -236,34 +236,34 @@ hl.animation({ leaf = "zoomFactor", enabled = true, speed = 7, bezier = "quick" 
 -- })
 
 hl.config({
-    dwindle = {
-        preserve_split = true, -- usually what you want
-        -- a dragged window lands on the side of the target the cursor is over,
-        -- not only in the gaps
-        precise_mouse_move = true,
-    },
+  dwindle = {
+    preserve_split = true,     -- usually what you want
+    -- a dragged window lands on the side of the target the cursor is over,
+    -- not only in the gaps
+    precise_mouse_move = true,
+  },
 })
 
 hl.config({
-    master = {
-        new_status = "master",
-    },
+  master = {
+    new_status = "master",
+  },
 })
 
 hl.config({
-    misc = {
-        force_default_wallpaper = 2, -- 0 or 1 -- disable the mascot wallpaper
-        disable_hyprland_logo = false, -- true -- remove the random Hyprland logo/anime girl
-        -- if the locker died without releasing the lock (hyprlock crash), let a new
-        -- instance lock the session again -- otherwise only a tty is left
-        allow_session_lock_restore = true,
+  misc = {
+    force_default_wallpaper = 2,       -- 0 or 1 -- disable the mascot wallpaper
+    disable_hyprland_logo = false,     -- true -- remove the random Hyprland logo/anime girl
+    -- if the locker died without releasing the lock (hyprlock crash), let a new
+    -- instance lock the session again -- otherwise only a tty is left
+    allow_session_lock_restore = true,
 
-        -- hypridle blanks the screen on idle, but waking it back is its on-resume
-        -- alone -- let the compositor wake on input too, so a dead hypridle can't
-        -- leave a dark screen
-        key_press_enables_dpms = true,
-        mouse_move_enables_dpms = true,
-    },
+    -- hypridle blanks the screen on idle, but waking it back is its on-resume
+    -- alone -- let the compositor wake on input too, so a dead hypridle can't
+    -- leave a dark screen
+    key_press_enables_dpms = true,
+    mouse_move_enables_dpms = true,
+  },
 })
 
 -----------
@@ -278,22 +278,22 @@ hl.gesture({ fingers = 3, direction = "horizontal", action = "workspace" })
 -- zoom is bound to the built-in cursor_zoom gesture (mode live -- continuous
 -- while pinching)
 hl.gesture({
-    fingers = 2,
-    direction = "pinch",
-    action = "cursor_zoom",
-    zoom_level = 1,
-    mode = "live",
+  fingers = 2,
+  direction = "pinch",
+  action = "cursor_zoom",
+  zoom_level = 1,
+  mode = "live",
 })
 
 hl.device({
-    name = "gaomon-gaomon-tablet_s630",
-    output = "DP-1",
+  name = "gaomon-gaomon-tablet_s630",
+  output = "DP-1",
 })
 
 hl.config({
-    xwayland = {
-        force_zero_scaling = true,
-    },
+  xwayland = {
+    force_zero_scaling = true,
+  },
 })
 
 ------------
@@ -301,9 +301,9 @@ hl.config({
 ------------
 
 hl.config({
-    binds = {
-        scroll_event_delay = 0,
-    },
+  binds = {
+    scroll_event_delay = 0,
+  },
 })
 
 -- $mainMod = SUPER, $mainScreenMod = SUPER + ALT, inlined into every key string below
@@ -327,14 +327,14 @@ hl.bind("SUPER + T", hl.dsp.layout("togglesplit"))
 hl.bind("SUPER + F", hl.dsp.window.fullscreen({ mode = "fullscreen" }))
 hl.bind("SUPER + Z", hl.dsp.exec_cmd("pidof waybar && pkill waybar || waybar"))
 hl.bind(
-    "SUPER + U",
-    hl.dsp.exec_cmd(
-        'rofi -modi "ru-en:'
-            .. HUIX.scripts
-            .. "/rofi-libre.sh ru en,en-ru:"
-            .. HUIX.scripts
-            .. '/rofi-libre.sh en ru" -show ru-en'
-    )
+  "SUPER + U",
+  hl.dsp.exec_cmd(
+    'rofi -modi "ru-en:'
+    .. HUIX.scripts
+    .. "/rofi-libre.sh ru en,en-ru:"
+    .. HUIX.scripts
+    .. '/rofi-libre.sh en ru" -show ru-en'
+  )
 )
 hl.bind("SUPER + B", hl.dsp.exec_cmd(HUIX.scripts .. "/rofi-clipboard.sh"))
 hl.bind("SUPER + N", hl.dsp.exec_cmd(HUIX.scripts .. "/rofi-notify.sh"))
@@ -348,29 +348,29 @@ hl.bind("SUPER + G", hl.dsp.exec_cmd("screen-shader effect clear"))
 hl.bind("SUPER + CTRL + BackSpace", hl.dsp.exec_cmd("rofi-shader bright reset"))
 -- the repeating flag makes dimming feel continuous while the key is held
 hl.bind(
-    "SUPER + CTRL + bracketright",
-    hl.dsp.exec_cmd("rofi-shader bright up"),
-    { repeating = true }
+  "SUPER + CTRL + bracketright",
+  hl.dsp.exec_cmd("rofi-shader bright up"),
+  { repeating = true }
 )
 hl.bind(
-    "SUPER + CTRL + bracketleft",
-    hl.dsp.exec_cmd("rofi-shader bright down"),
-    { repeating = true }
+  "SUPER + CTRL + bracketleft",
+  hl.dsp.exec_cmd("rofi-shader bright down"),
+  { repeating = true }
 )
 hl.bind(
-    "SUPER + SHIFT + B",
-    hl.dsp.exec_cmd(
-        'rofi -show emoji -modi "emoji:rofimoji --action copy --files '
-            .. "emojis_smileys_emotion emojis_people_body emojis_animals_nature "
-            .. "emojis_food_drink emojis_activities emojis_travel_places emojis_objects "
-            .. "emojis_symbols emojis_flags dingbats "
-            .. "miscellaneous_symbols_and_pictographs,math:rofimoji --action copy --files "
-            .. "math mathematical_operators arrows geometric_shapes greek_and_coptic,"
-            .. "chars:rofimoji --action copy --files currency_symbols letterlike_symbols "
-            .. "latin-1_supplement general_punctuation superscripts_and_subscripts "
-            .. "enclosed_alphanumerics box_drawing cjk_symbols_and_punctuation nerd_font,"
-            .. 'kaomoji:rofimoji --action copy --files kaomoji"'
-    )
+  "SUPER + SHIFT + B",
+  hl.dsp.exec_cmd(
+    'rofi -show emoji -modi "emoji:rofimoji --action copy --files '
+    .. "emojis_smileys_emotion emojis_people_body emojis_animals_nature "
+    .. "emojis_food_drink emojis_activities emojis_travel_places emojis_objects "
+    .. "emojis_symbols emojis_flags dingbats "
+    .. "miscellaneous_symbols_and_pictographs,math:rofimoji --action copy --files "
+    .. "math mathematical_operators arrows geometric_shapes greek_and_coptic,"
+    .. "chars:rofimoji --action copy --files currency_symbols letterlike_symbols "
+    .. "latin-1_supplement general_punctuation superscripts_and_subscripts "
+    .. "enclosed_alphanumerics box_drawing cjk_symbols_and_punctuation nerd_font,"
+    .. 'kaomoji:rofimoji --action copy --files kaomoji"'
+  )
 )
 
 -- Screenshots / screen operations
@@ -417,46 +417,46 @@ hl.bind("SUPER + SHIFT + down", hl.dsp.window.move({ direction = "d" }))
 
 -- Precise movement of the active window (for floating ones)
 hl.bind(
-    "SUPER + CTRL + left",
-    hl.dsp.window.move({ x = -80, y = 0, relative = true }),
-    { repeating = true }
+  "SUPER + CTRL + left",
+  hl.dsp.window.move({ x = -80, y = 0, relative = true }),
+  { repeating = true }
 )
 hl.bind(
-    "SUPER + CTRL + right",
-    hl.dsp.window.move({ x = 80, y = 0, relative = true }),
-    { repeating = true }
+  "SUPER + CTRL + right",
+  hl.dsp.window.move({ x = 80, y = 0, relative = true }),
+  { repeating = true }
 )
 hl.bind(
-    "SUPER + CTRL + up",
-    hl.dsp.window.move({ x = 0, y = -80, relative = true }),
-    { repeating = true }
+  "SUPER + CTRL + up",
+  hl.dsp.window.move({ x = 0, y = -80, relative = true }),
+  { repeating = true }
 )
 hl.bind(
-    "SUPER + CTRL + down",
-    hl.dsp.window.move({ x = 0, y = 80, relative = true }),
-    { repeating = true }
+  "SUPER + CTRL + down",
+  hl.dsp.window.move({ x = 0, y = 80, relative = true }),
+  { repeating = true }
 )
 
 -- Same for HJKL
 hl.bind(
-    "SUPER + CTRL + h",
-    hl.dsp.window.move({ x = -80, y = 0, relative = true }),
-    { repeating = true }
+  "SUPER + CTRL + h",
+  hl.dsp.window.move({ x = -80, y = 0, relative = true }),
+  { repeating = true }
 )
 hl.bind(
-    "SUPER + CTRL + l",
-    hl.dsp.window.move({ x = 80, y = 0, relative = true }),
-    { repeating = true }
+  "SUPER + CTRL + l",
+  hl.dsp.window.move({ x = 80, y = 0, relative = true }),
+  { repeating = true }
 )
 hl.bind(
-    "SUPER + CTRL + k",
-    hl.dsp.window.move({ x = 0, y = -80, relative = true }),
-    { repeating = true }
+  "SUPER + CTRL + k",
+  hl.dsp.window.move({ x = 0, y = -80, relative = true }),
+  { repeating = true }
 )
 hl.bind(
-    "SUPER + CTRL + j",
-    hl.dsp.window.move({ x = 0, y = 80, relative = true }),
-    { repeating = true }
+  "SUPER + CTRL + j",
+  hl.dsp.window.move({ x = 0, y = 80, relative = true }),
+  { repeating = true }
 )
 
 -- --- WORKSPACES ---
@@ -499,34 +499,34 @@ hl.bind("SUPER + mouse:273", hl.dsp.window.resize(), { mouse = true })
 
 -- Media keys and brightness
 hl.bind(
-    "XF86AudioRaiseVolume",
-    hl.dsp.exec_cmd("swayosd-client --output-volume raise"),
-    { repeating = true }
+  "XF86AudioRaiseVolume",
+  hl.dsp.exec_cmd("swayosd-client --output-volume raise"),
+  { repeating = true }
 )
 hl.bind(
-    "XF86AudioLowerVolume",
-    hl.dsp.exec_cmd("swayosd-client --output-volume lower"),
-    { repeating = true }
+  "XF86AudioLowerVolume",
+  hl.dsp.exec_cmd("swayosd-client --output-volume lower"),
+  { repeating = true }
 )
 hl.bind(
-    "XF86AudioMute",
-    hl.dsp.exec_cmd("swayosd-client --output-volume mute-toggle"),
-    { locked = true }
+  "XF86AudioMute",
+  hl.dsp.exec_cmd("swayosd-client --output-volume mute-toggle"),
+  { locked = true }
 )
 hl.bind(
-    "XF86AudioMicMute",
-    hl.dsp.exec_cmd("swayosd-client --input-volume mute-toggle"),
-    { locked = true }
+  "XF86AudioMicMute",
+  hl.dsp.exec_cmd("swayosd-client --input-volume mute-toggle"),
+  { locked = true }
 )
 hl.bind(
-    "XF86MonBrightnessUp",
-    hl.dsp.exec_cmd("swayosd-client --brightness raise"),
-    { repeating = true }
+  "XF86MonBrightnessUp",
+  hl.dsp.exec_cmd("swayosd-client --brightness raise"),
+  { repeating = true }
 )
 hl.bind(
-    "XF86MonBrightnessDown",
-    hl.dsp.exec_cmd("swayosd-client --brightness lower"),
-    { repeating = true }
+  "XF86MonBrightnessDown",
+  hl.dsp.exec_cmd("swayosd-client --brightness lower"),
+  { repeating = true }
 )
 
 -- Player controls
@@ -537,80 +537,80 @@ hl.bind("XF86AudioPause", hl.dsp.exec_cmd("playerctl -p playerctld play-pause"),
 
 -- Resize the active window
 hl.bind(
-    "SUPER + ALT + L",
-    hl.dsp.window.resize({ x = 40, y = 0, relative = true }),
-    { repeating = true }
+  "SUPER + ALT + L",
+  hl.dsp.window.resize({ x = 40, y = 0, relative = true }),
+  { repeating = true }
 )
 hl.bind(
-    "SUPER + ALT + H",
-    hl.dsp.window.resize({ x = -40, y = 0, relative = true }),
-    { repeating = true }
+  "SUPER + ALT + H",
+  hl.dsp.window.resize({ x = -40, y = 0, relative = true }),
+  { repeating = true }
 )
 hl.bind(
-    "SUPER + ALT + K",
-    hl.dsp.window.resize({ x = 0, y = -40, relative = true }),
-    { repeating = true }
+  "SUPER + ALT + K",
+  hl.dsp.window.resize({ x = 0, y = -40, relative = true }),
+  { repeating = true }
 )
 hl.bind(
-    "SUPER + ALT + J",
-    hl.dsp.window.resize({ x = 0, y = 40, relative = true }),
-    { repeating = true }
+  "SUPER + ALT + J",
+  hl.dsp.window.resize({ x = 0, y = 40, relative = true }),
+  { repeating = true }
 )
 
 hl.bind(
-    "SUPER + ALT + right",
-    hl.dsp.window.resize({ x = 40, y = 0, relative = true }),
-    { repeating = true }
+  "SUPER + ALT + right",
+  hl.dsp.window.resize({ x = 40, y = 0, relative = true }),
+  { repeating = true }
 )
 hl.bind(
-    "SUPER + ALT + left",
-    hl.dsp.window.resize({ x = -40, y = 0, relative = true }),
-    { repeating = true }
+  "SUPER + ALT + left",
+  hl.dsp.window.resize({ x = -40, y = 0, relative = true }),
+  { repeating = true }
 )
 hl.bind(
-    "SUPER + ALT + up",
-    hl.dsp.window.resize({ x = 0, y = -40, relative = true }),
-    { repeating = true }
+  "SUPER + ALT + up",
+  hl.dsp.window.resize({ x = 0, y = -40, relative = true }),
+  { repeating = true }
 )
 hl.bind(
-    "SUPER + ALT + down",
-    hl.dsp.window.resize({ x = 0, y = 40, relative = true }),
-    { repeating = true }
+  "SUPER + ALT + down",
+  hl.dsp.window.resize({ x = 0, y = 40, relative = true }),
+  { repeating = true }
 )
 
 -- Useful window rules
 
 hl.window_rule({
-    -- ignore maximize requests from all apps -- usually more convenient this way
-    name = "suppress-maximize-events",
-    match = { class = ".*" },
+  -- ignore maximize requests from all apps -- usually more convenient this way
+  name = "suppress-maximize-events",
+  match = { class = ".*" },
 
-    suppress_event = "maximize",
+  suppress_event = "maximize",
 })
 
 hl.window_rule({
-    -- fix drag-and-drop issues under XWayland
-    name = "fix-xwayland-drags",
-    match = {
-        class = "^$",
-        title = "^$",
-        xwayland = true,
-        float = true,
-        fullscreen = false,
-        pin = false,
-    },
+  -- fix drag-and-drop issues under XWayland
+  name = "fix-xwayland-drags",
+  match = {
+    class = "^$",
+    title = "^$",
+    xwayland = true,
+    float = true,
+    fullscreen = false,
+    pin = false,
+  },
 
-    no_focus = true,
+  no_focus = true,
 })
 
 -- window rule for hyprland-run
 hl.window_rule({
-    name = "move-hyprland-run",
+  name = "move-hyprland-run",
 
-    match = { class = "hyprland-run" },
+  match = { class = "hyprland-run" },
 
-    move = { "20", "monitor_h-120" },
-    float = true,
+  move = { "20", "monitor_h-120" },
+  float = true,
 })
 
 -- hl.layer_rule({
@@ -620,55 +620,55 @@ hl.window_rule({
 -- })
 
 hl.layer_rule({
-    name = "no_anim_for_hyprpicker",
-    match = { namespace = "^(hyprpicker)$" },
-    no_anim = true,
+  name = "no_anim_for_hyprpicker",
+  match = { namespace = "^(hyprpicker)$" },
+  no_anim = true,
 })
 
 -- fix for invisible drag windows (they usually have an empty title)
 hl.window_rule({
-    name = "ue4-drag-empty-fix",
-    match = { class = "^(UE4Editor|UnrealEditor)$", title = "^$" },
+  name = "ue4-drag-empty-fix",
+  match = { class = "^(UE4Editor|UnrealEditor)$", title = "^$" },
 
-    no_initial_focus = true,
-    no_focus = true,
+  no_initial_focus = true,
+  no_focus = true,
 })
 
 hl.window_rule({
-    name = "float-dialect",
-    match = { class = "^(app.drey.Dialect)$" },
-    float = true,
+  name = "float-dialect",
+  match = { class = "^(app.drey.Dialect)$" },
+  float = true,
 })
 
 -- pin-screen.sh: the window class starts with desktop-pin, matched by prefix
 -- floating + on top; the script sets the exact geometry via hyprctl
 hl.window_rule({
-    name = "float-desktop-pin",
-    match = { class = "^(desktop-pin).*$" },
-    float = true,
-    pin = true,
+  name = "float-desktop-pin",
+  match = { class = "^(desktop-pin).*$" },
+  float = true,
+  pin = true,
 })
 
 -- Wayland gives the compositor no "this is a dialog" hint (match.modal reads the
 -- XWayland flag only), so dialogs are floated by hand. Everything routed through
 -- the portal -- GTK4/Chromium/Electron file choosers -- shares this one class
 hl.window_rule({
-    name = "float-portal-dialogs",
-    match = { class = "^(xdg-desktop-portal-gtk)$" },
-    float = true,
+  name = "float-portal-dialogs",
+  match = { class = "^(xdg-desktop-portal-gtk)$" },
+  float = true,
 })
 
 -- xarchiver builds its file choosers in-process, so they share the app class --
 -- nothing tells them apart from the main window, float the whole app
 -- spawn under the cursor instead of the monitor centre, clamped to stay on screen
 hl.window_rule({
-    name = "float-xarchiver",
-    match = { class = "^(xarchiver)$" },
-    float = true,
-    move = {
-        "min(max(cursor_x-window_w,0),monitor_w-window_w)",
-        "min(max(cursor_y-window_h,0),monitor_h-window_h)",
-    },
+  name = "float-xarchiver",
+  match = { class = "^(xarchiver)$" },
+  float = true,
+  move = {
+    "min(max(cursor_x-window_w,0),monitor_w-window_w)",
+    "min(max(cursor_y-window_h,0),monitor_h-window_h)",
+  },
 })
 
 hl.layer_rule({ match = { namespace = "waybar" }, blur = true })
