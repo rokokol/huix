@@ -6,10 +6,11 @@
 }:
 
 # Hyprland itself gives a touchscreen taps and drags only; the gestures are the plugin's.
-# The plugin also warps the pointer to every touch, which is what lets a two-finger swipe
-# turn the wheel under the fingers through a virtual pointer: applications without wl_touch
-# and the bar's scroll-driven modules scroll and turn that way. A right click is still not
-# among the gestures, and the applications answer a long press with their own context menu
+# The plugin also warps the pointer to every touch, so the magnifier anchors under the
+# fingers. Scrolling is not emulated: applications with wl_touch scroll with one finger by
+# themselves, and a wheel sent under the fingers only fought them. A right click is not
+# among the gestures either, and the applications answer a long press with their own
+# context menu
 let
   cfg = config.rokokol.hyprland;
   inherit (lib.generators) mkLuaInline;
@@ -65,17 +66,13 @@ let
         }
       end)()
     '';
-  # One wheel event per notch, of the notch's size, sent against the fingers so the
-  # content follows them
-  wheel = notched 24 ''
-    hl.exec_cmd(string.format("${pkgs.wlrctl}/bin/wlrctl pointer scroll %d %d", -ny * STEP, -nx * STEP))
-  '';
-  # A slider along a screen edge: fingers up raise, and swayosd shows the level
+  # A slider along a screen edge: three percent a notch, fingers up raise, and swayosd
+  # shows the level
   slider =
     what:
     notched 20 ''
       for _ = 1, math.abs(ny) do
-        hl.exec_cmd("swayosd-client --${what} " .. (ny < 0 and "raise" or "lower"))
+        hl.exec_cmd("swayosd-client --${what} " .. (ny < 0 and "+3" or "-3"))
       end
     '';
   slide = origin: action: {
@@ -96,9 +93,14 @@ in
 
       settings = {
         config.plugin.hyprgrass = {
+          # One knob for every threshold: a swipe and a pinch are recognised after
+          # 150 / sensitivity pixels, a long press tolerates 100 / sensitivity of slip.
+          # Higher made an edge slider start sooner but let a three-finger swipe pass for
+          # a pinch, so the magnifier fired in place of a workspace switch
           sensitivity = 4.0;
           long_press_delay = 400;
-          edge_margin = 10;
+          # Wide enough for a thumb to land in from the bezel: the sliders live here
+          edge_margin = 32;
           resize_on_border_long_press = true;
         };
 
@@ -111,19 +113,9 @@ in
             };
             action = "workspace";
           }
-          # Two fingers moving at once are the wheel; two fingers held still first are the
-          # window drag bound below, because the long press cancels as soon as they move
-          {
-            pattern = {
-              kind = "swipe";
-              fingers = 2;
-              direction = "swipe";
-            };
-            action = wheel;
-          }
           # The bar's scroll-driven modules are out of a finger's reach: the bar takes the
-          # touch sequence as well and sits on its wheel while a touch is down, so the
-          # brightness and the volume have sliders along the edges instead
+          # touch sequence and answers no wheel while a touch is down, so the brightness and
+          # the volume have sliders along the edges instead
           (slide "l" (slider "brightness"))
           (slide "r" (slider "output-volume"))
           # The magnifier, anchored under the fingers because the plugin put the pointer
@@ -147,8 +139,26 @@ in
           # fullscreen, because a fullscreen window carries no titlebar to leave it by
           (edge "d" "u" "hl.dsp.exec_cmd(${lib.generators.toLua { } cfg.menuCommand})")
           (edge "u" "d" ''hl.dsp.window.fullscreen({ mode = "fullscreen" })'')
-          (edge "r" "l" ''hl.dsp.focus({ workspace = "+1" })'')
-          (edge "l" "r" ''hl.dsp.focus({ workspace = "-1" })'')
+          # A tap past rofi closes it. rofi holds the keyboard exclusively, so a tap on
+          # another surface moves no focus and rofi itself sees nothing; the plugin put the
+          # pointer under the finger, and this bind lets the tap through to whatever it hit
+          {
+            pattern = {
+              kind = "tap";
+              fingers = 1;
+            };
+            non_consuming = true;
+            action = mkLuaInline ''
+              function()
+                local pos = hl.get_cursor_pos()
+                for _, l in ipairs(hl.get_layers({ namespace = "rofi" })) do
+                  if l.mapped and (pos.x < l.x or pos.x > l.x + l.w or pos.y < l.y or pos.y > l.y + l.h) then
+                    hl.exec_cmd("pkill -x rofi")
+                  end
+                end
+              end
+            '';
+          }
           # mouse: the dispatcher follows the fingers, as a mouse bind follows the pointer
           {
             pattern = {

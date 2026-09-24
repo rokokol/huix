@@ -149,3 +149,21 @@ grep -c 'wl_seat_get_touch' "$(nix eval --raw .#nixosConfigurations.nixos-laptop
 `0` -> keep the patch. Anything else -> rofi binds touch itself; drop the patch and the overlay, then check that a tap still selects and a swipe still scrolls, since upstream may map them differently
 
 **Upstream:** a pull request to davatorium/rofi with the same change
+
+---
+
+## A tap past rofi closes it from the compositor
+
+**Where:** the one-finger `tap` bind in `home-manager/desktop/hyprland/services/touch-gestures.nix`, laptop only
+
+**Symptom it prevents:** on Wayland rofi cannot notice a click or a tap outside its window. Its layer is only the window, so the event lands on the surface below; it holds the keyboard as `exclusive`, so the focus never leaves and its `wayland_keyboard_leave` is an empty `TODO`. `click-to-exit`, which the X11 backend honours through a pointer grab, is a no-op there, and the only way out is Escape or a keyboard the tablet does not have
+
+**Why this works:** hyprgrass warps the pointer to every touch, so on a completed one-finger tap the bind reads the cursor position and the `rofi` layer's box from Hyprland and kills rofi when the tap fell outside; `non_consuming` lets the tap through to whatever it hit. The tap is recognised by the plugin for every finger anyway; the bind adds a layer lookup per completed tap
+
+**Rejected alternative:** `on_demand` keyboard interactivity in rofi plus quitting on `wl_keyboard.leave`. It works for touch, but under `input.follow_mouse = 1` Hyprland moves keyboard focus off a non-exclusive layer on a hover (`mouseMoveUnified`), so a twitch of the touchpad would close rofi, and at map time the focus can leave in the same pass it arrived
+
+**Possible improvement:** gate the bind with a flag set by `hl.on("layer.opened")` and cleared by `hl.on("layer.closed")` for the `rofi` namespace, so a tap while rofi is closed costs one comparison and no layer lookup; hyprgrass has no way to remove a bind, so the bind itself stays
+
+**Removal check:** rofi closing on a tap outside its window on Wayland by itself, with `click-to-exit` set; then the bind goes
+
+**Upstream:** not reported yet
