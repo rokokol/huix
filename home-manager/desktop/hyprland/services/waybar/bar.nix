@@ -18,6 +18,14 @@ in
       default = null;
       description = "hwmon-path for the temperature module; null — waybar auto-selects";
     };
+
+    # The on-screen keyboard is a keyboard too: its keymap is named "wvkbd", which the layout
+    # module cannot resolve, so without a name it shows nothing from the moment wvkbd starts
+    layoutKeyboard = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      description = "keyboard whose layout the bar shows, as hyprctl devices names it; null — whichever keyboard reported a layout last";
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -99,7 +107,8 @@ in
             format = "{}";
             format-en = "🏳‍🌈";
             format-ru = "ZOV";
-          };
+          }
+          // lib.optionalAttrs (cfg.layoutKeyboard != null) { keyboard-name = cfg.layoutKeyboard; };
 
           "group/hardware" = {
             orientation = "horizontal";
