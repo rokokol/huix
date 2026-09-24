@@ -19,7 +19,7 @@ tablet-mode.sh — the folded-laptop mode: auto-rotation, titlebars and the on-s
   tablet-mode.sh status                             print on or off
   tablet-mode.sh virt-keyboard toggle|show|hide     the on-screen keyboard, in either mode
   tablet-mode.sh virt-keyboard status               the bar button as waybar JSON: the
-                                                    keyboard glyph in the mode, nothing outside it
+                                                    keyboard glyph, class on in the mode, off outside
 
 sync is for the start of the session and every Hyprland reload: switch binds fire only on
 a change, and a reload resets the transform and the titlebars to the config
@@ -48,10 +48,11 @@ ROTATE_UNIT=huix-auto-rotate.service
 OSK_UNIT=huix-virt-keyboard.service
 OSK_PROCESS=wvkbd-mobintl
 
-# waybar re-reads the button on the RT signal the bar declared; no bar, no signal
+# waybar re-reads the button on the RT signal the bar declared; no bar, no signal. The
+# process is .waybar-wrapped, so the name is matched as a substring, never exactly
 signal_bar() {
   [ -n "${HUIX_TABLET_SIGNAL:-}" ] || return 0
-  pkill "-RTMIN+$HUIX_TABLET_SIGNAL" -x waybar || true
+  pkill "-RTMIN+$HUIX_TABLET_SIGNAL" waybar || true
 }
 
 is_on() {
@@ -139,10 +140,12 @@ cmd_virt_keyboard() {
   (($# == 1)) || die "virt-keyboard needs toggle, show, hide or status"
   case "$1" in
     status)
+      # The glyph is always there, so the button keeps its place in the bar; the class
+      # decides whether it is visible
       if is_on; then
         printf '{"text":"⌨️","class":"on"}\n'
       else
-        printf '{"text":"","class":"off"}\n'
+        printf '{"text":"⌨️","class":"off"}\n'
       fi
       ;;
     toggle)

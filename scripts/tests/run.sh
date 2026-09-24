@@ -181,10 +181,11 @@ STUB_ACTIVE=0 HUIX_TABLET_SIGNAL=10 bash "$tablet" on >/dev/null 2>&1
 is "on starts both units, shows the titlebars and pokes the bar" \
   'systemctl --user start huix-auto-rotate.service huix-virt-keyboard.service
 hyprctl eval hl.config({ plugin = { hyprbars = { enabled = true } } })
-pkill -RTMIN+10 -x waybar' "$(grep -E '^(systemctl --user start|hyprctl eval hl.config\(\{ plugin|pkill)' "$STUB_LOG")"
+pkill -RTMIN+10 waybar' "$(grep -E '^(systemctl --user start|hyprctl eval hl.config\(\{ plugin|pkill)' "$STUB_LOG")"
 
 reset_log
-STUB_ACTIVE=0 bash "$tablet" on >/dev/null 2>&1
+# Explicitly empty: the shell running the tests may carry the session's own signal number
+STUB_ACTIVE=0 HUIX_TABLET_SIGNAL= bash "$tablet" on >/dev/null 2>&1
 is "without a bar signal declared nothing is poked" "" "$(grep '^pkill' "$STUB_LOG")"
 
 reset_log
@@ -194,8 +195,8 @@ is "off stops both units, hides the titlebars and puts the screen upright" \
 hyprctl eval hl.config({ plugin = { hyprbars = { enabled = false } } })
 hyprctl eval hl.monitor({ output = "eDP-1", mode = "1920x1080@59.98400", position = "0x0", scale = 1.3333334, transform = 0 })' "$(grep -E '^(systemctl --user stop|hyprctl eval hl\.(config\(\{ plugin|monitor))' "$STUB_LOG")"
 
-is "the bar button is the keyboard glyph in the mode and nothing outside it" \
-  '{"text":"⌨️","class":"on"} {"text":"","class":"off"}' \
+is "the bar button is always the keyboard glyph and only the class follows the mode" \
+  '{"text":"⌨️","class":"on"} {"text":"⌨️","class":"off"}' \
   "$(STUB_ACTIVE=1 bash "$tablet" virt-keyboard status 2>/dev/null) $(STUB_ACTIVE=0 bash "$tablet" virt-keyboard status 2>/dev/null)"
 
 is "status reads the auto-rotate unit" "on off" "$(STUB_ACTIVE=1 bash "$tablet" status 2>/dev/null) $(STUB_ACTIVE=0 bash "$tablet" status 2>/dev/null)"

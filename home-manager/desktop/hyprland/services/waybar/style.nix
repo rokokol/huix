@@ -66,6 +66,12 @@
       color: ${palette.jacket};
   }
 
+  /* Outside tablet mode the keyboard button keeps its place but shows nothing, so the
+     chip does not change shape with the mode */
+  #custom-virt-keyboard.off {
+      opacity: 0;
+  }
+
   #temperature.critical, #battery.critical, #custom-memory.swap {
       color: ${palette.bow};
   }
