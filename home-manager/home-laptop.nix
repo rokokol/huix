@@ -11,14 +11,12 @@
 
     hyprland = {
       enable = true;
-      monitorScale = "1.33";
+      monitorScale = 1.33;
       touchpadNaturalScroll = true;
       lidNoSleep = true;
       tabletMode = true;
       titlebars = true;
-      # Off until nixpkgs ships a hyprgrass that builds against this Hyprland and still speaks
-      # hyprlang, see WORKAROUNDS.md
-      touchGestures = false;
+      touchGestures = true;
       wallpaperImage = "${huixDir}/assets/say-sketch2.webp";
     };
 
@@ -41,12 +39,10 @@
 
   # The built-in pen is mapped to the built-in panel: with nothing said, Hyprland stretches a
   # tablet over every monitor, so an external screen would take half of the digitizer
-  wayland.windowManager.hyprland.settings.device = [
-    {
-      name = "wacom-pen-and-multitouch-sensor-pen";
-      output = "eDP-1";
-    }
-  ];
+  wayland.windowManager.hyprland.settings.device = {
+    name = "wacom-pen-and-multitouch-sensor-pen";
+    output = "eDP-1";
+  };
 
   # Forwards AVRCP commands from Bluetooth headphones (tap, wear sensor) to MPRIS players
   services.mpris-proxy.enable = true;

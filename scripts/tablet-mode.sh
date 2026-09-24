@@ -62,20 +62,20 @@ osk_running() {
   systemctl --user is-active --quiet "$OSK_UNIT"
 }
 
-# The plugin is loaded on the laptop only; elsewhere the keyword is unknown and that is fine
+# The plugin is loaded on the laptop only; elsewhere the option is unknown and that is fine
 titlebars() {
-  hyprctl keyword plugin:hyprbars:enabled "$1" >/dev/null 2>&1 || true
+  hyprctl eval "hl.config({ plugin = { hyprbars = { enabled = $1 } } })" >/dev/null 2>&1 || true
 }
 
 enter() {
   systemctl --user start "$ROTATE_UNIT" "$OSK_UNIT" || fail "the tablet-mode units did not start"
-  titlebars 1
+  titlebars true
   signal_bar
 }
 
 leave() {
   systemctl --user stop "$ROTATE_UNIT" "$OSK_UNIT" || fail "the tablet-mode units did not stop"
-  titlebars 0
+  titlebars false
   bash "$HERE/rotate-screen.sh" set 0
   signal_bar
 }
@@ -110,7 +110,7 @@ cmd_sync() {
       if is_on; then
         # The sensor reports only changes; a restart makes it state the orientation again
         systemctl --user restart "$ROTATE_UNIT"
-        titlebars 1
+        titlebars true
       else
         enter
       fi

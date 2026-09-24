@@ -53,6 +53,21 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Hyprland's main branch, for the Lua config the release series has no more, pinned to
+    # the revision hyprgrass's lock names and hyprland-plugins compiles against. Its nixpkgs
+    # is not followed: the Hyprland cache holds builds of that nixpkgs only (see DEVIATIONS.md)
+    hyprland.url = "github:hyprwm/Hyprland/1b85c7aa1b5c41d906880f0f495bcd0749a23175";
+
+    hyprland-plugins = {
+      url = "github:hyprwm/hyprland-plugins";
+      inputs.hyprland.follows = "hyprland";
+    };
+
+    hyprgrass = {
+      url = "github:horriblename/hyprgrass/f524680fad86d63018dec3c35be61fe55bde2dcd";
+      inputs.hyprland.follows = "hyprland";
+    };
+
     claude-account = {
       url = "github:rokokol/claude-account";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -173,10 +188,15 @@
         };
       };
 
-      # hyprbars draws its button icons with a hard-coded font (see WORKAROUNDS.md)
-      overlay-hyprland-plugins = _final: prev: {
+      # The compositor, its portal and the two plugins come from their flakes, built against
+      # one Hyprland revision; under the nixpkgs names, so programs.hyprland, the HM module,
+      # xdg.portal and every script's PATH take them without a line each. hyprbars draws its
+      # button icons with a hard-coded font (see WORKAROUNDS.md)
+      overlay-hyprland = _final: prev: {
+        inherit (inputs.hyprland.packages.${system}) hyprland xdg-desktop-portal-hyprland;
         hyprlandPlugins = prev.hyprlandPlugins // {
-          hyprbars = prev.hyprlandPlugins.hyprbars.overrideAttrs (previous: {
+          hyprgrass = inputs.hyprgrass.packages.${system}.default;
+          hyprbars = inputs.hyprland-plugins.packages.${system}.hyprbars.overrideAttrs (previous: {
             patches = (previous.patches or [ ]) ++ [ ./patches/hyprbars-icon-font.patch ];
           });
         };
@@ -235,6 +255,7 @@
         home = ./home-manager/home-pc.nix;
         overlays = [
           overlay-stable
+          overlay-hyprland
           nix-matlab.overlay
         ];
       };
@@ -244,7 +265,7 @@
         home = ./home-manager/home-laptop.nix;
         overlays = [
           overlay-stable
-          overlay-hyprland-plugins
+          overlay-hyprland
         ];
       };
 

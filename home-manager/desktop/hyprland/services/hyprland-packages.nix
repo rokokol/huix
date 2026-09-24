@@ -1,4 +1,4 @@
-{ pkgs, huixDir, ... }:
+{ pkgs, ... }:
 
 {
   imports = [ ./hypridle.nix ];
@@ -34,10 +34,6 @@
       ];
     })
   ];
-
-  wayland.windowManager.hyprland.extraConfig = ''
-    source = ${huixDir}/home-manager/desktop/hyprland/hyprland.conf
-  '';
 
   # swayimg 5.x switched to a Lua config (init.lua); the old INI ~/.config/swayimg/config
   # is no longer read, so both the info overlay and the bindings are set here

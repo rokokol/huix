@@ -10,11 +10,16 @@
 
 ## Как это собрано
 
-Конфиг намеренно **гибридный**: декларативная часть в Nix + один большой императивный `hyprland.conf`, который Nix просто `source`-ит
+Hyprland здесь — main-ветка из её флейка, а не релиз из nixpkgs, потому что конфиг на Lua живёт только там (релизная серия hyprlang-конфиг потеряла с 0.57). Плагины hyprgrass и hyprbars приходят из своих флейков и через `follows` собираются ровно против той же ревизии; все четыре пакета подменяют nixpkgs-имена оверлеем `overlay-hyprland` во `flake.nix`, так что `programs.hyprland`, HM-модуль, портал и PATH скриптов берут их без строчки на каждого. Почему вход Hyprland не `follows`-ит общий nixpkgs — в [DEVIATIONS.md](../../../DEVIATIONS.md)
 
-`hyprland.conf` держит весь общий конфиг — autostart, env, look&feel, все бинды, window/layer-rules — и правится руками. `hyprland.nix` — единственный Nix-модуль слоя: объявляет опции `rokokol.hyprland.*` (масштаб монитора, XKB, natural scroll, обои) и импортирует `services/`, где лежит файл на компонент: пакетный набор десктопа, [waybar](services/waybar/README.md), mako, hypridle, тумблер крышки, коллажер обоев и швы к вынесенным флейкам
+Конфиг намеренно **гибридный**: декларативная часть в Nix + один большой императивный `hyprland.lua`, который сгенерированный HM-файл подгружает через `dofile` из живого чекаута
 
-> **Почему `source`, а не нативные `settings`.** Главный конфиг один на оба хоста и редактируется быстрее как текст. Иначе пришлось бы на каждую правку делать `rebuild`, что не давало бы преимущества, ведь никаких проверок и дополнительных возможностей это не давало бы
+`hyprland.lua` держит весь общий конфиг — autostart, env, look&feel, все бинды, window/layer-rules — и правится руками. `hyprland.nix` — единственный Nix-модуль слоя: объявляет опции `rokokol.hyprland.*` (масштаб монитора, XKB, natural scroll, обои, команда меню) и импортирует `services/`, где лежит файл на компонент: пакетный набор десктопа, [waybar](services/waybar/README.md), mako, hypridle, тумблер крышки, tablet-режим, заголовки окон, тач-жесты, коллажер обоев и швы к вынесенным флейкам. Каждый атрибут `settings` в этих модулях — один вызов `hl.<имя>(...)` в сгенерированном файле, и он выполняется раньше `dofile`, поэтому `hyprland.lua` не знает ни цветов, ни хоста
+
+Из Nix в живой файл ведёт одна глобальная таблица `HUIX`: `HUIX.menu` — команда меню приложений (`rokokol.hyprland.menuCommand`, её же читают кнопка в waybar и жест), `HUIX.scripts` — каталог скриптов
+
+> [!NOTE]
+> Почему `dofile`, а не нативные `settings`. Главный конфиг один на оба хоста и редактируется быстрее как текст: правка применяется по `hyprctl reload`, без `rebuild`. В Nix уходит только то, что различается по хостам или приходит из палитры
 
 ## Стек компонентов
 
@@ -28,7 +33,7 @@
 
 ## Хоткеи
 
-Мод — `SUPER` (`$mainMod`), "скриншотный" мод — `SUPER ALT` (`$mainScreenMod`)
+Мод — `SUPER`, "скриншотный" мод — `SUPER ALT`; в Lua-конфиге клавиши пишутся как `"SUPER + ALT + S"`
 
 ### Окна и фокус
 
@@ -74,6 +79,8 @@
 | -------------------- | --------------------------------------------------------- |
 | `SUPER + A`          | переключить light/dark тему (`toggle-theme.sh`)           |
 | `SUPER SHIFT + A`    | **ноутбук:** тумблер "крышка не усыпляет" (`lid-mode.sh`) |
+| `SUPER + M`          | **ноутбук:** повернуть экран на 90° вместе с тачем и пером (`rotate-screen.sh next`) |
+| `SUPER SHIFT + M`    | **ноутбук:** тумблер tablet-режима руками (`tablet-mode.sh toggle`) |
 | `SUPER + B`          | история буфера (cliphist в rofi)                          |
 | `SUPER SHIFT + B`    | эмодзи/математика/символы/каомодзи (rofimoji)             |
 | `SUPER + Y`          | словарь wooordhunt в rofi                                 |
@@ -85,6 +92,21 @@
 | `SUPER + Z`          | toggle waybar                                             |
 | `SUPER + F12`        | лок сессии                                                |
 | медиа/яркость        | `XF86Audio*` / `XF86MonBrightness*` → swayosd + playerctl |
+
+### Тачскрин (ноутбук)
+
+Сам Hyprland даёт тачскрину только тап и перетаскивание; жесты — плагин [hyprgrass](https://github.com/horriblename/hyprgrass) из `services/touch-gestures.nix`
+
+| Жест                       | Действие                                                    |
+| -------------------------- | ----------------------------------------------------------- |
+| три пальца влево/вправо    | соседний воркспейс                                          |
+| долгое нажатие двумя       | перетащить окно, в сетке — на сторону цели под пальцами     |
+| долгое нажатие тремя       | ресайз окна                                                 |
+| свайп от нижнего края      | меню приложений (`HUIX.menu`)                               |
+| свайп от верхнего края     | войти в полноэкранный режим и выйти из него                 |
+| свайп от правого/левого    | следующий/предыдущий воркспейс                              |
+
+ПКМ двумя пальцами нет намеренно: тап не двигает указатель, синтетический клик лёг бы под мышь, а не под пальцы; контекстное меню по долгому нажатию рисуют сами приложения поверх `wl_touch`. У rofi и kitty на Wayland `wl_touch` нет вовсе — палец в них не работает, пока их не пропатчить
 
 ## Фиксы и тонкости
 
@@ -99,4 +121,8 @@
 - **планшет Gaomon S630** прибит к выходу `DP-1` (ПК), иначе мапится на оба монитора
 - **swayimg** — навигация и копирование в буфер забиндены и на латинице, и на кириллице (`c/с`, `h/р`, …), чтобы работало при любой раскладке
 - **крышка ноутбука** — `SUPER SHIFT+A` → `lid-mode.sh` берёт лок `systemd-inhibit --what=handle-lid-switch`, и пока он держится, закрытие крышки не усыпляет систему, а только гасит встроенную панель. Лок работает только потому, что на ноутбуке выключен `LidSwitchIgnoreInhibited` (`nixos/laptop/logind.nix`); само `HandleLidSwitch` осталось дефолтным, так что вне сессии Hyprland крышка усыпляет как обычно. Режим сессионный — после ребута он выключен
-- **вынесенные флейки** — [шейдеры и софт-яркость](https://github.com/rokokol/hyprland-screen-shader), [словарь](https://github.com/rokokol/rofi-wooordhunt) и [локскрин](https://github.com/rokokol/ddlc-hyprlock) живут в своих репо, тут остались только швы. Клавиши к ним — в `hyprland.conf`, как и все остальные, а команду лока `services/hypridle.nix` берёт из `ddlc.hyprlock.lockCommand` — движок диалога обязан быть родителем hyprlock, поэтому звать `hyprlock` напрямую нельзя
+- **tablet-режим ноутбука** (`services/tablet-mode.nix`) — сложенный трансформер ядро сообщает отдельным свитчем `Intel Virtual Switches` (`SW_TABLET_MODE`, не крышка), и Hyprland отдаёт его биндам `switch:on/off:<имя>` так же, как крышку; имя пишется один раз в `rokokol.hyprland.tabletModeSwitch` и уходит скрипту через `HUIX_TABLET_SWITCH`. `tablet-mode.sh on` поднимает два user-юнита — `huix-auto-rotate` (`rotate-screen.sh auto` слушает `monitor-sensor` из iio-sensor-proxy и крутит монитор, тач и перо через `hyprctl eval`) и `huix-virt-keyboard` (wvkbd, скрытая, пока кнопка в баре не попросит; слои en → цифры → ru → цифры) — и включает заголовки окон hyprbars (`plugin.hyprbars.enabled`, в конфиге они выключены). Свитч сообщает только изменения, а `hyprctl reload` сбрасывает transform и заголовки, поэтому `tablet-mode.sh sync` висит на событиях `hyprland.start` и `config.reloaded` и спрашивает состояние свитча через `evtest --query`. Состояние — активность юнита автоповорота, файла нет; вместо уведомлений о режиме служит кнопка ⌨️ в баре, которая есть только в режиме. Направление поворота от датчика (`left-up` → 1, `right-up` → 3) проверяется на живом ноуте
+- **заголовки окон только в tablet-режиме** (`services/titlebars.nix`) — hyprbars с кнопками закрыть и развернуть (maximize, не fullscreen: полноэкранное окно накрывает свой же бар, и палец не вернулся бы), глифы Nerd Font из DepartureMono, цвета из палитры. Иконки hyprbars рисует жёстким `sans`, поэтому плагин пропатчен на `bar_text_font` — [WORKAROUNDS.md](../../../WORKAROUNDS.md). Окнам со своей рамкой (AyuGram, Obsidian, Super Productivity) и pin-окнам бара нет, список классов — в модуле. Перетаскивание за бар работает пальцем из коробки; `dwindle.precise_mouse_move` кладёт брошенное окно на ту сторону цели, где курсор, а не только в зазоры
+- **`hyprctl` в эпоху Lua** — `hyprctl keyword` больше нет: опции ставятся через `hyprctl eval 'hl.config({...})'`, монитор — `hl.monitor({...})`, диспетчеры — `hyprctl dispatch 'hl.dsp...'`; `getoption` остался, но с точкой (`cursor.zoom_factor`). Так написаны `rotate-screen.sh`, `tablet-mode.sh`, `zoom.sh`, `lid-mode.sh`, `rofi-power.sh`, `colorpicker.sh` и hypridle, а screen-shader определяет эпоху сам одной пробой
+- **плагины и ABI** — плагин собран против одной ревизии Hyprland и не грузится другой; здесь их держат в паре `follows` во `flake.nix`, а `nix flake update` должен двигать `hyprland`, `hyprgrass` и `hyprland-plugins` вместе, сверив ревизии Hyprland в их локах
+- **вынесенные флейки** — [шейдеры и софт-яркость](https://github.com/rokokol/hyprland-screen-shader), [словарь](https://github.com/rokokol/rofi-wooordhunt) и [локскрин](https://github.com/rokokol/ddlc-hyprlock) живут в своих репо, тут остались только швы. Клавиши к ним — в `hyprland.lua`, как и все остальные, а команду лока `services/hypridle.nix` берёт из `ddlc.hyprlock.lockCommand` — движок диалога обязан быть родителем hyprlock, поэтому звать `hyprlock` напрямую нельзя

@@ -54,7 +54,7 @@ is_on() {
 dpms() {
   local mon
   mon="$(internal_monitor)"
-  hyprctl dispatch dpms "$1" ${mon:+"$mon"} >/dev/null 2>&1 || true
+  hyprctl dispatch "hl.dsp.dpms({ action = \"$1\"${mon:+, monitor = \"$mon\"} })" >/dev/null 2>&1 || true
 }
 
 # The lock is useless if the system still ignores lid inhibitors — usually this

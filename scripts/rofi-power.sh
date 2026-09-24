@@ -22,7 +22,7 @@ EOF
 
 # Both hyprland options that wake the monitor on any input
 wake_on_input() {
-  hyprctl --batch "keyword misc:key_press_enables_dpms $1; keyword misc:mouse_move_enables_dpms $1" >/dev/null
+  hyprctl eval "hl.config({ misc = { key_press_enables_dpms = $1, mouse_move_enables_dpms = $1 } })" >/dev/null
 }
 
 # hypridle has no "idle now" trigger (dbus gives only GetActive/Inhibit/UnInhibit), so the
@@ -31,7 +31,7 @@ wake_on_input() {
 screen_off() {
   trap 'wake_on_input true' EXIT
   wake_on_input false
-  hyprctl dispatch dpms off >/dev/null
+  hyprctl dispatch 'hl.dsp.dpms({ action = "off" })' >/dev/null
   sleep 0.5
 }
 
@@ -47,7 +47,7 @@ lock)      loginctl lock-session ;;
 screenoff) screen_off & disown ;;
 suspend)   systemctl suspend ;;
 reboot)    systemctl reboot ;;
-logout)    hyprctl dispatch exit ;;
+logout)    hyprctl dispatch 'hl.dsp.exit()' ;;
 poweroff)  systemctl poweroff ;;
 "")
   while IFS='|' read -r label action; do

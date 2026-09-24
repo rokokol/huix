@@ -15,7 +15,7 @@
 
     hyprland = {
       enable = true;
-      monitorScale = "1";
+      monitorScale = 1.0;
       wallpaperCollage = false; # for Felix wallspaper :3
     };
 

@@ -13,6 +13,8 @@ let
   cfg = config.rokokol.hyprland;
   scriptsDir = "${huixDir}/scripts";
   inherit (palette) bare;
+  inherit (lib.generators) mkLuaInline;
+  run = cmd: mkLuaInline "hl.dsp.exec_cmd(${lib.generators.toLua { } cmd})";
   rotateDeps = with pkgs; [
     bash
     coreutils # stdbuf, which keeps the sensor pipe line-buffered
@@ -41,20 +43,54 @@ in
     # Spelled once: the binds below and tablet-mode.sh sync read the same name
     home.sessionVariables.HUIX_TABLET_SWITCH = cfg.tabletModeSwitch;
 
-    # settings are applied before the shared config is sourced, so $mainMod is not defined
-    # yet and the modifier is written literally
     wayland.windowManager.hyprland.settings = {
       bind = [
-        "SUPER, M, exec, ${scriptsDir}/rotate-screen.sh next"
-        "SUPER SHIFT, M, exec, ${scriptsDir}/tablet-mode.sh toggle"
+        {
+          _args = [
+            "SUPER + M"
+            (run "${scriptsDir}/rotate-screen.sh next")
+          ];
+        }
+        {
+          _args = [
+            "SUPER + SHIFT + M"
+            (run "${scriptsDir}/tablet-mode.sh toggle")
+          ];
+        }
+        # locked: fires with the screen locked too
+        {
+          _args = [
+            "switch:on:${cfg.tabletModeSwitch}"
+            (run "${scriptsDir}/tablet-mode.sh on")
+            { locked = true; }
+          ];
+        }
+        {
+          _args = [
+            "switch:off:${cfg.tabletModeSwitch}"
+            (run "${scriptsDir}/tablet-mode.sh off")
+            { locked = true; }
+          ];
+        }
       ];
-      # bindl fires with the screen locked too. The switch reports changes only, and a
-      # reload resets the transform and the titlebars, so sync runs from exec on every reload
-      bindl = [
-        ", switch:on:${cfg.tabletModeSwitch}, exec, ${scriptsDir}/tablet-mode.sh on"
-        ", switch:off:${cfg.tabletModeSwitch}, exec, ${scriptsDir}/tablet-mode.sh off"
-      ];
-      exec = [ "${scriptsDir}/tablet-mode.sh sync" ];
+
+      # The switch reports changes only, and a reload resets the transform and the
+      # titlebars, so sync runs at the start and after every reload
+      on =
+        map
+          (event: {
+            _args = [
+              event
+              (mkLuaInline ''
+                function()
+                  hl.exec_cmd(${lib.generators.toLua { } "${scriptsDir}/tablet-mode.sh sync"})
+                end'')
+            ];
+          })
+          [
+            "hyprland.start"
+            "config.reloaded"
+          ];
     };
 
     # Neither unit is wanted by a target: tablet-mode.sh starts and stops them

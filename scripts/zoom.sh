@@ -26,7 +26,7 @@ help | -h | --help)
   ;;
 esac
 
-current=$(hyprctl getoption cursor:zoom_factor -j | jq -r '.float')
+current=$(hyprctl getoption cursor.zoom_factor -j | jq -r '.float')
 
 new=$(awk -v c="$current" -v a="$action" -v s="$step" -v lo="$min" -v hi="$max" 'BEGIN {
   if      (a == "in")     v = c * s
@@ -42,4 +42,4 @@ new=$(awk -v c="$current" -v a="$action" -v s="$step" -v lo="$min" -v hi="$max" 
   exit 1
 }
 
-hyprctl keyword cursor:zoom_factor "$new" >/dev/null
+hyprctl eval "hl.config({ cursor = { zoom_factor = $new } })" >/dev/null

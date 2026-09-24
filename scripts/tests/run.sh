@@ -64,7 +64,7 @@ cat >"$work/bin/hyprctl" <<'EOF'
 printf 'hyprctl %s\n' "$*" >>"$STUB_LOG"
 case "$1 $2" in
   "monitors -j") printf '%s\n' "$STUB_MONITORS" ;;
-  "keyword "*) printf 'ok\n' ;;
+  "eval "*) printf 'ok\n' ;;
 esac
 EOF
 cat >"$work/bin/monitor-sensor" <<'EOF'
@@ -123,7 +123,7 @@ B: EV=21
 EOF
 
 reset_log() { : >"$STUB_LOG"; }
-keywords() { grep '^hyprctl keyword' "$STUB_LOG" | sed 's/^hyprctl keyword //'; }
+evals() { grep '^hyprctl eval' "$STUB_LOG" | sed 's/^hyprctl eval //'; }
 
 # A laptop panel plus an external monitor, the external one focused
 export STUB_MONITORS='[
@@ -139,23 +139,20 @@ tablet=$SCRIPTS/tablet-mode.sh
 reset_log
 bash "$rotate" set 1 >/dev/null 2>&1
 is "set 1 rewrites the focused monitor's rule with its mode, position and scale" \
-  "monitor DP-1,2560x1440@143.99900,1440x0,1.0,transform,1
-input:touchdevice:transform 1
-input:tablet:transform 1" "$(keywords)"
+  'hl.monitor({ output = "DP-1", mode = "2560x1440@143.99900", position = "1440x0", scale = 1.0, transform = 1 })
+hl.config({ input = { touchdevice = { transform = 1 }, tablet = { transform = 1 } } })' "$(evals)"
 
 reset_log
 bash "$rotate" -m eDP-1 next >/dev/null 2>&1
 is "next wraps 3 to 0 on the named monitor" \
-  "monitor eDP-1,1920x1080@59.98400,0x0,1.3333334,transform,0
-input:touchdevice:transform 0
-input:tablet:transform 0" "$(keywords)"
+  'hl.monitor({ output = "eDP-1", mode = "1920x1080@59.98400", position = "0x0", scale = 1.3333334, transform = 0 })
+hl.config({ input = { touchdevice = { transform = 0 }, tablet = { transform = 0 } } })' "$(evals)"
 
 reset_log
 bash "$rotate" prev >/dev/null 2>&1
 is "prev wraps 0 to 3" \
-  "monitor DP-1,2560x1440@143.99900,1440x0,1.0,transform,3
-input:touchdevice:transform 3
-input:tablet:transform 3" "$(keywords)"
+  'hl.monitor({ output = "DP-1", mode = "2560x1440@143.99900", position = "1440x0", scale = 1.0, transform = 3 })
+hl.config({ input = { touchdevice = { transform = 3 }, tablet = { transform = 3 } } })' "$(evals)"
 
 is "status prints the named monitor's transform" "3" "$(bash "$rotate" -m eDP-1 status 2>/dev/null)"
 
@@ -169,9 +166,9 @@ reset_log
 export STUB_SENSOR='=== Has accelerometer (orientation: normal)\n    Accelerometer orientation changed: left-up\n    Accelerometer orientation changed: undefined\n    Accelerometer orientation changed: right-up'
 bash "$rotate" auto >/dev/null 2>&1
 is "auto follows the sensor on the built-in panel and skips undefined" \
-  "monitor eDP-1,1920x1080@59.98400,0x0,1.3333334,transform,0
-monitor eDP-1,1920x1080@59.98400,0x0,1.3333334,transform,1
-monitor eDP-1,1920x1080@59.98400,0x0,1.3333334,transform,3" "$(keywords | grep '^monitor')"
+  'hl.monitor({ output = "eDP-1", mode = "1920x1080@59.98400", position = "0x0", scale = 1.3333334, transform = 0 })
+hl.monitor({ output = "eDP-1", mode = "1920x1080@59.98400", position = "0x0", scale = 1.3333334, transform = 1 })
+hl.monitor({ output = "eDP-1", mode = "1920x1080@59.98400", position = "0x0", scale = 1.3333334, transform = 3 })' "$(evals | grep '^hl.monitor')"
 
 bash "$rotate" >/dev/null 2>&1
 is "no subcommand is a usage error" 2 "$?"
@@ -182,9 +179,9 @@ export STUB_MONITORS='[{"name":"eDP-1","width":1920,"height":1080,"refreshRate":
 reset_log
 STUB_ACTIVE=0 HUIX_TABLET_SIGNAL=10 bash "$tablet" on >/dev/null 2>&1
 is "on starts both units, shows the titlebars and pokes the bar" \
-  "systemctl --user start huix-auto-rotate.service huix-virt-keyboard.service
-hyprctl keyword plugin:hyprbars:enabled 1
-pkill -RTMIN+10 -x waybar" "$(grep -E '^(systemctl --user start|hyprctl keyword plugin|pkill)' "$STUB_LOG")"
+  'systemctl --user start huix-auto-rotate.service huix-virt-keyboard.service
+hyprctl eval hl.config({ plugin = { hyprbars = { enabled = true } } })
+pkill -RTMIN+10 -x waybar' "$(grep -E '^(systemctl --user start|hyprctl eval hl.config\(\{ plugin|pkill)' "$STUB_LOG")"
 
 reset_log
 STUB_ACTIVE=0 bash "$tablet" on >/dev/null 2>&1
@@ -193,9 +190,9 @@ is "without a bar signal declared nothing is poked" "" "$(grep '^pkill' "$STUB_L
 reset_log
 STUB_ACTIVE=1 bash "$tablet" off >/dev/null 2>&1
 is "off stops both units, hides the titlebars and puts the screen upright" \
-  "systemctl --user stop huix-auto-rotate.service huix-virt-keyboard.service
-hyprctl keyword plugin:hyprbars:enabled 0
-hyprctl keyword monitor eDP-1,1920x1080@59.98400,0x0,1.3333334,transform,0" "$(grep -E '^(systemctl --user stop|hyprctl keyword (plugin|monitor))' "$STUB_LOG")"
+  'systemctl --user stop huix-auto-rotate.service huix-virt-keyboard.service
+hyprctl eval hl.config({ plugin = { hyprbars = { enabled = false } } })
+hyprctl eval hl.monitor({ output = "eDP-1", mode = "1920x1080@59.98400", position = "0x0", scale = 1.3333334, transform = 0 })' "$(grep -E '^(systemctl --user stop|hyprctl eval hl\.(config\(\{ plugin|monitor))' "$STUB_LOG")"
 
 is "the bar button is the keyboard glyph in the mode and nothing outside it" \
   '{"text":"⌨️","class":"on"} {"text":"","class":"off"}' \

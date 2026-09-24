@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# hyprctl keyword monitor replaces the whole rule and has no "change one field" form, so the
-# mode, position and scale are read back from hyprctl monitors -j and written out again with
-# the new transform. The touch and pen transforms are separate keywords that start at 0 and
-# never follow the monitor, so they are set beside it every time
+# hl.monitor() replaces the whole rule and has no "change one field" form, so the mode,
+# position and scale are read back from hyprctl monitors -j and written out again with the
+# new transform. The touch and pen transforms are separate options that start at 0 and never
+# follow the monitor, so they are set beside it every time; both go through hyprctl eval,
+# the runtime door into the Lua config
 # Needs jq, hyprctl and internal_monitor from lib/hyprland.sh; auto needs stdbuf and
 # monitor-sensor as well
 set -euo pipefail
@@ -55,9 +56,8 @@ monitor_state() {
 
 # apply NAME WIDTH HEIGHT REFRESH X Y SCALE TRANSFORM
 apply() {
-  hyprctl keyword monitor "$1,$2x$3@$4,$5x$6,$7,transform,$8" >/dev/null
-  hyprctl keyword input:touchdevice:transform "$8" >/dev/null
-  hyprctl keyword input:tablet:transform "$8" >/dev/null
+  hyprctl eval "hl.monitor({ output = \"$1\", mode = \"$2x$3@$4\", position = \"$5x$6\", scale = $7, transform = $8 })" >/dev/null
+  hyprctl eval "hl.config({ input = { touchdevice = { transform = $8 }, tablet = { transform = $8 } } })" >/dev/null
 }
 
 # rotate_to TRANSFORM, on the monitor chosen above

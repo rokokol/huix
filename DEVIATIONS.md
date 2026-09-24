@@ -19,3 +19,13 @@ python3 -c "import json;print([k for k in json.load(open('flake.lock'))['nodes']
 Anything but `['ddlc-palette']` means a parent is missing its `follows`
 
 **Reconsidered by:** Nix gaining a way for a child flake to bind one of its inputs to the consuming root's node. Until then, the root is the only layer that can state this relationship
+
+## The Hyprland input keeps its own `nixpkgs`
+
+**Where:** `flake.nix` — the `hyprland` input carries no `inputs.nixpkgs.follows`, unlike every other third-party input; `hyprgrass` and `hyprland-plugins` follow `hyprland` for both Hyprland and nixpkgs, and `overlay-hyprland` puts the four packages under their nixpkgs names on both hosts
+
+**Why it differs from the obvious route:** the compositor comes from Hyprland's main branch, because the Lua config lives only there since the release series lost it, and the plugins build against exactly that revision through their `follows`. Hyprland's own cache holds builds made from Hyprland's pinned nixpkgs; a `follows` would change every dependency's hash and turn each update into compiling the compositor, its portal and the hypr* libraries locally. The trade is a second copy of nixpkgs in the lock, seen only by those four packages
+
+**What it costs:** the closure carries Hyprland's mesa and friends beside the system's; on an unstable system the two are days apart and Hyprland's wiki reports the mismatch as a problem for stable systems only. `nix flake update` would move `hyprland` to the tip of main, which the plugins may not follow yet, so the input is pinned to the revision hyprgrass's own lock names, and hyprland-plugins is taken at a main revision that compiles against it — `nix build` of `hyprlandPlugins.hyprbars` and `hyprlandPlugins.hyprgrass` is the check. An update bumps the three together after their locks are compared
+
+**Reconsidered by:** the hyprlang config returning to Hyprland's releases, or a release series carrying the Lua config; then the nixpkgs package and its plugins serve again and the input goes
