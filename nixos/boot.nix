@@ -1,4 +1,4 @@
-_:
+{ lib, ... }:
 
 {
   boot = {
@@ -8,7 +8,7 @@ _:
     };
 
     tmp = {
-      useTmpfs = true;
+      useTmpfs = lib.mkDefault true;
       tmpfsSize = "50G";
     };
   };
