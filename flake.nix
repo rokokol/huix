@@ -53,10 +53,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Hyprland's main branch, for the Lua config the release series has no more, pinned to
-    # the revision hyprgrass's lock names and hyprland-plugins compiles against. Its nixpkgs
-    # is not followed: the Hyprland cache holds builds of that nixpkgs only (see DEVIATIONS.md)
-    hyprland.url = "github:hyprwm/Hyprland/1b85c7aa1b5c41d906880f0f495bcd0749a23175";
+    # The main branch, with its own nixpkgs and moved together with both plugins by the lock
+    # alone (see DEVIATIONS.md)
+    hyprland.url = "github:hyprwm/Hyprland";
 
     hyprland-plugins = {
       url = "github:hyprwm/hyprland-plugins";
@@ -64,7 +63,7 @@
     };
 
     hyprgrass = {
-      url = "github:horriblename/hyprgrass/f524680fad86d63018dec3c35be61fe55bde2dcd";
+      url = "github:horriblename/hyprgrass";
       inputs.hyprland.follows = "hyprland";
     };
 

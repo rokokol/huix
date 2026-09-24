@@ -26,6 +26,13 @@ Anything but `['ddlc-palette']` means a parent is missing its `follows`
 
 **Why it differs from the obvious route:** the compositor comes from Hyprland's main branch, because the Lua config lives only there since the release series lost it, and the plugins build against exactly that revision through their `follows`. Hyprland's own cache holds builds made from Hyprland's pinned nixpkgs; a `follows` would change every dependency's hash and turn each update into compiling the compositor, its portal and the hypr* libraries locally. The trade is a second copy of nixpkgs in the lock, seen only by those four packages
 
-**What it costs:** the closure carries Hyprland's mesa and friends beside the system's; on an unstable system the two are days apart and Hyprland's wiki reports the mismatch as a problem for stable systems only. `nix flake update` would move `hyprland` to the tip of main, which the plugins may not follow yet, so the input is pinned to the revision hyprgrass's own lock names, and hyprland-plugins is taken at a main revision that compiles against it — `nix build` of `hyprlandPlugins.hyprbars` and `hyprlandPlugins.hyprgrass` is the check. An update bumps the three together after their locks are compared
+**What it costs:** the closure carries Hyprland's mesa and friends beside the system's; on an unstable system the two are days apart and Hyprland's wiki reports the mismatch as a problem for stable systems only. A plugin is built against one Hyprland revision and can fall behind the tip of main, so the three inputs move together and the lock is the only pin: `flake.nix` names no revision
+
+```sh
+nix flake update hyprland hyprland-plugins hyprgrass
+nix build .#nixosConfigurations.nixos-laptop.pkgs.hyprlandPlugins.{hyprbars,hyprgrass}
+```
+
+When a plugin does not build against the tip, hold Hyprland at a revision it does build against, in the lock rather than in the URL: `nix flake lock --override-input hyprland github:hyprwm/Hyprland/<rev>`; the revision hyprgrass's own `flake.lock` names is the usual candidate
 
 **Reconsidered by:** the hyprlang config returning to Hyprland's releases, or a release series carrying the Lua config; then the nixpkgs package and its plugins serve again and the input goes
