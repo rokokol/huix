@@ -23,6 +23,8 @@
       shader = true;
       backlight = true;
       battery = true;
+      launcher = true;
+      keyboard = true;
     };
   };
 

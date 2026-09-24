@@ -37,13 +37,13 @@ in
           modifier-reset = "press";
           ipc = true;
 
-          modules-left = [
+          # The only place where module order is set: features declare only
+          # their own settings, otherwise order would depend on the imports order
+          modules-left = lib.optional cfg.launcher "custom/launcher" ++ [
             "hyprland/workspaces"
             "hyprland/window"
           ];
           modules-center = [ "clock" ];
-          # The only place where module order is set: features declare only
-          # their own settings, otherwise order would depend on the imports order
           modules-right = [
             "group/hardware"
           ]
@@ -54,6 +54,9 @@ in
             "pulseaudio"
             "hyprland/language"
             "custom/notifications"
+          ]
+          ++ lib.optional cfg.keyboard "custom/keyboard"
+          ++ [
             "tray"
             "network"
           ]

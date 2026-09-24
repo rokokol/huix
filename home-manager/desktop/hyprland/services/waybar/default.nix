@@ -8,5 +8,7 @@
     ./nvidia.nix
     ./backlight.nix
     ./battery.nix
+    ./launcher.nix
+    ./keyboard.nix
   ];
 }

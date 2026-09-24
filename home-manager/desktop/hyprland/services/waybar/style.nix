@@ -29,7 +29,8 @@
 
   /* Modules ride on the panel and carry no ground of their own */
   #window, #clock, #cpu, #memory, #temperature, #pulseaudio, #network, #language,
-  #custom-gpu, #custom-shader, #custom-notifications, #backlight, #battery {
+  #custom-gpu, #custom-shader, #custom-notifications, #custom-launcher, #custom-keyboard,
+  #backlight, #battery {
       background: transparent;
       border: none;
       margin: 0;

@@ -40,6 +40,12 @@ in
 
     touchpadNaturalScroll = lib.mkEnableOption "touchpad natural scroll";
 
+    menuCommand = lib.mkOption {
+      type = lib.types.str;
+      default = "rofi -show drun -show-icons -calc-command \"echo -n '{result}' | wl-copy\"";
+      description = "the application menu, as $menu in the Hyprland config and wherever else a button opens it";
+    };
+
     wallpaperImage = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
       default = null;
@@ -64,6 +70,10 @@ in
         };
 
         decoration.shadow.color = "rgba(${bare.ink}ee)";
+
+        # Declared here rather than in hyprland.conf, so a waybar button or a gesture can
+        # read the same command from the option
+        "$menu" = cfg.menuCommand;
 
         monitor = [
           ",preferred,auto,${cfg.monitorScale}"
