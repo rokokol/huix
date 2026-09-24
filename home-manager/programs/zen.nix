@@ -126,9 +126,6 @@ in
 
           # Preferred content languages
           "intl.accept_languages" = "ru-RU, ru, en-US, en";
-
-          # The build carries every locale, and unset this pref lets each profile pick its own
-          "intl.locale.requested" = "en-US";
         };
 
         mods = [
