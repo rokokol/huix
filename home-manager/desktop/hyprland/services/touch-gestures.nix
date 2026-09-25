@@ -21,59 +21,45 @@ let
     };
     action = mkLuaInline action;
   };
-  # A live gesture in notches: the deltas arrive in swipe units, where the monitor's size
-  # maps to gestures.workspace_swipe_distance, so they are turned back into pixels first;
-  # the axis is locked by the first notch, so a slanted finger drives one thing; every
-  # step pixels of travel then run onNotch with nx or ny, the notches on that axis and
-  # their sign. hl.exec_cmd spawns without waiting: a Wayland client run synchronously
-  # from inside the compositor would wait for the compositor forever
-  notched =
-    step: onNotch:
+  # A slider along a screen edge: every 20 px of travel is 5 percent, fingers up raise,
+  # and swayosd shows the level. The deltas arrive in swipe units, where the monitor's
+  # height maps to gestures.workspace_swipe_distance, so they are turned back into pixels.
+  # Every hl.exec_cmd forks the compositor and starts a client that takes tens of
+  # milliseconds, so the steps are gathered and sent as one relative change at most once
+  # per interval, the rest when the finger lifts: a call per step made the compositor
+  # stutter and the level jump as overlapping calls finished out of order
+  slider =
+    what:
     mkLuaInline ''
       (function()
-        local STEP = ${toString step}
-        local unit, carry, axis = { x = 1, y = 1 }, { x = 0, y = 0 }, nil
-        local function notches(v)
-          return v >= 0 and math.floor(v / STEP) or -math.floor(-v / STEP)
+        local STEP, PERCENT, INTERVAL_MS = 20, 5, 60
+        local unit, carry, pending, sent_ms = 1, 0, 0, 0
+        local function flush(time_ms)
+          if pending ~= 0 then
+            hl.exec_cmd(string.format("swayosd-client --${what} %+d", pending * PERCENT))
+            pending = 0
+          end
+          sent_ms = time_ms
         end
         return {
           start = function(ev)
-            local distance = hl.get_config("gestures.workspace_swipe_distance")
-            unit = { x = ev.monitor.width / distance, y = ev.monitor.height / distance }
-            carry, axis = { x = 0, y = 0 }, nil
+            unit = ev.monitor.height / hl.get_config("gestures.workspace_swipe_distance")
+            carry, pending, sent_ms = 0, 0, 0
           end,
           update = function(ev)
-            carry.x = carry.x + ev.delta.x * unit.x
-            carry.y = carry.y + ev.delta.y * unit.y
-            axis = axis or (math.abs(carry.x) >= STEP and "x") or (math.abs(carry.y) >= STEP and "y") or nil
-            if not axis then
-              return
+            carry = carry - ev.delta.y * unit
+            local n = carry >= 0 and math.floor(carry / STEP) or -math.floor(-carry / STEP)
+            carry = carry - n * STEP
+            pending = pending + n
+            if ev.time_ms - sent_ms >= INTERVAL_MS then
+              flush(ev.time_ms)
             end
-            local n = notches(carry[axis])
-            if n == 0 then
-              return
-            end
-            carry[axis] = carry[axis] - n * STEP
-            local nx, ny = 0, 0
-            if axis == "x" then
-              nx = n
-            else
-              ny = n
-            end
-            ${onNotch}
           end,
-          finish = function() end,
+          finish = function(ev)
+            flush(ev and ev.time_ms or 0)
+          end,
         }
       end)()
-    '';
-  # A slider along a screen edge: three percent a notch, fingers up raise, and swayosd
-  # shows the level
-  slider =
-    what:
-    notched 20 ''
-      for _ = 1, math.abs(ny) do
-        hl.exec_cmd("swayosd-client --${what} " .. (ny < 0 and "+3" or "-3"))
-      end
     '';
   slide = origin: action: {
     pattern = {
