@@ -115,10 +115,7 @@ in
           (slide "l" (slider "brightness"))
           (slide "r" (slider "output-volume"))
           # The magnifier, anchored under the fingers because the plugin put the pointer
-          # there. Live mode reads only the pinch scale; hyprgrass takes the mode from the
-          # zoom_level field (main.cpp reads it twice), so both fields carry it and the
-          # gesture survives the fix, horriblename/hyprgrass#425; once a lock carries it,
-          # zoom_level goes
+          # there; live mode follows the pinch, so it needs no zoom level
           {
             pattern = {
               kind = "pinch";
@@ -126,7 +123,6 @@ in
               direction = "pinch";
             };
             action = "cursor_zoom";
-            zoom_level = "live";
             mode = "live";
           }
         ];
