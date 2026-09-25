@@ -603,16 +603,6 @@ hl.window_rule({
   no_focus = true,
 })
 
--- window rule for hyprland-run
-hl.window_rule({
-  name = "move-hyprland-run",
-
-  match = { class = "hyprland-run" },
-
-  move = { "20", "monitor_h-120" },
-  float = true,
-})
-
 -- hl.layer_rule({
 --     name = "no_anim_for_selection",
 --     match = { namespace = "selection" },
