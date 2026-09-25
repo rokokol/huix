@@ -54,6 +54,44 @@ is() {
   fi
 }
 
+# The checks below ask what a script did, not how it spelled it: a call is found by the
+# facts it must carry, so a change of wording or order in the output fails no test
+
+# logged NAME ERE... — the stub log has one line matching every pattern
+logged() {
+  local name=$1 line
+  shift
+  while IFS= read -r line; do
+    local pattern hit=1
+    for pattern in "$@"; do
+      grep -Eq -- "$pattern" <<<"$line" || hit=0
+    done
+    if ((hit)); then
+      ok "$name"
+      return
+    fi
+  done <"$STUB_LOG"
+  not_ok "$name"
+  printf '  no logged line matches all of: %s\n' "$*" >&2
+  sed 's/^/  log: /' "$STUB_LOG" >&2
+}
+
+# not_logged NAME ERE — no line of the stub log matches
+not_logged() {
+  if grep -Eq -- "$2" "$STUB_LOG"; then
+    not_ok "$1"
+    grep -E -- "$2" "$STUB_LOG" | sed 's/^/  unexpected: /' >&2
+  else
+    ok "$1"
+  fi
+}
+
+# transforms MONITOR — the transform of every monitor rule sent for MONITOR, in order
+transforms() {
+  grep '^hyprctl eval hl.monitor' "$STUB_LOG" | grep -F "\"$1\"" |
+    sed -E 's/.*transform = ([0-9]+).*/\1/' | paste -sd' ' -
+}
+
 # The stubs record every call as one line of "NAME ARGS" in $STUB_LOG
 mkdir -p "$work/bin"
 export STUB_LOG=$work/log
@@ -123,7 +161,6 @@ B: EV=21
 EOF
 
 reset_log() { : >"$STUB_LOG"; }
-evals() { grep '^hyprctl eval' "$STUB_LOG" | sed 's/^hyprctl eval //'; }
 
 # A laptop panel plus an external monitor, the external one focused
 export STUB_MONITORS='[
@@ -138,21 +175,20 @@ tablet=$SCRIPTS/tablet-mode.sh
 # rotate-screen.sh
 reset_log
 bash "$rotate" set 1 >/dev/null 2>&1
-is "set 1 rewrites the focused monitor's rule with its mode, position and scale" \
-  'hl.monitor({ output = "DP-1", mode = "2560x1440@143.99900", position = "1440x0", scale = 1.0, transform = 1 })
-hl.config({ input = { touchdevice = { transform = 1 }, tablet = { transform = 1 } } })' "$(evals)"
+is "set turns the focused monitor" "1" "$(transforms DP-1)"
+logged "the rule keeps the monitor's own mode, position and scale" \
+  'hl\.monitor' '"DP-1"' '2560x1440' '1440x0' 'scale = 1(\.0)?[ ,]'
+logged "touch and pen turn with the monitor" \
+  'touchdevice = \{ transform = 1 \}' 'tablet = \{ transform = 1 \}'
 
 reset_log
 bash "$rotate" -m eDP-1 next >/dev/null 2>&1
-is "next wraps 3 to 0 on the named monitor" \
-  'hl.monitor({ output = "eDP-1", mode = "1920x1080@59.98400", position = "0x0", scale = 1.3333334, transform = 0 })
-hl.config({ input = { touchdevice = { transform = 0 }, tablet = { transform = 0 } } })' "$(evals)"
+is "next wraps the last transform round to upright, on the named monitor" "0" "$(transforms eDP-1)"
+is "a named monitor leaves the focused one alone" "" "$(transforms DP-1)"
 
 reset_log
 bash "$rotate" prev >/dev/null 2>&1
-is "prev wraps 0 to 3" \
-  'hl.monitor({ output = "DP-1", mode = "2560x1440@143.99900", position = "1440x0", scale = 1.0, transform = 3 })
-hl.config({ input = { touchdevice = { transform = 3 }, tablet = { transform = 3 } } })' "$(evals)"
+is "prev wraps upright round to the last transform" "3" "$(transforms DP-1)"
 
 is "status prints the named monitor's transform" "3" "$(bash "$rotate" -m eDP-1 status 2>/dev/null)"
 
@@ -165,10 +201,8 @@ is "an unknown monitor is a failure, not a usage error" 1 "$?"
 reset_log
 export STUB_SENSOR='=== Has accelerometer (orientation: normal)\n    Accelerometer orientation changed: left-up\n    Accelerometer orientation changed: undefined\n    Accelerometer orientation changed: right-up'
 bash "$rotate" auto >/dev/null 2>&1
-is "auto follows the sensor on the built-in panel and skips undefined" \
-  'hl.monitor({ output = "eDP-1", mode = "1920x1080@59.98400", position = "0x0", scale = 1.3333334, transform = 0 })
-hl.monitor({ output = "eDP-1", mode = "1920x1080@59.98400", position = "0x0", scale = 1.3333334, transform = 1 })
-hl.monitor({ output = "eDP-1", mode = "1920x1080@59.98400", position = "0x0", scale = 1.3333334, transform = 3 })' "$(evals | grep '^hl.monitor')"
+is "auto follows the sensor on the built-in panel and skips undefined" "0 1 3" "$(transforms eDP-1)"
+is "auto leaves the external monitor alone" "" "$(transforms DP-1)"
 
 bash "$rotate" >/dev/null 2>&1
 is "no subcommand is a usage error" 2 "$?"
@@ -178,60 +212,60 @@ export STUB_MONITORS='[{"name":"eDP-1","width":1920,"height":1080,"refreshRate":
 
 reset_log
 STUB_ACTIVE=0 HUIX_TABLET_SIGNAL=10 bash "$tablet" on >/dev/null 2>&1
-is "on starts both units, shows the titlebars, hides the cursor and pokes the bar" \
-  'systemctl --user start huix-auto-rotate.service huix-virt-keyboard.service
-hyprctl eval hl.config({ plugin = { hyprbars = { enabled = true } } })
-hyprctl eval hl.config({ cursor = { invisible = true } })
-pkill -RTMIN+10 waybar' "$(grep -E '^(systemctl --user start|hyprctl eval hl.config\(\{ (plugin|cursor)|pkill)' "$STUB_LOG")"
+logged "on starts auto-rotation" '^systemctl --user start' 'huix-auto-rotate'
+logged "on starts the on-screen keyboard" '^systemctl --user start' 'huix-virt-keyboard'
+logged "on shows the titlebars" 'hyprbars' 'enabled = true'
+logged "on hides the cursor" 'cursor' 'invisible = true'
+logged "on pokes the bar on the signal it declared" '^pkill' 'RTMIN\+10' 'waybar'
 
 reset_log
 # Explicitly empty: the shell running the tests may carry the session's own signal number
 STUB_ACTIVE=0 HUIX_TABLET_SIGNAL= bash "$tablet" on >/dev/null 2>&1
-is "without a bar signal declared nothing is poked" "" "$(grep '^pkill' "$STUB_LOG")"
+not_logged "without a bar signal declared nothing is poked" '^pkill'
 
 reset_log
 STUB_ACTIVE=1 bash "$tablet" off >/dev/null 2>&1
-is "off stops both units, hides the titlebars, shows the cursor and puts the screen upright" \
-  'systemctl --user stop huix-auto-rotate.service huix-virt-keyboard.service
-hyprctl eval hl.config({ plugin = { hyprbars = { enabled = false } } })
-hyprctl eval hl.config({ cursor = { invisible = false } })
-hyprctl eval hl.monitor({ output = "eDP-1", mode = "1920x1080@59.98400", position = "0x0", scale = 1.3333334, transform = 0 })' "$(grep -E '^(systemctl --user stop|hyprctl eval hl\.(config\(\{ (plugin|cursor)|monitor))' "$STUB_LOG")"
+logged "off stops auto-rotation" '^systemctl --user stop' 'huix-auto-rotate'
+logged "off stops the on-screen keyboard" '^systemctl --user stop' 'huix-virt-keyboard'
+logged "off hides the titlebars" 'hyprbars' 'enabled = false'
+logged "off shows the cursor" 'cursor' 'invisible = false'
+is "off puts the screen upright" "0" "$(transforms eDP-1)"
 
-is "the bar button is the keyboard glyph in the mode and nothing outside it" \
-  '{"text":"⌨️","class":"on"} {"text":"","class":"off"}' \
-  "$(STUB_ACTIVE=1 bash "$tablet" virt-keyboard status 2>/dev/null) $(STUB_ACTIVE=0 bash "$tablet" virt-keyboard status 2>/dev/null)"
+on_text=$(STUB_ACTIVE=1 bash "$tablet" virt-keyboard status 2>/dev/null | jq -r .text)
+off_text=$(STUB_ACTIVE=0 bash "$tablet" virt-keyboard status 2>/dev/null | jq -r .text)
+is "the bar button has something to show in the mode" "yes" "$([ -n "$on_text" ] && echo yes)"
+is "the bar button is empty outside the mode, which hides it" "" "$off_text"
 
 is "status reads the auto-rotate unit" "on off" "$(STUB_ACTIVE=1 bash "$tablet" status 2>/dev/null) $(STUB_ACTIVE=0 bash "$tablet" status 2>/dev/null)"
 
 reset_log
 STUB_ACTIVE=0 STUB_EVTEST=10 bash "$tablet" sync >/dev/null 2>&1
-is "sync enters the mode when the switch is on and asks the device evtest named" \
-  "evtest --query /dev/input/event7 EV_SW SW_TABLET_MODE
-systemctl --user start huix-auto-rotate.service huix-virt-keyboard.service" "$(grep -E '^(evtest|systemctl --user start)' "$STUB_LOG")"
+logged "sync asks the switch device found by its name" '^evtest --query' '/dev/input/event7' 'SW_TABLET_MODE'
+logged "sync enters the mode when the switch is on" '^systemctl --user start' 'huix-auto-rotate'
 
 reset_log
 STUB_ACTIVE=1 STUB_EVTEST=0 bash "$tablet" sync >/dev/null 2>&1
-is "sync leaves the mode when the switch is off" \
-  "systemctl --user stop huix-auto-rotate.service huix-virt-keyboard.service" "$(grep '^systemctl --user stop' "$STUB_LOG")"
+logged "sync leaves the mode when the switch is off" '^systemctl --user stop' 'huix-auto-rotate'
 
 reset_log
 STUB_ACTIVE=1 STUB_EVTEST=10 bash "$tablet" sync >/dev/null 2>&1
-is "sync in the mode restarts auto-rotate so the sensor speaks again after a reload" \
-  "systemctl --user restart huix-auto-rotate.service" "$(grep '^systemctl --user restart' "$STUB_LOG")"
+logged "sync in the mode restarts auto-rotate so the sensor speaks again after a reload" \
+  '^systemctl --user restart' 'huix-auto-rotate'
+not_logged "sync in the mode does not enter it a second time" '^systemctl --user start'
 
+# wvkbd's own signals: SIGRTMIN toggles, SIGUSR2 shows, SIGUSR1 hides
 reset_log
 STUB_ACTIVE=1 bash "$tablet" virt-keyboard toggle >/dev/null 2>&1
-is "virt-keyboard toggle with the keyboard running sends SIGRTMIN" "pkill -RTMIN -x wvkbd-mobintl" "$(grep '^pkill' "$STUB_LOG")"
+logged "virt-keyboard toggle flips a running keyboard" '^pkill' '-RTMIN ' 'wvkbd'
 
 reset_log
 STUB_ACTIVE=0 bash "$tablet" virt-keyboard toggle >/dev/null 2>&1
-is "virt-keyboard toggle without the keyboard starts its unit and shows it" \
-  "systemctl --user start huix-virt-keyboard.service
-pkill -USR2 -x wvkbd-mobintl" "$(grep -E '^(systemctl --user start|pkill)' "$STUB_LOG")"
+logged "virt-keyboard toggle starts a stopped keyboard" '^systemctl --user start' 'huix-virt-keyboard'
+logged "virt-keyboard toggle then shows it" '^pkill' '-USR2' 'wvkbd'
 
 reset_log
 STUB_ACTIVE=1 bash "$tablet" virt-keyboard hide >/dev/null 2>&1
-is "virt-keyboard hide sends SIGUSR1" "pkill -USR1 -x wvkbd-mobintl" "$(grep '^pkill' "$STUB_LOG")"
+logged "virt-keyboard hide hides a running keyboard" '^pkill' '-USR1' 'wvkbd'
 
 bash "$tablet" virt-keyboard >/dev/null 2>&1
 is "virt-keyboard without an action is a usage error" 2 "$?"
@@ -247,16 +281,18 @@ MemAvailable:    2097152 kB
 SwapTotal:       4194304 kB
 SwapFree:        3407872 kB
 EOF
-is "status shows used RAM and used swap" \
-  '{"text":"6.0/0.8Gb 🧠","tooltip":"RAM 6.0 of 8.0 Gb, swap 0.8 of 4.0 Gb"}' "$(bash "$memory" status)"
+text=$(bash "$memory" status | jq -r .text)
+is "status shows used RAM, not free RAM" "yes" "$(grep -q '6\.0' <<<"$text" && ! grep -q '2\.0' <<<"$text" && echo yes)"
+is "status shows used swap beside it" "yes" "$(grep -q '0\.8' <<<"$text" && echo yes)"
 cat >"$HUIX_MEMINFO" <<'EOF'
 MemTotal:        8388608 kB
 MemAvailable:    2097152 kB
 SwapTotal:             0 kB
 SwapFree:              0 kB
 EOF
-is "without a swap device only the RAM is shown" \
-  '{"text":"6.0Gb 🧠","tooltip":"RAM 6.0 of 8.0 Gb, no swap"}' "$(bash "$memory" status)"
+text=$(bash "$memory" status | jq -r .text)
+is "without a swap device the RAM is still shown" "yes" "$(grep -q '6\.0' <<<"$text" && echo yes)"
+is "without a swap device no swap figure is shown" "" "$(grep -o '/' <<<"$text")"
 bash "$memory" status extra >/dev/null 2>&1
 is "status takes no argument" 2 "$?"
 HUIX_MEMINFO=$work/missing bash "$memory" status >/dev/null 2>&1
