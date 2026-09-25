@@ -158,6 +158,7 @@
         inherit (inputs.ddlc-palette.lib) bare rgba;
       };
       base16 = inputs.ddlc-palette.lib.base16;
+      ruLayout = import ./lib/ru-layout.nix;
 
       commonArgs = {
         inherit
@@ -168,6 +169,7 @@
           palette
           projectsDir
           rokokolName
+          ruLayout
           system
           ;
       };
