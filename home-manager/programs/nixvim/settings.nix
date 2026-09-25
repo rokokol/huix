@@ -61,10 +61,9 @@
 
     ddlc.nixvim = {
       enable = true;
-      settings = {
-        variant = "dark";
-        transparent = config.rokokol.nixvim.transparent;
-      };
+      # The variant stays at its default, "auto": it reads 'background', which nvim takes from
+      # the terminal and updates live when the terminal reports a new colour scheme
+      settings.transparent = config.rokokol.nixvim.transparent;
     };
 
     extraConfigLua = ''
