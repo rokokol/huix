@@ -189,3 +189,23 @@ nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.waybar.version
 `0.15.0` -> keep the module. A later version -> the Hyprland module may come back if its extras are wanted; start a second bar with it, check that one button is active and a click switches, then swap the module name
 
 **Upstream:** [Alexays/Waybar#5324](https://github.com/Alexays/Waybar/pull/5324), open
+
+---
+
+## kitty takes a finger on Wayland
+
+**Where:** `patches/kitty-wayland-touch.patch`, applied by `overlay-kitty` in `flake.nix` to `kitty` on the laptop, the host with a touchscreen
+
+**Symptom it prevents:** kitty builds its own copy of GLFW, and its Wayland backend binds `wl_pointer` and `wl_keyboard` from the seat and never `wl_touch` (`glfw/wl_init.c`, `seatHandleCapabilities`): a finger on the terminal does nothing, neither a tap nor a scroll
+
+**Why this works:** the patch binds `wl_touch` and drives kitty's existing pointer paths from the first finger. A finger that lifts within 8 px is a left click at that place. A finger that moves at once is a finger-based high resolution scroll, the event a touchpad produces, so the text follows it and carries on under kitty's momentum scrolling after it lifts; a sideways finger scrolls sideways, which a program that asked for mouse reports receives as a horizontal wheel. A finger held still for 400 ms before it moves is a left button dragged from where it landed, which selects text. The hold is measured at the first move from the event timestamps, so no timer is needed. A cancel from the compositor releases a held button. Tried on the laptop: taps, scrolls and selections, with the touchpad still working beside them
+
+**Removal check:** look at the backend as nixpkgs ships it
+
+```sh
+grep -c 'wl_seat_get_touch' "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.kitty.src)/glfw/wl_init.c"
+```
+
+`0` -> keep the patch. Anything else -> kitty binds touch itself; drop the patch and the overlay, then check a tap, a scroll and a selection
+
+**Upstream:** not reported yet

@@ -227,6 +227,14 @@
         });
       };
 
+      # kitty's own copy of GLFW binds no wl_touch, so a finger does nothing in it; the patch
+      # makes the first finger a click, a scroll or a selection (see WORKAROUNDS.md)
+      overlay-kitty = _final: prev: {
+        kitty = prev.kitty.overrideAttrs (previous: {
+          patches = (previous.patches or [ ]) ++ [ ./patches/kitty-wayland-touch.patch ];
+        });
+      };
+
       mkHost =
         {
           configuration,
@@ -294,6 +302,7 @@
           overlay-hyprland
           overlay-rofi
           overlay-blueman
+          overlay-kitty
         ];
       };
 
