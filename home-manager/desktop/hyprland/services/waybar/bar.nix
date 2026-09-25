@@ -48,7 +48,7 @@ in
           # The only place where module order is set: features declare only
           # their own settings, otherwise order would depend on the imports order
           modules-left = lib.optional (cfg.launcher || cfg.virtKeyboard) "group/buttons" ++ [
-            "hyprland/workspaces"
+            "ext/workspaces"
             "hyprland/window"
           ];
           modules-center = [ "clock" ];
@@ -67,15 +67,19 @@ in
           ]
           ++ lib.optional cfg.battery "battery";
 
-          "hyprland/workspaces" = {
+          # The Wayland ext-workspace protocol rather than Hyprland's IPC, whose shape follows
+          # the compositor's branch (see WORKAROUNDS.md). The special workspace comes marked
+          # hidden and stays off the bar; an urgent one has no icon of its own here, the
+          # urgent class in style.nix marks it
+          "ext/workspaces" = {
             format = "{icon}";
             on-click = "activate";
+            sort-by-number = true;
             format-icons = {
               "1" = "💖";
               "2" = "🧁";
               "3" = "🍵";
               "4" = "🎹";
-              urgent = "⚠️";
               active = "✒️";
               default = "🤍";
             };

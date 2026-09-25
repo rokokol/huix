@@ -169,3 +169,23 @@ tar -xOf "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.blueman.src)"
 `0` -> keep the patch. Anything else -> blueman activates rows itself; drop the patch and the overlay, then check that a double tap still connects
 
 **Upstream:** [blueman-project/blueman#3378](https://github.com/blueman-project/blueman/pull/3378) (the same change, open)
+
+---
+
+## The bar's workspaces come from `ext/workspaces`
+
+**Where:** `home-manager/desktop/hyprland/services/waybar/bar.nix`, the `ext/workspaces` module in place of `hyprland/workspaces`, on both hosts
+
+**Symptom it prevents:** against Hyprland's main branch, waybar 0.15.0's `hyprland/workspaces` marks every button active after the bar starts, and a click on a button does nothing. The module reads a workspace's `id` from Hyprland's JSON, which main replaced by `address`, so every id is 0; and it switches with `dispatch workspace N`, which the Lua IPC answers with a syntax error
+
+**Why this works:** `ext/workspaces` speaks the Wayland ext-workspace protocol, which Hyprland implements (`ext_workspace_manager_v1`) and which does not change with the IPC. Hyprland grants `activate` on every inactive workspace and marks the special one hidden, which the module leaves off the bar by default. Tried on the laptop with a second bar: the buttons carry the right names and a click switches the workspace. What it lacks against the Hyprland module is a separate icon for an urgent workspace; the `urgent` class still reaches the CSS
+
+**Removal check:** a waybar release in nixpkgs that carries both [Alexays/Waybar#5013](https://github.com/Alexays/Waybar/pull/5013) (Lua dispatch, merged) and [Alexays/Waybar#5324](https://github.com/Alexays/Waybar/pull/5324) (workspaces by `address`, open)
+
+```sh
+nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.waybar.version
+```
+
+`0.15.0` -> keep the module. A later version -> the Hyprland module may come back if its extras are wanted; start a second bar with it, check that one button is active and a click switches, then swap the module name
+
+**Upstream:** [Alexays/Waybar#5324](https://github.com/Alexays/Waybar/pull/5324), open
