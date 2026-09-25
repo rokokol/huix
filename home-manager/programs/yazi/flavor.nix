@@ -2,8 +2,8 @@
 
 # Two flavors built from the palette, so yazi looks like ddlc.nvim: each colour plays the role
 # it has in that theme's core groups (CursorLine, Search, FloatBorder, FloatTitle, PmenuSel).
-# Nothing paints the ground, because kitty and nvim both leave it transparent. yazi picks the
-# flavor from the terminal's own colour scheme and swaps it live when that changes
+# Nothing paints the ground, so the terminal's background shows, as it does under nvim. yazi
+# picks the flavor from the terminal's own colour scheme and swaps it live when that changes
 let
   toml = pkgs.formats.toml { };
 

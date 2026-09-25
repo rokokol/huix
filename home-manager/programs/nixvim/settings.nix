@@ -9,7 +9,7 @@
   options.rokokol.nixvim.transparent = lib.mkOption {
     type = lib.types.bool;
     default = true;
-    description = "Let kitty's background_opacity through by clearing the grounds the theme paints with base00";
+    description = "Leave the ground to the terminal by clearing the grounds the theme paints with base00";
   };
 
   config.programs.nixvim = {

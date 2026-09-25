@@ -27,7 +27,6 @@
 
       linux_display_server = "wayland";
 
-      background_opacity = "0.9";
       window_padding_width = 12;
       hide_window_decorations = "yes";
       shell = "zsh";
