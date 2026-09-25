@@ -164,7 +164,7 @@ grep -c 'wl_seat_get_touch' "$(nix eval --raw .#nixosConfigurations.nixos-laptop
 
 **Possible improvement:** gate the bind with a flag set by `hl.on("layer.opened")` and cleared by `hl.on("layer.closed")` for the `rofi` namespace, so a tap while rofi is closed costs one comparison and no layer lookup; hyprgrass has no way to remove a bind, so the bind itself stays
 
-**Removal check:** rofi closing on a tap outside its window on Wayland by itself, with `click-to-exit` set; then the bind goes. The first release after 2.0.0 should pass it: rofi's `next` branch covers the screen with a transparent surface and cancels on a press outside the menu, and the touch patch drives a tap through that same press path. That is read from the code; a tap outside has not been tried on `next` yet
+**Removal check:** rofi closing on a tap outside its window on Wayland by itself, with `click-to-exit` set; then the bind goes. The first release after 2.0.0 passes it: rofi's `next` branch covers the screen with a transparent surface and cancels on a press outside the menu, and the touch patch drives a tap through that same press path. Tried on the laptop with `next` and the rebased patch, run under another process name so the bind's `pkill -x rofi` could not reach it: a tap outside closed rofi by its own cancel, exit 1, where a kill by the bind would read 143
 
 ```sh
 grep -c 'click_to_exit' "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.rofi-unwrapped.src)/source/wayland/display.c"
