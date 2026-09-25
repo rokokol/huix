@@ -6,9 +6,4 @@
 
 Тут живёт всё системное: загрузка, железо, GPU, сеть, ядро, системные сервисы и юзеры. Если правка касается `/etc` или systemd-system юнита — она сюда, а не в [Home Manager](../home-manager/README.md)
 
-`configuration-<host>.nix` — точка входа хоста (импорты и флаги `rokokol.*.enable`), `default.nix` + `boot/sound/system.nix` — общий baseline обоих хостов, `pc/` и `laptop/` — железо и host-specific опции, `desktop/` — core-опции и xdg-портал, [`services/`](services/README.md) и [`fonts/`](fonts/README.md) — по своему README. Inputs, overlays и `specialArgs` — во [`flake.nix`](../flake.nix)
-
-## Тонкости
-
-- `system.stateVersion` зафиксирован на `25.11`
-- `users.users.<имя>.extraGroups` доезжает из нескольких модулей (`system.nix`, `nvidia.nix`, `docker.nix`, `virtualization.nix`)
+`configuration-<host>.nix` — точка входа хоста (импорты и флаги `rokokol.*.enable`), `default.nix` с `boot`, `sound` и `system` — общая база обоих хостов, `pc/` и `laptop/` — железо и то, что есть только у одного хоста, `desktop/` — базовые опции рабочего стола и xdg-портал, [`services/`](services/README.md) и [`fonts/`](fonts/README.md) — по своему README. Входы, оверлеи и общие аргументы — во [`flake.nix`](../flake.nix)

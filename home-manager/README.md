@@ -15,12 +15,8 @@
 
 Всё, что про пользовательское окружение: конфиги приложений, шелл, тема, Hyprland/Waybar, per-user пакеты и systemd-user юниты. Системное (boot, железо, сервисы) — это в [`nixos/`](../nixos/README.md)
 
-HM подключён не отдельным потоком, а как NixOS-модуль с `useGlobalPkgs = true`, поэтому системный и пользовательский слой делят один пакетный набор и overlays. Важное следствие — `nixpkgs.config` и `nixpkgs.overlays` внутри HM-модуля игнорируются, вся конфигурация пакетов живёт в [`flake.nix`](../flake.nix)
+HM подключён как NixOS-модуль, поэтому системный и пользовательский слой делят один набор пакетов, а вся настройка пакетов живёт в [`flake.nix`](../flake.nix)
 
-Точка входа — `home-pc.nix` / `home-laptop.nix`: весь вход `rokokol.*` задаётся там, а не в модулях. Дальше пакеты в `desktop/packages/` (общий блок + группы `rokokol.packages.{pc,laptop}`), десктоп в [`desktop/hyprland/`](desktop/hyprland/README.md), тема в `desktop/theme/`, конфиги отдельных программ в [`programs/`](programs/README.md), XDG-директории и env — в `desktop/user.nix`
+Точка входа — `home-pc.nix` / `home-laptop.nix`: все значения `rokokol.*` задаются там, а не в модулях. Дальше пакеты в `desktop/packages/`, десктоп в [`desktop/hyprland/`](desktop/hyprland/README.md), тема в `desktop/theme/`, конфиги отдельных программ в [`programs/`](programs/README.md), XDG-каталоги и переменные окружения — в `desktop/user.nix`
 
-## Тонкости
-
-- Documents/Pictures/Videos лежат в домашнем каталоге на обоих хостах, а волт — в `myWikiDir` из `commonArgs`: Syncthing везёт симлинки как есть, так что разъехавшиеся пути дали бы битые ссылки на втором хосте
-- `home.stateVersion` зафиксирован на `25.11`
-- `backupFileExtension = "bak"` в [`flake.nix`](../flake.nix) — фиксированная строка намеренно: суффикс с `lastModified` пересобирал HM-генерацию на каждый коммит и засыпал `$HOME` набором `.bak` на ревизию. Потому коллизия по тому же пути роняет активацию, пока старый `.bak` не удалишь руками
+Волт заметок лежит по одному и тому же пути на обоих хостах: Syncthing возит симлинки как есть, и разные пути дали бы битые ссылки на втором хосте

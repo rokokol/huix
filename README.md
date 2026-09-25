@@ -46,7 +46,7 @@ nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHW
 | Host           | Точка входа                                                       | Чем выделяется                                                                                                                            |
 | -------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | `nixos-pc`     | `nixos/configuration-pc.nix` + `home-manager/home-pc.nix`         | NVIDIA/CUDA, `ollama-cuda`, SearxNG, виртуализация, печать, планшет, виртуальная камера, Steam, тяжёлый creative-стек |
-| `nixos-laptop` | `nixos/configuration-laptop.nix` + `home-manager/home-laptop.nix` | CPU-only `ollama-cpu`, Bluetooth, powertop, батарея и подсветка в баре, тумблер "крышка не усыпляет"                                      |
+| `nixos-laptop` | `nixos/configuration-laptop.nix` + `home-manager/home-laptop.nix` | трансформер: тачскрин с жестами, перо, автоповорот и режим планшета; CPU-only `ollama-cpu`, Bluetooth, батарея и подсветка в баре, тумблер "крышка не усыпляет" |
 
 ## Карта репозитория
 
@@ -81,7 +81,7 @@ nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHW
 
 - `SUPER+A` переключает светлую/темную темы на лету — она выбирается в рантайме и переживает ребилд, декларативно она нигде не настроена
 - цвета тут не выбираются вообще: [ddlc-palette](https://github.com/rokokol/ddlc-palette) снимает их с ddlc.moe и отдаёт готовыми, темы приложений приезжают собранными из своих репо. Хекс в модуле — повод спросить, почему он не оттуда
-- все сервисы биндятся на `127.0.0.1`, наружу firewall не открывает ничего — [таблица портов](nixos/services/README.md#порты-и-биндинги)
+- все сервисы слушают только `127.0.0.1`, наружу firewall не открывает ничего — [подробнее](nixos/services/README.md#сеть)
 
 <br/>
 
