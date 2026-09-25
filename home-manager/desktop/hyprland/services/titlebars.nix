@@ -7,15 +7,11 @@
 }:
 
 # The bars are for a finger: off in the config, and tablet-mode.sh turns the enabled keyword
-# on when the laptop is folded. Windows that draw their own close button get none
+# on when the laptop is folded. Every window gets one, its own close button or not, so a
+# finger finds the same buttons in the same place everywhere
 let
   cfg = config.rokokol.hyprland;
   inherit (palette) bare;
-  noBar = name: class: {
-    inherit name;
-    match.class = class;
-    "hyprbars:no_bar" = true;
-  };
 in
 {
   options.rokokol.hyprland.titlebars = lib.mkEnableOption "titlebars with close and fullscreen buttons, shown in tablet mode (hyprbars, laptop only)";
@@ -57,12 +53,6 @@ in
             icon = "󰊓";
             action = "hyprctl dispatch 'hl.dsp.window.fullscreen({ mode = \"maximized\" })'";
           }
-        ];
-
-        # A window that draws its own close button, or that has no room for a bar
-        window_rule = [
-          (noBar "no-titlebar-own-buttons" "^(com\\.ayugram\\.desktop|md\\.obsidian\\.Obsidian|superproductivity)$")
-          (noBar "no-titlebar-pinned" "^(desktop-pin.*|hyprland-run)$")
         ];
       };
     };
