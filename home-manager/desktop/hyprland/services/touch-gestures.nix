@@ -128,9 +128,10 @@ in
         ];
 
         "plugin.hyprgrass.bind" = [
-          # An edge swipe from the bottom opens the menu; one from the top enters and leaves
-          # fullscreen, because a fullscreen window carries no titlebar to leave it by
-          (edge "d" "u" "hl.dsp.exec_cmd(${lib.generators.toLua { } cfg.menuCommand})")
+          # An edge swipe from the bottom shows and hides the special workspace, as SUPER+S
+          # does; one from the top enters and leaves fullscreen, because a fullscreen window
+          # carries no titlebar to leave it by
+          (edge "d" "u" ''hl.dsp.workspace.toggle_special("magic")'')
           (edge "u" "d" ''hl.dsp.window.fullscreen({ mode = "fullscreen" })'')
           # mouse: the dispatcher follows the fingers, as a mouse bind follows the pointer. A
           # window moves by its titlebar in tablet mode, so no gesture drags it
