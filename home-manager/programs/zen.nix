@@ -274,7 +274,6 @@ in
             value = "zen-beta.desktop";
           })
           [
-            "application/json"
             "application/x-extension-htm"
             "application/x-extension-html"
             "application/x-extension-shtml"
@@ -282,7 +281,6 @@ in
             "application/x-extension-xhtml"
             "application/xhtml+xml"
             "text/html"
-            "text/plain"
             "x-scheme-handler/about"
             "x-scheme-handler/chrome"
             "x-scheme-handler/http"
