@@ -33,7 +33,6 @@ in
         stable.freecad
         geary
         gnome-disk-utility
-        gnome-text-editor
         obs-studio
         obsidian
         super-productivity
