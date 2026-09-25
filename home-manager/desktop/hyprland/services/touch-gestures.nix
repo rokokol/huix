@@ -121,7 +121,8 @@ in
           # The magnifier, anchored under the fingers because the plugin put the pointer
           # there. Live mode reads only the pinch scale; hyprgrass takes the mode from the
           # zoom_level field (main.cpp reads it twice), so both fields carry it and the
-          # gesture survives the upstream fix
+          # gesture survives the fix, horriblename/hyprgrass#425; once a lock carries it,
+          # zoom_level goes
           {
             pattern = {
               kind = "pinch";
