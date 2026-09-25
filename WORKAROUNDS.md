@@ -148,7 +148,7 @@ grep -c 'wl_seat_get_touch' "$(nix eval --raw .#nixosConfigurations.nixos-laptop
 
 `0` -> keep the patch. Anything else -> rofi binds touch itself; drop the patch and the overlay, then check that a tap still selects and a swipe still scrolls, since upstream may map them differently. The patch is cut against 2.0.0 and does not apply to `next`, where `wayland_seat_release` gained a text-input block: a rofi bump that fails in `patchPhase` needs the patch rebased, not dropped
 
-**Upstream:** a pull request to davatorium/rofi with the same change
+**Upstream:** [davatorium/rofi#2336](https://github.com/davatorium/rofi/pull/2336) (the same change against `next`, open), closing [davatorium/rofi#2208](https://github.com/davatorium/rofi/issues/2208)
 
 ---
 
