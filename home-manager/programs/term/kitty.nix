@@ -1,10 +1,20 @@
 { inputs, ... }:
 
+let
+  inherit (inputs.ddlc-terminal-themes.lib) kitty;
+in
 {
   imports = [ inputs.ddlc-terminal-themes.homeModules.default ];
 
   # The colours land after everything below, and kitty takes the last word for a key
   ddlc.kitty.enable = true;
+
+  # kitty swaps to these as the desktop colour scheme flips, which toggle-theme.sh does; the
+  # colours above stay the answer when the desktop states no preference
+  xdg.configFile = {
+    "kitty/dark-theme.auto.conf".source = kitty.dark;
+    "kitty/light-theme.auto.conf".source = kitty.light;
+  };
 
   programs.kitty = {
     enable = true;
