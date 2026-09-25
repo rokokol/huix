@@ -78,6 +78,11 @@ in
       plugins = with pkgs.hyprlandPlugins; [ hyprgrass ];
 
       settings = {
+        # Hyprland's own: a finger landing in the outer gap at the left or right edge drags
+        # the workspace along. A vertical slide there leaves the workspace in place, so it
+        # shares the edges with the sliders below
+        config.gestures.workspace_swipe_touch = true;
+
         config.plugin.hyprgrass = {
           # One knob for every threshold: a swipe and a pinch are recognised after
           # 150 / sensitivity pixels, a long press tolerates 100 / sensitivity of slip.
