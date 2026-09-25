@@ -928,6 +928,25 @@
         "type": "github"
       }
     },
+    "rofi": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1790322392,
+        "narHash": "sha256-yyCJLU8mUkbQ+mhBT9ax7TStDLDtBYDUO6OA5MaQjPY=",
+        "ref": "next",
+        "rev": "b5f7e007952d8db4365576db1ca3472d347d5af9",
+        "revCount": 4353,
+        "submodules": true,
+        "type": "git",
+        "url": "https://github.com/davatorium/rofi"
+      },
+      "original": {
+        "ref": "next",
+        "submodules": true,
+        "type": "git",
+        "url": "https://github.com/davatorium/rofi"
+      }
+    },
     "rofi-wooordhunt": {
       "inputs": {
         "nixpkgs": [
@@ -969,6 +988,7 @@
         "nixpkgs-stable": "nixpkgs-stable",
         "nixvim": "nixvim",
         "papers-skill": "papers-skill",
+        "rofi": "rofi",
         "rofi-wooordhunt": "rofi-wooordhunt",
         "skvpn": "skvpn",
         "sops-nix": "sops-nix",

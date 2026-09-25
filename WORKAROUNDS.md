@@ -132,47 +132,23 @@ A hit -> keep the patch. No hit -> the plugin renders icons with the configured 
 
 ---
 
-## rofi takes a finger on Wayland
+## rofi from its development branch
 
-**Where:** `patches/rofi-wayland-touch.patch`, applied by `overlay-rofi` in `flake.nix` to `rofi-unwrapped` on both hosts; the wrapper and the rofi plugins take the unwrapped package from the overlay
+**Where:** the `rofi` input in `flake.nix` (`ref=next`, with submodules) and `overlay-rofi`, which builds `rofi-unwrapped` from it on both hosts with the nixpkgs recipe; the wrapper and the rofi plugins take the unwrapped package from the overlay. `preVersionCheck` there matches the `2.0.0-dev` the branch reports
 
-**Symptom it prevents:** rofi's Wayland backend binds `wl_pointer` and `wl_keyboard` from the seat and never `wl_touch` (`source/wayland/display.c`, `wayland_seat_capabilities`), so a tap on its list does nothing and a swipe does nothing: the launcher button on the bar and the bottom-edge swipe open a menu a finger cannot use
+**Symptom it prevents:** rofi 2.0.0 on Wayland binds no `wl_touch` and cannot close on a click outside its window: a finger does nothing in the menu the bar button and the bottom-edge swipe open, and the only way out of it is Escape, which a folded laptop has no key for
 
-**Why this works:** the patch binds `wl_touch` beside the pointer and drives the same `wayland_pointer_send_events` from it. The first finger is the pointer; further fingers are ignored until it lifts. A finger that stays within 8 px is a left click sent as a press and a release when it lifts, so one tap selects and a second one accepts, as rofi's `me-select-entry` and `me-accept-entry` already say. A finger that moves past 8 px is never a click: every 30 px of travel is one wheel step against the motion, so the list follows the finger
+**Why this works:** `next` carries both: [davatorium/rofi#2336](https://github.com/davatorium/rofi/pull/2336) drives the pointer path from the first finger (a still finger is a click on lift, a moving one scrolls the list), and [6d2a528](https://github.com/davatorium/rofi/commit/6d2a528) covers the screen with a transparent surface that cancels on a press outside the menu, which a tap reaches through the same path. `click-to-exit` is on by default. Tried on the laptop: tap selects, second tap accepts, a swipe scrolls, a tap outside closes
 
-**Removal check:** look at the backend as nixpkgs ships it
-
-```sh
-grep -c 'wl_seat_get_touch' "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.rofi-unwrapped.src)/source/wayland/display.c"
-```
-
-`0` -> keep the patch. Anything else -> rofi binds touch itself; drop the patch and the overlay, then check that a tap still selects and a swipe still scrolls, since upstream may map them differently. The patch is cut against 2.0.0 and does not apply to `next`, where `wayland_seat_release` gained a text-input block: a rofi bump that fails in `patchPhase` needs the patch rebased, not dropped
-
-**Upstream:** [davatorium/rofi#2336](https://github.com/davatorium/rofi/pull/2336) (the same change against `next`, open), closing [davatorium/rofi#2208](https://github.com/davatorium/rofi/issues/2208)
-
----
-
-## A tap past rofi closes it from the compositor
-
-**Where:** the one-finger `tap` bind in `home-manager/desktop/hyprland/services/touch-gestures.nix`, laptop only
-
-**Symptom it prevents:** on Wayland rofi cannot notice a click or a tap outside its window. Its layer is only the window, so the event lands on the surface below; it holds the keyboard as `exclusive`, so the focus never leaves and its `wayland_keyboard_leave` is an empty `TODO`. `click-to-exit`, which the X11 backend honours through a pointer grab, is a no-op there, and the only way out is Escape or a keyboard the tablet does not have
-
-**Why this works:** hyprgrass warps the pointer to every touch, so on a completed one-finger tap the bind reads the cursor position and the `rofi` layer's box from Hyprland and kills rofi when the tap fell outside; `non_consuming` lets the tap through to whatever it hit. The tap is recognised by the plugin for every finger anyway; the bind adds a layer lookup per completed tap
-
-**Rejected alternative:** `on_demand` keyboard interactivity in rofi plus quitting on `wl_keyboard.leave`. It works for touch, but under `input.follow_mouse = 1` Hyprland moves keyboard focus off a non-exclusive layer on a hover (`mouseMoveUnified`), so a twitch of the touchpad would close rofi, and at map time the focus can leave in the same pass it arrived
-
-**Possible improvement:** gate the bind with a flag set by `hl.on("layer.opened")` and cleared by `hl.on("layer.closed")` for the `rofi` namespace, so a tap while rofi is closed costs one comparison and no layer lookup; hyprgrass has no way to remove a bind, so the bind itself stays
-
-**Removal check:** rofi closing on a tap outside its window on Wayland by itself, with `click-to-exit` set; then the bind goes. The first release after 2.0.0 passes it: rofi's `next` branch covers the screen with a transparent surface and cancels on a press outside the menu, and the touch patch drives a tap through that same press path. Tried on the laptop with `next` and the rebased patch, run under another process name so the bind's `pkill -x rofi` could not reach it: a tap outside closed rofi by its own cancel, exit 1, where a kill by the bind would read 143
+**Removal check:** the first rofi release after 2.0.0 in nixpkgs
 
 ```sh
-grep -c 'click_to_exit' "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.rofi-unwrapped.src)/source/wayland/display.c"
+nix eval --impure --raw --expr '(builtins.getFlake (toString ./.)).inputs.nixpkgs.legacyPackages.x86_64-linux.rofi-unwrapped.version'
 ```
 
-`0` -> keep the bind. Anything else -> open rofi, tap outside it, and drop the bind if rofi closes
+`2.0.0` -> keep the input. A later version -> drop the input and the overlay, then check that a tap selects and a tap outside closes. Until then `nix flake update rofi` moves the branch; `nix build .#nixosConfigurations.nixos-laptop.pkgs.rofi` runs rofi's own tests and is the check for such a bump
 
-**Upstream:** [davatorium/rofi@6d2a528](https://github.com/davatorium/rofi/commit/6d2a528) "wayland: add click-to-exit", on `next`, not in a release yet
+**Upstream:** the changes are merged; the entry waits for a release
 
 ---
 

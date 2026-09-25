@@ -131,26 +131,6 @@ in
           # fullscreen, because a fullscreen window carries no titlebar to leave it by
           (edge "d" "u" "hl.dsp.exec_cmd(${lib.generators.toLua { } cfg.menuCommand})")
           (edge "u" "d" ''hl.dsp.window.fullscreen({ mode = "fullscreen" })'')
-          # A tap past rofi closes it. rofi holds the keyboard exclusively, so a tap on
-          # another surface moves no focus and rofi itself sees nothing; the plugin put the
-          # pointer under the finger, and this bind lets the tap through to whatever it hit
-          {
-            pattern = {
-              kind = "tap";
-              fingers = 1;
-            };
-            non_consuming = true;
-            action = mkLuaInline ''
-              function()
-                local pos = hl.get_cursor_pos()
-                for _, l in ipairs(hl.get_layers({ namespace = "rofi" })) do
-                  if l.mapped and (pos.x < l.x or pos.x > l.x + l.w or pos.y < l.y or pos.y > l.y + l.h) then
-                    hl.exec_cmd("pkill -x rofi")
-                  end
-                end
-              end
-            '';
-          }
           # mouse: the dispatcher follows the fingers, as a mouse bind follows the pointer. A
           # window moves by its titlebar in tablet mode, so no gesture drags it
           {

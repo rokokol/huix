@@ -67,6 +67,13 @@
       inputs.hyprland.follows = "hyprland";
     };
 
+    # rofi's development branch, for the touch and click-to-exit support no release carries
+    # yet (see WORKAROUNDS.md); the submodules are part of its source
+    rofi = {
+      url = "git+https://github.com/davatorium/rofi?ref=next&submodules=1";
+      flake = false;
+    };
+
     claude-account = {
       url = "github:rokokol/claude-account";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -201,13 +208,15 @@
         };
       };
 
-      # rofi's Wayland backend binds no wl_touch, so a finger does nothing in it; the patch
-      # makes the first finger the pointer (see WORKAROUNDS.md). The wrapper and every
-      # plugin take the unwrapped package from the overlay, so nothing else changes
+      # rofi from its development branch (see WORKAROUNDS.md). The wrapper and every plugin
+      # take the unwrapped package from the overlay, so nothing else changes
       overlay-rofi = _final: prev: {
-        rofi-unwrapped = prev.rofi-unwrapped.overrideAttrs (previous: {
-          patches = (previous.patches or [ ]) ++ [ ./patches/rofi-wayland-touch.patch ];
-        });
+        rofi-unwrapped = prev.rofi-unwrapped.overrideAttrs {
+          version = "2.0.0-unstable-${inputs.rofi.lastModifiedDate}";
+          src = inputs.rofi;
+          # The branch reports itself as 2.0.0-dev, not by the date the lock gives it
+          preVersionCheck = "version=2.0.0-dev";
+        };
       };
 
       # blueman connects a device on a raw double-click event, which a touchscreen never
