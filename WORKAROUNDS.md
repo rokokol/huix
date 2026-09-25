@@ -208,4 +208,4 @@ grep -c 'wl_seat_get_touch' "$(nix eval --raw .#nixosConfigurations.nixos-laptop
 
 `0` -> keep the patch. Anything else -> kitty binds touch itself; drop the patch and the overlay, then check a tap, a scroll and a selection
 
-**Upstream:** not reported yet
+**Upstream:** [kovidgoyal/kitty#10536](https://github.com/kovidgoyal/kitty/pull/10536) (the same change, open)
