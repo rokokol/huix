@@ -1,129 +1,339 @@
-diff --color -ruN kitty-a/glfw/wl_init.c kitty-b/glfw/wl_init.c
+diff --git a/glfw/glfw.py b/glfw/glfw.py
+index df6b43e..0dc37de 100755
+--- a/glfw/glfw.py
++++ b/glfw/glfw.py
+@@ -113,6 +113,7 @@ def generate_wrappers(glfw_header: str) -> None:
+     pid_t glfwWaylandCompositorPID(void)
+     double glfwGetWaylandCurrentMonitorFractionalScale(void)
+     void glfwConfigureMomentumScroller(double friction, double min_velocity, double max_velocity, unsigned timer_interval)
++    void glfwSimulateFingerScroll(GLFWwindow *handle, const GLFWScrollEvent *ev, bool finger_lifted)
+     unsigned long long glfwDBusUserNotify(const GLFWDBUSNotificationData *n, GLFWDBusnotificationcreatedfun callback, void *data)
+     void glfwDBusSetUserNotificationHandler(GLFWDBusnotificationactivatedfun handler)
+     int glfwSetX11LaunchCommand(GLFWwindow *handle, char **argv, int argc)
+diff --git a/glfw/glfw3.h b/glfw/glfw3.h
+index c689f86..dab387c 100644
+--- a/glfw/glfw3.h
++++ b/glfw/glfw3.h
+@@ -566,6 +566,43 @@ typedef struct GLFWScrollEvent {
+     int keyboard_modifiers;
+ } GLFWScrollEvent;
+ 
++typedef enum GLFWTouchEventType {
++    // The first finger of a sequence touched the window
++    GLFW_TOUCH_BEGIN = 1,
++    // A finger touched, moved or lifted while others stay down
++    GLFW_TOUCH_UPDATE = 2,
++    // The last finger of the sequence lifted
++    GLFW_TOUCH_END = 3,
++    // The system took the sequence over, for example for a gesture of its own;
++    // the application must discard everything the sequence did so far
++    GLFW_TOUCH_CANCEL = 4,
++} GLFWTouchEventType;
++
++typedef enum GLFWTouchPointState {
++    GLFW_TOUCH_POINT_PRESSED = 1,
++    GLFW_TOUCH_POINT_MOVED = 2,
++    GLFW_TOUCH_POINT_STATIONARY = 3,
++    GLFW_TOUCH_POINT_RELEASED = 4,
++} GLFWTouchPointState;
++
++typedef struct GLFWTouchPoint {
++    // Unique among the points that are down at the same time; the system can
++    // reuse it after the point is released
++    int32_t id;
++    GLFWTouchPointState state;
++    // In window content coordinates, the same as the cursor position
++    double x, y;
++} GLFWTouchPoint;
++
++typedef struct GLFWTouchEvent {
++    GLFWTouchEventType type;
++    int keyboard_modifiers;
++    // Every point that is down on the window, and the points that were released
++    // in this event. The array is valid only during the callback
++    size_t num_points;
++    const GLFWTouchPoint *points;
++} GLFWTouchEvent;
++
+ /*! @defgroup joysticks Joysticks
+  *  @brief Joystick IDs.
+  *
+@@ -1780,6 +1817,25 @@ typedef void (*GLFWcursorenterfun)(GLFWwindow *, int);
+  */
+ typedef void (*GLFWscrollfun)(GLFWwindow *, const GLFWScrollEvent *);
+ 
++/*! @brief The function pointer type for touch callbacks.
++ *
++ *  This is the function pointer type for touch callbacks.  A touch callback
++ *  function has the following signature:
++ *  @code
++ *  void function_name(GLFWwindow* window, const GLFWTouchEvent* event)
++ *  @endcode
++ *
++ *  @param[in] window The window that received the event.
++ *  @param[in] event The touch event. A sequence opens with @ref
++ *  GLFW_TOUCH_BEGIN and closes with either @ref GLFW_TOUCH_END or @ref
++ *  GLFW_TOUCH_CANCEL.
++ *
++ *  @sa @ref glfwSetTouchCallback
++ *
++ *  @ingroup input
++ */
++typedef void (*GLFWtouchfun)(GLFWwindow *, const GLFWTouchEvent *);
++
+ /*! @brief The function pointer type for key callbacks.
+  *
+  *  This is the function pointer type for key callbacks.  A keyboard
+@@ -4993,6 +5049,38 @@ GLFWAPI GLFWcursorenterfun glfwSetCursorEnterCallback(GLFWwindow *window, GLFWcu
+  */
+ GLFWAPI GLFWscrollfun glfwSetScrollCallback(GLFWwindow *window, GLFWscrollfun callback);
+ 
++/*! @brief Sets the touch callback.
++ *
++ *  This function sets the touch callback of the specified window, which is
++ *  called when fingers touch the window content on a touchscreen. The events
++ *  are not converted to mouse events: that is left to the application.
++ *
++ *  A touch point belongs to the window it first touched and is reported to
++ *  that window alone until it is released.
++ *
++ *  Only the Wayland backend reports touch events at the moment.
++ *
++ *  @param[in] window The window whose callback to set.
++ *  @param[in] callback The new touch callback, or `NULL` to remove the
++ *  currently set callback.
++ *  @return The previously set callback, or `NULL` if no callback was set or the
++ *  library had not been [initialized](@ref intro_init).
++ *
++ *  @callback_signature
++ *  @code
++ *  void function_name(GLFWwindow* window, const GLFWTouchEvent* event)
++ *  @endcode
++ *  For more information about the callback parameters, see the
++ *  [function pointer type](@ref GLFWtouchfun).
++ *
++ *  @errors Possible errors include @ref GLFW_NOT_INITIALIZED.
++ *
++ *  @thread_safety This function must only be called from the main thread.
++ *
++ *  @ingroup input
++ */
++GLFWAPI GLFWtouchfun glfwSetTouchCallback(GLFWwindow *window, GLFWtouchfun callback);
++
+ GLFWAPI GLFWliveresizefun glfwSetLiveResizeCallback(GLFWwindow *window, GLFWliveresizefun callback);
+ 
+ GLFWAPI GLFWdropeventfun glfwSetDropEventCallback(GLFWwindow *window, GLFWdropeventfun callback);
+diff --git a/glfw/input.c b/glfw/input.c
+index fdf6ecc..10675b2 100644
+--- a/glfw/input.c
++++ b/glfw/input.c
+@@ -314,6 +314,13 @@ _glfwInputScroll(_GLFWwindow *window, const GLFWScrollEvent *ev) {
+     if (window->callbacks.scroll) window->callbacks.scroll((GLFWwindow *)window, ev);
+ }
+ 
++// Notifies shared code of a touch event
++//
++void
++_glfwInputTouch(_GLFWwindow *window, const GLFWTouchEvent *ev) {
++    if (window->callbacks.touch) window->callbacks.touch((GLFWwindow *)window, ev);
++}
++
+ // Notifies shared code of a mouse button click event
+ //
+ void
+@@ -1090,6 +1097,16 @@ glfwSetScrollCallback(GLFWwindow *handle, GLFWscrollfun cbfun) {
+     return cbfun;
+ }
+ 
++GLFWAPI GLFWtouchfun
++glfwSetTouchCallback(GLFWwindow *handle, GLFWtouchfun cbfun) {
++    _GLFWwindow *window = (_GLFWwindow *)handle;
++    assert(window != NULL);
++
++    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
++    _GLFW_SWAP_POINTERS(window->callbacks.touch, cbfun);
++    return cbfun;
++}
++
+ GLFWAPI GLFWdropeventfun
+ glfwSetDropEventCallback(GLFWwindow *handle, GLFWdropeventfun cbfun) {
+     _GLFWwindow *window = (_GLFWwindow *)handle;
+diff --git a/glfw/internal.h b/glfw/internal.h
+index ee2ce22..f89d616 100644
+--- a/glfw/internal.h
++++ b/glfw/internal.h
+@@ -470,6 +470,7 @@ struct _GLFWwindow {
+         GLFWcursorposfun cursorPos;
+         GLFWcursorenterfun cursorEnter;
+         GLFWscrollfun scroll;
++        GLFWtouchfun touch;
+         GLFWkeyboardfun keyboard;
+         GLFWliveresizefun liveResize;
+ 
+@@ -803,6 +804,7 @@ void _glfwInputWindowMonitor(_GLFWwindow *window, _GLFWmonitor *monitor);
+ void _glfwInputKeyboard(_GLFWwindow *window, GLFWkeyevent *ev);
+ void _glfwInputClipboardLost(GLFWClipboardType which);
+ void _glfwInputScroll(_GLFWwindow *window, const GLFWScrollEvent *ev);
++void _glfwInputTouch(_GLFWwindow *window, const GLFWTouchEvent *ev);
+ void _glfwInputMouseClick(_GLFWwindow *window, int button, int action, int mods);
+ void _glfwInputCursorPos(_GLFWwindow *window, double xpos, double ypos);
+ void _glfwInputCursorEnter(_GLFWwindow *window, bool entered);
+diff --git a/glfw/momentum-scroll.c b/glfw/momentum-scroll.c
+index c49c3e3..91d9225 100644
+--- a/glfw/momentum-scroll.c
++++ b/glfw/momentum-scroll.c
+@@ -200,6 +200,14 @@ glfw_is_momentum_scroll_enabled(void) {
+     return s.friction > 0;
+ }
+ 
++// Lets the application scroll from finger motion it recognised itself, such as
++// a drag on a touchscreen, with the momentum a touchpad scroll gets. A NULL
++// window stops any momentum scrolling in progress
++GLFWAPI void
++glfwSimulateFingerScroll(GLFWwindow *handle, const GLFWScrollEvent *ev, bool finger_lifted) {
++    glfw_handle_scroll_event_for_momentum((_GLFWwindow *)handle, ev, finger_lifted, true);
++}
++
+ void
+ glfw_handle_scroll_event_for_momentum(_GLFWwindow *w, const GLFWScrollEvent *ev, bool stopped, bool is_finger_based) {
+     const bool is_synthetic_momentum_start_event = stopped && momentum_scroll_gesture_detection_timeout_ms;
+diff --git a/glfw/wl_init.c b/glfw/wl_init.c
+index a06313f..8d6018f 100644
 --- a/glfw/wl_init.c
 +++ b/glfw/wl_init.c
-@@ -313,6 +313,145 @@
+@@ -313,6 +313,155 @@ static const struct wl_pointer_listener pointerListener = {
  #endif
  };
  
-+// A touchscreen drives the pointer paths. A finger that stays within the tap slop
-+// is a left click at the place it lifts from, sent as a press and a release then,
-+// so a finger that moves is never a click. A finger that moves at once is a
-+// finger-based high resolution scroll, the same event a touchpad produces, so the
-+// content follows it and, once it lifts, carries on under momentum scrolling. A
-+// finger held still for TOUCH_SELECT_HOLD_MS before it moves is a left button
-+// dragged from where it landed, which selects text as a mouse drag does
-+#define TOUCH_TAP_SLOP 8.0
-+#define TOUCH_SELECT_HOLD_MS 400
 +#define touch (_glfw.wl.touch_state)
 +
-+static void
-+touch_move_cursor(_GLFWwindow *window, double x, double y) {
-+    window->wl.cursorPosX = window->wl.allCursorPosX = x;
-+    window->wl.cursorPosY = window->wl.allCursorPosY = y;
-+    _glfwInputCursorPos(window, x, y);
++static ssize_t
++touch_point_index(int32_t id) {
++    for (size_t i = 0; i < touch.count; i++)
++        if (touch.points[i].id == id) return i;
++    return -1;
 +}
 +
-+// The window a finger landed on may close before the finger lifts; it is looked up
-+// in the window list rather than read through the stored pointer
-+static bool
-+touch_window_alive(const _GLFWwindow *window) {
-+    for (const _GLFWwindow *w = _glfw.windowListHead; w; w = w->next)
-+        if (w == window) return true;
-+    return false;
++// Sends one window the points it owns, in the given event type. When as_state
++// is non-zero, every point is reported in that state instead of its own, and
++// include_new decides whether points the window has not heard of yet go too
++static void
++touch_send_to_window(GLFWid window_id, GLFWTouchEventType type, GLFWTouchPointState as_state, bool include_new) {
++    _GLFWwindow *window = _glfwWindowForId(window_id);
++    if (!window) return;
++    GLFWTouchPoint points[arraysz(touch.points)];
++    size_t n = 0;
++    for (size_t i = 0; i < touch.count; i++) {
++        if (touch.points[i].window_id != window_id || (!include_new && touch.points[i].pressed_in_frame)) continue;
++        points[n++] = (GLFWTouchPoint){
++            .id = touch.points[i].id,
++            .state = as_state ? as_state : touch.points[i].state,
++            .x = touch.points[i].x,
++            .y = touch.points[i].y,
++        };
++    }
++    if (!n) return;
++    GLFWTouchEvent ev = {.type = type, .keyboard_modifiers = _glfw.wl.xkb.states.modifiers, .num_points = n, .points = points};
++    _glfwInputTouch(window, &ev);
 +}
 +
 +static void
-+touch_scroll(_GLFWwindow *window, double dx, double dy, bool stopped) {
-+    const double scale = _glfwWaylandWindowScale(window);
-+    GLFWScrollEvent ev = {
-+        .keyboard_modifiers = _glfw.wl.xkb.states.modifiers,
-+        .offset_type = GLFW_SCROLL_OFFEST_HIGHRES,
-+        .unscaled = {.x = dx, .y = dy},
-+        .x_offset = scale * dx,
-+        .y_offset = scale * dy,
-+    };
-+    glfw_handle_scroll_event_for_momentum(window, &ev, stopped, true);
-+}
-+
-+static void
-+touchHandleDown(void *data UNUSED, struct wl_touch *wl_touch UNUSED, uint32_t serial, uint32_t time, struct wl_surface *surface, int32_t id, wl_fixed_t sx, wl_fixed_t sy) {
-+    if (touch.window) return;
++touchHandleDown(
++    void *data UNUSED,
++    struct wl_touch *wl_touch UNUSED,
++    uint32_t serial,
++    uint32_t time UNUSED,
++    struct wl_surface *surface,
++    int32_t id,
++    wl_fixed_t sx,
++    wl_fixed_t sy) {
 +    _GLFWwindow *window = get_window_from_surface(surface);
-+    // A touch on a client-side decoration is not handled here
++    // A touch on a client-side decoration is not reported
 +    if (!window || surface != window->wl.surface) return;
-+    glfw_cancel_momentum_scroll();
++    if (touch.count >= arraysz(touch.points) || touch_point_index(id) > -1) return;
 +    _glfw.wl.serial = serial;
 +    _glfw.wl.input_serial = serial;
-+    touch.id = id;
-+    touch.window = window;
-+    touch.x = wl_fixed_to_double(sx);
-+    touch.y = wl_fixed_to_double(sy);
-+    touch.down_time = time;
-+    touch.moved = false;
-+    touch.selecting = false;
-+}
-+
-+static void
-+touchHandleMotion(void *data UNUSED, struct wl_touch *wl_touch UNUSED, uint32_t time, int32_t id, wl_fixed_t sx, wl_fixed_t sy) {
-+    if (!touch.window || id != touch.id || !touch_window_alive(touch.window)) return;
-+    const double px = wl_fixed_to_double(sx), py = wl_fixed_to_double(sy);
-+    if (!touch.moved) {
-+        if (fabs(px - touch.x) <= TOUCH_TAP_SLOP && fabs(py - touch.y) <= TOUCH_TAP_SLOP) return;
-+        touch.moved = true;
-+        if (time - touch.down_time >= TOUCH_SELECT_HOLD_MS) {
-+            touch.selecting = true;
-+            touch_move_cursor(touch.window, touch.x, touch.y);
-+            _glfwInputMouseClick(touch.window, GLFW_MOUSE_BUTTON_LEFT, GLFW_PRESS, _glfw.wl.xkb.states.modifiers);
-+        }
-+    }
-+    if (touch.selecting) {
-+        touch.x = px;
-+        touch.y = py;
-+        touch_move_cursor(touch.window, px, py);
-+        return;
-+    }
-+    const double dx = px - touch.x, dy = py - touch.y;
-+    touch.x = px;
-+    touch.y = py;
-+    touch_scroll(touch.window, dx, dy, false);
++    touch.points[touch.count++] = (_GLFWWaylandTouchPoint){
++        .id = id,
++        .window_id = window->id,
++        .state = GLFW_TOUCH_POINT_PRESSED,
++        .pressed_in_frame = true,
++        .x = wl_fixed_to_double(sx),
++        .y = wl_fixed_to_double(sy),
++    };
 +}
 +
 +static void
 +touchHandleUp(void *data UNUSED, struct wl_touch *wl_touch UNUSED, uint32_t serial, uint32_t time UNUSED, int32_t id) {
-+    if (!touch.window || id != touch.id) return;
-+    _GLFWwindow *window = touch.window;
-+    touch.window = NULL;
-+    if (!touch_window_alive(window)) return;
++    const ssize_t i = touch_point_index(id);
++    if (i < 0) return;
 +    _glfw.wl.serial = serial;
 +    _glfw.wl.input_serial = serial;
-+    const int mods = _glfw.wl.xkb.states.modifiers;
-+    if (touch.selecting) {
-+        _glfwInputMouseClick(window, GLFW_MOUSE_BUTTON_LEFT, GLFW_RELEASE, mods);
-+        return;
-+    }
-+    if (touch.moved) {
-+        touch_scroll(window, 0, 0, true);
-+        return;
-+    }
-+    touch_move_cursor(window, touch.x, touch.y);
-+    _glfwInputMouseClick(window, GLFW_MOUSE_BUTTON_LEFT, GLFW_PRESS, mods);
-+    _glfwInputMouseClick(window, GLFW_MOUSE_BUTTON_LEFT, GLFW_RELEASE, mods);
++    touch.points[i].state = GLFW_TOUCH_POINT_RELEASED;
 +}
 +
 +static void
-+touchHandleFrame(void *data UNUSED, struct wl_touch *wl_touch UNUSED) {}
++touchHandleMotion(void *data UNUSED, struct wl_touch *wl_touch UNUSED, uint32_t time UNUSED, int32_t id, wl_fixed_t sx, wl_fixed_t sy) {
++    const ssize_t i = touch_point_index(id);
++    if (i < 0) return;
++    touch.points[i].x = wl_fixed_to_double(sx);
++    touch.points[i].y = wl_fixed_to_double(sy);
++    if (touch.points[i].state == GLFW_TOUCH_POINT_STATIONARY) touch.points[i].state = GLFW_TOUCH_POINT_MOVED;
++}
 +
-+// The compositor took the sequence over, for a gesture of its own: the finger is
-+// neither a click nor a scroll any more
++// A frame ends a group of events that happened at the same time. Each window with a
++// changed point gets one event holding all of its points
++static void
++touchHandleFrame(void *data UNUSED, struct wl_touch *wl_touch UNUSED) {
++    GLFWid done[arraysz(touch.points)];
++    size_t num_done = 0;
++    for (size_t i = 0; i < touch.count; i++) {
++        const GLFWid window_id = touch.points[i].window_id;
++        bool changed = false, seen = false;
++        for (size_t d = 0; d < num_done && !seen; d++) seen = done[d] == window_id;
++        if (seen) continue;
++        done[num_done++] = window_id;
++        size_t down_before = 0, down_after = 0;
++        for (size_t j = i; j < touch.count; j++) {
++            if (touch.points[j].window_id != window_id) continue;
++            if (touch.points[j].state != GLFW_TOUCH_POINT_STATIONARY) changed = true;
++            if (!touch.points[j].pressed_in_frame) down_before++;
++            if (touch.points[j].state != GLFW_TOUCH_POINT_RELEASED) down_after++;
++        }
++        if (!changed) continue;
++        if (!down_before && !down_after) {
++            // Every finger landed and lifted within this frame: the sequence still
++            // opens before it closes
++            touch_send_to_window(window_id, GLFW_TOUCH_BEGIN, GLFW_TOUCH_POINT_PRESSED, true);
++            touch_send_to_window(window_id, GLFW_TOUCH_END, 0, true);
++        } else touch_send_to_window(window_id, !down_before ? GLFW_TOUCH_BEGIN : !down_after ? GLFW_TOUCH_END : GLFW_TOUCH_UPDATE, 0, true);
++    }
++    size_t kept = 0;
++    for (size_t i = 0; i < touch.count; i++) {
++        if (touch.points[i].state == GLFW_TOUCH_POINT_RELEASED) continue;
++        touch.points[kept] = touch.points[i];
++        touch.points[kept].state = GLFW_TOUCH_POINT_STATIONARY;
++        touch.points[kept].pressed_in_frame = false;
++        kept++;
++    }
++    touch.count = kept;
++}
++
++// The compositor took every active sequence over, for a gesture of its own. A
++// window hears of it only if it was told the sequence began
 +static void
 +touchHandleCancel(void *data UNUSED, struct wl_touch *wl_touch UNUSED) {
-+    // A selection in progress lets its button go, so it is not left held down
-+    if (touch.window && touch.selecting && touch_window_alive(touch.window))
-+        _glfwInputMouseClick(touch.window, GLFW_MOUSE_BUTTON_LEFT, GLFW_RELEASE, _glfw.wl.xkb.states.modifiers);
-+    touch.window = NULL;
-+    touch.moved = false;
-+    touch.selecting = false;
-+    glfw_cancel_momentum_scroll();
++    GLFWid done[arraysz(touch.points)];
++    size_t num_done = 0;
++    for (size_t i = 0; i < touch.count; i++) {
++        const GLFWid window_id = touch.points[i].window_id;
++        bool seen = false;
++        for (size_t d = 0; d < num_done && !seen; d++) seen = done[d] == window_id;
++        if (seen) continue;
++        done[num_done++] = window_id;
++        touch_send_to_window(window_id, GLFW_TOUCH_CANCEL, GLFW_TOUCH_POINT_RELEASED, false);
++    }
++    touch.count = 0;
 +}
 +
 +static void
@@ -147,7 +357,7 @@ diff --color -ruN kitty-a/glfw/wl_init.c kitty-b/glfw/wl_init.c
  static void
  keyboardHandleKeymap(void *data UNUSED, struct wl_keyboard *keyboard UNUSED, uint32_t format, int fd, uint32_t size) {
      char *mapStr;
-@@ -517,6 +656,15 @@
+@@ -517,6 +666,15 @@ seatHandleCapabilities(void *data UNUSED, struct wl_seat *seat, enum wl_seat_cap
          if (_glfw.wl.cursorAnimationTimer) toggleTimer(&_glfw.wl.eventLoopData, _glfw.wl.cursorAnimationTimer, 0);
      }
  
@@ -155,15 +365,15 @@ diff --color -ruN kitty-a/glfw/wl_init.c kitty-b/glfw/wl_init.c
 +        _glfw.wl.touch = wl_seat_get_touch(seat);
 +        wl_touch_add_listener(_glfw.wl.touch, &touchListener, NULL);
 +    } else if (!(caps & WL_SEAT_CAPABILITY_TOUCH) && _glfw.wl.touch) {
++        touchHandleCancel(NULL, _glfw.wl.touch);
 +        wl_touch_destroy(_glfw.wl.touch);
 +        _glfw.wl.touch = NULL;
-+        _glfw.wl.touch_state.window = NULL;
 +    }
 +
      if ((caps & WL_SEAT_CAPABILITY_KEYBOARD) && !_glfw.wl.keyboard) {
          _glfw.wl.keyboard = wl_seat_get_keyboard(seat);
          wl_keyboard_add_listener(_glfw.wl.keyboard, &keyboardListener, NULL);
-@@ -900,6 +1048,7 @@
+@@ -900,6 +1058,7 @@ _glfwPlatformTerminate(void) {
      if (_glfw.wl.virtual_keyboard_manager) zwp_virtual_keyboard_manager_v1_destroy(_glfw.wl.virtual_keyboard_manager);
      if (_glfw.wl.pointer) wl_pointer_destroy(_glfw.wl.pointer);
      if (_glfw.wl.keyboard) wl_keyboard_destroy(_glfw.wl.keyboard);
@@ -171,25 +381,518 @@ diff --color -ruN kitty-a/glfw/wl_init.c kitty-b/glfw/wl_init.c
      if (_glfw.wl.seat) wl_seat_destroy(_glfw.wl.seat);
      if (_glfw.wl.relativePointerManager) zwp_relative_pointer_manager_v1_destroy(_glfw.wl.relativePointerManager);
      if (_glfw.wl.pointerConstraints) zwp_pointer_constraints_v1_destroy(_glfw.wl.pointerConstraints);
-diff --color -ruN kitty-a/glfw/wl_platform.h kitty-b/glfw/wl_platform.h
+diff --git a/glfw/wl_platform.h b/glfw/wl_platform.h
+index 92cb433..55fb0e9 100644
 --- a/glfw/wl_platform.h
 +++ b/glfw/wl_platform.h
-@@ -342,6 +342,18 @@
+@@ -331,6 +331,14 @@ typedef struct _GLFWWaylandDataOffer {
+     size_t dd_capacity, dd_count;
+ } _GLFWWaylandDataOffer;
+ 
++typedef struct _GLFWWaylandTouchPoint {
++    int32_t id;
++    GLFWid window_id;
++    GLFWTouchPointState state;
++    bool pressed_in_frame;
++    double x, y;
++} _GLFWWaylandTouchPoint;
++
+ // Wayland-specific global data
+ //
+ typedef struct _GLFWlibraryWayland {
+@@ -342,6 +350,14 @@ typedef struct _GLFWlibraryWayland {
      struct wl_seat *seat;
      struct wl_pointer *pointer;
      struct wl_keyboard *keyboard;
 +    struct wl_touch *touch;
-+    // The first finger down acts for the whole touch sequence: its id, the window
-+    // it landed on (NULL while no finger is down), where it is, when it landed,
-+    // whether it moved past the tap slop, which turns it from a click into a
-+    // scroll, and whether it had been held still long enough to select instead
++    // The touch points that are down, each tied to the window it landed on.
++    // Changes collect here and are reported at the wl_touch frame event.
++    // pressed_in_frame marks a point the application has not heard of yet
 +    struct {
-+        int32_t id;
-+        _GLFWwindow *window;
-+        double x, y;
-+        uint32_t down_time;
-+        bool moved, selecting;
++        _GLFWWaylandTouchPoint points[16];
++        size_t count;
 +    } touch_state;
      struct wl_data_device_manager *dataDeviceManager;
      struct wl_data_device *dataDevice;
      struct xdg_wm_base *wmBase;
+diff --git a/kitty/data-types.h b/kitty/data-types.h
+index 84a333d..4b8207b 100644
+--- a/kitty/data-types.h
++++ b/kitty/data-types.h
+@@ -385,6 +385,23 @@ void leave_event(int modifiers);
+ void mouse_event(const int, int, int);
+ void focus_in_event(void);
+ void scroll_event(const GLFWScrollEvent *ev);
++
++// A touch sequence turned into mouse events: the first finger down acts for the
++// whole sequence, and the sink receives what it simulates
++typedef struct TouchToMouse {
++    bool active, moved, selecting;
++    int32_t id;
++    double x, y;
++    monotonic_t down_at;
++} TouchToMouse;
++typedef struct TouchToMouseSink {
++    void (*move)(void *data, double x, double y);
++    void (*button)(void *data, int action, int mods);
++    void (*scroll)(void *data, double dx, double dy, bool finger_lifted, int mods);
++    void (*cancel_scroll)(void *data);
++    void *data;
++} TouchToMouseSink;
++void touch_to_mouse(TouchToMouse *s, const GLFWTouchEvent *ev, monotonic_t now, const TouchToMouseSink *sink);
+ void on_key_input(const GLFWkeyevent *ev);
+ void request_window_attention(id_type, bool);
+ void free_drag_source(void);
+diff --git a/kitty/glfw-wrapper.c b/kitty/glfw-wrapper.c
+index fe21c3c..5cf2dca 100644
+--- a/kitty/glfw-wrapper.c
++++ b/kitty/glfw-wrapper.c
+@@ -362,6 +362,9 @@ load_glfw(const char* path) {
+     *(void **) (&glfwSetScrollCallback_impl) = dlsym(handle, "glfwSetScrollCallback");
+     if (glfwSetScrollCallback_impl == NULL) fail("Failed to load glfw function glfwSetScrollCallback with error: %s", dlerror());
+ 
++    *(void **) (&glfwSetTouchCallback_impl) = dlsym(handle, "glfwSetTouchCallback");
++    if (glfwSetTouchCallback_impl == NULL) fail("Failed to load glfw function glfwSetTouchCallback with error: %s", dlerror());
++
+     *(void **) (&glfwSetLiveResizeCallback_impl) = dlsym(handle, "glfwSetLiveResizeCallback");
+     if (glfwSetLiveResizeCallback_impl == NULL) fail("Failed to load glfw function glfwSetLiveResizeCallback with error: %s", dlerror());
+ 
+@@ -560,6 +563,9 @@ load_glfw(const char* path) {
+     *(void **) (&glfwConfigureMomentumScroller_impl) = dlsym(handle, "glfwConfigureMomentumScroller");
+     if (glfwConfigureMomentumScroller_impl == NULL) dlerror(); // clear error indicator
+ 
++    *(void **) (&glfwSimulateFingerScroll_impl) = dlsym(handle, "glfwSimulateFingerScroll");
++    if (glfwSimulateFingerScroll_impl == NULL) dlerror(); // clear error indicator
++
+     *(void **) (&glfwDBusUserNotify_impl) = dlsym(handle, "glfwDBusUserNotify");
+     if (glfwDBusUserNotify_impl == NULL) dlerror(); // clear error indicator
+ 
+diff --git a/kitty/glfw-wrapper.h b/kitty/glfw-wrapper.h
+index 868d5ea..9ffa85b 100644
+--- a/kitty/glfw-wrapper.h
++++ b/kitty/glfw-wrapper.h
+@@ -306,6 +306,43 @@ typedef struct GLFWScrollEvent {
+     int keyboard_modifiers;
+ } GLFWScrollEvent;
+ 
++typedef enum GLFWTouchEventType {
++    // The first finger of a sequence touched the window
++    GLFW_TOUCH_BEGIN = 1,
++    // A finger touched, moved or lifted while others stay down
++    GLFW_TOUCH_UPDATE = 2,
++    // The last finger of the sequence lifted
++    GLFW_TOUCH_END = 3,
++    // The system took the sequence over, for example for a gesture of its own;
++    // the application must discard everything the sequence did so far
++    GLFW_TOUCH_CANCEL = 4,
++} GLFWTouchEventType;
++
++typedef enum GLFWTouchPointState {
++    GLFW_TOUCH_POINT_PRESSED = 1,
++    GLFW_TOUCH_POINT_MOVED = 2,
++    GLFW_TOUCH_POINT_STATIONARY = 3,
++    GLFW_TOUCH_POINT_RELEASED = 4,
++} GLFWTouchPointState;
++
++typedef struct GLFWTouchPoint {
++    // Unique among the points that are down at the same time; the system can
++    // reuse it after the point is released
++    int32_t id;
++    GLFWTouchPointState state;
++    // In window content coordinates, the same as the cursor position
++    double x, y;
++} GLFWTouchPoint;
++
++typedef struct GLFWTouchEvent {
++    GLFWTouchEventType type;
++    int keyboard_modifiers;
++    // Every point that is down on the window, and the points that were released
++    // in this event. The array is valid only during the callback
++    size_t num_points;
++    const GLFWTouchPoint *points;
++} GLFWTouchEvent;
++
+ /*! @defgroup joysticks Joysticks
+  *  @brief Joystick IDs.
+  *
+@@ -1520,6 +1557,25 @@ typedef void (*GLFWcursorenterfun)(GLFWwindow *, int);
+  */
+ typedef void (*GLFWscrollfun)(GLFWwindow *, const GLFWScrollEvent *);
+ 
++/*! @brief The function pointer type for touch callbacks.
++ *
++ *  This is the function pointer type for touch callbacks.  A touch callback
++ *  function has the following signature:
++ *  @code
++ *  void function_name(GLFWwindow* window, const GLFWTouchEvent* event)
++ *  @endcode
++ *
++ *  @param[in] window The window that received the event.
++ *  @param[in] event The touch event. A sequence opens with @ref
++ *  GLFW_TOUCH_BEGIN and closes with either @ref GLFW_TOUCH_END or @ref
++ *  GLFW_TOUCH_CANCEL.
++ *
++ *  @sa @ref glfwSetTouchCallback
++ *
++ *  @ingroup input
++ */
++typedef void (*GLFWtouchfun)(GLFWwindow *, const GLFWTouchEvent *);
++
+ /*! @brief The function pointer type for key callbacks.
+  *
+  *  This is the function pointer type for key callbacks.  A keyboard
+@@ -2323,6 +2379,10 @@ typedef GLFWscrollfun (*glfwSetScrollCallback_func)(GLFWwindow*, GLFWscrollfun);
+ GFW_EXTERN glfwSetScrollCallback_func glfwSetScrollCallback_impl;
+ #define glfwSetScrollCallback glfwSetScrollCallback_impl
+ 
++typedef GLFWtouchfun (*glfwSetTouchCallback_func)(GLFWwindow*, GLFWtouchfun);
++GFW_EXTERN glfwSetTouchCallback_func glfwSetTouchCallback_impl;
++#define glfwSetTouchCallback glfwSetTouchCallback_impl
++
+ typedef GLFWliveresizefun (*glfwSetLiveResizeCallback_func)(GLFWwindow*, GLFWliveresizefun);
+ GFW_EXTERN glfwSetLiveResizeCallback_func glfwSetLiveResizeCallback_impl;
+ #define glfwSetLiveResizeCallback glfwSetLiveResizeCallback_impl
+@@ -2587,6 +2647,10 @@ typedef void (*glfwConfigureMomentumScroller_func)(double, double, double, unsig
+ GFW_EXTERN glfwConfigureMomentumScroller_func glfwConfigureMomentumScroller_impl;
+ #define glfwConfigureMomentumScroller glfwConfigureMomentumScroller_impl
+ 
++typedef void (*glfwSimulateFingerScroll_func)(GLFWwindow*, const GLFWScrollEvent*, bool);
++GFW_EXTERN glfwSimulateFingerScroll_func glfwSimulateFingerScroll_impl;
++#define glfwSimulateFingerScroll glfwSimulateFingerScroll_impl
++
+ typedef unsigned long long (*glfwDBusUserNotify_func)(const GLFWDBUSNotificationData*, GLFWDBusnotificationcreatedfun, void*);
+ GFW_EXTERN glfwDBusUserNotify_func glfwDBusUserNotify_impl;
+ #define glfwDBusUserNotify glfwDBusUserNotify_impl
+diff --git a/kitty/glfw.c b/kitty/glfw.c
+index bd547fd..ea6749b 100644
+--- a/kitty/glfw.c
++++ b/kitty/glfw.c
+@@ -723,6 +723,56 @@ scroll_callback(GLFWwindow *w, const GLFWScrollEvent *ev) {
+     global_state.callback_os_window = NULL;
+ }
+ 
++static void
++touch_move(void *w, double x, double y) {
++    cursor_pos_callback(w, x, y);
++}
++
++static void
++touch_button(void *w, int action, int mods) {
++    mouse_button_callback(w, GLFW_MOUSE_BUTTON_LEFT, action, mods);
++}
++
++static void
++touch_scroll(void *w, double dx, double dy, bool finger_lifted, int mods) {
++    float xscale = 1, yscale = 1;
++    glfwGetWindowContentScale(w, &xscale, &yscale);
++    GLFWScrollEvent ev = {
++        .keyboard_modifiers = mods,
++        .offset_type = GLFW_SCROLL_OFFEST_HIGHRES,
++        .unscaled = {.x = dx, .y = dy},
++        .x_offset = xscale * dx,
++        .y_offset = yscale * dy,
++    };
++    glfwSimulateFingerScroll(w, &ev, finger_lifted);
++}
++
++static void
++touch_cancel_scroll(void *w UNUSED) {
++    glfwSimulateFingerScroll(NULL, NULL, false);
++}
++
++static void
++touch_callback(GLFWwindow *w, const GLFWTouchEvent *ev) {
++    OSWindow *osw = os_window_for_glfw_window(w);
++    if (!osw) return;
++    if (OPT(debug_keyboard)) {
++        static const char *types[] = {"", "begin", "update", "end", "cancel"};
++        timed_debug_print("\x1b[36mTouch\x1b[m %s:", types[ev->type]);
++        for (size_t i = 0; i < ev->num_points; i++)
++            timed_debug_print(" [id=%d state=%d %.1fx%.1f]", ev->points[i].id, ev->points[i].state, ev->points[i].x, ev->points[i].y);
++        timed_debug_print("\n");
++    }
++    const TouchToMouseSink sink = {
++        .move = touch_move,
++        .button = touch_button,
++        .scroll = touch_scroll,
++        .cancel_scroll = touch_cancel_scroll,
++        .data = w,
++    };
++    touch_to_mouse(&osw->touch, ev, monotonic(), &sink);
++}
++
+ static id_type focus_counter = 0;
+ 
+ static void
+@@ -2295,6 +2345,7 @@ create_os_window(PyObject UNUSED *self, PyObject *args, PyObject *kw) {
+     glfwSetCursorPosCallback(glfw_window, cursor_pos_callback);
+     glfwSetCursorEnterCallback(glfw_window, cursor_enter_callback);
+     glfwSetScrollCallback(glfw_window, scroll_callback);
++    glfwSetTouchCallback(glfw_window, touch_callback);
+     glfwSetKeyboardCallback(glfw_window, key_callback);
+ 
+     glfwSetDragSourceCallback(glfw_window, drag_source_callback);
+diff --git a/kitty/mouse.c b/kitty/mouse.c
+index 2bdf7d1..b365aa5 100644
+--- a/kitty/mouse.c
++++ b/kitty/mouse.c
+@@ -1687,6 +1687,75 @@ scroll_event(const GLFWScrollEvent *ev) {
+     }
+ }
+ 
++// A finger that stays within the tap slop is a left click at the place it
++// landed, sent as a press and a release when it lifts, so a finger that moves
++// is never a click. A finger that moves at once scrolls along both axes, the
++// way a touchpad does, and carries on under momentum after it lifts. A finger
++// held still for TOUCH_SELECT_HOLD before it moves is a left button dragged
++// from where it landed, which selects text as a mouse drag does
++#define TOUCH_TAP_SLOP 8.0
++#define TOUCH_SELECT_HOLD ms_to_monotonic_t(400)
++
++void
++touch_to_mouse(TouchToMouse *s, const GLFWTouchEvent *ev, monotonic_t now, const TouchToMouseSink *sink) {
++    const int mods = ev->keyboard_modifiers;
++    if (ev->type == GLFW_TOUCH_CANCEL) {
++        // A selection in progress lets its button go, so it is not left held down
++        if (s->active && s->selecting) sink->button(sink->data, GLFW_RELEASE, mods);
++        *s = (TouchToMouse){0};
++        sink->cancel_scroll(sink->data);
++        return;
++    }
++    if (ev->type == GLFW_TOUCH_BEGIN) s->active = false;
++    if (!s->active) {
++        for (size_t i = 0; i < ev->num_points; i++) {
++            if (ev->points[i].state != GLFW_TOUCH_POINT_PRESSED) continue;
++            *s = (TouchToMouse){.active = true, .id = ev->points[i].id, .x = ev->points[i].x, .y = ev->points[i].y, .down_at = now};
++            sink->cancel_scroll(sink->data);
++            break;
++        }
++        return;
++    }
++    const GLFWTouchPoint *p = NULL;
++    for (size_t i = 0; i < ev->num_points && !p; i++)
++        if (ev->points[i].id == s->id) p = ev->points + i;
++    if (!p) return;
++    switch (p->state) {
++        case GLFW_TOUCH_POINT_MOVED:
++            if (!s->moved) {
++                if (fabs(p->x - s->x) <= TOUCH_TAP_SLOP && fabs(p->y - s->y) <= TOUCH_TAP_SLOP) return;
++                s->moved = true;
++                // The pointer goes to where the finger landed, so that what
++                // follows reaches the window under the finger
++                sink->move(sink->data, s->x, s->y);
++                if (now - s->down_at >= TOUCH_SELECT_HOLD) {
++                    s->selecting = true;
++                    sink->button(sink->data, GLFW_PRESS, mods);
++                }
++            }
++            if (s->selecting) sink->move(sink->data, p->x, p->y);
++            else sink->scroll(sink->data, p->x - s->x, p->y - s->y, false, mods);
++            s->x = p->x;
++            s->y = p->y;
++            break;
++        case GLFW_TOUCH_POINT_RELEASED:
++            s->active = false;
++            if (s->selecting) sink->button(sink->data, GLFW_RELEASE, mods);
++            else if (s->moved) sink->scroll(sink->data, 0, 0, true, mods);
++            else {
++                sink->move(sink->data, s->x, s->y);
++                sink->button(sink->data, GLFW_PRESS, mods);
++                sink->button(sink->data, GLFW_RELEASE, mods);
++            }
++            break;
++        case GLFW_TOUCH_POINT_PRESSED:
++        case GLFW_TOUCH_POINT_STATIONARY: break;
++    }
++}
++
++#undef TOUCH_TAP_SLOP
++#undef TOUCH_SELECT_HOLD
++
+ static PyObject *
+ send_mouse_event(PyObject *self UNUSED, PyObject *args, PyObject *kw) {
+     Screen *screen;
+@@ -1820,10 +1889,83 @@ test_scale_scroll(PyObject *self UNUSED, PyObject *args) {
+     return ans;
+ }
+ 
++static void
++record_touch_action(void *data, PyObject *action) {
++    if (!action || PyList_Append(data, action) != 0) PyErr_Clear();
++    Py_XDECREF(action);
++}
++
++static void
++record_touch_move(void *data, double x, double y) {
++    record_touch_action(data, Py_BuildValue("sdd", "move", x, y));
++}
++
++static void
++record_touch_button(void *data, int action, int mods UNUSED) {
++    record_touch_action(data, Py_BuildValue("(s)", action == GLFW_PRESS ? "press" : "release"));
++}
++
++static void
++record_touch_scroll(void *data, double dx, double dy, bool finger_lifted, int mods UNUSED) {
++    record_touch_action(data, Py_BuildValue("sddO", "scroll", dx, dy, finger_lifted ? Py_True : Py_False));
++}
++
++static void
++record_touch_cancel_scroll(void *data) {
++    record_touch_action(data, Py_BuildValue("(s)", "cancel_scroll"));
++}
++
++static PyObject *
++test_touch_to_mouse(PyObject *self UNUSED, PyObject *args) {
++    PyObject *events;
++    if (!PyArg_ParseTuple(args, "O!", &PyList_Type, &events)) return NULL;
++    static const char *types[] = {"", "begin", "update", "end", "cancel"};
++    static const char *states[] = {"", "pressed", "moved", "stationary", "released"};
++    PyObject *ans = PyList_New(0);
++    if (!ans) return NULL;
++    TouchToMouse s = {0};
++    const TouchToMouseSink sink = {
++        .move = record_touch_move,
++        .button = record_touch_button,
++        .scroll = record_touch_scroll,
++        .cancel_scroll = record_touch_cancel_scroll,
++        .data = ans,
++    };
++    GLFWTouchPoint points[16];
++    for (Py_ssize_t i = 0; i < PyList_GET_SIZE(events); i++) {
++        long long ms;
++        const char *type;
++        PyObject *pts;
++        if (!PyArg_ParseTuple(PyList_GET_ITEM(events, i), "LsO!", &ms, &type, &PyTuple_Type, &pts)) goto error;
++        GLFWTouchEvent ev = {.points = points, .num_points = MIN((size_t)PyTuple_GET_SIZE(pts), arraysz(points))};
++        for (size_t t = 1; t < arraysz(types); t++)
++            if (strcmp(type, types[t]) == 0) ev.type = (GLFWTouchEventType)t;
++        for (size_t p = 0; p < ev.num_points; p++) {
++            const char *state;
++            int id;
++            if (!PyArg_ParseTuple(PyTuple_GET_ITEM(pts, p), "isdd", &id, &state, &points[p].x, &points[p].y)) goto error;
++            points[p].id = id;
++            points[p].state = 0;
++            for (size_t t = 1; t < arraysz(states); t++)
++                if (strcmp(state, states[t]) == 0) points[p].state = (GLFWTouchPointState)t;
++        }
++        if (!ev.type) {
++            PyErr_Format(PyExc_ValueError, "Unknown touch event type: %s", type);
++            goto error;
++        }
++        touch_to_mouse(&s, &ev, ms_to_monotonic_t(ms), &sink);
++    }
++    return ans;
++error:
++    Py_DECREF(ans);
++    return NULL;
++}
++
+ static PyMethodDef module_methods[] = {
+     {"send_mouse_event", (PyCFunction)(void (*)(void))(send_mouse_event), METH_VARARGS | METH_KEYWORDS, NULL},
+     METHODB(test_encode_mouse, METH_VARARGS),
+     METHODB(test_scale_scroll, METH_VARARGS),
++    METHODB(test_touch_to_mouse, METH_VARARGS),
+     METHODB(send_mock_mouse_event_to_window, METH_VARARGS),
+     METHODB(mock_mouse_selection, METH_VARARGS),
+     {NULL, NULL, 0, NULL} /* Sentinel */
+diff --git a/kitty/state.h b/kitty/state.h
+index c4753b5..a1c232f 100644
+--- a/kitty/state.h
++++ b/kitty/state.h
+@@ -557,6 +557,7 @@ typedef struct OSWindow {
+     bool has_received_cursor_pos_event;
+     double mouse_x, mouse_y;
+     double mouse_left_press_x, mouse_left_press_y;
++    TouchToMouse touch;
+     bool mouse_button_pressed[32];
+     bool has_too_few_tabs;
+     PyObject *window_title;
+diff --git a/kitty_tests/mouse.py b/kitty_tests/mouse.py
+index 96ea14e..7e9bdf1 100644
+--- a/kitty_tests/mouse.py
++++ b/kitty_tests/mouse.py
+@@ -455,3 +455,83 @@ def run(*v120):
+ 
+         # A fragment too small to be a detent does not scroll.
+         self.ae(0, sum(run(8)))
++
++    def test_touch_to_mouse(self):
++        from kitty.fast_data_types import test_touch_to_mouse
++
++        # Each event is (milliseconds, type, points) and each point is
++        # (id, state, x, y). The distances and the delays are far from any
++        # threshold, so the test does not depend on the tuning.
++        def run(*events):
++            return test_touch_to_mouse(list(events))
++
++        def kinds(actions):
++            return [a[0] for a in actions]
++
++        # A tap is a click at the place the finger landed
++        actions = run((0, 'begin', ((1, 'pressed', 10, 20),)), (50, 'end', ((1, 'released', 11, 20),)))
++        self.ae(['cancel_scroll', 'move', 'press', 'release'], kinds(actions))
++        self.ae(('move', 10, 20), actions[1])
++
++        # A finger that wobbles by a pixel before it lifts is still a tap
++        actions = run(
++            (0, 'begin', ((1, 'pressed', 10, 20),)),
++            (20, 'update', ((1, 'moved', 11, 21),)),
++            (50, 'end', ((1, 'released', 11, 21),)),
++        )
++        self.ae(['cancel_scroll', 'move', 'press', 'release'], kinds(actions))
++
++        # A finger that moves at once scrolls along both axes and never clicks.
++        # The pointer goes to where it landed first, so the scroll reaches the
++        # window under the finger rather than the one under the mouse
++        actions = run(
++            (0, 'begin', ((1, 'pressed', 100, 100),)),
++            (10, 'update', ((1, 'moved', 100, 200),)),
++            (20, 'update', ((1, 'moved', 200, 200),)),
++            (30, 'end', ((1, 'released', 200, 200),)),
++        )
++        self.ae(['cancel_scroll', 'move', 'scroll', 'scroll', 'scroll'], kinds(actions))
++        self.ae(('move', 100, 100), actions[1])
++        self.ae(('scroll', 0, 100, False), actions[2])
++        self.ae(('scroll', 100, 0, False), actions[3])
++        self.ae(('scroll', 0, 0, True), actions[4])
++
++        # A finger held still before it moves drags the left button from where it landed
++        actions = run(
++            (0, 'begin', ((1, 'pressed', 100, 100),)),
++            (2000, 'update', ((1, 'moved', 300, 100),)),
++            (2010, 'end', ((1, 'released', 300, 100),)),
++        )
++        self.ae(['cancel_scroll', 'move', 'press', 'move', 'release'], kinds(actions))
++        self.ae(('move', 100, 100), actions[1])
++        self.ae(('move', 300, 100), actions[3])
++
++        # A cancel lets a held button go and stops the scroll
++        actions = run(
++            (0, 'begin', ((1, 'pressed', 100, 100),)),
++            (2000, 'update', ((1, 'moved', 300, 100),)),
++            (2010, 'cancel', ((1, 'released', 300, 100),)),
++        )
++        self.ae(['cancel_scroll', 'move', 'press', 'move', 'release', 'cancel_scroll'], kinds(actions))
++        actions = run(
++            (0, 'begin', ((1, 'pressed', 100, 100),)),
++            (10, 'update', ((1, 'moved', 100, 200),)),
++            (20, 'cancel', ((1, 'released', 100, 200),)),
++        )
++        self.ae(['cancel_scroll', 'move', 'scroll', 'cancel_scroll'], kinds(actions))
++
++        # A tap that the system cancels is not a click
++        actions = run((0, 'begin', ((1, 'pressed', 10, 20),)), (50, 'cancel', ((1, 'released', 10, 20),)))
++        self.ae(['cancel_scroll', 'cancel_scroll'], kinds(actions))
++
++        # Further fingers are ignored while the first one is down, wherever
++        # they come in the list of points
++        actions = run(
++            (0, 'begin', ((1, 'pressed', 10, 20),)),
++            (10, 'update', ((2, 'pressed', 300, 300), (1, 'stationary', 10, 20))),
++            (20, 'update', ((2, 'moved', 300, 500), (1, 'stationary', 10, 20))),
++            (30, 'update', ((2, 'released', 300, 500), (1, 'stationary', 10, 20))),
++            (40, 'end', ((1, 'released', 10, 20),)),
++        )
++        self.ae(['cancel_scroll', 'move', 'press', 'release'], kinds(actions))
++        self.ae(('move', 10, 20), actions[1])

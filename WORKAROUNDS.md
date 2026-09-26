@@ -198,17 +198,18 @@ nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.waybar.version
 
 **Symptom it prevents:** kitty builds its own copy of GLFW, and its Wayland backend binds `wl_pointer` and `wl_keyboard` from the seat and never `wl_touch` (`glfw/wl_init.c`, `seatHandleCapabilities`): a finger on the terminal does nothing, neither a tap nor a scroll
 
-**Why this works:** the patch binds `wl_touch` and drives kitty's existing pointer paths from the first finger. A finger that lifts within 8 px is a left click at that place. A finger that moves at once is a finger-based high resolution scroll, the event a touchpad produces, so the text follows it and carries on under kitty's momentum scrolling after it lifts; a sideways finger scrolls sideways, which a program that asked for mouse reports receives as a horizontal wheel. A finger held still for 400 ms before it moves is a left button dragged from where it landed, which selects text. The hold is measured at the first move from the event timestamps, so no timer is needed. A cancel from the compositor releases a held button. Tried on the laptop: taps, scrolls and selections, with the touchpad still working beside them
+**Why this works:** the patch is two upstream proposals in a row. The first makes GLFW bind `wl_touch` and report touch events to kitty through `glfwSetTouchCallback`, one event per `wl_touch.frame` with every finger in it. The second turns those events into kitty's existing pointer paths, driven by the first finger. A finger that lifts within 8 px is a left click where it landed. A finger that moves at once scrolls on both axes through kitty's momentum scroller, the way a touchpad does; a program that asked for mouse reports receives the sideways part as a horizontal wheel. A finger held still for 400 ms before it moves drags the left button, which selects text. Before a drag the pointer moves under the finger, so the scroll reaches the split under the finger. A cancel from the compositor releases a held button. Tried on the laptop: taps on links, scrolls on both axes and selections, with the touchpad still working beside them
 
-**Removal check:** look at the backend as nixpkgs ships it
+**Removal check:** look at kitty as nixpkgs ships it
 
 ```sh
-grep -c 'wl_seat_get_touch' "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.kitty.src)/glfw/wl_init.c"
+src=$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.kitty.src)
+grep -c 'wl_seat_get_touch' "$src/glfw/wl_init.c"; grep -c 'glfwSetTouchCallback' "$src/kitty/glfw.c"
 ```
 
-`0` -> keep the patch. Anything else -> kitty binds touch itself; drop the patch and the overlay, then check a tap, a scroll and a selection
+Both `0` -> keep the patch. Only the first non-zero -> GLFW reports touch but kitty ignores it; the patch no longer applies, so cut it down to the second proposal. Both non-zero -> drop the patch and the overlay, then check a tap, a scroll and a selection
 
-**Upstream:** [kovidgoyal/kitty#10536](https://github.com/kovidgoyal/kitty/pull/10536) (the same change, open)
+**Upstream:** [kovidgoyal/kitty#10551](https://github.com/kovidgoyal/kitty/pull/10551) (the GLFW half, open); the kitty half waits for it on branch `kitty-touch-mouse` of `rokokol/kitty`
 
 ---
 
