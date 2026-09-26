@@ -115,6 +115,9 @@ in
       (bind (leader "ug") "plugin git-column" "Git status column")
 
       (bind (leader "gg") "shell --block lazygit" "LazyGit")
+
+      (bind (leader "ts") "shell --block $SHELL" "Shell in place, exit returns")
+      (bind (leader "xt") "shell --orphan 'thunar .'" "Open Thunar here")
     ]
     ++ sortBinds
     ++ linemodeBinds;
