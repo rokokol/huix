@@ -53,8 +53,13 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # The main branch, with its own nixpkgs and moved together with both plugins by the lock
-    # alone (see DEVIATIONS.md)
+    # The compositor and both plugins below come from their own flakes, so every plugin is built
+    # against the exact Hyprland revision it loads into; nixpkgs moves its plugins apart from its
+    # compositor. This is the one input without a nixpkgs follows: Hyprland's cache holds builds
+    # made from its own nixpkgs, and a follows would compile the compositor and the hypr* libs
+    # here on every update. The three inputs move together, pinned only by the lock; when a
+    # plugin does not build against the tip, hold Hyprland back in the lock with
+    # `nix flake lock --override-input hyprland github:hyprwm/Hyprland/<rev>`
     hyprland.url = "github:hyprwm/Hyprland";
 
     hyprland-plugins = {

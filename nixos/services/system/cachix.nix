@@ -13,7 +13,7 @@
     fallback = true;
 
     # The Hyprland cache holds the main-branch compositor the flake input brings in on both
-    # hosts (see DEVIATIONS.md for why that input keeps its own nixpkgs)
+    # hosts (its comment in flake.nix says why that input keeps its own nixpkgs)
     substituters = [
       "https://cache.nixos.org"
       "https://mirror.yandex.ru/nixos"
