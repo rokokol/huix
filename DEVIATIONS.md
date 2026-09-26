@@ -24,7 +24,7 @@ Anything but `['ddlc-palette']` means a parent is missing its `follows`
 
 **Where:** `flake.nix` — the `hyprland` input carries no `inputs.nixpkgs.follows`, unlike every other third-party input; `hyprgrass` and `hyprland-plugins` follow `hyprland` for both Hyprland and nixpkgs, and `overlay-hyprland` puts the four packages under their nixpkgs names on both hosts
 
-**Why it differs from the obvious route:** the compositor comes from Hyprland's main branch, because the Lua config lives only there since the release series lost it, and the plugins build against exactly that revision through their `follows`. Hyprland's own cache holds builds made from Hyprland's pinned nixpkgs; a `follows` would change every dependency's hash and turn each update into compiling the compositor, its portal and the hypr* libraries locally. The trade is a second copy of nixpkgs in the lock, seen only by those four packages
+**Why it differs from the obvious route:** a Hyprland plugin works only against the Hyprland revision it was built for, and nixpkgs moves its plugins apart from its compositor: its `hyprgrass` has trailed its Hyprland by releases, and a plugin built for another revision fails to load. Taking the compositor and the plugins from their own flakes, with the plugins following `hyprland`, builds all of them against one revision on every update. Hyprland's own cache holds builds made from Hyprland's pinned nixpkgs; a `follows` would change every dependency's hash and turn each update into compiling the compositor, its portal and the hypr* libraries locally. The trade is a second copy of nixpkgs in the lock, seen only by those four packages
 
 **What it costs:** the closure carries Hyprland's mesa and friends beside the system's; on an unstable system the two are days apart and Hyprland's wiki reports the mismatch as a problem for stable systems only. A plugin is built against one Hyprland revision and can fall behind the tip of main, so the three inputs move together and the lock is the only pin: `flake.nix` names no revision
 
@@ -35,4 +35,4 @@ nix build .#nixosConfigurations.nixos-laptop.pkgs.hyprlandPlugins.{hyprbars,hypr
 
 When a plugin does not build against the tip, hold Hyprland at a revision it does build against, in the lock rather than in the URL: `nix flake lock --override-input hyprland github:hyprwm/Hyprland/<rev>`; the revision hyprgrass's own `flake.lock` names is the usual candidate
 
-**Reconsidered by:** the hyprlang config returning to Hyprland's releases, or a release series carrying the Lua config; then the nixpkgs package and its plugins serve again and the input goes
+**Reconsidered by:** nixpkgs keeping `hyprlandPlugins` in step with its own `hyprland`, so that its `hyprgrass` and `hyprbars` build and load against the compositor beside them across several updates; then the nixpkgs packages serve and the three inputs go
