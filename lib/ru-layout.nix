@@ -1,4 +1,4 @@
-# The Russian ЙЦУКЕН layout against the US character on the same physical key, for every
+# The standard Russian layout against the US character on the same physical key, for every
 # program that binds Latin keys and must answer to Cyrillic input. The US `/` key is left out:
 # in Russian it types `.`, and a pair for it would shadow the real `.` bindings
 [
