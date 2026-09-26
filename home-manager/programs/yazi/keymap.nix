@@ -68,10 +68,13 @@ in
   programs.yazi = {
     extraPackages = with pkgs; [ ripgrep-all ];
 
-    plugins.tab-hovered = builtins.path {
-      name = "yazi-tab-hovered";
-      path = ./plugins/tab-hovered;
-    };
+    plugins = lib.genAttrs [ "git-column" "tab-hovered" ] (
+      name:
+      builtins.path {
+        name = "yazi-${name}";
+        path = ./plugins/${name};
+      }
+    );
 
     keymap.mgr.prepend_keymap = [
       (bind "m" [ "toggle" "arrow 1" ] "Toggle selection")
@@ -94,6 +97,7 @@ in
       (bind (leader "fc") "escape --search" "Cancel search")
 
       (bind (leader "uh") "hidden toggle" "Hidden files")
+      (bind (leader "ug") "plugin git-column" "Git status column")
 
       (bind (leader "gg") "shell --block lazygit" "LazyGit")
     ]

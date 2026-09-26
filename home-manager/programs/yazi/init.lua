@@ -1,3 +1,18 @@
+-- git.yazi's status column, hidden until the git-column plugin turns it on. The plugin adds
+-- its column through Linemode:children_add and keeps no switch of its own, so the column it
+-- hands over is wrapped on the way in
+GIT_COLUMN = false
+do
+	local add = Linemode.children_add
+	Linemode.children_add = function(self, fn, order)
+		return add(self, function(line)
+			return GIT_COLUMN and fn(line) or ""
+		end, order)
+	end
+	require("git"):setup()
+	Linemode.children_add = add
+end
+
 local function spelling(chord)
 	local keys = {}
 	for i, key in ipairs(chord.on) do
