@@ -55,6 +55,18 @@
         }
       ];
 
+      # One spotter for every file; it hands the virtual ones back to yazi's own
+      plugin.prepend_spotters =
+        map
+          (url: {
+            inherit url;
+            run = "info";
+          })
+          [
+            "*"
+            "*/"
+          ];
+
       # The type comes from the extension first and from file(1) only for an unknown one:
       # file(1) calls a zip whose first entries look like an office file's octet-stream, and
       # yazi then neither previews nor extracts it

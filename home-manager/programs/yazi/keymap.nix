@@ -113,6 +113,13 @@ in
             layout = langmap;
           };
         };
+        # The spot window on `I`. compsize runs through sudo, and nixos/btrfs.nix allows exactly
+        # this path without a password; elsewhere the row stays empty
+        info = {
+          package = ownPlugin "info";
+          setup = true;
+          settings.compsize = lib.getExe pkgs.compsize;
+        };
       };
 
     keymap = { inherit langmap; };
