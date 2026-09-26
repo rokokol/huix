@@ -12,7 +12,12 @@
     shellWrapperName = "y";
 
     plugins = {
-      inherit (pkgs.yaziPlugins) compress mount piper;
+      inherit (pkgs.yaziPlugins)
+        compress
+        mime-ext
+        mount
+        piper
+        ;
       # vim counts (5j, 3gg) and numbered lines as in nixvim: the hovered line shows its own
       # number, the others their distance from it
       relative-motions = {
@@ -50,17 +55,32 @@
         }
       ];
 
+      # The type comes from the extension first and from file(1) only for an unknown one:
+      # file(1) calls a zip whose first entries look like an office file's octet-stream, and
+      # yazi then neither previews nor extracts it
       plugin.prepend_fetchers =
         map
-          (url: {
-            inherit url;
-            run = "git";
-            group = "git";
+          (side: {
+            url = "${side}://*";
+            run = "mime-ext.${side}";
+            prio = "high";
+            group = "mime";
           })
           [
-            "*"
-            "*/"
-          ];
+            "local"
+            "remote"
+          ]
+        ++
+          map
+            (url: {
+              inherit url;
+              run = "git";
+              group = "git";
+            })
+            [
+              "*"
+              "*/"
+            ];
     };
   };
 }
