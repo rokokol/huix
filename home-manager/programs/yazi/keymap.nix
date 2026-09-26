@@ -15,6 +15,13 @@ let
 
   bind = on: run: desc: { inherit on run desc; };
 
+  # A plugin reads only the committed selection, and a visual range is committed on its way out
+  # of visual mode, so the range goes first, as yazi's own copy, shell and rename do
+  onSelection = run: [
+    "escape --visual"
+    run
+  ];
+
   ownPlugin =
     name:
     builtins.path {
@@ -120,12 +127,12 @@ in
 
         (bind (leader "c") "close" "Close tab")
         (bind (leader "nr") "rename --cursor=before_ext" "Rename, several at once in nvim")
-        (bind (leader "nc") "plugin naming kebab" "kebab-case")
-        (bind (leader "ns") "plugin naming snake" "snake_case")
-        (bind (leader "nC") "plugin naming caps" "CAPS_CASE")
-        (bind (leader "np") "plugin naming pascal" "PascalCase")
-        (bind (leader "nm") "plugin naming camel" "camelCase")
-        (bind (leader "nt") "plugin naming icao" "Transliterate Cyrillic (ICAO)")
+        (bind (leader "nc") (onSelection "plugin naming kebab") "kebab-case")
+        (bind (leader "ns") (onSelection "plugin naming snake") "snake_case")
+        (bind (leader "nC") (onSelection "plugin naming caps") "CAPS_CASE")
+        (bind (leader "np") (onSelection "plugin naming pascal") "PascalCase")
+        (bind (leader "nm") (onSelection "plugin naming camel") "camelCase")
+        (bind (leader "nt") (onSelection "plugin naming icao") "Transliterate Cyrillic (ICAO)")
 
         (bind (leader "ff") "search --via=fd" "Find names")
         (bind (leader "fg") "search --via=rg" "Find content")
@@ -140,10 +147,10 @@ in
         (bind (leader "gg") "shell --block lazygit" "LazyGit")
 
         # compress.yazi asks for the archive's name and suggests one
-        (bind (leader "az") "plugin compress zip" "Pack into zip")
-        (bind (leader "at") "plugin compress tar.gz" "Pack into tar.gz")
-        (bind (leader "a7") "plugin compress 7z" "Pack into 7z")
-        (bind (leader "ap") "plugin compress '-ph 7z'" "Pack into 7z with a password")
+        (bind (leader "az") (onSelection "plugin compress zip") "Pack into zip")
+        (bind (leader "at") (onSelection "plugin compress tar.gz") "Pack into tar.gz")
+        (bind (leader "a7") (onSelection "plugin compress 7z") "Pack into 7z")
+        (bind (leader "ap") (onSelection "plugin compress '-ph 7z'") "Pack into 7z with a password")
         (bind (leader "ax") "shell 'ya pub extract --list %s'" "Extract here")
 
         (bind (leader "m") "plugin mount" "Drives: mount, unmount, eject")
