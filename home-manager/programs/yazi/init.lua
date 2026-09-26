@@ -45,7 +45,8 @@ end
 -- Cyrillic twins for the keymap. yazi matches a key by the character it types, so with the
 -- Russian layout on, `j` arrives as `о` and misses every binding. For each chord made only of
 -- plain characters, a twin with every character moved through RU_LAYOUT is appended, carrying
--- the same actions. Layers where keys type text (input, cmp, help's filter) are left alone
+-- the same actions and hidden from the which popup and the help menu. Layers where keys type
+-- text (input, cmp, help's filter) are left alone
 local function twin(chord)
 	local on, moved = {}, false
 	for i, key in ipairs(chord.on) do
@@ -75,7 +76,7 @@ for _, layer in ipairs { "mgr", "spot", "tasks" } do
 		if on then
 			-- A chord built from a table takes its actions as strings only; the originals are
 			-- objects, which update() accepts, so the twin is born with a placeholder
-			local copy = rules:insert(-1, { on = on, run = "escape", desc = chord.desc })
+			local copy = rules:insert(-1, { on = on, run = "escape", desc = chord.desc, hidden = true })
 			rules:update({ id = copy.id }, { run = chord.run })
 		end
 	end

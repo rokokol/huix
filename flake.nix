@@ -242,6 +242,14 @@
         });
       };
 
+      # yazi lists every chord in its which popup and help menu; the patch adds `hidden`, which
+      # the Cyrillic twins in the yazi module set (see WORKAROUNDS.md)
+      overlay-yazi = _final: prev: {
+        yazi-unwrapped = prev.yazi-unwrapped.overrideAttrs (previous: {
+          patches = (previous.patches or [ ]) ++ [ ./patches/yazi-hidden-chords.patch ];
+        });
+      };
+
       mkHost =
         {
           configuration,
@@ -297,6 +305,7 @@
           overlay-stable
           overlay-hyprland
           overlay-rofi
+          overlay-yazi
           nix-matlab.overlay
         ];
       };
@@ -310,6 +319,7 @@
           overlay-rofi
           overlay-blueman
           overlay-kitty
+          overlay-yazi
         ];
       };
 

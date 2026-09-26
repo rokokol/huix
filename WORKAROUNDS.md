@@ -209,3 +209,23 @@ grep -c 'wl_seat_get_touch' "$(nix eval --raw .#nixosConfigurations.nixos-laptop
 `0` -> keep the patch. Anything else -> kitty binds touch itself; drop the patch and the overlay, then check a tap, a scroll and a selection
 
 **Upstream:** [kovidgoyal/kitty#10536](https://github.com/kovidgoyal/kitty/pull/10536) (the same change, open)
+
+---
+
+## yazi keeps a chord out of its popups
+
+**Where:** `patches/yazi-hidden-chords.patch`, applied by `overlay-yazi` in `flake.nix` to `yazi-unwrapped` on both hosts, for the Cyrillic twins that `home-manager/programs/yazi/init.lua` inserts with `hidden = true`
+
+**Symptom it prevents:** yazi matches a key by the character it types, so every binding needs a Cyrillic twin to work in the Russian layout. Stock yazi shows every chord in the which popup and the help menu, and the leader popup lists each group twice, once per alphabet
+
+**Why this works:** the patch gives a chord a `hidden` field, read from `keymap.toml`, from a table handed to `km.<layer>.rules:insert()` and from a `ya.which()` candidate. The which popup and the help menu skip a hidden chord when they draw, while key matching still walks the full list, so a hidden twin keeps working. The cost: yazi is built from source whenever nixpkgs moves it, because a patched package is in no binary cache
+
+**Removal check:** look at the chord type as nixpkgs ships it
+
+```sh
+grep -c 'pub hidden' "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.yazi-unwrapped.srcs.code_src)/yazi-config/src/keymap/chord.rs"
+```
+
+`0` -> keep the patch. Anything else -> yazi hides chords itself; drop the patch and the overlay, check the field's name against the `hidden = true` in `init.lua`, then open the leader popup in the Russian layout
+
+**Upstream:** not proposed yet

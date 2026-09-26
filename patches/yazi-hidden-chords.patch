@@ -1,0 +1,111 @@
+diff --git a/yazi-config/src/keymap/chord.rs b/yazi-config/src/keymap/chord.rs
+index 34f7f06..76e822d 100644
+--- a/yazi-config/src/keymap/chord.rs
++++ b/yazi-config/src/keymap/chord.rs
+@@ -24,17 +24,20 @@ pub struct Chord {
+ 	#[serde(default)]
+ 	pub desc:  String,
+ 	#[serde(default)]
+-	pub r#for: Platform,
++	pub r#for:  Platform,
++	#[serde(default)]
++	pub hidden: bool,
+ }
+ 
+ impl Clone for Chord {
+ 	fn clone(&self) -> Self {
+ 		Self {
+-			id:    chord_id(),
+-			on:    self.on.clone(),
+-			run:   self.run.clone(),
+-			desc:  self.desc.clone(),
+-			r#for: self.r#for,
++			id:     chord_id(),
++			on:     self.on.clone(),
++			run:    self.run.clone(),
++			desc:   self.desc.clone(),
++			r#for:  self.r#for,
++			hidden: self.hidden,
+ 		}
+ 	}
+ }
+diff --git a/yazi-config/src/keymap/chord_arc.rs b/yazi-config/src/keymap/chord_arc.rs
+index 8b81a8e..7da7a10 100644
+--- a/yazi-config/src/keymap/chord_arc.rs
++++ b/yazi-config/src/keymap/chord_arc.rs
+@@ -98,5 +98,7 @@ impl UserData for ChordArc {
+ 		fields.add_cached_field("run", |_, me| Ok(me.run.clone()));
+ 
+ 		fields.add_cached_field("desc", |lua, me| lua.create_string(&me.desc));
++
++		fields.add_field_method_get("hidden", |_, me| Ok(me.hidden));
+ 	}
+ }
+diff --git a/yazi-core/src/help/help.rs b/yazi-core/src/help/help.rs
+index 93193eb..8f20881 100644
+--- a/yazi-core/src/help/help.rs
++++ b/yazi-core/src/help/help.rs
+@@ -39,7 +39,7 @@ impl Help {
+ 
+ 		if kw.is_empty() {
+ 			self.keyword.clear();
+-			self.bindings = KEYMAP.chords(self.layer).iter().cloned().collect();
++			self.bindings = KEYMAP.chords(self.layer).iter().filter(|c| !c.hidden).cloned().collect();
+ 		} else if self.keyword != kw {
+ 			self.keyword = kw.to_owned();
+ 			self.bindings = Self::filter_chords(&KEYMAP.chords(self.layer), kw);
+@@ -55,7 +55,7 @@ impl Help {
+ 		let mut contains = vec![];
+ 		let mut desc = vec![];
+ 
+-		for c in chords {
++		for c in chords.iter().filter(|c| !c.hidden) {
+ 			let on = c.on();
+ 			if on.starts_with(kw) {
+ 				exact.push(c.clone());
+diff --git a/yazi-fm/src/which/which.rs b/yazi-fm/src/which/which.rs
+index 456d2d8..d150f43 100644
+--- a/yazi-fm/src/which/which.rs
++++ b/yazi-fm/src/which/which.rs
+@@ -24,8 +24,9 @@ impl Widget for Which<'_> {
+ 			return;
+ 		}
+ 
++		let cands: Vec<_> = which.cands.iter().filter(|c| !c.hidden).collect();
+ 		let cols = THEME.which.cols.get() as usize;
+-		let height = area.height.min(which.cands.len().div_ceil(cols) as u16 + PADDING_Y * 2);
++		let height = area.height.min(cands.len().div_ceil(cols) as u16 + PADDING_Y * 2);
+ 		let area = Rect {
+ 			x: PADDING_X.min(area.width),
+ 			y: area.height.saturating_sub(height + PADDING_Y * 2),
+@@ -58,7 +59,7 @@ impl Widget for Which<'_> {
+ 
+ 		for y in 0..inner.height {
+ 			for (x, chunk) in chunks.iter().enumerate() {
+-				let Some(cand) = which.cands.get(y as usize * cols + x) else {
++				let Some(cand) = cands.get(y as usize * cols + x) else {
+ 					break;
+ 				};
+ 
+diff --git a/yazi-plugin/src/utils/layer.rs b/yazi-plugin/src/utils/layer.rs
+index a4e1c6e..b345969 100644
+--- a/yazi-plugin/src/utils/layer.rs
++++ b/yazi-plugin/src/utils/layer.rs
+@@ -26,11 +26,12 @@ impl Utils {
+ 				.map(|(i, cand)| {
+ 					let cand = cand?;
+ 					Ok(ChordArc::from(Chord {
+-						id:    yazi_config::keymap::chord_id(),
+-						on:    Self::parse_keys(cand.raw_get("on")?)?,
+-						run:   relay!(which:callback, [i + 1]).into(),
+-						desc:  cand.raw_get("desc").unwrap_or_default(),
+-						r#for: Platform::All,
++						id:     yazi_config::keymap::chord_id(),
++						on:     Self::parse_keys(cand.raw_get("on")?)?,
++						run:    relay!(which:callback, [i + 1]).into(),
++						desc:   cand.raw_get("desc").unwrap_or_default(),
++						r#for:  Platform::All,
++						hidden: cand.raw_get("hidden").unwrap_or_default(),
+ 					}))
+ 				})
+ 				.collect::<mlua::Result<_>>()?;
