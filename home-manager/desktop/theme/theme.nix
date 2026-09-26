@@ -7,6 +7,16 @@ let
   colorScheme = "prefer-light";
   darkColorScheme = "prefer-dark";
   gruvbox = pkgs.callPackage ./gruvbox-gtk-theme.nix { };
+
+  # gtk-theme-name is written ONLY to settings.ini (via extraConfig), NOT to dconf
+  # This is the baseline theme for apps that don't hook into the GtkSettings↔dconf bridge
+  # A double tap counts only when the second finger lands within this many pixels of the
+  # first; the stock 5 px is a mouse's precision, a finger lands within a couple of dozen
+  settingsIni = {
+    gtk-application-prefer-dark-theme = 0;
+    gtk-theme-name = gtkThemeName;
+    gtk-double-click-distance = 24;
+  };
 in
 {
   # toggle-theme.sh flips gtk-theme at runtime, so the theme name is not pinned
@@ -20,21 +30,8 @@ in
       package = pkgs.mint-y-icons;
     };
 
-    # gtk-theme-name is written ONLY to settings.ini (via extraConfig), NOT to dconf
-    # This is the baseline theme for apps that don't hook into the GtkSettings↔dconf bridge
-    # A double tap counts only when the second finger lands within this many pixels of the
-    # first; the stock 5 px is a mouse's precision, a finger lands within a couple of dozen
-    gtk3.extraConfig = {
-      gtk-application-prefer-dark-theme = 0;
-      gtk-theme-name = gtkThemeName;
-      gtk-double-click-distance = 24;
-    };
-
-    gtk4.extraConfig = {
-      gtk-application-prefer-dark-theme = 0;
-      gtk-theme-name = gtkThemeName;
-      gtk-double-click-distance = 24;
-    };
+    gtk3.extraConfig = settingsIni;
+    gtk4.extraConfig = settingsIni;
   };
 
   home.packages = with pkgs; [
