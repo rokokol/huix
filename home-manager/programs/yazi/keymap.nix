@@ -116,6 +116,15 @@ in
 
       (bind (leader "gg") "shell --block lazygit" "LazyGit")
 
+      # compress.yazi asks for the archive's name and suggests one
+      (bind (leader "az") "plugin compress zip" "Pack into zip")
+      (bind (leader "at") "plugin compress tar.gz" "Pack into tar.gz")
+      (bind (leader "a7") "plugin compress 7z" "Pack into 7z")
+      (bind (leader "ap") "plugin compress '-ph 7z'" "Pack into 7z with a password")
+      (bind (leader "ax") "shell 'ya pub extract --list %s'" "Extract here")
+
+      (bind (leader "m") "plugin mount" "Drives: mount, unmount, eject")
+
       (bind (leader "ts") "shell --block $SHELL" "Shell in place, exit returns")
       (bind (leader "xt") "shell --orphan 'thunar .'" "Open Thunar here")
     ]

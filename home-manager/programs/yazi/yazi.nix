@@ -22,8 +22,14 @@ in
     # `y` opens yazi and leaves the shell in the directory yazi was closed in
     shellWrapperName = "y";
 
-    # init.lua sets git up itself, since it wraps the column the plugin adds
-    plugins.git = pkgs.yaziPlugins.git;
+    plugins = {
+      inherit (pkgs.yaziPlugins) compress mount;
+      # init.lua sets git up itself, since it wraps the column the plugin adds
+      inherit (pkgs.yaziPlugins) git;
+    };
+
+    # compress.yazi calls zip for a .zip; tar and its compressors come with the system
+    extraPackages = with pkgs; [ zip ];
 
     settings = {
       mgr = {
