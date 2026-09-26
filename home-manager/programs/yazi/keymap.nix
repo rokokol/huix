@@ -10,6 +10,15 @@ let
 
   bind = on: run: desc: { inherit on run desc; };
 
+  ownPlugin =
+    name:
+    builtins.path {
+      name = "yazi-${name}";
+      path = ./plugins/${name};
+      # a plugin's test runs in the flake's checks and has no business in yazi's config
+      filter = path: _: baseNameOf path != "test.lua";
+    };
+
   # A lower-case key sorts one way and its upper-case twin the other, as in the stock `,` group.
   # The three fields a linemode can show switch the linemode with them
   sorts = {
@@ -69,21 +78,23 @@ in
     extraPackages = with pkgs; [ ripgrep-all ];
 
     plugins =
-      lib.genAttrs
-        [
-          "git-column"
-          "naming"
-          "tab-hovered"
-        ]
-        (
-          name:
-          builtins.path {
-            name = "yazi-${name}";
-            path = ./plugins/${name};
-            # a plugin's test runs in the flake's checks and has no business in yazi's config
-            filter = path: _: baseNameOf path != "test.lua";
-          }
-        );
+      lib.genAttrs [
+        "git-column"
+        "naming"
+        "tab-hovered"
+      ] ownPlugin
+      // {
+        places = {
+          package = ownPlugin "places";
+          setup = true;
+          # Computer stays out: it is the drive menu <Space>m already opens
+          settings.extras = [
+            "home"
+            "recent"
+            "trash"
+          ];
+        };
+      };
 
     # A digit starts a count for relative-motions; tabs switch on <Tab> instead
     keymap.mgr.prepend_keymap =
@@ -129,6 +140,7 @@ in
         (bind (leader "ax") "shell 'ya pub extract --list %s'" "Extract here")
 
         (bind (leader "m") "plugin mount" "Drives: mount, unmount, eject")
+        (bind (leader "b") "plugin places" "Bookmarks, as in Thunar's side pane")
 
         (bind (leader "ts") "shell --block $SHELL" "Shell in place, exit returns")
         (bind (leader "xt") "shell --orphan 'thunar .'" "Open Thunar here")

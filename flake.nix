@@ -388,7 +388,9 @@
                 };
               }
               ''
-                cd "$plugins/naming" && lua test.lua
+                for test in "$plugins"/*/test.lua; do
+                  (cd "$(dirname "$test")" && lua test.lua)
+                done
                 touch "$out"
               '';
         };
