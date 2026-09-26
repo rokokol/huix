@@ -3,8 +3,6 @@
 -- are what test.lua checks
 local M = {}
 
-local SPARE = "123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-
 -- One bookmark a line, a URI and an optional label; only local ones have a path to enter
 function M.parse(text)
 	local list = {}
@@ -23,21 +21,17 @@ function M.parse(text)
 	return list
 end
 
--- Each Latin letter of the label in turn, as it is and then as a capital, that no earlier
--- place took; else a digit, any free letter, any free capital; past those no key at all
+-- The first Latin letter of the label, in the case the label writes it, that no earlier place
+-- took; a place whose letters are all taken, or that has none, gets no key
 function M.keys(list)
 	local taken, keys = {}, {}
-	local function free(chars)
-		for c in chars:gmatch(".") do
+	for i, place in ipairs(list) do
+		for c in place.label:gmatch("[A-Za-z]") do
 			if not taken[c] then
-				taken[c] = true
-				return c
+				keys[i], taken[c] = c, true
+				break
 			end
 		end
-	end
-	for i, place in ipairs(list) do
-		local own = place.label:lower():gsub("[^a-z]", ""):gsub(".", function(c) return c .. c:upper() end)
-		keys[i] = free(own) or free(SPARE)
 	end
 	return keys
 end
@@ -131,10 +125,6 @@ function M:entry()
 			table.insert(shown, place)
 		end
 	end
-	if #cands < #list then
-		ya.notify { title = "Places", content = "Too many places, the last ones have no key", level = "warn", timeout = 5 }
-	end
-
 	local chosen = ya.which { cands = cands }
 	local place = chosen and shown[chosen]
 	if not place then

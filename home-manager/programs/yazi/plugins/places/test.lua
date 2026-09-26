@@ -39,33 +39,22 @@ expect("root path", list[3].path, "/")
 expect("root label", list[3].label, "File System")
 expect("cyrillic label", list[4].label, "Проекты")
 
--- A letter of the label goes first as it is and then as a capital, before the next letter
-local keys = places.keys({ { label = "Downloads" }, { label = "dotfiles" }, { label = "Docs" }, { label = "/" } })
-expect("key 1", keys[1], "d")
-expect("key 2", keys[2], "D")
+-- A place takes the first letter of its label that is still free, in the case the label
+-- writes it; a later letter only when the earlier ones are taken
+local keys = places.keys({ { label = "Downloads" }, { label = "dotfiles" }, { label = "Docs" }, { label = "myWiki" } })
+expect("key 1", keys[1], "D")
+expect("key 2", keys[2], "d")
 expect("key 3", keys[3], "o")
-expect("key 4", keys[4], "1")
+expect("key 4", keys[4], "m")
 
--- With no Latin letter of its own, a Cyrillic label takes a digit
-local cyr = places.keys({ { label = "Проекты" }, { label = "Загрузки" } })
-expect("cyrillic key 1", cyr[1], "1")
-expect("cyrillic key 2", cyr[2], "2")
-
--- Past the label's letters come the digits, then any free letter, then any free capital, and
--- past those nothing
-local many = {}
-for i = 1, 62 do
-	many[i] = { label = "x" }
-end
-local lots = places.keys(many)
-expect("2nd key", lots[2], "X")
-expect("3rd key", lots[3], "1")
-expect("11th key", lots[11], "9")
-expect("12th key", lots[12], "a")
-expect("36th key", lots[36], "z")
-expect("37th key", lots[37], "A")
-expect("61st key", lots[61], "Z")
-expect("62nd key", lots[62], nil)
+-- A label with no free Latin letter gets no key, and a later place is not moved for it
+local rest = places.keys({ { label = "ab" }, { label = "ba" }, { label = "/" }, { label = "Проекты" }, { label = "c" } })
+expect("taken key", rest[2], "b")
+expect("no letters", rest[3], nil)
+expect("cyrillic", rest[4], nil)
+expect("after a gap", rest[5], "c")
+local full = places.keys({ { label = "a" }, { label = "a" } })
+expect("all taken", full[2], nil)
 
 -- Recent files: only local ones, the newest first, escapes decoded
 local recent = places.recent(table.concat({
