@@ -68,13 +68,22 @@ in
   programs.yazi = {
     extraPackages = with pkgs; [ ripgrep-all ];
 
-    plugins = lib.genAttrs [ "git-column" "tab-hovered" ] (
-      name:
-      builtins.path {
-        name = "yazi-${name}";
-        path = ./plugins/${name};
-      }
-    );
+    plugins =
+      lib.genAttrs
+        [
+          "git-column"
+          "naming"
+          "tab-hovered"
+        ]
+        (
+          name:
+          builtins.path {
+            name = "yazi-${name}";
+            path = ./plugins/${name};
+            # a plugin's test runs in the flake's checks and has no business in yazi's config
+            filter = path: _: baseNameOf path != "test.lua";
+          }
+        );
 
     keymap.mgr.prepend_keymap = [
       (bind "m" [ "toggle" "arrow 1" ] "Toggle selection")
@@ -88,6 +97,12 @@ in
 
       (bind (leader "c") "close" "Close tab")
       (bind (leader "nr") "rename --cursor=before_ext" "Rename, several at once in nvim")
+      (bind (leader "nc") "plugin naming kebab" "kebab-case")
+      (bind (leader "ns") "plugin naming snake" "snake_case")
+      (bind (leader "nC") "plugin naming caps" "CAPS_CASE")
+      (bind (leader "np") "plugin naming pascal" "PascalCase")
+      (bind (leader "nm") "plugin naming camel" "camelCase")
+      (bind (leader "nt") "plugin naming icao" "Transliterate Cyrillic (ICAO)")
 
       (bind (leader "ff") "search --via=fd" "Find names")
       (bind (leader "fg") "search --via=rg" "Find content")

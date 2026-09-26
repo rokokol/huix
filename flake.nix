@@ -360,6 +360,21 @@
                 bash "$scripts/tests/run.sh"
                 touch "$out"
               '';
+
+          # The pure half of yazi's own plugins, under plain Lua with yazi's globals stubbed
+          yazi-plugin-tests =
+            pkgs.runCommand "yazi-plugin-tests"
+              {
+                nativeBuildInputs = with pkgs; [ lua5_4 ];
+                plugins = builtins.path {
+                  name = "huix-yazi-plugins";
+                  path = ./home-manager/programs/yazi/plugins;
+                };
+              }
+              ''
+                cd "$plugins/naming" && lua test.lua
+                touch "$out"
+              '';
         };
 
       # `nix run .#check-nix -- -N rokokol` — the whole checker, pinned by flake.lock rather
