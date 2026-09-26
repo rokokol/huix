@@ -213,21 +213,21 @@ Both `0` -> keep the patch. Only the first non-zero -> GLFW reports touch but ki
 
 ---
 
-## yazi keeps a chord out of its popups
+## yazi takes a langmap
 
-**Where:** `patches/yazi-hidden-chords.patch`, applied by `overlay-yazi` in `flake.nix` to `yazi-unwrapped` on both hosts, for the Cyrillic twins that `home-manager/programs/yazi/init.lua` inserts with `hidden = true`
+**Where:** `patches/yazi-langmap.patch`, applied by `overlay-yazi` in `flake.nix` to `yazi-unwrapped` on both hosts, for the `keymap.langmap` that `home-manager/programs/yazi/keymap.nix` builds from `lib/ru-layout.nix`
 
-**Symptom it prevents:** yazi matches a key by the character it types, so every binding needs a Cyrillic twin to work in the Russian layout. Stock yazi shows every chord in the which popup and the help menu, and the leader popup lists each group twice, once per alphabet
+**Symptom it prevents:** with the Russian layout on, no binding answers: yazi matches a key by the character it types, so `j` arrives as `о`. That holds for plugin menus too, such as the drive list of mount.yazi
 
-**Why this works:** the patch gives a chord a `hidden` field, read from `keymap.toml`, from a table handed to `km.<layer>.rules:insert()` and from a `ya.which()` candidate. The which popup and the help menu skip a hidden chord when they draw, while key matching still walks the full list, so a hidden twin keeps working. The cost: yazi is built from source whenever nixpkgs moves it, because a patched package is in no binary cache
+**Why this works:** the patch adds a `[langmap]` table to `keymap.toml`, the way vim's `langmap` option works. A key an input field did not take is moved through the table before any keymap, the which popup or a plugin menu sees it. Shift follows the character, so `Й` becomes `Q` and `Ж` becomes `:`. The cost: yazi is built from source whenever nixpkgs moves it, because a patched package is in no binary cache
 
-**Removal check:** look at the chord type as nixpkgs ships it
+**Removal check:** look for the table in yazi as nixpkgs ships it
 
 ```sh
-grep -c 'pub hidden' "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.yazi-unwrapped.srcs.code_src)/yazi-config/src/keymap/chord.rs"
+grep -c 'langmap' "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.yazi-unwrapped.srcs.code_src)/yazi-config/src/keymap/keymap.rs"
 ```
 
-`0` -> keep the patch. Anything else -> yazi hides chords itself; drop the patch and the overlay, check the field's name against the `hidden = true` in `init.lua`, then open the leader popup in the Russian layout
+`0` -> keep the patch. Anything else -> yazi carries a langmap itself; drop the patch and the overlay line, match the option's shape against `keymap.nix`, then press `о` and `Space ф` in the Russian layout
 
 **Upstream:** not proposed yet
 

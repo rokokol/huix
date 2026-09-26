@@ -1,9 +1,14 @@
-{ lib, pkgs, ... }:
+{
+  lib,
+  pkgs,
+  ruLayout,
+  ...
+}:
 
 # Bindings on top of yazi's stock keymap, which stays in force below them. Groups hang off the
 # same leader as in nixvim; a chord placed first shadows a stock one that starts with the same
-# key, which is how <Space>, <Tab> and `m` change their meaning here. Cyrillic twins of every
-# chord, stock ones included, are added at start-up by init.lua
+# key, which is how <Space>, <Tab> and `m` change their meaning here. The langmap turns a key
+# typed in the Russian layout into the Latin one on the same place before any of this matches
 let
   # `leader "fg"` is <Space> f g: one character per key
   leader = keys: [ "<Space>" ] ++ lib.stringToCharacters keys;
@@ -95,6 +100,8 @@ in
           ];
         };
       };
+
+    keymap.langmap = lib.listToAttrs (map (p: lib.nameValuePair p.ru p.en) ruLayout);
 
     # A digit starts a count for relative-motions; tabs switch on <Tab> instead
     keymap.mgr.prepend_keymap =

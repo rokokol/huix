@@ -1,0 +1,103 @@
+diff --git a/yazi-config/src/keymap/key.rs b/yazi-config/src/keymap/key.rs
+index e3685af..024346a 100644
+--- a/yazi-config/src/keymap/key.rs
++++ b/yazi-config/src/keymap/key.rs
+@@ -1,6 +1,7 @@
+ use std::{fmt::{Display, Write}, str::FromStr};
+ 
+ use anyhow::bail;
++use hashbrown::HashMap;
+ use mlua::{IntoLua, Lua, LuaSerdeExt, Value};
+ use serde::{Deserialize, Serialize};
+ use yazi_shim::mlua::SER_OPT;
+@@ -29,6 +30,17 @@ impl Key {
+ 			None
+ 		}
+ 	}
++
++	pub(super) fn langmapped(mut self, map: &HashMap<char, char>) -> Self {
++		let KeyCode::Char(from) = self.code else { return self };
++		let Some(&to) = map.get(&from) else { return self };
++
++		if self.shift == from.is_uppercase() {
++			self.shift = to.is_uppercase();
++		}
++		self.code = KeyCode::Char(to);
++		self
++	}
+ }
+ 
+ impl From<KeyEvent> for Key {
+diff --git a/yazi-config/src/keymap/keymap.rs b/yazi-config/src/keymap/keymap.rs
+index 451c43e..82f3e9e 100644
+--- a/yazi-config/src/keymap/keymap.rs
++++ b/yazi-config/src/keymap/keymap.rs
+@@ -6,7 +6,7 @@ use yazi_codegen::{DeserializeOver, DeserializeOver1};
+ use yazi_fs::{Xdg, ok_or_not_found};
+ use yazi_shared::Layer;
+ 
+-use super::KeymapSection;
++use super::{Key, KeymapSection, Langmap};
+ use crate::keymap::ChordArc;
+ 
+ #[derive(Deserialize, DeserializeOver, DeserializeOver1)]
+@@ -19,9 +19,13 @@ pub struct Keymap {
+ 	confirm: KeymapSection,
+ 	help:    KeymapSection,
+ 	cmp:     KeymapSection,
++	#[serde(default)]
++	langmap: Langmap,
+ }
+ 
+ impl Keymap {
++	pub fn translate(&self, key: Key) -> Key { self.langmap.translate(key) }
++
+ 	pub fn chords(&self, layer: Layer) -> Arc<Vec<ChordArc>> {
+ 		match self.section(layer) {
+ 			Some(s) => s.load_full(),
+diff --git a/yazi-config/src/keymap/langmap.rs b/yazi-config/src/keymap/langmap.rs
+new file mode 100644
+index 0000000..87042a2
+--- /dev/null
++++ b/yazi-config/src/keymap/langmap.rs
+@@ -0,0 +1,20 @@
++use hashbrown::HashMap;
++use serde::{Deserialize, Deserializer};
++use yazi_shim::toml::{DeserializeOverHook, DeserializeOverWith};
++
++use super::Key;
++
++#[derive(Default, Deserialize)]
++pub struct Langmap(HashMap<char, char>);
++
++impl Langmap {
++	pub fn translate(&self, key: Key) -> Key { key.langmapped(&self.0) }
++}
++
++impl DeserializeOverWith for Langmap {
++	fn deserialize_over_with<'de, D: Deserializer<'de>>(self, de: D) -> Result<Self, D::Error> {
++		self.0.deserialize_over_with(de).map(Self)
++	}
++}
++
++impl DeserializeOverHook for Langmap {}
+diff --git a/yazi-config/src/keymap/mod.rs b/yazi-config/src/keymap/mod.rs
+index eda8e77..e7b9acb 100644
+--- a/yazi-config/src/keymap/mod.rs
++++ b/yazi-config/src/keymap/mod.rs
+@@ -1 +1 @@
+-yazi_macro::mod_flat!(chord chord_arc chords ids key keymap section);
++yazi_macro::mod_flat!(chord chord_arc chords ids key keymap langmap section);
+diff --git a/yazi-fm/src/router.rs b/yazi-fm/src/router.rs
+index 96ca463..5a41635 100644
+--- a/yazi-fm/src/router.rs
++++ b/yazi-fm/src/router.rs
+@@ -30,7 +30,7 @@ impl<'a> Router<'a> {
+ 		}
+ 
+ 		let layer = core.layer();
+-		let key = Key::from(key);
++		let key = KEYMAP.translate(Key::from(key));
+ 		Ok(match layer {
+ 			L::Null | L::App | L::Notify => unreachable!(),
+ 			L::Mgr | L::Tasks | L::Spot | L::Pick | L::Input | L::Confirm => {

@@ -249,11 +249,11 @@
         });
       };
 
-      # yazi lists every chord in its which popup and help menu; the patch adds `hidden`, which
-      # the Cyrillic twins in the yazi module set (see WORKAROUNDS.md)
+      # yazi matches a key by the character it types, so the Russian layout misses every
+      # binding; the patch adds a vim-style langmap the yazi module fills (see WORKAROUNDS.md)
       overlay-yazi = _final: prev: {
         yazi-unwrapped = prev.yazi-unwrapped.overrideAttrs (previous: {
-          patches = (previous.patches or [ ]) ++ [ ./patches/yazi-hidden-chords.patch ];
+          patches = (previous.patches or [ ]) ++ [ ./patches/yazi-langmap.patch ];
         });
         yaziPlugins = prev.yaziPlugins // {
           compress = prev.yaziPlugins.compress.overrideAttrs {
