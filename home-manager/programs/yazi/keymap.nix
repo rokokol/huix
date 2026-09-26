@@ -85,50 +85,55 @@ in
           }
         );
 
-    keymap.mgr.prepend_keymap = [
-      (bind "m" [ "toggle" "arrow 1" ] "Toggle selection")
-      (bind "M" "toggle_all --state=on" "Select all")
-      (bind "<Tab>" "tab_switch 1 --relative" "Next tab")
-      (bind "<S-Tab>" "tab_switch -1 --relative" "Previous tab")
-      (bind "T" "plugin tab-hovered" "Hovered directory in a new tab")
-      (bind "I" "spot" "File info")
-      (bind "e" "shell --block 'nvim %s'" "Open in nvim here")
-      (bind "E" "shell --orphan 'kitty --detach nvim %s'" "Open in nvim in a new window")
+    # A digit starts a count for relative-motions; tabs switch on <Tab> instead
+    keymap.mgr.prepend_keymap =
+      map (n: bind (toString n) "plugin relative-motions ${toString n}" "Count ${toString n}") (
+        lib.range 1 9
+      )
+      ++ [
+        (bind "m" [ "toggle" "arrow 1" ] "Toggle selection")
+        (bind "M" "toggle_all --state=on" "Select all")
+        (bind "<Tab>" "tab_switch 1 --relative" "Next tab")
+        (bind "<S-Tab>" "tab_switch -1 --relative" "Previous tab")
+        (bind "T" "plugin tab-hovered" "Hovered directory in a new tab")
+        (bind "I" "spot" "File info")
+        (bind "e" "shell --block 'nvim %s'" "Open in nvim here")
+        (bind "E" "shell --orphan 'kitty --detach nvim %s'" "Open in nvim in a new window")
 
-      (bind (leader "c") "close" "Close tab")
-      (bind (leader "nr") "rename --cursor=before_ext" "Rename, several at once in nvim")
-      (bind (leader "nc") "plugin naming kebab" "kebab-case")
-      (bind (leader "ns") "plugin naming snake" "snake_case")
-      (bind (leader "nC") "plugin naming caps" "CAPS_CASE")
-      (bind (leader "np") "plugin naming pascal" "PascalCase")
-      (bind (leader "nm") "plugin naming camel" "camelCase")
-      (bind (leader "nt") "plugin naming icao" "Transliterate Cyrillic (ICAO)")
+        (bind (leader "c") "close" "Close tab")
+        (bind (leader "nr") "rename --cursor=before_ext" "Rename, several at once in nvim")
+        (bind (leader "nc") "plugin naming kebab" "kebab-case")
+        (bind (leader "ns") "plugin naming snake" "snake_case")
+        (bind (leader "nC") "plugin naming caps" "CAPS_CASE")
+        (bind (leader "np") "plugin naming pascal" "PascalCase")
+        (bind (leader "nm") "plugin naming camel" "camelCase")
+        (bind (leader "nt") "plugin naming icao" "Transliterate Cyrillic (ICAO)")
 
-      (bind (leader "ff") "search --via=fd" "Find names")
-      (bind (leader "fg") "search --via=rg" "Find content")
-      (bind (leader "fa") "search --via=rga" "Find content incl. pdf and office")
-      (bind (leader "fz") "plugin zoxide" "Jump via zoxide")
-      (bind (leader "fs") "plugin fzf" "Jump via fzf")
-      (bind (leader "fc") "escape --search" "Cancel search")
+        (bind (leader "ff") "search --via=fd" "Find names")
+        (bind (leader "fg") "search --via=rg" "Find content")
+        (bind (leader "fa") "search --via=rga" "Find content incl. pdf and office")
+        (bind (leader "fz") "plugin zoxide" "Jump via zoxide")
+        (bind (leader "fs") "plugin fzf" "Jump via fzf")
+        (bind (leader "fc") "escape --search" "Cancel search")
 
-      (bind (leader "uh") "hidden toggle" "Hidden files")
-      (bind (leader "ug") "plugin git-column" "Git status column")
+        (bind (leader "uh") "hidden toggle" "Hidden files")
+        (bind (leader "ug") "plugin git-column" "Git status column")
 
-      (bind (leader "gg") "shell --block lazygit" "LazyGit")
+        (bind (leader "gg") "shell --block lazygit" "LazyGit")
 
-      # compress.yazi asks for the archive's name and suggests one
-      (bind (leader "az") "plugin compress zip" "Pack into zip")
-      (bind (leader "at") "plugin compress tar.gz" "Pack into tar.gz")
-      (bind (leader "a7") "plugin compress 7z" "Pack into 7z")
-      (bind (leader "ap") "plugin compress '-ph 7z'" "Pack into 7z with a password")
-      (bind (leader "ax") "shell 'ya pub extract --list %s'" "Extract here")
+        # compress.yazi asks for the archive's name and suggests one
+        (bind (leader "az") "plugin compress zip" "Pack into zip")
+        (bind (leader "at") "plugin compress tar.gz" "Pack into tar.gz")
+        (bind (leader "a7") "plugin compress 7z" "Pack into 7z")
+        (bind (leader "ap") "plugin compress '-ph 7z'" "Pack into 7z with a password")
+        (bind (leader "ax") "shell 'ya pub extract --list %s'" "Extract here")
 
-      (bind (leader "m") "plugin mount" "Drives: mount, unmount, eject")
+        (bind (leader "m") "plugin mount" "Drives: mount, unmount, eject")
 
-      (bind (leader "ts") "shell --block $SHELL" "Shell in place, exit returns")
-      (bind (leader "xt") "shell --orphan 'thunar .'" "Open Thunar here")
-    ]
-    ++ sortBinds
-    ++ linemodeBinds;
+        (bind (leader "ts") "shell --block $SHELL" "Shell in place, exit returns")
+        (bind (leader "xt") "shell --orphan 'thunar .'" "Open Thunar here")
+      ]
+      ++ sortBinds
+      ++ linemodeBinds;
   };
 }

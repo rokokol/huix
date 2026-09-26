@@ -260,6 +260,9 @@
             version = "0.6-unstable-${inputs.compress-yazi.lastModifiedDate}";
             src = inputs.compress-yazi;
           };
+          relative-motions = prev.yaziPlugins.relative-motions.overrideAttrs (previous: {
+            patches = (previous.patches or [ ]) ++ [ ./patches/relative-motions-ya-emit.patch ];
+          });
         };
       };
 

@@ -250,3 +250,23 @@ grep -c 'fs.unique_name' "$(nix build --no-link --print-out-paths --inputs-from 
 Anything but `0` -> keep the input. `0` -> nixpkgs ships the fix; drop the input and its line in `overlay-yazi`, then pack a zip from yazi
 
 **Upstream:** fixed on [KKV9/compress.yazi](https://github.com/KKV9/compress.yazi) main, no tag carries it yet
+
+---
+
+## relative-motions.yazi calls `ya.emit`
+
+**Where:** `patches/relative-motions-ya-emit.patch`, applied by `overlay-yazi` in `flake.nix` to `yaziPlugins.relative-motions` on both hosts, for the counts and line numbers in `home-manager/programs/yazi/`
+
+**Symptom it prevents:** a count shows in the status bar (`5j`) and the cursor stays where it was. The plugin moves the cursor through `ya.mgr_emit()`, which yazi 26 no longer has
+
+**Why this works:** the patch is the upstream pull request below, unchanged: every `ya.mgr_emit` becomes `ya.emit`, and nothing else moves
+
+**Removal check:** look at the plugin as nixpkgs ships it
+
+```sh
+grep -c 'ya.mgr_emit' "$(nix build --no-link --print-out-paths --inputs-from . nixpkgs#yaziPlugins.relative-motions)/main.lua"
+```
+
+Anything but `0` -> keep the patch. `0` -> drop the patch and its line in `overlay-yazi`, then try `5j` in yazi
+
+**Upstream:** [dedukun/relative-motions.yazi#32](https://github.com/dedukun/relative-motions.yazi/pull/32) (open)

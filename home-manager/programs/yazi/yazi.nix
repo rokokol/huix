@@ -24,6 +24,16 @@ in
 
     plugins = {
       inherit (pkgs.yaziPlugins) compress mount;
+      # vim counts (5j, 3gg) and numbered lines as in nixvim: the hovered line shows its own
+      # number, the others their distance from it
+      relative-motions = {
+        package = pkgs.yaziPlugins.relative-motions;
+        setup = true;
+        settings = {
+          show_numbers = "relative_absolute";
+          show_motion = true;
+        };
+      };
       # init.lua sets git up itself, since it wraps the column the plugin adds
       inherit (pkgs.yaziPlugins) git;
     };
