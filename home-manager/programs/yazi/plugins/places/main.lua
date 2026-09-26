@@ -21,12 +21,32 @@ function M.parse(text)
 	return list
 end
 
--- The first Latin letter of the label, in the case the label writes it, that no earlier place
--- took; a place whose letters are all taken, or that has none, gets no key
-function M.keys(list)
+-- The Latin letters a label offers as keys, in the case it writes them. A label with none offers
+-- the Latin letters its characters sit on in `layout`, a table from a character to its key
+local function letters(label, layout)
+	local own = {}
+	for c in label:gmatch("[A-Za-z]") do
+		own[#own + 1] = c
+	end
+	if #own > 0 or not layout then
+		return own
+	end
+	local mapped = {}
+	for c in label:gmatch(utf8.charpattern) do
+		local key = layout[c]
+		if key and key:match("^[A-Za-z]$") then
+			mapped[#mapped + 1] = key
+		end
+	end
+	return mapped
+end
+
+-- The first letter a label offers that no earlier place took; a place whose letters are all
+-- taken, or that offers none, gets no key
+function M.keys(list, layout)
 	local taken, keys = {}, {}
 	for i, place in ipairs(list) do
-		for c in place.label:gmatch("[A-Za-z]") do
+		for _, c in ipairs(letters(place.label, layout)) do
 			if not taken[c] then
 				keys[i], taken[c] = c, true
 				break
@@ -95,9 +115,14 @@ local EXTRAS = {
 	trash = function() return { label = "Trash", plugin = "trash" } end,
 }
 
-function M:setup(opts) self.extras = opts and opts.extras or {} end
+-- setup's `layout` keys a label that has no Latin letter, as `letters` says
+function M:setup(opts)
+	opts = opts or {}
+	self.extras, self.layout = opts.extras or {}, opts.layout
+end
 
 local extras = ya.sync(function(self) return self.extras or {} end)
+local layout = ya.sync(function(self) return self.layout end)
 
 local function places()
 	local list = {}
@@ -117,7 +142,7 @@ end
 
 function M:entry()
 	local list = places()
-	local keys, cands, shown = M.keys(list), {}, {}
+	local keys, cands, shown = M.keys(list, layout()), {}, {}
 	for i, place in ipairs(list) do
 		if keys[i] then
 			local desc = place.path and (place.label .. "  " .. place.path) or place.label

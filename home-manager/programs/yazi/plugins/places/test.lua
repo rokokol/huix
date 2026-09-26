@@ -56,6 +56,25 @@ expect("after a gap", rest[5], "c")
 local full = places.keys({ { label = "a" }, { label = "a" } })
 expect("all taken", full[2], nil)
 
+-- Given a layout, a label with no Latin letter takes the Latin key its Cyrillic letters sit
+-- on, case kept; a letter that sits on a punctuation key is passed over
+local layout = { ["З"] = "P", ["з"] = "p", ["а"] = "f", ["Ж"] = ":", ["у"] = "e", ["Ф"] = "A", ["о"] = "j" }
+local mapped = places.keys({
+	{ label = "Pics" },
+	{ label = "Загрузки" },
+	{ label = "загрузки" },
+	{ label = "Жу" },
+	{ label = "Фото X" },
+	{ label = "Pp" },
+}, layout)
+expect("next cyrillic", mapped[2], "f")
+expect("lower cyrillic", mapped[3], "p")
+expect("punctuation key", mapped[4], "e")
+expect("latin first", mapped[5], "X")
+expect("taken by cyrillic", mapped[6], nil)
+local alone = places.keys({ { label = "Загрузки" } }, layout)
+expect("cyrillic key", alone[1], "P")
+
 -- Recent files: only local ones, the newest first, escapes decoded
 local recent = places.recent(table.concat({
 	'<bookmark href="file:///home/me/old.pdf" added="2026-01-01T00:00:00Z" modified="2026-01-01T00:00:00Z">',

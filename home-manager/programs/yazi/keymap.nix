@@ -15,6 +15,9 @@ let
 
   bind = on: run: desc: { inherit on run desc; };
 
+  # Each Russian character against the Latin key it sits on
+  langmap = lib.listToAttrs (map (p: lib.nameValuePair p.ru p.en) ruLayout);
+
   # A plugin reads only the committed selection, and a visual range is committed on its way out
   # of visual mode, so the range goes first, as yazi's own copy, shell and rename do
   onSelection = run: [
@@ -99,16 +102,20 @@ in
         places = {
           package = ownPlugin "places";
           setup = true;
-          # Computer stays out: it is the drive menu <Space>m already opens
-          settings.extras = [
-            "home"
-            "recent"
-            "trash"
-          ];
+          settings = {
+            # Computer stays out: it is the drive menu <Space>m already opens
+            extras = [
+              "home"
+              "recent"
+              "trash"
+            ];
+            # a Cyrillic label takes the key its letter sits on
+            layout = langmap;
+          };
         };
       };
 
-    keymap.langmap = lib.listToAttrs (map (p: lib.nameValuePair p.ru p.en) ruLayout);
+    keymap = { inherit langmap; };
 
     # A digit starts a count for relative-motions; tabs switch on <Tab> instead
     keymap.mgr.prepend_keymap =
