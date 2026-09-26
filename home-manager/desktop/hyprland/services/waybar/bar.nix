@@ -48,6 +48,7 @@ in
           # The only place where module order is set: features declare only
           # their own settings, otherwise order would depend on the imports order
           modules-left = lib.optional (cfg.launcher || cfg.virtKeyboard) "group/buttons" ++ [
+            "hyprland/language"
             "ext/workspaces"
             "hyprland/window"
           ];
@@ -60,7 +61,6 @@ in
           ++ lib.optional cfg.shader "custom/shader"
           ++ [
             "pulseaudio"
-            "hyprland/language"
             "custom/notifications"
             "tray"
             "network"
