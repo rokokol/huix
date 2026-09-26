@@ -23,7 +23,7 @@ in
     shellWrapperName = "y";
 
     plugins = {
-      inherit (pkgs.yaziPlugins) compress mount;
+      inherit (pkgs.yaziPlugins) compress mount piper;
       # vim counts (5j, 3gg) and numbered lines as in nixvim: the hovered line shows its own
       # number, the others their distance from it
       relative-motions = {
@@ -38,8 +38,12 @@ in
       inherit (pkgs.yaziPlugins) git;
     };
 
-    # compress.yazi calls zip for a .zip; tar and its compressors come with the system
-    extraPackages = with pkgs; [ zip ];
+    # compress.yazi calls zip for a .zip; tar and its compressors come with the system. glow
+    # renders Markdown for the previewer below
+    extraPackages = with pkgs; [
+      glow
+      zip
+    ];
 
     settings = {
       mgr = {
@@ -47,6 +51,15 @@ in
         sort_dir_first = true;
         show_symlink = true;
       };
+
+      # Markdown reads as rendered text rather than as source; piper hands glow the pane's
+      # width and the terminal's light or dark scheme
+      plugin.prepend_previewers = [
+        {
+          url = "*.md";
+          run = ''piper -- CLICOLOR_FORCE=1 glow -w=$w -s=$t "$1"'';
+        }
+      ];
 
       plugin.prepend_fetchers =
         map
