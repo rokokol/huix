@@ -229,3 +229,23 @@ grep -c 'pub hidden' "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.y
 `0` -> keep the patch. Anything else -> yazi hides chords itself; drop the patch and the overlay, check the field's name against the `hidden = true` in `init.lua`, then open the leader popup in the Russian layout
 
 **Upstream:** not proposed yet
+
+---
+
+## compress.yazi from its main branch
+
+**Where:** the `compress-yazi` input in `flake.nix`, swapped into `yaziPlugins.compress` by `overlay-yazi` on both hosts, for the archive keys in `home-manager/programs/yazi/keymap.nix`
+
+**Symptom it prevents:** packing anything fails at once, and yazi's task list shows `attempt to call a nil value (field 'unique_name')`. The plugin's last tag, the one nixpkgs packages, still calls `fs.unique_name()`, which yazi 26 replaced with `fs.unique()`
+
+**Why this works:** the plugin's main branch already calls `fs.unique()`; the input brings that source, pinned by the lock, under the package nixpkgs builds
+
+**Removal check:** look at the plugin as nixpkgs ships it
+
+```sh
+grep -c 'fs.unique_name' "$(nix build --no-link --print-out-paths --inputs-from . nixpkgs#yaziPlugins.compress)/main.lua"
+```
+
+Anything but `0` -> keep the input. `0` -> nixpkgs ships the fix; drop the input and its line in `overlay-yazi`, then pack a zip from yazi
+
+**Upstream:** fixed on [KKV9/compress.yazi](https://github.com/KKV9/compress.yazi) main, no tag carries it yet

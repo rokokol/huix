@@ -53,6 +53,22 @@
         "type": "github"
       }
     },
+    "compress-yazi": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1787430742,
+        "narHash": "sha256-9cdA8D/TtwHcLqrtoyIixA0YJmTs+c8FSNrjxp8CYI0=",
+        "owner": "KKV9",
+        "repo": "compress.yazi",
+        "rev": "80e5268ec74c7ac17d4d739e13a9958cba4c70d3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "KKV9",
+        "repo": "compress.yazi",
+        "type": "github"
+      }
+    },
     "ddlc-hyprlock": {
       "inputs": {
         "ddlc-palette": [
@@ -970,6 +986,7 @@
     "root": {
       "inputs": {
         "claude-account": "claude-account",
+        "compress-yazi": "compress-yazi",
         "ddlc-hyprlock": "ddlc-hyprlock",
         "ddlc-nvim": "ddlc-nvim",
         "ddlc-palette": "ddlc-palette",

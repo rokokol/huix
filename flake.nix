@@ -79,6 +79,13 @@
       flake = false;
     };
 
+    # compress.yazi's main branch: its last tag predates the fix for yazi 26 (see
+    # WORKAROUNDS.md)
+    compress-yazi = {
+      url = "github:KKV9/compress.yazi";
+      flake = false;
+    };
+
     claude-account = {
       url = "github:rokokol/claude-account";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -248,6 +255,12 @@
         yazi-unwrapped = prev.yazi-unwrapped.overrideAttrs (previous: {
           patches = (previous.patches or [ ]) ++ [ ./patches/yazi-hidden-chords.patch ];
         });
+        yaziPlugins = prev.yaziPlugins // {
+          compress = prev.yaziPlugins.compress.overrideAttrs {
+            version = "0.6-unstable-${inputs.compress-yazi.lastModifiedDate}";
+            src = inputs.compress-yazi;
+          };
+        };
       };
 
       mkHost =
