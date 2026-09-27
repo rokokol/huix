@@ -191,6 +191,11 @@ in
         (bind (leader "fz") "plugin zoxide" "Jump via zoxide")
         (bind (leader "fs") "plugin fzf" "Jump via fzf")
         (bind (leader "fc") "escape --search" "Cancel search")
+        # fzf over the hovered file's lines; the line picked opens in nvim. cut, not ${n%%:*}:
+        # yazi reads %% in a shell command as a literal %
+        (bind (leader "fl") ''
+          shell --block 'n=$(grep -nI "" -- %h | fzf --delimiter=: --nth=2.. | cut -d: -f1) && [ -n "$n" ] && nvim "+$n" -- %h'
+        '' "Find a line in the hovered file")
 
         (bind (leader "uh") "hidden toggle" "Hidden files")
         (bind (leader "ug") "plugin git-column" "Git status column")
