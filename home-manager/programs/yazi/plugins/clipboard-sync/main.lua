@@ -2,8 +2,8 @@
 -- other programs; `paste` puts what the clipboard holds into the current folder. Files are
 -- copied, or moved when they were cut, as yazi tasks; an image or a text becomes a file of its
 -- own. yazi's built-in `clipboard` reads files through the terminal on kitty's paste and only
--- copies them; this one works in any terminal. `files`, `offers` and `same` are pure and are
--- what test.lua checks
+-- copies them; this one works in any terminal. `files`, `offers`, `same` and `pick` are pure
+-- and are what test.lua checks
 local M = {}
 
 local GNOME = "x-special/gnome-copied-files"
@@ -54,12 +54,27 @@ function M.same(a, b)
 	return true
 end
 
-function M:setup(opts)
-	opts = opts or {}
-	self.bin, self.paste_as_file = opts.wl_clipboard, opts.paste_as_file
+-- The type to save as a file when the clipboard holds no files, from `wl-paste --list-types`:
+-- an image before any text, and UTF-8 text first
+function M.pick(types)
+	local image, has = nil, {}
+	for mime in types:gmatch("[^\n]+") do
+		image = image or (mime:match("^image/") and mime)
+		has[mime] = true
+	end
+	if image then
+		return image
+	end
+	for _, mime in ipairs { "text/plain;charset=utf-8", "text/plain", URIS } do
+		if has[mime] then
+			return mime
+		end
+	end
 end
 
-local state = ya.sync(function(self) return self.bin, self.paste_as_file, self.exported end)
+function M:setup(opts) self.bin = (opts or {}).wl_clipboard end
+
+local state = ya.sync(function(self) return self.bin, self.exported end)
 
 local set_exported = ya.sync(function(self, uris) self.exported = uris end)
 
@@ -96,7 +111,7 @@ local function write(path, text)
 end
 
 local function export()
-	local bin, _, exported = state()
+	local bin, exported = state()
 	local paths, cut = yanked()
 	if #paths == 0 then
 		-- after an unyank: take back what export offered, but nothing another program put there
@@ -135,8 +150,28 @@ local function transfer(bin, files, cwd)
 	end
 end
 
+-- An image or a text saved as img.EXT or text.EXT under a free name here; the extension comes
+-- from yazi's built-in clipboard plugin, as for a dropped image
+local function save(bin, mime, cwd)
+	local data, err = paste_type(bin, mime)
+	if not data then
+		return fail(err)
+	end
+	local ext = require("clipboard").mime_ext(mime:match("^[^;]*"))
+	local name = (mime:match("^image/") and "img." or "text.") .. ext
+	local url, err = fs.unique("file", Url(cwd):join(name))
+	if not url then
+		return fail(tostring(err))
+	end
+	local ok, err = fs.write(url, data)
+	if not ok then
+		return fail(tostring(err))
+	end
+	ya.emit("reveal", { url })
+end
+
 local function paste()
-	local bin, paste_as_file = state()
+	local bin = state()
 	local types = run(bin .. "/wl-paste", { "--list-types" }) or ""
 	local has = function(mime) return ("\n" .. types .. "\n"):find("\n" .. mime:gsub("%p", "%%%0") .. "\n") ~= nil end
 
@@ -151,13 +186,9 @@ local function paste()
 	elseif files then
 		transfer(bin, files, cwd)
 	else
-		local created, err = run(paste_as_file, { cwd })
-		if err then
-			return fail(err)
-		end
-		created = created and created:gsub("\n$", "")
-		if created and created ~= "" then
-			ya.emit("reveal", { Url(created) })
+		local mime = M.pick(types)
+		if mime then
+			save(bin, mime, cwd)
 		end
 	end
 end

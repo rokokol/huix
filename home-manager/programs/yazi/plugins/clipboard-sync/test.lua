@@ -63,6 +63,14 @@ expect("one fewer", clipboard.same({ "/a", "/b" }, { "/a" }), false)
 expect("one other", clipboard.same({ "/a", "/b" }, { "/a", "/c" }), false)
 expect("both empty", clipboard.same({}, {}), false)
 
+-- What is not files becomes a file of its own: an image before any text, UTF-8 text first
+expect("image first", clipboard.pick("text/plain\nimage/webp\nimage/png\n"), "image/webp")
+expect("utf-8 text", clipboard.pick("TEXT\ntext/plain\ntext/plain;charset=utf-8\n"), "text/plain;charset=utf-8")
+expect("plain text", clipboard.pick("STRING\ntext/plain\n"), "text/plain")
+expect("links as text", clipboard.pick("text/uri-list\n"), "text/uri-list")
+expect("nothing usable", clipboard.pick("application/x-foo\n"), nil)
+expect("empty", clipboard.pick(""), nil)
+
 if failed > 0 then
 	io.stderr:write(failed .. " failed\n")
 	os.exit(1)

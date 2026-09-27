@@ -1,7 +1,6 @@
 {
   lib,
   pkgs,
-  huixDir,
   ruLayout,
   ...
 }:
@@ -127,15 +126,11 @@ in
           setup = true;
           settings.compsize = lib.getExe pkgs.compsize;
         };
-        # wl-clipboard-rs carries the --offer patch (see WORKAROUNDS.md), and the script turns
-        # an image or a text into a file, for Thunar as well
+        # wl-clipboard-rs carries the --offer patch (see WORKAROUNDS.md)
         clipboard-sync = {
           package = ownPlugin "clipboard-sync";
           setup = true;
-          settings = {
-            wl_clipboard = "${pkgs.wl-clipboard-rs}/bin";
-            paste_as_file = "${huixDir}/scripts/paste-as-file.sh";
-          };
+          settings.wl_clipboard = "${pkgs.wl-clipboard-rs}/bin";
         };
       };
 

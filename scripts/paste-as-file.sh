@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Paste the clipboard contents as a file into a folder, and print the path of the new file
-# Callers: Thunar's custom action (Ctrl+Shift+V, with %f) and yazi's clipboard-sync plugin,
-# which hands over copied files itself and calls this only for the rest
+# Invoked from Thunar's custom action (Ctrl+Shift+V) with %f as the first argument; yazi does
+# the same in its clipboard-sync plugin, and this script goes with Thunar
 # Image -> img.png (extension by MIME), text (incl. a path string) -> text.txt
 set -euo pipefail
 
