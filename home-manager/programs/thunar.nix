@@ -31,7 +31,7 @@
     	<name>Paste as File</name>
     	<submenu></submenu>
     	<unique-id>1770663018404627-2</unique-id>
-    	<command>${huixDir}/scripts/thunar-smart-paste.sh %f</command>
+    	<command>${huixDir}/scripts/paste-as-file.sh %f</command>
     	<description>Paste clipboard text/image as a file into the current folder.</description>
     	<range></range>
     	<patterns>*</patterns>
