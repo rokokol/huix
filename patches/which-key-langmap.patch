@@ -30,7 +30,7 @@ index 85617b2..facfdb0 100644
  ---@param key? string
  ---@param node? wk.Node
 diff --git a/lua/which-key/util.lua b/lua/which-key/util.lua
-index 0aa2b44..4d569f7 100644
+index 0aa2b44..6bc0f4c 100644
 --- a/lua/which-key/util.lua
 +++ b/lua/which-key/util.lua
 @@ -4,8 +4,67 @@ M.cache = {
@@ -53,7 +53,7 @@ index 0aa2b44..4d569f7 100644
 +  local part, semi = {}, nil ---@type string[], number?
 +  local function flush()
 +    if semi then
-+      -- a from-character with no to-character left gets nil, which maps nothing
++      -- Neovim refuses a list whose two sides differ in length
 +      for i = 1, semi do
 +        ret[part[i]] = part[semi + i]
 +      end
@@ -102,10 +102,10 @@ index 0aa2b44..4d569f7 100644
    M.cache.termcodes[str] = M.cache.termcodes[str] or vim.api.nvim_replace_termcodes(str, true, true, true)
    return M.cache.termcodes[str]
 diff --git a/tests/util_spec.lua b/tests/util_spec.lua
-index dd3546f..fd8876d 100644
+index dd3546f..adf30f2 100644
 --- a/tests/util_spec.lua
 +++ b/tests/util_spec.lua
-@@ -123,3 +123,38 @@ describe("modes", function()
+@@ -123,3 +123,37 @@ describe("modes", function()
      end)
    end
  end)
@@ -122,11 +122,10 @@ index dd3546f..fd8876d 100644
 +    assert.is_nil(map[","])
 +  end)
 +
-+  it("stops a list at the shorter side", function()
-+    local map = Util.parse_langmap("abc;AB")
++  it("reads a second semicolon in a list as a character", function()
++    local map = Util.parse_langmap("ab;A;")
 +    assert.same("A", map["a"])
-+    assert.same("B", map["b"])
-+    assert.is_nil(map["c"])
++    assert.same(";", map["b"])
 +  end)
 +
 +  it("applies in normal, visual, select and operator-pending mode only", function()
