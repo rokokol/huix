@@ -1,8 +1,11 @@
-_:
+{ pkgs, ... }:
 
 {
   programs.nixvim.plugins.which-key = {
     enable = true;
+    # nixvim builds plugins from its own nixpkgs, which the overlays in flake.nix never reach;
+    # this one carries the langmap patch, so a Russian key after <leader> finds the Latin tree
+    package = pkgs.vimPlugins.which-key-nvim;
     settings = {
       win.border = "rounded";
       # langmapper's Cyrillic twins stay bound but out of the popup: every key is read by its

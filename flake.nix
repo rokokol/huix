@@ -249,6 +249,18 @@
         });
       };
 
+      # which-key reads the keys after a prefix itself, so 'langmap' never reaches them and a
+      # Russian key finds only langmapper's hidden twins; the patch applies it (see WORKAROUNDS.md)
+      overlay-which-key = _final: prev: {
+        vimPlugins = prev.vimPlugins.extend (
+          _: previous: {
+            which-key-nvim = previous.which-key-nvim.overrideAttrs (plugin: {
+              patches = (plugin.patches or [ ]) ++ [ ./patches/which-key-langmap.patch ];
+            });
+          }
+        );
+      };
+
       # yazi matches a key by the character it types, so the Russian layout misses every
       # binding; the patch adds a vim-style langmap the yazi module fills (see WORKAROUNDS.md)
       overlay-yazi = _final: prev: {
@@ -322,6 +334,7 @@
           overlay-hyprland
           overlay-rofi
           overlay-yazi
+          overlay-which-key
           nix-matlab.overlay
         ];
       };
@@ -336,6 +349,7 @@
           overlay-blueman
           overlay-kitty
           overlay-yazi
+          overlay-which-key
         ];
       };
 

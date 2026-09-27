@@ -233,6 +233,26 @@ grep -c 'langmap' "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.yazi
 
 ---
 
+## which-key reads keys through 'langmap'
+
+**Where:** `patches/which-key-langmap.patch`, applied by `overlay-which-key` in `flake.nix` to `vimPlugins.which-key-nvim` on both hosts. `home-manager/programs/nixvim/plugins/editor/which-key.nix` takes the plugin from the global `pkgs`, because nixvim builds plugins from its own nixpkgs, which no overlay here reaches
+
+**Symptom it prevents:** in the Russian layout, `<leader>ф` opens an empty or half-empty popup instead of the `<leader>a` group. which-key reads every key after a prefix itself through `getcharstr()`, and Neovim applies `langmap` only to keys it reads itself. So `ф` walks into langmapper's Cyrillic twins, which the `filter` in `which-key.nix` hides
+
+**Why this works:** the patch parses `vim.o.langmap`, the value `langmapper.nix` builds from `lib/ru-layout.nix`, and moves a typed key through it in normal, visual, select and operator-pending mode, the modes where Neovim applies the option. The translated key wins only where the tree has it, so a twin such as `пс` (`gc`) still answers where no Latin child exists
+
+**Removal check:** look for langmap support in which-key as nixpkgs ships it
+
+```sh
+grep -c 'langmap' "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.vimPlugins.which-key-nvim.src)"/lua/which-key/*.lua
+```
+
+`0` on every file -> keep the patch. Anything else -> which-key handles `langmap` itself; drop the patch, the overlay and the `package` line, then press `<leader>ф` in the Russian layout
+
+**Upstream:** [folke/which-key.nvim#846](https://github.com/folke/which-key.nvim/issues/846), closed as stale; not proposed yet
+
+---
+
 ## compress.yazi from its main branch
 
 **Where:** the `compress-yazi` input in `flake.nix`, swapped into `yaziPlugins.compress` by `overlay-yazi` on both hosts, for the archive keys in `home-manager/programs/yazi/keymap.nix`
