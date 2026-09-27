@@ -295,19 +295,19 @@ grep -c 'langmap' "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.vimP
 
 ## wl-copy offers several MIME types
 
-**Where:** `patches/wl-copy-offer.patch`, applied by `overlay-wl-clipboard-rs` in `flake.nix` to `wl-clipboard-rs` on both hosts. The yazi plugin `clipboard-sync`, set up in `home-manager/programs/yazi/keymap.nix`, calls this `wl-copy` by its store path; the `wl-copy` on the PATH stays the one from wl-clipboard
+**Where:** the `wl-clipboard-rs` input in `flake.nix`, which `overlay-wl-clipboard-rs` builds as `wl-clipboard-rs` on both hosts. The yazi plugin `clipboard-sync`, set up in `home-manager/programs/yazi/keymap.nix`, calls this `wl-copy` by its store path; the `wl-copy` on the PATH stays the one from wl-clipboard
 
 **Symptom it prevents:** files copied in yazi paste into Telegram but not into Thunar, or the other way round. A file manager has to offer `text/uri-list`, which most programs read, and `x-special/gnome-copied-files`, which Thunar reads alone and which alone says the files were cut. The two hold different text, and every `wl-copy` offers one content under one type
 
-**Why this works:** the wl-clipboard-rs library already serves several types (`prepare_copy_multi`); the patch adds `--offer MIME FILE`, repeatable, to its `wl-copy`. The overlay also sets `cargoTestFlags` to the packages it builds, because a bare `cargo test` skips the tools package, where the patch's tests live
+**Why this works:** the wl-clipboard-rs library already serves several types (`prepare_copy_multi`); the branch of the pull request adds `--offer MIME FILE`, repeatable, to its `wl-copy`. The source is that branch rather than a patch over the nixpkgs release, because upstream master rewrote the same lines after 0.9.3, and a patch made for one release does not apply to the next. The lock pins the commit, so a nixpkgs update cannot break the build; `nix flake update wl-clipboard-rs` takes in review changes. `cargoDeps` comes from the branch's own `Cargo.lock`, so no vendor hash goes stale on that update. The overlay also sets `cargoTestFlags` to the packages it builds, because a bare `cargo test` skips the tools package, where the branch's tests live
 
-**Removal check:** look for the option in wl-copy as nixpkgs ships it
+**Removal check:** look for the option in wl-copy as nixpkgs ships it, without the overlay
 
 ```sh
-grep -c 'offer' "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.wl-clipboard-rs.src)"/wl-clipboard-rs-tools/src/wl_copy.rs
+grep -c 'offer' "$(nix build --no-link --print-out-paths --inputs-from . nixpkgs#wl-clipboard-rs.src)"/wl-clipboard-rs-tools/src/wl_copy.rs
 ```
 
-`0` -> keep the patch. Anything else -> wl-copy has its own way; drop the patch and the overlay, match the plugin's call to it, then press `y` on a file in yazi and paste it into Thunar
+`0` -> keep the input. Anything else -> wl-copy has its own way; drop the input and the overlay, match the plugin's call to it, then press `y` on a file in yazi and paste it into Thunar
 
 **Upstream:** [YaLTeR/wl-clipboard-rs#88](https://github.com/YaLTeR/wl-clipboard-rs/pull/88), from branch `wl-copy-multi-types` of `~/Projects/wl-clipboard-rs`
 

@@ -1011,6 +1011,7 @@
         "sops-nix": "sops-nix",
         "telegram-skill": "telegram-skill",
         "virtual-media-devices": "virtual-media-devices",
+        "wl-clipboard-rs": "wl-clipboard-rs",
         "zen-browser": "zen-browser"
       }
     },
@@ -1184,6 +1185,23 @@
       "original": {
         "owner": "rokokol",
         "repo": "virtual-media-devices",
+        "type": "github"
+      }
+    },
+    "wl-clipboard-rs": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1790549418,
+        "narHash": "sha256-nwi6r/8zbozhoZttdynMUEKhtZbfZGH79kelNM4n48c=",
+        "owner": "rokokol",
+        "repo": "wl-clipboard-rs",
+        "rev": "c5d68dc81fa95cedf46444f6d85983864890052b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "ref": "wl-copy-multi-types",
+        "repo": "wl-clipboard-rs",
         "type": "github"
       }
     },
