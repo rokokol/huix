@@ -4,11 +4,18 @@
 -- spotter they had. The parsers are pure and are what test.lua checks
 local M = {}
 
--- `compsize -b`: the TOTAL row, in bytes
+-- `compsize -b`: the TOTAL row, in bytes. Referenced counts an extent once for every file that
+-- uses it, so it passes Uncompressed where reflinked copies or snapshots share data
 function M.compsize(text)
-	local percent, disk, uncompressed = ("\n" .. text):match("\nTOTAL%s+(%d+)%%%s+(%d+)%s+(%d+)")
+	local percent, disk, uncompressed, referenced =
+		("\n" .. text):match("\nTOTAL%s+(%d+)%%%s+(%d+)%s+(%d+)%s+(%d+)")
 	if percent then
-		return { percent = tonumber(percent), disk = tonumber(disk), uncompressed = tonumber(uncompressed) }
+		return {
+			percent = tonumber(percent),
+			disk = tonumber(disk),
+			uncompressed = tonumber(uncompressed),
+			referenced = tonumber(referenced),
+		}
 	end
 end
 
@@ -16,13 +23,20 @@ end
 function M.du(text) return tonumber(text:match("^(%d+)%s")) end
 
 -- What the On disk row shows: the compression where compsize found some, else the plain size,
--- from compsize on an uncompressed btrfs and from du on any other filesystem
+-- from compsize on an uncompressed btrfs and from du on any other filesystem; and the data the
+-- files reach through extents another file holds as well
 function M.on_disk(compressed, du)
-	if compressed and compressed.disk < compressed.uncompressed then
-		return compressed
-	elseif compressed or du then
-		return { disk = compressed and compressed.disk or du }
+	if not (compressed or du) then
+		return
 	end
+	local shown = { disk = compressed and compressed.disk or du }
+	if compressed and compressed.disk < compressed.uncompressed then
+		shown.uncompressed, shown.percent = compressed.uncompressed, compressed.percent
+	end
+	if compressed and (compressed.referenced or 0) > compressed.uncompressed then
+		shown.shared = compressed.referenced - compressed.uncompressed
+	end
+	return shown
 end
 
 -- `7z l -slt`: the archive's block, then one block an entry. `encrypted` is "contents" when an
@@ -322,6 +336,9 @@ local function general(job, g)
 	local size = disk and ya.readable_size(disk.disk)
 	if disk and disk.uncompressed then
 		size = string.format("%s of %s (%d%%)", size, ya.readable_size(disk.uncompressed), disk.percent)
+	end
+	if disk and disk.shared then
+		size = string.format("%s, %s shared", size, ya.readable_size(disk.shared))
 	end
 	rows[#rows + 1] = row("On disk", probed(g, size))
 	if not cha.is_dir then

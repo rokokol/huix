@@ -40,6 +40,20 @@ local other = info.on_disk(nil, 20480)
 expect("other filesystem", other and other.disk, 20480)
 expect("other filesystem, no ratio", other and other.percent, nil)
 expect("nothing known", info.on_disk(nil, nil), nil)
+expect("nothing shared", packed and packed.shared, nil)
+local single = info.on_disk(info.compsize("TOTAL      100%     200704       200704       200704      \n"), nil)
+expect("one file, nothing shared", single and single.shared, nil)
+
+-- Reflinked copies: the extents are on disk once and referenced twice
+local twins = info.compsize("TOTAL      100%     200704       200704       401408      \n")
+expect("referenced", twins and twins.referenced, 401408)
+local shared = info.on_disk(twins, nil)
+expect("shared, plain size", shared and shared.disk, 200704)
+expect("shared, no ratio", shared and shared.uncompressed, nil)
+expect("shared bytes", shared and shared.shared, 200704)
+local both = info.on_disk({ percent = 3, disk = 8192, uncompressed = 241664, referenced = 483328 }, nil)
+expect("compressed and shared", both and both.shared, 241664)
+expect("compressed and shared, ratio", both and both.percent, 3)
 
 -- 7z l -slt: a 7z marks a folder by its attributes, a zip by Folder = +
 local seven = info.archive(table.concat({
