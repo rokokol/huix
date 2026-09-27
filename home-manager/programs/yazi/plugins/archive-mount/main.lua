@@ -1,8 +1,9 @@
--- An archive as a read-only folder, through fuse-archive. `open` mounts the hovered archive and
--- enters it; `tidy`, run on every cd, unmounts the archives no tab looks into any more and those
--- a yazi that has exited left behind. Mounts live in $XDG_RUNTIME_DIR/yazi-archives/<pid>, the
--- pid of the yazi that made them. `pid`, `inside` and `unused` are pure and are what test.lua
--- checks
+-- An archive as a folder. `open` mounts the hovered archive read-only through fuse-archive and
+-- enters it; `open --edit` mounts it through archivemount, which writes the changes back into
+-- the archive on unmount and keeps the old one as <name>.orig. `tidy`, run on every cd,
+-- unmounts the archives no tab looks into any more and those a yazi that has exited left
+-- behind. Mounts live in $XDG_RUNTIME_DIR/yazi-archives/<pid>, the pid of the yazi that made
+-- them. `pid`, `inside`, `unused` and `serves` are pure and are what test.lua checks
 local M = {}
 
 -- The process id that /proc/<pid>/stat starts with
@@ -24,6 +25,23 @@ function M.unused(mounts, cwds)
 		end
 	end
 	return left
+end
+
+-- Whether a /proc/<pid>/cmdline is an archivemount that has `mount` as one of its arguments
+function M.serves(cmdline, mount)
+	local args = {}
+	for arg in cmdline:gmatch("([^%z]*)%z") do
+		args[#args + 1] = arg
+	end
+	if #args == 0 or not args[1]:match("archivemount$") then
+		return false
+	end
+	for i = 2, #args do
+		if args[i] == mount then
+			return true
+		end
+	end
+	return false
 end
 
 local function read(path)
@@ -53,19 +71,28 @@ local function run(cmd, args)
 	return output.stdout
 end
 
--- The archive each mount of this yazi serves, by mount
+-- What each mount of this yazi serves, by mount: { archive, edit }, and for an edit the pid of
+-- its archivemount and the archive's mtime when it was mounted
 local mounted = ya.sync(function(self) return self.mounted or {} end)
 
-local remember = ya.sync(function(self, mount, archive)
+local remember = ya.sync(function(self, mount, entry)
 	self.mounted = self.mounted or {}
-	self.mounted[mount] = archive
+	self.mounted[mount] = entry
 end)
 
+-- The hovered file and whether it is an archive: whatever yazi previews as one, so the list of
+-- their types stays yazi's, as in the info plugin
 local hovered = ya.sync(function()
 	local h = cx.active.current.hovered
-	if h then
-		return tostring(h.url), h.name, h.cha.is_dir
+	if not h then
+		return
 	end
+	local archive = false
+	for _, v in pairs(rt.plugin.previewers:match { file = h, mime = h:mime() or "" }) do
+		archive = v.name == "archive"
+		break
+	end
+	return tostring(h.url), h.name, archive
 end)
 
 local cwds = ya.sync(function()
@@ -76,18 +103,52 @@ local cwds = ya.sync(function()
 	return list, tostring(cx.active.current.cwd)
 end)
 
-local function unmount(mount)
+local function mtime(path)
+	local cha = fs.cha(Url(path))
+	return cha and cha.mtime
+end
+
+-- The archivemount that serves `mount`: it forks away from the command that started it
+local function server(mount)
+	for _, dir in ipairs(fs.read_dir(Url("/proc"), {}) or {}) do
+		if dir.name:match("^%d+$") and M.serves(read("/proc/" .. dir.name .. "/cmdline"), mount) then
+			return dir.name
+		end
+	end
+end
+
+-- archivemount writes the archive only once the mount is gone, in its own process, so yazi
+-- goes on while it does; a mount of an unchanged archive writes nothing
+local function unmount(mount, entry)
 	run("fusermount3", { "-uz", mount })
+	if entry and entry.edit and entry.pid then
+		while fs.cha(Url("/proc/" .. entry.pid)) do
+			ya.sleep(0.2)
+		end
+		if mtime(entry.archive) ~= entry.mtime then
+			local name = entry.archive:match("[^/]+$")
+			ya.notify {
+				title = "Archive",
+				content = string.format("Saved %s, the old one is %s.orig", name, name),
+				level = "info",
+				timeout = 5,
+			}
+		end
+	end
 	fs.remove("dir", Url(mount))
 end
 
-local function open()
-	local archive, name, is_dir = hovered()
-	if not archive or is_dir then
+local function open(edit)
+	local archive, name, is_archive = hovered()
+	if not archive or not is_archive then
 		return fail("Hover an archive to open")
 	end
-	for mount, source in pairs(mounted()) do
-		if source == archive and fs.cha(Url(mount)) then
+	for mount, entry in pairs(mounted()) do
+		if entry.archive == archive and fs.cha(Url(mount)) then
+			-- a second mount of one archive would show the edits in one of them only
+			if entry.edit ~= edit then
+				return fail("The archive is open " .. (entry.edit and "for editing" or "read-only") .. " already")
+			end
 			return ya.emit("cd", { Url(mount) })
 		end
 	end
@@ -103,12 +164,20 @@ local function open()
 		return fail(tostring(err))
 	end
 	mount = tostring(mount)
-	_, err = run("fuse-archive", { "--", archive, mount })
+	local entry = { archive = archive, edit = edit }
+	if edit then
+		-- both paths are absolute, so neither reads as an option
+		entry.mtime = mtime(archive)
+		_, err = run("archivemount", { archive, mount })
+		entry.pid = not err and server(mount) or nil
+	else
+		_, err = run("fuse-archive", { "--", archive, mount })
+	end
 	if err then
 		fs.remove("dir", Url(mount))
 		return fail(err)
 	end
-	remember(mount, archive)
+	remember(mount, entry)
 	ya.emit("cd", { Url(mount) })
 end
 
@@ -134,12 +203,13 @@ local function tidy()
 		list[#list + 1] = mount
 	end
 	for _, mount in ipairs(M.unused(list, tabs)) do
-		unmount(mount)
+		-- forgotten before the unmount, which can wait for a write, so the next tidy skips it
 		remember(mount, nil)
 		-- `h` at the root of a mount lands in the folder of mounts; the archive's own is better
 		if active == own() then
-			ya.emit("reveal", { Url(archives[mount]) })
+			ya.emit("reveal", { Url(archives[mount].archive) })
 		end
+		unmount(mount, archives[mount])
 	end
 end
 
@@ -150,7 +220,7 @@ end
 function M:entry(job)
 	local action = job.args[1]
 	if action == "open" then
-		open()
+		open(job.args.edit == true)
 	elseif action == "tidy" then
 		tidy()
 	else

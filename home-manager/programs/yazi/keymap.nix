@@ -127,6 +127,7 @@ in
 {
   programs.yazi = {
     extraPackages = with pkgs; [
+      archivemount
       fuse-archive
       ripgrep-all
     ];
@@ -225,6 +226,8 @@ in
         (bind (leader "ap") (onSelection "plugin compress '-ph 7z'") "Pack into 7z with a password")
         (bind (leader "ax") "shell 'ya pub extract --list %s'" "Extract here")
         (bind (leader "ao") "plugin archive-mount open" "Open as a folder, read-only")
+        # archivemount writes the archive back once no tab looks into it, beside <name>.orig
+        (bind (leader "ae") "plugin archive-mount 'open --edit'" "Open as a folder to edit")
 
         (bind (leader "m") "plugin mount" "Drives: mount, unmount, eject")
         (bind [ "g" "r" ] "plugin recent" "Recent files, via fzf")

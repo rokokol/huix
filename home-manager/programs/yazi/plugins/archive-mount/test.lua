@@ -31,6 +31,15 @@ expect("unused count", #left, 1)
 expect("unused one", left[1], "/run/user/1000/yazi-archives/42/music.tar")
 expect("all in use", #mount.unused(mounts, { at, mounts[2] .. "/a" }), 0)
 
+-- The archivemount that serves a mount is the one whose command line names it as an argument;
+-- /proc/<pid>/cmdline ends every argument with a NUL
+local cmd = "/nix/store/x-archivemount/bin/archivemount\0/home/me/a.zip\0" .. at .. "\0"
+expect("serves", mount.serves(cmd, at), true)
+expect("another mount", mount.serves(cmd, at .. ".bak"), false)
+expect("another program", mount.serves("fuse-archive\0/home/me/a.zip\0" .. at .. "\0", at), false)
+expect("a prefix only", mount.serves("archivemount\0a\0" .. at .. "/sub\0", at), false)
+expect("no process", mount.serves("", at), false)
+
 if failed > 0 then
 	io.stderr:write(failed .. " failed\n")
 	os.exit(1)
