@@ -3,7 +3,12 @@
 let
   hyprlandPortalConfig = {
     "org.freedesktop.impl.portal.AppChooser" = [ "gtk" ];
-    "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
+    # yazi in a kitty window, set up in home-manager/programs/yazi/desktop.nix; GTK's own
+    # dialog when that backend cannot start
+    "org.freedesktop.impl.portal.FileChooser" = [
+      "termfilechooser"
+      "gtk"
+    ];
     "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
     "org.freedesktop.impl.portal.ScreenCast" = [ "hyprland" ];
     "org.freedesktop.impl.portal.Screenshot" = [ "hyprland" ];
@@ -22,6 +27,7 @@ in
     extraPortals = with pkgs; [
       xdg-desktop-portal-hyprland
       xdg-desktop-portal-gtk
+      xdg-desktop-portal-termfilechooser
     ];
     configPackages = with pkgs; [
       xdg-desktop-portal-hyprland

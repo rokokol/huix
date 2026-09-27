@@ -61,6 +61,20 @@ lib.mkIf config.programs.yazi.enable {
     cmd=${filemanager1}
   '';
 
+  # The Open and Save dialogs of the programs that ask the portal for one: yazi in a kitty
+  # window of its own class, which Hyprland floats at a fixed size. The wrapper runs
+  # `$TERMCMD yazi --chooser-file`; saving starts on a file with the suggested name, which
+  # yazi can rename before Enter picks it
+  xdg.configFile."xdg-desktop-portal-termfilechooser/config".text = ''
+    [filechooser]
+    cmd=${pkgs.xdg-desktop-portal-termfilechooser}/share/xdg-desktop-portal-termfilechooser/yazi-wrapper.sh
+    default_dir=${config.xdg.userDirs.download}
+    env=TERMCMD=kitty --class yazi-chooser
+  '';
+
+  # Zen asks the portal for its file dialog only when told to
+  programs.zen-browser.profiles.default.settings."widget.use-xdg-desktop-portal.file-picker" = 1;
+
   # Thunar ships a service file for the same name; the bus reads $XDG_DATA_HOME before the
   # system's folders, so this one is started. A running Thunar still holds the name while it
   # runs

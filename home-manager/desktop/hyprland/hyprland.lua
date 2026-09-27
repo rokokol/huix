@@ -649,6 +649,16 @@ hl.window_rule({
   float = true,
 })
 
+-- The portal's Open and Save dialogs are yazi in kitty under this class
+-- (home-manager/programs/yazi/desktop.nix): a dialog, so floating, centred and of one size
+hl.window_rule({
+  name = "float-yazi-chooser",
+  match = { class = "^(yazi-chooser)$" },
+  float = true,
+  size = { 1200, 750 },
+  center = true,
+})
+
 -- xarchiver builds its file choosers in-process, so they share the app class --
 -- nothing tells them apart from the main window, float the whole app
 -- spawn under the cursor instead of the monitor centre, clamped to stay on screen
