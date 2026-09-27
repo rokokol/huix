@@ -1,7 +1,7 @@
 -- The system clipboard as yazi's own. `export`, run after a yank, offers the yanked files to
--- other programs; `paste` puts what the clipboard holds into the current folder. Files are
--- copied, or moved when they were cut, as yazi tasks; an image or a text becomes a file of its
--- own. yazi's built-in `clipboard` reads files through the terminal on kitty's paste and only
+-- other programs; `paste` puts what the clipboard holds into the current folder, and with
+-- `--force` overwrites a file of the same name instead of picking a free one. Files are copied,
+-- or moved when they were cut, as yazi tasks; an image or a text becomes a file of its own. yazi's built-in `clipboard` reads files through the terminal on kitty's paste and only
 -- copies them; this one works in any terminal. `files`, `offers`, `same` and `pick` are pure
 -- and are what test.lua checks
 local M = {}
@@ -136,12 +136,13 @@ local function export()
 end
 
 -- Files that another program put on the clipboard, copied or moved here as yazi tasks, which
--- show progress and pick a free name when the one here is taken
-local function transfer(bin, files, cwd)
+-- show progress and, unless forced, pick a free name when the one here is taken
+local function transfer(bin, files, cwd, force)
 	for _, path in ipairs(files.paths) do
 		local from = Url(path)
 		if from.name then
-			ya.task(files.cut and "move" or "copy", { from = from, to = Url(cwd):join(from.name) }):spawn()
+			local op = files.cut and "move" or "copy"
+			ya.task(op, { from = from, to = Url(cwd):join(from.name), force = force }):spawn()
 		end
 	end
 	if files.cut then
@@ -170,7 +171,7 @@ local function save(bin, mime, cwd)
 	ya.emit("reveal", { url })
 end
 
-local function paste()
+local function paste(force)
 	local bin = state()
 	local types = run(bin .. "/wl-paste", { "--list-types" }) or ""
 	local has = function(mime) return ("\n" .. types .. "\n"):find("\n" .. mime:gsub("%p", "%%%0") .. "\n") ~= nil end
@@ -199,12 +200,12 @@ local function paste()
 	local own, own_cut, cwd = yanked()
 	if files and M.same(own, files.paths) then
 		-- the clipboard holds yazi's own yank: its paste shows progress and can be cancelled
-		ya.emit("paste", {})
+		ya.emit("paste", { force = force })
 		if own_cut then
 			run(bin .. "/wl-copy", { "--clear" })
 		end
 	elseif files then
-		transfer(bin, files, cwd)
+		transfer(bin, files, cwd, force)
 	else
 		local mime = M.pick(types)
 		if mime then
@@ -218,7 +219,7 @@ function M:entry(job)
 	if action == "export" then
 		export()
 	elseif action == "paste" then
-		paste()
+		paste(job.args.force == true)
 	else
 		fail("Unknown action: " .. tostring(action))
 	end

@@ -181,7 +181,10 @@ in
         (bind "x" (exported "yank --cut") "Cut, to the system clipboard too")
         (bind "Y" (exported "unyank") "Cancel the copy or cut")
         (bind "X" (exported "unyank") "Cancel the copy or cut")
-        (bind "<C-v>" "plugin clipboard-sync paste" "Paste the system clipboard")
+        # y and x put the files on the system clipboard as well, so one paste reads it all:
+        # yazi's own yank, other programs' files, an image or a text
+        (bind "p" "plugin clipboard-sync paste" "Paste the clipboard")
+        (bind "P" "plugin clipboard-sync 'paste --force'" "Paste the clipboard, overwriting")
         (bind "I" "spot" "File info")
         (bind "e" "shell --block 'nvim %s'" "Open in nvim here")
         (bind "E" "shell --orphan 'kitty --detach nvim %s'" "Open in nvim in a new window")
@@ -220,7 +223,6 @@ in
 
         (bind (leader "m") "plugin mount" "Drives: mount, unmount, eject")
         (bind (leader "b") "plugin places" "Bookmarks, as in Thunar's side pane")
-        (bind (leader "p") "plugin clipboard-sync paste" "Paste the system clipboard")
 
         (bind (leader "ts") "shell --block $SHELL" "Shell in place, exit returns")
         (bind (leader "xt") "shell --orphan 'thunar .'" "Open Thunar here")
