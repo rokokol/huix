@@ -14,8 +14,10 @@ Usage:
   toggle-theme.sh --help    this help
 
 The theme lives at runtime, not in Nix: the script flips color-scheme + gtk-theme
-in dconf, hands rofi's variant to ddlc-rofi-theme and swaps the libadwaita
-~/.config/gtk-4.0/gtk.css (so libadwaita apps follow too). The choice is stored durably in
+in dconf, hands rofi's variant to ddlc-rofi-theme, swaps the libadwaita
+~/.config/gtk-4.0/gtk.css (so libadwaita apps follow too) and points Claude Code's
+~/.claude/themes/ddlc.json at ddlc-light.json or ddlc-dark.json, which Claude Code
+set to custom:ddlc picks up live. The choice is stored durably in
 ~/.local/state/huix/theme — dconf load on nixos-rebuild resets the theme, --sync
 brings it back
 EOF
@@ -89,6 +91,16 @@ set_libadwaita_css() {
   systemctl --user restart swayosd || notify_error "swayosd restart failed"
 }
 
+# Claude Code's auto theme picks only its built-in themes, but it reloads its themes directory
+# live, so the theme it is set to (custom:ddlc) is this link, swapped per variant. The directory
+# is shared between hosts, so .stignore-shared keeps the link local to each one
+set_claude_theme() {
+  local dir="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/themes"
+
+  [[ -e "$dir/ddlc-$1.json" ]] || return 0
+  ln -sfn "ddlc-$1.json" "$dir/ddlc.json"
+}
+
 detect_theme_state() {
   local current_theme current_scheme
   current_theme=$(read_current_theme)
@@ -113,6 +125,7 @@ apply_state() {
     dconf write "$COLOR_SCHEME_KEY" "'${DARK_SCHEME}'"
     ddlc-rofi-theme dark
     set_libadwaita_css "$GTK4_DARK_CSS"
+    set_claude_theme dark
     save_state "dark"
     ;;
   light)
@@ -120,6 +133,7 @@ apply_state() {
     dconf write "$COLOR_SCHEME_KEY" "'${LIGHT_SCHEME}'"
     ddlc-rofi-theme light
     set_libadwaita_css "$GTK4_LIGHT_CSS"
+    set_claude_theme light
     save_state "light"
     ;;
   *)
