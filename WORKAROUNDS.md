@@ -309,7 +309,7 @@ grep -c 'offer' "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.wl-cli
 
 `0` -> keep the patch. Anything else -> wl-copy has its own way; drop the patch and the overlay, match the plugin's call to it, then press `y` on a file in yazi and paste it into Thunar
 
-**Upstream:** a pull request to YaLTeR/wl-clipboard-rs is planned; the code is on branch `wl-copy-multi-types` of `~/Projects/wl-clipboard-rs`
+**Upstream:** [YaLTeR/wl-clipboard-rs#88](https://github.com/YaLTeR/wl-clipboard-rs/pull/88), from branch `wl-copy-multi-types` of `~/Projects/wl-clipboard-rs`
 
 ---
 
