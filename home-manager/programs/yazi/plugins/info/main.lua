@@ -156,6 +156,31 @@ function M.media(meta)
 	return { duration = duration(format.duration), bitrate = kbps(format.bit_rate), streams = streams }
 end
 
+local TAGS = { "title", "artist", "album", "date" }
+
+-- The lines a media preview shows, as { label, value }: the container's tags, whose keys come in
+-- any case (FLAC and Ogg write TITLE), then what `media` reads out of the streams
+function M.media_lines(meta)
+	local tags, lines = {}, {}
+	for key, value in pairs((meta.format or {}).tags or {}) do
+		tags[key:lower()] = value
+	end
+	for _, tag in ipairs(TAGS) do
+		if tags[tag] then
+			lines[#lines + 1] = { tag:sub(1, 1):upper() .. tag:sub(2), tags[tag] }
+		end
+	end
+	local m = M.media(meta)
+	lines[#lines + 1] = { "Duration", m.duration }
+	if m.bitrate then
+		lines[#lines + 1] = { "Bitrate", m.bitrate }
+	end
+	for i, s in ipairs(m.streams) do
+		lines[#lines + 1] = { "Stream " .. i, s }
+	end
+	return lines
+end
+
 -- `magick identify -format "%m|%Q|%C"`: the quality is an estimate a JPEG carries and a guess
 -- for anything else, so only a JPEG shows it
 function M.image(text)
@@ -239,7 +264,7 @@ local function ffprobe(path)
 		"-v",
 		"quiet",
 		"-show_entries",
-		"format=duration,bit_rate:stream=codec_type,codec_name,width,height,avg_frame_rate,"
+		"format=duration,bit_rate:format_tags:stream=codec_type,codec_name,width,height,avg_frame_rate,"
 			.. "sample_rate,channels,channel_layout,bit_rate",
 		"-of",
 		"json=c=1",
@@ -404,6 +429,65 @@ function M:spot(job)
 	draw(nil, nil)
 	local probe = PROBES[what]
 	draw(probe and probe(path), probe_general(job, path))
+end
+
+-- The preview of audio and video: a picture over the lines media_lines gives. For video it is
+-- the frame yazi's own previewer takes, which J and K move through; for audio a spectrogram,
+-- kept in yazi's cache like any preview image
+local function is_video(job) return job.mime:match("^video/") ~= nil end
+
+function M:preload(job)
+	if is_video(job) then
+		return require("video"):preload(job)
+	end
+	local cache = ya.file_cache(job)
+	local cha = cache and fs.cha(cache)
+	if not cache or (cha and cha.len > 0) then
+		return true
+	end
+	local output, err = Command("ffmpeg")
+		-- a log scale spreads a melody over the picture, where a linear one presses it to the floor
+		:arg({ "-v", "error", "-y", "-i", tostring(job.file.path), "-lavfi", "showspectrumpic=s=1024x512:legend=0:fscale=log" })
+		:arg({ "-frames:v", "1", "-f", "image2", "-c:v", "png", tostring(cache) })
+		:stderr(Command.PIPED)
+		:output()
+	if not output then
+		return true, Err("Failed to start `ffmpeg`, error: %s", err)
+	elseif not output.status.success then
+		return true, Err("ffmpeg: %s", output.stderr)
+	end
+	return true
+end
+
+function M:peek(job)
+	local start = os.clock()
+	local _, err = self:preload(job)
+
+	local lines = {}
+	local meta = ffprobe(tostring(job.file.path))
+	for _, line in ipairs(type(meta) == "table" and M.media_lines(meta) or {}) do
+		lines[#lines + 1] = ui.Line { ui.Span(line[1] .. ": "):style(th.spot.tbl_col), ui.Span(line[2]) }
+	end
+	if err then
+		lines[#lines + 1] = ui.Line(tostring(err))
+	end
+
+	-- the picture takes what the lines leave, and at least half the area
+	local text_h = math.min(#lines + 1, job.area.h // 2)
+	local area = job.area
+	ya.sleep(math.max(0, rt.preview.image_delay / 1000 + start - os.clock()))
+	local cache = ya.file_cache(job)
+	local shown = cache and ya.image_show(cache, ui.Rect { x = area.x, y = area.y, w = area.w, h = area.h - text_h })
+	local top = area.y + (shown and shown.h + 1 or 0)
+	ya.preview_widget(job, {
+		ui.Text(lines):area(ui.Rect { x = area.x, y = top, w = area.w, h = area.y + area.h - top }):wrap(ui.Wrap.YES),
+	})
+end
+
+function M:seek(job)
+	if is_video(job) then
+		require("video"):seek(job)
+	end
 end
 
 return M

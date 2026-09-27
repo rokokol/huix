@@ -158,6 +158,18 @@ expect("comma kept", info.trim_zeros("44,1"), "44,1")
 expect("tens kept", info.trim_zeros("100,00"), "100")
 expect("dot zeros", info.trim_zeros("48.0"), "48")
 expect("whole number", info.trim_zeros("100"), "100")
+-- The lines a media preview shows under its picture: tags in any case of key, then the rest
+local lines = info.media_lines({
+	format = { duration = "185", bit_rate = "320000", tags = { TITLE = "Song", artist = "Band", Genre = "x" } },
+	streams = { { codec_type = "audio", codec_name = "flac", sample_rate = "44100", channels = 2, channel_layout = "stereo" } },
+})
+local shown = {}
+for _, line in ipairs(lines) do
+	shown[#shown + 1] = line[1] .. "=" .. line[2]
+end
+expect("media lines", table.concat(shown, "; "), "Title=Song; Artist=Band; Duration=3:05; Bitrate=320 kb/s; Stream 1=flac, 44.1 kHz, stereo")
+local bare = info.media_lines({ format = {}, streams = {} })
+expect("bare media", #bare, 1)
 local short = info.media({ format = { duration = "3.0" }, streams = {} })
 expect("short duration", short.duration, "0:03")
 expect("no bitrate", short.bitrate, nil)

@@ -60,6 +60,19 @@
           url = "*.md";
           run = ''piper -- CLICOLOR_FORCE=1 glow -w=$w -s=$t "$1"'';
         }
+        # A picture over tags and streams: a video's frame, an audio file's spectrogram
+        {
+          mime = "{audio,video}/*";
+          run = "info";
+        }
+      ];
+
+      # The spectrogram is made ahead like any preview image; a video's frame already is
+      plugin.prepend_preloaders = [
+        {
+          mime = "audio/*";
+          run = "info";
+        }
       ];
 
       # One spotter for every file; it hands the virtual ones back to yazi's own
