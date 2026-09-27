@@ -92,6 +92,12 @@
       flake = false;
     };
 
+    # which-key with 'langmap' support, from the branch of its pull request (see WORKAROUNDS.md)
+    which-key-nvim = {
+      url = "github:rokokol/which-key.nvim/langmap";
+      flake = false;
+    };
+
     claude-account = {
       url = "github:rokokol/claude-account";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -260,13 +266,11 @@
       };
 
       # which-key reads the keys after a prefix itself, so 'langmap' never reaches them and a
-      # Russian key finds only langmapper's hidden twins; the patch applies it (see WORKAROUNDS.md)
+      # Russian key finds only langmapper's hidden twins; the branch applies it (see WORKAROUNDS.md)
       overlay-which-key = _final: prev: {
         vimPlugins = prev.vimPlugins.extend (
           _: previous: {
-            which-key-nvim = previous.which-key-nvim.overrideAttrs (plugin: {
-              patches = (plugin.patches or [ ]) ++ [ ./patches/which-key-langmap.patch ];
-            });
+            which-key-nvim = previous.which-key-nvim.overrideAttrs { src = inputs.which-key-nvim; };
           }
         );
       };

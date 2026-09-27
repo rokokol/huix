@@ -275,21 +275,21 @@ grep -c 'delay' "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.yazi-u
 
 ## which-key reads keys through 'langmap'
 
-**Where:** `patches/which-key-langmap.patch`, applied by `overlay-which-key` in `flake.nix` to `vimPlugins.which-key-nvim` on both hosts. `home-manager/programs/nixvim/plugins/editor/which-key.nix` takes the plugin from the global `pkgs`, because nixvim builds plugins from its own nixpkgs, which no overlay here reaches
+**Where:** the `which-key-nvim` input in `flake.nix`, which `overlay-which-key` builds as `vimPlugins.which-key-nvim` on both hosts. `home-manager/programs/nixvim/plugins/editor/which-key.nix` takes the plugin from the global `pkgs`, because nixvim builds plugins from its own nixpkgs, which no overlay here reaches
 
 **Symptom it prevents:** in the Russian layout, `<leader>ф` opens an empty or half-empty popup instead of the `<leader>a` group. which-key reads every key after a prefix itself through `getcharstr()`, and Neovim applies `langmap` only to keys it reads itself. So `ф` walks into langmapper's Cyrillic twins, which the `filter` in `which-key.nix` hides
 
-**Why this works:** the patch parses `vim.o.langmap`, the value `langmapper.nix` builds from `lib/ru-layout.nix`, and moves a typed key through it in normal, visual, select and operator-pending mode, the modes where Neovim applies the option. The translated key wins only where the tree has it, so a twin such as `пс` (`gc`) still answers where no Latin child exists
+**Why this works:** the branch of the pull request parses `vim.o.langmap`, the value `langmapper.nix` builds from `lib/ru-layout.nix`, and moves a typed key through it in normal, visual, select and operator-pending mode, the modes where Neovim applies the option. The translated key wins only where the tree has it, so a twin such as `пс` (`gc`) still answers where no Latin child exists. The source is that branch rather than a patch, so the code lives in one place and review changes arrive with `nix flake update which-key-nvim`
 
-**Removal check:** look for langmap support in which-key as nixpkgs ships it
+**Removal check:** look for langmap support in which-key as nixpkgs ships it, without the overlay
 
 ```sh
-grep -c 'langmap' "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.vimPlugins.which-key-nvim.src)"/lua/which-key/*.lua
+grep -c 'langmap' "$(nix build --no-link --print-out-paths --inputs-from . nixpkgs#vimPlugins.which-key-nvim.src)"/lua/which-key/*.lua
 ```
 
-`0` on every file -> keep the patch. Anything else -> which-key handles `langmap` itself; drop the patch, the overlay and the `package` line, then press `<leader>ф` in the Russian layout
+`0` on every file -> keep the input. Anything else -> which-key handles `langmap` itself; drop the input, the overlay and the `package` line, then press `<leader>ф` in the Russian layout
 
-**Upstream:** [folke/which-key.nvim#846](https://github.com/folke/which-key.nvim/issues/846), closed as stale; not proposed yet
+**Upstream:** [folke/which-key.nvim#1068](https://github.com/folke/which-key.nvim/pull/1068), from branch `langmap` of `~/Projects/which-key.nvim`; the feature request [#846](https://github.com/folke/which-key.nvim/issues/846) was closed as stale
 
 ---
 

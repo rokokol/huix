@@ -1011,6 +1011,7 @@
         "sops-nix": "sops-nix",
         "telegram-skill": "telegram-skill",
         "virtual-media-devices": "virtual-media-devices",
+        "which-key-nvim": "which-key-nvim",
         "wl-clipboard-rs": "wl-clipboard-rs",
         "zen-browser": "zen-browser"
       }
@@ -1185,6 +1186,23 @@
       "original": {
         "owner": "rokokol",
         "repo": "virtual-media-devices",
+        "type": "github"
+      }
+    },
+    "which-key-nvim": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1790551224,
+        "narHash": "sha256-DcgsW0lihSleI6LccUucKWSrJA1IWpbYK1LImw1KMr0=",
+        "owner": "rokokol",
+        "repo": "which-key.nvim",
+        "rev": "f3f5f4fd1fb60a1ea2e8bf04d68ca30dd6adb084",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "ref": "langmap",
+        "repo": "which-key.nvim",
         "type": "github"
       }
     },
