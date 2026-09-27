@@ -1,4 +1,5 @@
 {
+  config,
   lib,
   pkgs,
   ruLayout,
@@ -110,6 +111,15 @@ let
     n = "none";
   };
 
+  # The bookmarks Thunar's side pane shows, beside yazi's own `g h`, `g d` and `g t`. The which
+  # panel cuts a description short, so it is the folder alone
+  bookmarkBinds = map (
+    b:
+    bind [ "g" b.key ] "cd ${lib.escapeShellArg b.path}" (
+      lib.replaceStrings [ config.home.homeDirectory ] [ "~" ] b.path
+    )
+  ) (lib.filter (b: b.key != null) config.rokokol.bookmarks);
+
   linemodeBinds = lib.mapAttrsToList (
     key: mode: bind (leader "u${key}") "linemode ${mode}" "Show ${mode}"
   ) linemodes;
@@ -128,23 +138,10 @@ in
         "git-column"
         "naming"
         "nvim-diff"
+        "recent"
         "tab-hovered"
       ] ownPlugin
       // {
-        places = {
-          package = ownPlugin "places";
-          setup = true;
-          settings = {
-            # Computer stays out: it is the drive menu <Space>m already opens
-            extras = [
-              "home"
-              "recent"
-              "trash"
-            ];
-            # a Cyrillic label takes the key its letter sits on
-            layout = langmap;
-          };
-        };
         # The spot window on `I`. compsize runs through sudo, and nixos/btrfs.nix allows exactly
         # this path without a password; off btrfs, du gives the size on disk
         info = {
@@ -230,7 +227,7 @@ in
         (bind (leader "ao") "plugin archive-mount open" "Open as a folder, read-only")
 
         (bind (leader "m") "plugin mount" "Drives: mount, unmount, eject")
-        (bind (leader "b") "plugin places" "Bookmarks, as in Thunar's side pane")
+        (bind [ "g" "r" ] "plugin recent" "Recent files, via fzf")
 
         (bind (leader "ts") "shell --block $SHELL" "Shell in place, exit returns")
         (bind (leader "xt") "shell --orphan 'thunar .'" "Open Thunar here")
@@ -252,6 +249,7 @@ in
         (bind (leader "xsh") "plugin sudo hardlink" "Hard link")
         (bind (leader "xsc") (onSelection "plugin sudo chmod") "Mode bits")
       ]
+      ++ bookmarkBinds
       ++ sortBinds
       ++ linemodeBinds
       ++ labels;

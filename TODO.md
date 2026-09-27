@@ -20,7 +20,6 @@ The yazi project wants every issue, pull request and commit description written 
 
 - `rename-case.yazi`: the `naming` plugin, with case tables generated from `UnicodeData.txt`, CI, and transliteration for several scripts
 - the `info` plugin, under a name still to choose; before that, its own Base and Image sections instead of the `spot_base` helpers of yazi's built-in plugins
-- the `places` plugin: the GTK bookmarks that Thunar also reads, with Home, Recent and Trash, and a key for each label that a keyboard layout can map
 - the `archive-mount` plugin: an archive opened as a read-only folder through `fuse-archive`, unmounted when no tab looks into it. `fuse-archive.yazi` was tried first and rejected
 
 ## Forks
