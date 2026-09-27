@@ -129,6 +129,7 @@ in
     extraPackages = with pkgs; [
       archivemount
       fuse-archive
+      libnotify
       ripgrep-all
     ];
 

@@ -138,6 +138,32 @@ local function unmount(mount, entry)
 	fs.remove("dir", Url(mount))
 end
 
+-- A watch that outlives yazi for a mount open for editing: yazi has no hook on exit, and a
+-- closed window or a crash would skip one anyway. It ends by itself once yazi unmounts; if
+-- yazi dies first, it unmounts, waits for archivemount's write and tells the desktop. setsid
+-- takes it out of yazi's session, whose hangup would end it too
+local WATCH = [[
+yazi=$1 mount=$2 archive=$3 server=$4 before=$5
+while kill -0 "$yazi" 2>/dev/null && mountpoint -q "$mount"; do sleep 1; done
+mountpoint -q "$mount" || exit 0
+fusermount3 -u "$mount" || exit 1
+tail --pid="$server" -f /dev/null
+rmdir "$mount" 2>/dev/null
+name=${archive##*/}
+[ "$(stat -c %Y "$archive")" = "$before" ] || notify-send Archive "Saved $name, the old one is $name.orig"
+]]
+
+local function watch(mount, entry)
+	Command("setsid")
+		:arg({ "-f", "sh", "-c", WATCH, "archive-mount-watch" })
+		:arg({ tostring(M.pid(read("/proc/self/stat"))), mount, entry.archive, entry.pid })
+		:arg({ string.format("%d", math.floor(entry.mtime)) })
+		:stdin(Command.NULL)
+		:stdout(Command.NULL)
+		:stderr(Command.NULL)
+		:status()
+end
+
 local function open(edit)
 	local archive, name, is_archive = hovered()
 	if not archive or not is_archive then
@@ -178,6 +204,9 @@ local function open(edit)
 		return fail(err)
 	end
 	remember(mount, entry)
+	if entry.pid then
+		watch(mount, entry)
+	end
 	ya.emit("cd", { Url(mount) })
 end
 
