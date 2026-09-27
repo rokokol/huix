@@ -661,5 +661,4 @@ hl.window_rule({
   },
 })
 
-hl.layer_rule({ match = { namespace = "waybar" }, blur = true })
 hl.layer_rule({ match = { namespace = "waybar" }, animation = "slide" })

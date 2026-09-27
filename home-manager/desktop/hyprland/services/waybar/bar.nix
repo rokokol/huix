@@ -7,7 +7,7 @@
 
 let
   cfg = config.rokokol.waybar;
-  style = import ./style.nix { inherit palette; };
+  style = variant: import ./style.nix { inherit palette variant; };
 in
 {
   options.rokokol.waybar = {
@@ -178,8 +178,12 @@ in
       };
     };
 
-    # The bar keeps one dark sheet under either colour scheme — style.css is what
-    # waybar reaches for when no style-light/style-dark sits beside it
-    xdg.configFile."waybar/style.css".text = style;
+    # waybar follows the portal's colour scheme between the two variants; style.css is what it
+    # reaches for when the portal does not answer, and there the bar stays dark
+    xdg.configFile = {
+      "waybar/style-light.css".text = style "light";
+      "waybar/style-dark.css".text = style "dark";
+      "waybar/style.css".text = style "dark";
+    };
   };
 }
