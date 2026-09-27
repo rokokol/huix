@@ -78,15 +78,9 @@ in
       plugins = with pkgs.hyprlandPlugins; [ hyprgrass ];
 
       settings = {
-        # Hyprland's own: a finger landing in the outer gap at the left or right edge drags
-        # the workspace along. A vertical slide there leaves the workspace in place, so it
-        # shares the edges with the sliders below. Its travel is a share of the screen width,
-        # and the stock cancel ratio wants half the screen; 0.1 switches after a short
-        # swipe. The ratio is shared with the touchpad's three-finger swipe, as eager now
-        config.gestures = {
-          workspace_swipe_touch = true;
-          workspace_swipe_cancel_ratio = 0.1;
-        };
+        # The stock cancel ratio wants a swipe across half the screen; 0.1 switches the
+        # workspace after a short one. It also applies to the touchpad's three-finger swipe
+        config.gestures.workspace_swipe_cancel_ratio = 0.1;
 
         config.plugin.hyprgrass = {
           # One knob for every threshold: a swipe and a pinch are recognised after
