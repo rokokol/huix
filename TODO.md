@@ -21,7 +21,7 @@ The yazi project wants every issue, pull request and commit description written 
 - `rename-case.yazi`: the `naming` plugin, with case tables generated from `UnicodeData.txt`, CI, and transliteration for several scripts
 - the `info` plugin, under a name still to choose; before that, its own Base and Image sections instead of the `spot_base` helpers of yazi's built-in plugins
 - the `archive-mount` plugin: an archive opened as a folder, read-only through `fuse-archive` or for editing through `archivemount`, unmounted when no tab looks into it. `fuse-archive.yazi` was tried first and rejected
-- the `recent` plugin: GTK's recently used files, the list Thunar's Recent shows, picked through fzf
+- the `recent` plugin: GTK's recently used files, the list Thunar's Recent shows, picked through fzf. At about 50 lines it is small for a repository of its own, so it may fit better beside another plugin
 
 ## Forks
 

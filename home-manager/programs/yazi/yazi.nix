@@ -46,6 +46,13 @@
 
     settings = {
       mgr = {
+        # touch is horizontal scrolling, which init.lua turns into h and l
+        mouse_events = [
+          "click"
+          "scroll"
+          "touch"
+          "drag"
+        ];
         sort_by = "natural";
         sort_dir_first = true;
         show_symlink = true;

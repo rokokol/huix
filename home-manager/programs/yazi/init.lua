@@ -36,3 +36,21 @@ do
 		rules:remove { id = id }
 	end
 end
+
+-- Horizontal scrolling, a touchpad swipe or a tilted wheel, moves as h and l do. A swipe sends a
+-- run of events, one per line it scrolls, so a run with no gap longer than GAP seconds is one
+-- step: the first event of a run moves, the rest only keep the run going
+do
+	local GAP, last = 0.3, 0
+	function Root:touch(_, step)
+		if tostring(cx.layer) ~= "mgr" then
+			return
+		end
+		local now = ya.time()
+		local fresh = now - last > GAP
+		last = now
+		if fresh then
+			ya.emit(step < 0 and "leave" or "enter", {})
+		end
+	end
+end
