@@ -38,14 +38,22 @@
       color: ${palette.dot};
   }
 
+  /* The one chip shape on the bar; the rules below give each chip only its colour.
+     The shape holds in every state, so a chip that lights up never moves its neighbours */
+  #hardware, #tray, #buttons, #language, #custom-notifications, #workspaces button {
+      border-radius: 10px;
+      margin: 3px 2px;
+  }
+
   /* Machine stats read as a block inside the right panel; the button group on the left
      gets the same chip, so a finger sees where to press, and the layout gets it to stand
      apart from the clock beside it */
   #hardware, #tray, #buttons, #language {
       background: ${palette.rgba.paper "0.07"};
-      border: none;
-      border-radius: 10px;
-      margin: 3px 2px;
+  }
+
+  /* A group's modules pad themselves, so the chip adds only 3px */
+  #hardware, #tray, #buttons {
       padding: 0 3px;
   }
 
@@ -68,7 +76,6 @@
   /* "Do not disturb" mode — the indicator dims into a chip */
   #custom-notifications.dnd {
       background: ${palette.rgba.ash "0.18"};
-      border-radius: 9px;
       color: ${palette.jacket};
   }
 
@@ -82,7 +89,6 @@
 
   #workspaces button {
       padding: 0 3px;
-      border-radius: 9px;
       color: ${palette.dot};
   }
 
