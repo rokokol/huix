@@ -122,6 +122,7 @@ in
 
     plugins =
       lib.genAttrs [
+        "find-line"
         "git-column"
         "naming"
         "nvim-diff"
@@ -193,17 +194,14 @@ in
         (bind (leader "nm") (onSelection "plugin naming camel") "camelCase")
         (bind (leader "nt") (onSelection "plugin naming icao") "Transliterate Cyrillic (ICAO)")
 
-        (bind (leader "ff") "search --via=fd" "Find names")
-        (bind (leader "fg") "search --via=rg" "Find content")
-        (bind (leader "fa") "search --via=rga" "Find content incl. pdf and office")
+        # A search lists every file, even one a .gitignore names: that file is git's business,
+        # and a vault or a project keeps its media there. rga reads plain text as rg does, and
+        # pdf and office files besides. Esc cancels a search, as the stock keymap has it
+        (bind (leader "ff") "search --via=fd --args='--no-ignore-vcs'" "Find names")
+        (bind (leader "fg") "search --via=rga --args='--no-ignore-vcs'" "Find content, pdf and office too")
         (bind (leader "fz") "plugin zoxide" "Jump via zoxide")
         (bind (leader "fs") "plugin fzf" "Jump via fzf")
-        (bind (leader "fc") "escape --search" "Cancel search")
-        # fzf over the hovered file's lines; the line picked opens in nvim. cut, not ${n%%:*}:
-        # yazi reads %% in a shell command as a literal %
-        (bind (leader "fl") ''
-          shell --block 'n=$(grep -nI "" -- %h | fzf --delimiter=: --nth=2.. | cut -d: -f1) && [ -n "$n" ] && nvim "+$n" -- %h'
-        '' "Find a line in the hovered file")
+        (bind (leader "fl") "plugin find-line" "Find a line in the hovered file")
 
         (bind (leader "uh") "hidden toggle" "Hidden files")
         (bind (leader "ug") "plugin git-column" "Git status column")
