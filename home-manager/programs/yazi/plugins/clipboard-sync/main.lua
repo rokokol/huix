@@ -176,17 +176,27 @@ local function paste()
 	local has = function(mime) return ("\n" .. types .. "\n"):find("\n" .. mime:gsub("%p", "%%%0") .. "\n") ~= nil end
 
 	local files = M.files(has(GNOME) and paste_type(bin, GNOME), has(URIS) and paste_type(bin, URIS))
-	local own, own_cut, cwd = yanked()
-	if files and M.same(own, files.paths) then
-		-- Thunar moves a cut it did not put there and cannot clear the clipboard after it, so
-		-- the files may be gone; then the yank is spent, as if pasted here
-		for _, path in ipairs(own) do
-			if not fs.cha(Url(path)) then
-				ya.emit("unyank", {})
-				run(bin .. "/wl-copy", { "--clear" })
-				return ya.notify { title = "Clipboard", content = "The yanked files are gone", level = "info", timeout = 5 }
+	if files then
+		-- Thunar moves a cut that another program put on the clipboard and cannot clear it after,
+		-- so it can name files that are gone, which a yazi task would wait for forever
+		local found = {}
+		for _, path in ipairs(files.paths) do
+			if fs.cha(Url(path)) then
+				found[#found + 1] = path
 			end
 		end
+		if #found < #files.paths then
+			local content = string.format("%d of %d files are gone", #files.paths - #found, #files.paths)
+			ya.notify { title = "Clipboard", content = content, level = "info", timeout = 5 }
+		end
+		if #found == 0 then
+			return run(bin .. "/wl-copy", { "--clear" })
+		end
+		files.paths = found
+	end
+
+	local own, own_cut, cwd = yanked()
+	if files and M.same(own, files.paths) then
 		-- the clipboard holds yazi's own yank: its paste shows progress and can be cancelled
 		ya.emit("paste", {})
 		if own_cut then
