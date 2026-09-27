@@ -32,6 +32,7 @@ let
     t = "Terminals";
     u = "UI";
     x = "Tools";
+    xs = "As root";
   };
 
   # Each Russian character against the Latin key it sits on
@@ -210,6 +211,9 @@ in
 
         (bind (leader "uh") "hidden toggle" "Hidden files")
         (bind (leader "ug") "plugin git-column" "Git status column")
+        (bind (leader "uv") "plugin toggle-pane min-preview" "Preview pane")
+        (bind (leader "uV") "plugin toggle-pane max-preview" "Preview pane, full width")
+        (bind (leader "uP") "plugin toggle-pane min-parent" "Parent pane")
 
         (bind (leader "gg") "shell --block lazygit" "LazyGit")
 
@@ -227,6 +231,22 @@ in
         (bind (leader "ts") "shell --block $SHELL" "Shell in place, exit returns")
         (bind (leader "xt") "shell --orphan 'thunar .'" "Open Thunar here")
         (bind (leader "xd") (onSelection "plugin nvim-diff") "Diff 2 to 8 selected files in nvim")
+        (bind (leader "xc") (onSelection "plugin chmod") "Change the mode bits")
+
+        # sudo.yazi asks for the password each time, and Ctrl+C at the prompt cancels. Paste
+        # and the links take yazi's own yank, not the system clipboard as p does; rename of
+        # several files goes to nvim, and a name that ends in / creates a folder. The group
+        # name says "as root", so the descriptions stay short enough for the which panel
+        (bind (leader "xsp") "plugin sudo paste" "Paste")
+        (bind (leader "xsP") "plugin sudo 'paste --force'" "Paste, replace")
+        (bind (leader "xsr") (onSelection "plugin sudo rename") "Rename")
+        (bind (leader "xsd") (onSelection "plugin sudo remove") "Trash")
+        (bind (leader "xsD") (onSelection "plugin sudo 'remove --permanently'") "Delete")
+        (bind (leader "xsa") "plugin sudo create" "Create")
+        (bind (leader "xsl") "plugin sudo link" "Symlink")
+        (bind (leader "xsL") "plugin sudo 'link --relative'" "Relative link")
+        (bind (leader "xsh") "plugin sudo hardlink" "Hard link")
+        (bind (leader "xsc") (onSelection "plugin sudo chmod") "Mode bits")
       ]
       ++ sortBinds
       ++ linemodeBinds

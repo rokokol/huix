@@ -13,10 +13,13 @@
 
     plugins = {
       inherit (pkgs.yaziPlugins)
+        chmod
         compress
         mime-ext
         mount
         piper
+        sudo
+        toggle-pane
         ;
       # vim counts (5j, 3gg) and numbered lines as in nixvim: the hovered line shows its own
       # number, the others their distance from it
@@ -33,9 +36,11 @@
     };
 
     # compress.yazi calls zip for a .zip; tar and its compressors come with the system. glow
-    # renders Markdown for the previewer below
+    # renders Markdown for the previewer below. sudo.yazi runs its file operations as a nu
+    # script, and sudo keeps the caller's PATH, as no secure_path is set
     extraPackages = with pkgs; [
       glow
+      nushell
       zip
     ];
 
