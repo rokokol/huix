@@ -115,7 +115,10 @@ let
 in
 {
   programs.yazi = {
-    extraPackages = with pkgs; [ ripgrep-all ];
+    extraPackages = with pkgs; [
+      fuse-archive
+      ripgrep-all
+    ];
 
     plugins =
       lib.genAttrs [
@@ -140,7 +143,7 @@ in
           };
         };
         # The spot window on `I`. compsize runs through sudo, and nixos/btrfs.nix allows exactly
-        # this path without a password; elsewhere the row stays empty
+        # this path without a password; off btrfs, du gives the size on disk
         info = {
           package = ownPlugin "info";
           setup = true;
@@ -151,6 +154,11 @@ in
           package = ownPlugin "clipboard-sync";
           setup = true;
           settings.wl_clipboard = "${pkgs.wl-clipboard-rs}/bin";
+        };
+        # setup subscribes to cd, which unmounts the archives no tab looks into
+        archive-mount = {
+          package = ownPlugin "archive-mount";
+          setup = true;
         };
       };
 
@@ -208,6 +216,7 @@ in
         (bind (leader "a7") (onSelection "plugin compress 7z") "Pack into 7z")
         (bind (leader "ap") (onSelection "plugin compress '-ph 7z'") "Pack into 7z with a password")
         (bind (leader "ax") "shell 'ya pub extract --list %s'" "Extract here")
+        (bind (leader "ao") "plugin archive-mount open" "Open as a folder, read-only")
 
         (bind (leader "m") "plugin mount" "Drives: mount, unmount, eject")
         (bind (leader "b") "plugin places" "Bookmarks, as in Thunar's side pane")
