@@ -123,6 +123,7 @@ in
     plugins =
       lib.genAttrs [
         "find-line"
+        "search-ignored"
         "git-column"
         "naming"
         "nvim-diff"
@@ -194,16 +195,17 @@ in
         (bind (leader "nm") (onSelection "plugin naming camel") "camelCase")
         (bind (leader "nt") (onSelection "plugin naming icao") "Transliterate Cyrillic (ICAO)")
 
-        # A search lists every file, even one a .gitignore names: that file is git's business,
-        # and a vault or a project keeps its media there. rga reads plain text as rg does, and
-        # pdf and office files besides. Esc cancels a search, as the stock keymap has it
-        (bind (leader "ff") "search --via=fd --args='--no-ignore-vcs'" "Find names")
-        (bind (leader "fg") "search --via=rga --args='--no-ignore-vcs'" "Find content, pdf and office too")
+        # The searches skip what a .gitignore names until Space u i lets them in, as Space u h
+        # does for hidden files. rga reads plain text as rg does, and pdf and office files
+        # besides. Esc cancels a search, as the stock keymap has it
+        (bind (leader "ff") "plugin search-ignored names" "Find names")
+        (bind (leader "fg") "plugin search-ignored content" "Find content, pdf and office too")
         (bind (leader "fz") "plugin zoxide" "Jump via zoxide")
         (bind (leader "fs") "plugin fzf" "Jump via fzf")
         (bind (leader "fl") "plugin find-line" "Find a line in the hovered file")
 
         (bind (leader "uh") "hidden toggle" "Hidden files")
+        (bind (leader "ui") "plugin search-ignored toggle" "Ignored files in searches")
         (bind (leader "ug") "plugin git-column" "Git status column")
 
         (bind (leader "gg") "shell --block lazygit" "LazyGit")
