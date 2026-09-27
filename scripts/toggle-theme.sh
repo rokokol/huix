@@ -16,8 +16,9 @@ Usage:
 The theme lives at runtime, not in Nix: the script flips color-scheme + gtk-theme
 in dconf, hands rofi's variant to ddlc-rofi-theme, swaps the libadwaita
 ~/.config/gtk-4.0/gtk.css (so libadwaita apps follow too) and points Claude Code's
-~/.claude/themes/ddlc.json at ddlc-light.json or ddlc-dark.json, which Claude Code
-set to custom:ddlc picks up live. The choice is stored durably in
+~/.claude/themes/ddlc.json at ddlc-light.json or ddlc-dark.json in
+$CLAUDE_DDLC_THEMES, which Claude Code set to custom:ddlc picks up live. The choice
+is stored durably in
 ~/.local/state/huix/theme — dconf load on nixos-rebuild resets the theme, --sync
 brings it back
 EOF
@@ -92,13 +93,15 @@ set_libadwaita_css() {
 }
 
 # Claude Code's auto theme picks only its built-in themes, but it reloads its themes directory
-# live, so the theme it is set to (custom:ddlc) is this link, swapped per variant. The directory
-# is shared between hosts, so .stignore-shared keeps the link local to each one
+# live, so the theme it is set to (custom:ddlc) is this link, swapped per variant. The variants
+# live in $CLAUDE_DDLC_THEMES, outside that directory, or each would be listed as a theme of its
+# own. The directory is shared between hosts, so .stignore-shared keeps the link local to each.
+# Best-effort: before a fresh login sets the variable, Claude Code keeps its theme
 set_claude_theme() {
-  local dir="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/themes"
+  local src="${CLAUDE_DDLC_THEMES:-}/ddlc-$1.json"
 
-  [[ -e "$dir/ddlc-$1.json" ]] || return 0
-  ln -sfn "ddlc-$1.json" "$dir/ddlc.json"
+  [[ -n "${CLAUDE_DDLC_THEMES:-}" && -e "$src" ]] || return 0
+  ln -sfn "$src" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/themes/ddlc.json"
 }
 
 detect_theme_state() {

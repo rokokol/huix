@@ -17,4 +17,8 @@ in
 
   # Each shared skill is a checkout of its own repository, so sync.sh sweeps this directory
   home.sessionVariables.SKILLS_DIR = "${sharedDir}/skills";
+
+  # The DDLC Claude Code themes sit outside ~/.claude/themes, which lists every file in it as a
+  # theme; toggle-theme.sh links the current one in as ddlc.json
+  home.sessionVariables.CLAUDE_DDLC_THEMES = "${sharedDir}/ddlc-themes/themes";
 }
