@@ -261,6 +261,16 @@
         );
       };
 
+      # wl-copy offers one MIME type at a time, and a file manager has to offer two with different
+      # data; the patch adds --offer, which yazi's clipboard calls by path (see WORKAROUNDS.md)
+      overlay-wl-clipboard-rs = _final: prev: {
+        wl-clipboard-rs = prev.wl-clipboard-rs.overrideAttrs (previous: {
+          patches = (previous.patches or [ ]) ++ [ ./patches/wl-copy-offer.patch ];
+          # the patch's tests live in the tools package, which a bare `cargo test` skips
+          cargoTestFlags = previous.cargoBuildFlags;
+        });
+      };
+
       # yazi matches a key by the character it types, so the Russian layout misses every
       # binding; the patch adds a vim-style langmap the yazi module fills (see WORKAROUNDS.md)
       overlay-yazi = _final: prev: {
@@ -335,6 +345,7 @@
           overlay-rofi
           overlay-yazi
           overlay-which-key
+          overlay-wl-clipboard-rs
           nix-matlab.overlay
         ];
       };
@@ -350,6 +361,7 @@
           overlay-kitty
           overlay-yazi
           overlay-which-key
+          overlay-wl-clipboard-rs
         ];
       };
 

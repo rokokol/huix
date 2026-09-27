@@ -1,6 +1,7 @@
 {
   lib,
   pkgs,
+  huixDir,
   ruLayout,
   ...
 }:
@@ -23,6 +24,12 @@ let
   onSelection = run: [
     "escape --visual"
     run
+  ];
+
+  # A yank also goes to the system clipboard, and an unyank takes it back from there
+  exported = run: [
+    run
+    "plugin clipboard-sync export"
   ];
 
   ownPlugin =
@@ -120,6 +127,16 @@ in
           setup = true;
           settings.compsize = lib.getExe pkgs.compsize;
         };
+        # wl-clipboard-rs carries the --offer patch (see WORKAROUNDS.md), and the script turns
+        # an image or a text into a file, for Thunar as well
+        clipboard-sync = {
+          package = ownPlugin "clipboard-sync";
+          setup = true;
+          settings = {
+            wl_clipboard = "${pkgs.wl-clipboard-rs}/bin";
+            paste_as_file = "${huixDir}/scripts/paste-as-file.sh";
+          };
+        };
       };
 
     keymap = { inherit langmap; };
@@ -135,6 +152,11 @@ in
         (bind "<Tab>" "tab_switch 1 --relative" "Next tab")
         (bind "<S-Tab>" "tab_switch -1 --relative" "Previous tab")
         (bind "T" "plugin tab-hovered" "Hovered directory in a new tab")
+        (bind "y" (exported "yank") "Copy, to the system clipboard too")
+        (bind "x" (exported "yank --cut") "Cut, to the system clipboard too")
+        (bind "Y" (exported "unyank") "Cancel the copy or cut")
+        (bind "X" (exported "unyank") "Cancel the copy or cut")
+        (bind "<C-v>" "plugin clipboard-sync paste" "Paste the system clipboard")
         (bind "I" "spot" "File info")
         (bind "e" "shell --block 'nvim %s'" "Open in nvim here")
         (bind "E" "shell --orphan 'kitty --detach nvim %s'" "Open in nvim in a new window")
@@ -169,6 +191,7 @@ in
 
         (bind (leader "m") "plugin mount" "Drives: mount, unmount, eject")
         (bind (leader "b") "plugin places" "Bookmarks, as in Thunar's side pane")
+        (bind (leader "p") "plugin clipboard-sync paste" "Paste the system clipboard")
 
         (bind (leader "ts") "shell --block $SHELL" "Shell in place, exit returns")
         (bind (leader "xt") "shell --orphan 'thunar .'" "Open Thunar here")
