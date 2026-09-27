@@ -174,13 +174,32 @@ local short = info.media({ format = { duration = "3.0" }, streams = {} })
 expect("short duration", short.duration, "0:03")
 expect("no bitrate", short.bitrate, nil)
 
--- magick identify -format "%m|%Q|%C": quality means something for a JPEG only
-local jpeg = info.image("JPEG|83|JPEG\n")
+-- magick identify with the format in IDENTIFY: quality means something for a JPEG only, and a
+-- missing EXIF field is empty, with a warning after the line
+local jpeg = info.image("JPEG|83|JPEG|4000x3000|sRGB|Pixel 8|2026:09:01 12:34:56\n")
 expect("jpeg quality", jpeg.quality, "83")
 expect("jpeg compression", jpeg.compression, "JPEG")
-local png = info.image("PNG|92|Zip\n")
+expect("jpeg size", jpeg.size, "4000x3000")
+expect("jpeg color", jpeg.color, "sRGB")
+expect("jpeg camera", jpeg.camera, "Pixel 8")
+expect("jpeg taken", jpeg.taken, "2026-09-01 12:34:56")
+local png = info.image('PNG|92|Zip|64x64|Gray||\nidentify: unknown image property "%[EXIF:Model]"\n')
 expect("png quality", png.quality, nil)
 expect("png compression", png.compression, "Zip")
+expect("png camera", png.camera, nil)
+expect("png taken", png.taken, nil)
+expect("png format", png.format, "PNG")
+
+local image_lines = {}
+for _, line in ipairs(info.image_lines(jpeg)) do
+	image_lines[#image_lines + 1] = line[1] .. "=" .. line[2]
+end
+expect(
+	"image lines",
+	table.concat(image_lines, "; "),
+	"Format=JPEG; Size=4000x3000; Color=sRGB; Quality=83; Compression=JPEG; Camera=Pixel 8; Taken=2026-09-01 12:34:56"
+)
+expect("png lines", #info.image_lines(png), 4)
 
 -- find -printf %y: one letter a node, d for a directory
 local dirs, files = info.count("dffldf")

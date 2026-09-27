@@ -1,7 +1,8 @@
 -- The spot window on `I`, with more than yazi's own spotters show: owner, permissions, the size
 -- on disk with the compression a btrfs gave it, file(1)'s verdict beside the type yazi took, and
 -- a section for the kind of file. Multi-selection, trash, remote and unreadable files keep the
--- spotter they had. The parsers are pure and are what test.lua checks
+-- spotter they had. It also previews images, audio and video with their details under the
+-- picture. The parsers are pure and are what test.lua checks
 local M = {}
 
 -- `compsize -b`: the TOTAL row, in bytes. Referenced counts an extent once for every file that
@@ -181,14 +182,46 @@ function M.media_lines(meta)
 	return lines
 end
 
--- `magick identify -format "%m|%Q|%C"`: the quality is an estimate a JPEG carries and a guess
--- for anything else, so only a JPEG shows it
+-- What `magick identify` prints for M.image: one line, the fields split by |
+M.IDENTIFY = "%m|%Q|%C|%wx%h|%[colorspace]|%[EXIF:Model]|%[EXIF:DateTimeOriginal]\n"
+
+-- The first line of `magick identify -format IDENTIFY`; a warning about a missing EXIF field
+-- follows it. The quality is an estimate a JPEG carries and a guess for anything else, so only
+-- a JPEG shows it, and EXIF writes its date with colons
 function M.image(text)
-	local format, quality, compression = text:match("^([^|]*)|([^|]*)|([^|\n]*)")
+	local fields = {}
+	for field in ((text:match("^[^\n]*") or "") .. "|"):gmatch("([^|]*)|") do
+		fields[#fields + 1] = field ~= "" and field or nil
+	end
+	local format, quality, compression, size, color, camera, taken = table.unpack(fields, 1, 7)
 	return {
+		format = format,
 		quality = format == "JPEG" and quality or nil,
-		compression = compression ~= "" and compression or nil,
+		compression = compression,
+		size = size,
+		color = color,
+		camera = camera,
+		taken = taken and (taken:gsub("^(%d+):(%d+):(%d+)", "%1-%2-%3")),
 	}
+end
+
+-- The lines an image shows in the preview and the spot window, as { label, value }
+function M.image_lines(img)
+	local lines = {}
+	for _, field in ipairs {
+		{ "Format", img.format },
+		{ "Size", img.size },
+		{ "Color", img.color },
+		{ "Quality", img.quality },
+		{ "Compression", img.compression },
+		{ "Camera", img.camera },
+		{ "Taken", img.taken },
+	} do
+		if field[2] then
+			lines[#lines + 1] = field
+		end
+	end
+	return lines
 end
 
 -- `find -printf %y`: a letter a node, `d` for a directory
@@ -277,24 +310,29 @@ end
 local PROBES = {
 	audio = ffprobe,
 	video = ffprobe,
-	image = function(path) return M.image(run("magick", { "identify", "-format", "%m|%Q|%C", path .. "[0]" })) end,
+	image = function(path) return M.image(run("magick", { "identify", "-format", M.IDENTIFY, path .. "[0]" })) end,
 	archive = function(path) return M.archive(run("7zz", { "l", "-slt", "-p", "--", path })) end,
 	pdf = function(path) return M.pdf(run("pdfinfo", { "--", path })) end,
 }
 
-local function media_rows(title, meta)
+-- A section from the { label, value } lines the preview shows too, or one PENDING row while the
+-- probe runs and a "-" when it found nothing
+local function lines_rows(title, lines, first)
 	local rows = { header(title) }
-	if type(meta) ~= "table" then
-		rows[2] = row("Duration", probed(meta))
-		return rows
+	if lines == nil or #lines == 0 then
+		rows[2] = row(first, probed(lines))
 	end
-	local m = M.media(meta)
-	rows[#rows + 1] = row("Duration", m.duration)
-	rows[#rows + 1] = row("Bitrate", m.bitrate)
-	for i, s in ipairs(m.streams) do
-		rows[#rows + 1] = row("Stream " .. i, s)
+	for _, line in ipairs(lines or {}) do
+		rows[#rows + 1] = row(line[1], line[2])
 	end
 	return rows
+end
+
+local function media_rows(title, meta)
+	if meta == nil then
+		return lines_rows(title, nil, "Duration")
+	end
+	return lines_rows(title, type(meta) == "table" and M.media_lines(meta) or {}, "Duration")
 end
 
 -- The section for each kind of file, from its probe's answer, or nil while the probe runs. yazi
@@ -302,15 +340,7 @@ end
 local SECTIONS = {
 	audio = function(_, meta) return media_rows("Audio", meta) end,
 	video = function(_, meta) return media_rows("Video", meta) end,
-	image = function(job, img)
-		local rows = require("image"):spot_base(job)
-		if #rows == 0 then
-			rows = { header("Image") }
-		end
-		rows[#rows + 1] = row("Quality", probed(img, img and img.quality))
-		rows[#rows + 1] = row("Compression", probed(img, img and img.compression))
-		return rows
-	end,
+	image = function(_, img) return lines_rows("Image", img and M.image_lines(img), "Format") end,
 	archive = function(_, a)
 		local got = a or {}
 		return {
@@ -431,14 +461,29 @@ function M:spot(job)
 	draw(probe and probe(path), probe_general(job, path))
 end
 
--- The preview of audio and video: a picture over the lines media_lines gives. For video it is
--- the frame yazi's own previewer takes, which J and K move through; for audio a spectrogram,
--- kept in yazi's cache like any preview image
+-- The preview of images, audio and video: a picture over the lines image_lines or media_lines
+-- gives. For video it is the frame yazi's own previewer takes, which J and K move through; for
+-- audio a spectrogram, made on the first hover and kept in yazi's cache
 local function is_video(job) return job.mime:match("^video/") ~= nil end
+
+-- The previewer yazi would pick for an image, which knows how to turn it into a picture: image
+-- for the common formats, magick and svg for the rest
+local function picture_plugin(job)
+	for _, v in pairs(rt.plugin.previewers:match { file = job.file, mime = job.mime }) do
+		if v.name ~= "info" then
+			return v.name
+		end
+	end
+end
+
+local function is_image(job) return job.mime:match("^image/") ~= nil end
 
 function M:preload(job)
 	if is_video(job) then
 		return require("video"):preload(job)
+	elseif is_image(job) then
+		local name = picture_plugin(job)
+		return true, name and select(2, require(name):preload(job))
 	end
 	local cache = ya.file_cache(job)
 	local cha = cache and fs.cha(cache)
@@ -463,9 +508,16 @@ function M:peek(job)
 	local start = os.clock()
 	local _, err = self:preload(job)
 
+	local path, details = tostring(job.file.path), nil
+	if is_image(job) then
+		details = PROBES.image(path)
+		details = M.image_lines(details)
+	else
+		local meta = ffprobe(path)
+		details = type(meta) == "table" and M.media_lines(meta) or {}
+	end
 	local lines = {}
-	local meta = ffprobe(tostring(job.file.path))
-	for _, line in ipairs(type(meta) == "table" and M.media_lines(meta) or {}) do
+	for _, line in ipairs(details) do
 		lines[#lines + 1] = ui.Line { ui.Span(line[1] .. ": "):style(th.spot.tbl_col), ui.Span(line[2]) }
 	end
 	if err then
@@ -476,8 +528,13 @@ function M:peek(job)
 	local text_h = math.min(#lines + 1, job.area.h // 2)
 	local area = job.area
 	ya.sleep(math.max(0, rt.preview.image_delay / 1000 + start - os.clock()))
-	local cache = ya.file_cache(job)
-	local shown = cache and ya.image_show(cache, ui.Rect { x = area.x, y = area.y, w = area.w, h = area.h - text_h })
+	-- an image in a common format may have no cached copy, and then shows itself
+	local picture = ya.file_cache(job)
+	local cached = picture and fs.cha(picture)
+	if is_image(job) and not (cached and cached.len > 0) then
+		picture = job.file.url
+	end
+	local shown = picture and ya.image_show(picture, ui.Rect { x = area.x, y = area.y, w = area.w, h = area.h - text_h })
 	local top = area.y + (shown and shown.h + 1 or 0)
 	ya.preview_widget(job, {
 		ui.Text(lines):area(ui.Rect { x = area.x, y = top, w = area.w, h = area.y + area.h - top }):wrap(ui.Wrap.YES),

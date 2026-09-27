@@ -60,17 +60,11 @@
           url = "*.md";
           run = ''piper -- CLICOLOR_FORCE=1 glow -w=$w -s=$t "$1"'';
         }
-        # A picture over tags and streams: a video's frame, an audio file's spectrogram
+        # A picture over its details: a video's frame, an audio file's spectrogram, an image.
+        # No preloader makes the spectrogram ahead: it decodes the whole track, and a folder
+        # of an album would cost a minute of CPU for pictures nobody asked for
         {
-          mime = "{audio,video}/*";
-          run = "info";
-        }
-      ];
-
-      # The spectrogram is made ahead like any preview image; a video's frame already is
-      plugin.prepend_preloaders = [
-        {
-          mime = "audio/*";
+          mime = "{audio,video,image}/*";
           run = "info";
         }
       ];
