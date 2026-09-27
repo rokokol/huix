@@ -102,6 +102,7 @@ in
       lib.genAttrs [
         "git-column"
         "naming"
+        "nvim-diff"
         "tab-hovered"
       ] ownPlugin
       // {
@@ -190,6 +191,7 @@ in
 
         (bind (leader "ts") "shell --block $SHELL" "Shell in place, exit returns")
         (bind (leader "xt") "shell --orphan 'thunar .'" "Open Thunar here")
+        (bind (leader "xd") (onSelection "plugin nvim-diff") "Diff 2 to 8 selected files in nvim")
       ]
       ++ sortBinds
       ++ linemodeBinds;
