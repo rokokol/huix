@@ -1,4 +1,4 @@
--- The spot window on `I`, with more than yazi's own spotters show: owner, permissions, the size
+-- The spot window on `I`, with more than yazi's own spotters show: the real path, owner, permissions, the size
 -- on disk with the compression a btrfs gave it, file(1)'s verdict beside the type yazi took, and
 -- a section for the kind of file. Multi-selection, trash, remote and unreadable files keep the
 -- spotter they had. It also previews images, audio and video with their details under the
@@ -365,20 +365,36 @@ local SECTIONS = {
 	end,
 }
 
--- The size the file takes on disk and what file(1) calls it. compsize answers on btrfs alone and
--- only where it is set up; du answers everywhere else. `disk` is false when neither can
+-- The path with every symlink on the way resolved, or nil when realpath cannot resolve it
+local function realpath(path)
+	local output = Command("realpath"):arg({ "--", path }):stdout(Command.PIPED):output()
+	return output and output.status.success and output.stdout:gsub("\n$", "") or nil
+end
+
+-- The real path, the size the file takes on disk and what file(1) calls it. compsize answers on
+-- btrfs alone and only where it is set up; du answers everywhere else. `disk` is false when
+-- neither can
 local function probe_general(job, path)
 	local compsize = compsize_path()
 	local compressed = compsize and M.compsize(run("sudo", { "-n", compsize, "-b", "-x", "--", path }))
 	local du = not compressed and M.du(run("du", { "-sxB1", "--", path }))
 	local verdict = not job.file.cha.is_dir and run("file", { "-b", "--", path }):gsub("\n$", "")
-	return { disk = M.on_disk(compressed or nil, du or nil) or false, verdict = verdict or nil }
+	return {
+		real = realpath(path),
+		disk = M.on_disk(compressed or nil, du or nil) or false,
+		verdict = verdict or nil,
+	}
 end
 
--- Owner, permissions and the probe's answers, or PENDING in their rows while `g` is nil
+-- Name, owner, permissions and the probe's answers, or PENDING in their rows while `g` is nil.
+-- A long path is cut on screen, but `c` copies all of it
 local function general(job, g)
 	local cha = job.file.cha
-	local rows = { header("File") }
+	local rows = {
+		header("File"),
+		row("Name", job.file.name),
+		row("Real path", probed(g, g and g.real)),
+	}
 	if not cha.is_dir then
 		rows[#rows + 1] = row("Size", ya.readable_size(cha.len))
 	end

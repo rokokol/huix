@@ -167,6 +167,10 @@ in
 
     keymap = { inherit langmap; };
 
+    # The spot has nothing else on `c`, so the value under the cursor is copied without the
+    # stock second press
+    keymap.spot.prepend_keymap = [ (bind "c" "copy cell" "Copy the value") ];
+
     # A digit starts a count for relative-motions; tabs switch on <Tab> instead
     keymap.mgr.prepend_keymap =
       map (n: bind (toString n) "plugin relative-motions ${toString n}" "Count ${toString n}") (
