@@ -39,8 +39,9 @@
   }
 
   /* Machine stats read as a block inside the right panel; the button group on the left
-     gets the same chip, so a finger sees where to press */
-  #hardware, #tray, #buttons {
+     gets the same chip, so a finger sees where to press, and the layout gets it to stand
+     apart from the clock beside it */
+  #hardware, #tray, #buttons, #language {
       background: ${palette.rgba.paper "0.07"};
       border: none;
       border-radius: 10px;
@@ -51,6 +52,11 @@
   #clock {
       color: ${palette.blush};
       font-weight: bold;
+      padding: 0 8px;
+  }
+
+  /* A lone module in a chip: its own 5px plus the chip's 3px, as the hardware stats get */
+  #language {
       padding: 0 8px;
   }
 
