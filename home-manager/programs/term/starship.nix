@@ -12,14 +12,17 @@ _:
       format = "$os$username$directory$line_break$character";
       right_format = "$all$cmd_duration$time";
 
+      # Colours are ANSI slots, never hexes: kitty fills them from its DDLC light or dark theme,
+      # so the prompt follows the theme toggle. purple is pink or plum, cyan is rule, and 20 is
+      # natsuki on dark and yuri on light
       character = {
-        success_symbol = "[❯](bold yellow) ";
+        success_symbol = "[❯](bold purple) ";
         error_symbol = "[❯](bold red) ";
         vimcmd_symbol = "[❮](green) ";
       };
 
       username = {
-        style_user = "bold blue";
+        style_user = "bold 20";
         style_root = "bold red";
         format = "[$user]($style) || ";
         disabled = false;
@@ -28,19 +31,19 @@ _:
 
       cmd_duration = {
         min_time = 0;
-        format = "took [$duration](bold yellow) [󱎫](yellow) ";
+        format = "took [$duration](bold cyan) [󱎫](cyan) ";
         show_milliseconds = true;
       };
 
       time = {
         disabled = false;
-        format = "at [$time](bold blue) [󰃰](blue) ";
+        format = "at [$time](bold cyan) [󰃰](cyan) ";
         time_format = "%H:%M";
       };
 
       os = {
         disabled = false;
-        style = "bold blue";
+        style = "bold purple";
       };
 
       # Icons configuration
