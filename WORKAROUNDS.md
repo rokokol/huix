@@ -233,6 +233,46 @@ grep -c 'langmap' "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.yazi
 
 ---
 
+## yazi folds leader groups in its which popup
+
+**Where:** `patches/yazi-which-groups.patch`, applied by `overlay-yazi` in `flake.nix` to `yazi-unwrapped` on both hosts, for the group labels that `home-manager/programs/yazi/keymap.nix` adds to the keymap, the `[which] fold` that `home-manager/programs/yazi/yazi.nix` turns on, and the check in `home-manager/programs/yazi/init.lua` that keeps the labels
+
+**Symptom it prevents:** `Space` opens a popup with every leader chord in one flat list, three columns of them, instead of one row a group as nixvim's which-key shows. yazi has no group in its keymap and no way to name one
+
+**Why this works:** the patch makes `run` optional. A chord without it labels the group its keys open, and is never run. With `[which] fold = true`, the popup folds the chords that need more than one key after the next one into a row under that key, with the label; the option is off by default, so a keymap without labels looks as before
+
+**Removal check:** look for group labels in yazi as nixpkgs ships it
+
+```sh
+grep -c 'is_label' "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.yazi-unwrapped.srcs.code_src)/yazi-config/src/keymap/chord.rs"
+```
+
+`0` -> keep the patch. Anything else -> yazi has its own groups; drop the patch and the overlay line, match how it names a group against `keymap.nix`, then press `Space`
+
+**Upstream:** not proposed yet
+
+---
+
+## yazi waits before its which popup
+
+**Where:** `patches/yazi-which-delay.patch`, applied by `overlay-yazi` in `flake.nix` to `yazi-unwrapped` on both hosts after the groups patch, for the `[which] delay` that `home-manager/programs/yazi/yazi.nix` sets from `whichKeyDelay` in `flake.nix`
+
+**Symptom it prevents:** the popup flashes on every leader chord, however fast it is typed, where nixvim's which-key shows it only when a key is not followed quickly. yazi shows it at once
+
+**Why this works:** with a delay above 0, a popup the keymap opens starts silent and a timer reveals it, unless the chord ends or another starts first, both of which abort the timer; a popup a plugin asks for shows at once. yazi 26 lets a plugin hold the popup back through the `ind-which-activate` hook, but a plugin cannot put it back: `ya.emit()` refuses the chords `cx.which.cands` hands it (`unsupported value included`), so the example in [sxyazi/yazi#3617](https://github.com/sxyazi/yazi/pull/3617) fails on 26.9.1
+
+**Removal check:** look for the option in yazi as nixpkgs ships it
+
+```sh
+grep -c 'delay' "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.yazi-unwrapped.srcs.code_src)/yazi-config/src/which/which.rs"
+```
+
+`0` -> keep the patch. Anything else -> yazi has its own delay; drop the patch and the overlay line, match the option against `yazi.nix`, then press `Space` and wait for the popup
+
+**Upstream:** not proposed yet
+
+---
+
 ## which-key reads keys through 'langmap'
 
 **Where:** `patches/which-key-langmap.patch`, applied by `overlay-which-key` in `flake.nix` to `vimPlugins.which-key-nvim` on both hosts. `home-manager/programs/nixvim/plugins/editor/which-key.nix` takes the plugin from the global `pkgs`, because nixvim builds plugins from its own nixpkgs, which no overlay here reaches

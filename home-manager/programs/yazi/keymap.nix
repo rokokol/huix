@@ -15,6 +15,25 @@ let
 
   bind = on: run: desc: { inherit on run desc; };
 
+  # A chord without `run` names the leader group its keys open, for the which popup to fold
+  # the group under (patches/yazi-which-groups.patch); the names follow nixvim's where the
+  # groups match
+  label = keys: desc: {
+    on = leader keys;
+    inherit desc;
+  };
+
+  labels = lib.mapAttrsToList label {
+    a = "Archive";
+    f = "Find";
+    g = "Git";
+    n = "Name";
+    s = "Sort";
+    t = "Terminals";
+    u = "UI";
+    x = "Tools";
+  };
+
   # Each Russian character against the Latin key it sits on
   langmap = lib.listToAttrs (map (p: lib.nameValuePair p.ru p.en) ruLayout);
 
@@ -194,6 +213,7 @@ in
         (bind (leader "xd") (onSelection "plugin nvim-diff") "Diff 2 to 8 selected files in nvim")
       ]
       ++ sortBinds
-      ++ linemodeBinds;
+      ++ linemodeBinds
+      ++ labels;
   };
 }

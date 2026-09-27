@@ -171,6 +171,9 @@
       };
       base16 = inputs.ddlc-palette.lib.base16;
       ruLayout = import ./lib/ru-layout.nix;
+      # Milliseconds a key popup waits before it shows, in nixvim's which-key and in yazi alike;
+      # which-key's own default, so a fast chord never flashes a popup
+      whichKeyDelay = 200;
 
       commonArgs = {
         inherit
@@ -183,6 +186,7 @@
           rokokolName
           ruLayout
           system
+          whichKeyDelay
           ;
       };
 
@@ -272,10 +276,16 @@
       };
 
       # yazi matches a key by the character it types, so the Russian layout misses every
-      # binding; the patch adds a vim-style langmap the yazi module fills (see WORKAROUNDS.md)
+      # binding, and its which popup lists every chord flat and at once; the patches add a
+      # vim-style langmap, group labels with `[which] fold`, and `[which] delay`, all of which
+      # the yazi module sets (see WORKAROUNDS.md). The delay patch applies on top of the groups
       overlay-yazi = _final: prev: {
         yazi-unwrapped = prev.yazi-unwrapped.overrideAttrs (previous: {
-          patches = (previous.patches or [ ]) ++ [ ./patches/yazi-langmap.patch ];
+          patches = (previous.patches or [ ]) ++ [
+            ./patches/yazi-langmap.patch
+            ./patches/yazi-which-groups.patch
+            ./patches/yazi-which-delay.patch
+          ];
         });
         yaziPlugins = prev.yaziPlugins // {
           compress = prev.yaziPlugins.compress.overrideAttrs {

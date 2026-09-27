@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, whichKeyDelay, ... }:
 
 {
   programs.nixvim.plugins.which-key = {
@@ -8,6 +8,8 @@
     package = pkgs.vimPlugins.which-key-nvim;
     settings = {
       win.border = "rounded";
+      # a plugin's popup, such as marks or registers, shows at once, as in which-key's default
+      delay.__raw = "function(ctx) return ctx.plugin and 0 or ${toString whichKeyDelay} end";
       # langmapper's Cyrillic twins stay bound but out of the popup: every key is read by its
       # Latin place, and a second alphabet beside it only gets in the way
       filter.__raw = ''function(mapping) return not (mapping.lhs or ""):find("[\128-\255]") end'';

@@ -15,7 +15,8 @@ end
 
 -- A prepended chord shadows a stock one only in part: when the keys typed so far complete a
 -- chord, yazi runs it at once, however many longer chords share the start. So a chord that is
--- a prefix of, or equal to, a chord above it goes, which lets the leader take <Space>
+-- a prefix of, or equal to, a chord above it goes, which lets the leader take <Space>. A group
+-- label is a prefix by design and runs nothing, so it stays
 do
 	local rules = km.mgr.rules
 	local seen, doomed = {}, {}
@@ -24,7 +25,7 @@ do
 		for i, key in ipairs(chord.on) do
 			keys[i] = ya.json_encode(key)
 		end
-		if seen[table.concat(keys, "\0")] then
+		if #chord.run > 0 and seen[table.concat(keys, "\0")] then
 			doomed[#doomed + 1] = chord.id
 		end
 		for n = 1, #keys do

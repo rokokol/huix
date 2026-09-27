@@ -1,0 +1,369 @@
+diff --git a/yazi-config/preset/yazi-default.toml b/yazi-config/preset/yazi-default.toml
+index 177fca0..8fe7047 100644
+--- a/yazi-config/preset/yazi-default.toml
++++ b/yazi-config/preset/yazi-default.toml
+@@ -259,3 +259,4 @@ sort_by      	 = "none"
+ sort_sensitive = false
+ sort_reverse 	 = false
+ sort_translit  = false
++fold           = false
+diff --git a/yazi-config/src/keymap/chord.rs b/yazi-config/src/keymap/chord.rs
+index 34f7f06..ea16e88 100644
+--- a/yazi-config/src/keymap/chord.rs
++++ b/yazi-config/src/keymap/chord.rs
+@@ -19,7 +19,7 @@ pub struct Chord {
+ 	pub id:    Id,
+ 	#[serde(deserialize_with = "deserialize_on")]
+ 	pub on:    Vec<Key>,
+-	#[serde(deserialize_with = "deserialize_actions")]
++	#[serde(deserialize_with = "deserialize_actions", default)]
+ 	pub run:   Actions,
+ 	#[serde(default)]
+ 	pub desc:  String,
+@@ -70,6 +70,11 @@ impl Chord {
+
+ 	pub fn desc_or_run(&self) -> Cow<'_, str> { self.desc().unwrap_or_else(|| self.run().into()) }
+
++	/// A chord without `run` labels the group of chords its keys start, for the which
++	/// component, and is never run itself.
++	#[inline]
++	pub fn is_label(&self) -> bool { self.run.is_empty() }
++
+ 	#[inline]
+ 	fn noop(&self) -> bool {
+ 		self.run.len() == 1 && self.run[0].name == "noop" && self.run[0].args.is_empty()
+diff --git a/yazi-config/src/which/which.rs b/yazi-config/src/which/which.rs
+index 69d767e..5fe4f75 100644
+--- a/yazi-config/src/which/which.rs
++++ b/yazi-config/src/which/which.rs
+@@ -10,4 +10,7 @@ pub struct Which {
+ 	pub sort_sensitive: bool,
+ 	pub sort_reverse:   bool,
+ 	pub sort_translit:  bool,
++
++	// Grouping
++	pub fold: bool,
+ }
+diff --git a/yazi-core/src/which/which.rs b/yazi-core/src/which/which.rs
+index 3da2912..9b3d28e 100644
+--- a/yazi-core/src/which/which.rs
++++ b/yazi-core/src/which/which.rs
+@@ -24,12 +24,19 @@ impl Which {
+ 		self.cands.retain(|c| c.on.len() > self.times && c.on[self.times] == key);
+ 		self.times += 1;
+
+-		if self.cands.is_empty() {
++		// A label stays for the which component to name its group, but it neither counts as a
++		// match nor ends the chord
++		let mut runnable = self.cands.iter().enumerate().filter(|(_, c)| !c.is_label());
++		let (first, more) = (runnable.next().map(|(i, _)| i), runnable.next().is_some());
++
++		if first.is_none() {
+ 			self.dismiss(None);
+-		} else if self.cands.len() == 1 {
+-			let chord = self.cands.remove(0);
++		} else if let (Some(i), false) = (first, more) {
++			let chord = self.cands.remove(i);
+ 			self.dismiss(Some(chord));
+-		} else if let Some(i) = self.cands.iter().position(|c| c.on.len() == self.times) {
++		} else if let Some(i) =
++			self.cands.iter().position(|c| !c.is_label() && c.on.len() == self.times)
++		{
+ 			let chord = self.cands.remove(i);
+ 			self.dismiss(Some(chord));
+ 		}
+@@ -52,3 +59,65 @@ impl Which {
+ 		}
+ 	}
+ }
++
++#[cfg(test)]
++mod tests {
++	use std::sync::Once;
++
++	use yazi_config::keymap::Chord;
++
++	use super::*;
++
++	fn chord(on: &str, run: &str) -> ChordArc {
++		Chord {
++			on: on.split(' ').map(|k| k.parse().unwrap()).collect(),
++			run: if run.is_empty() { Default::default() } else { vec![run.parse().unwrap()].into() },
++			..Default::default()
++		}
++		.into()
++	}
++
++	/// What typing `keys` after the first key picks: `None` while the which component stays
++	/// open, `Some(None)` for a dismissal, and `Some(Some(keys))` for the chord it runs.
++	fn pick(cands: Vec<ChordArc>, keys: &str) -> Option<Option<String>> {
++		static INIT: Once = Once::new();
++		INIT.call_once(yazi_shared::init);
++
++		let (tx, mut rx) = mpsc::unbounded_channel();
++		let mut which = Which { tx: Some(tx), cands, times: 1, active: true, ..Default::default() };
++		for key in keys.split(' ') {
++			which.r#type(key.parse().unwrap());
++		}
++		rx.try_recv().ok().map(|c| c.map(|c| c.on()))
++	}
++
++	#[test]
++	fn label_does_not_end_the_chord() {
++		let cands =
++			vec![chord("<Space> a", ""), chord("<Space> a z", "quit"), chord("<Space> a t", "quit")];
++		assert_eq!(pick(cands.clone(), "a"), None);
++		assert_eq!(pick(cands, "a z"), Some(Some("<Space>az".to_owned())));
++	}
++
++	#[test]
++	fn label_is_not_a_second_match() {
++		let cands =
++			vec![chord("<Space> a", ""), chord("<Space> a z", "quit"), chord("<Space> b", "quit")];
++		assert_eq!(pick(cands, "a"), Some(Some("<Space>az".to_owned())));
++	}
++
++	#[test]
++	fn label_alone_dismisses() {
++		let cands =
++			vec![chord("<Space> a", ""), chord("<Space> b", "quit"), chord("<Space> c", "quit")];
++		assert_eq!(pick(cands, "a"), Some(None));
++	}
++
++	#[test]
++	fn chords_without_labels_work_as_before() {
++		let cands =
++			vec![chord("<Space> a z", "quit"), chord("<Space> a t", "quit"), chord("<Space> b", "quit")];
++		assert_eq!(pick(cands.clone(), "a"), None);
++		assert_eq!(pick(cands, "b"), Some(Some("<Space>b".to_owned())));
++	}
++}
+diff --git a/yazi-fm/src/router.rs b/yazi-fm/src/router.rs
+index 96ca463..a27cdef 100644
+--- a/yazi-fm/src/router.rs
++++ b/yazi-fm/src/router.rs
+@@ -45,7 +45,7 @@ impl<'a> Router<'a> {
+ 	fn matches(&mut self, src: Layer, dist: Layer, key: Key) -> bool {
+ 		for chord in &*KEYMAP.chords(src) {
+ 			let Chord { on, .. } = chord.as_ref();
+-			if on.is_empty() || on[0] != key {
++			if on.is_empty() || on[0] != key || (on.len() == 1 && chord.is_label()) {
+ 				continue;
+ 			}
+
+diff --git a/yazi-fm/src/which/cand.rs b/yazi-fm/src/which/cand.rs
+index f6db60c..c3b4e25 100644
+--- a/yazi-fm/src/which/cand.rs
++++ b/yazi-fm/src/which/cand.rs
+@@ -1,16 +1,78 @@
+ use ratatui_core::{buffer::Buffer, layout::Rect, text::{Line, Span}, widgets::Widget};
+-use yazi_config::{THEME, keymap::Chord};
++use yazi_config::{THEME, keymap::{Chord, ChordArc, Key}};
+
+-pub(super) struct Cand<'a> {
+-	cand:  &'a Chord,
+-	times: usize,
++pub(super) enum Cand<'a> {
++	/// A chord, shown with the keys it still needs.
++	Chord { chord: &'a Chord, times: usize },
++	/// The chords that need more than one key after `key`, folded under it.
++	Group { key: &'a Key, label: Option<&'a Chord>, members: Vec<&'a Chord> },
+ }
+
+ impl<'a> Cand<'a> {
+-	pub(super) fn new(cand: &'a Chord, times: usize) -> Self { Self { times, cand } }
++	/// The rows for the candidates, in their order. With `fold`, a chord that needs one more
++	/// key stands alone, and those that need more are folded by their next key, under the label
++	/// that a chord without `run` on the same keys gives the group. Without it, every chord that
++	/// can run is a row of its own.
++	pub(super) fn rows(cands: &'a [ChordArc], times: usize, fold: bool) -> Vec<Self> {
++		if !fold {
++			return cands
++				.iter()
++				.filter(|c| !c.is_label())
++				.map(|c| Self::Chord { chord: c, times })
++				.collect();
++		}
++
++		let mut rows: Vec<Self> = Vec::with_capacity(cands.len());
++		for chord in cands.iter().map(|c| &**c) {
++			// The label of the group whose keys are already typed names no row
++			let Some(key) = chord.on.get(times) else { continue };
++			let single = chord.on.len() == times + 1;
++			if single && !chord.is_label() {
++				rows.push(Self::Chord { chord, times });
++				continue;
++			}
++
++			let group = rows.iter_mut().find_map(|row| match row {
++				Self::Group { key: k, label, members } if *k == key => Some((label, members)),
++				_ => None,
++			});
++			match (group, single) {
++				(Some((label, _)), true) => *label = Some(chord),
++				(Some((_, members)), false) => members.push(chord),
++				(None, true) => rows.push(Self::Group { key, label: Some(chord), members: vec![] }),
++				(None, false) => rows.push(Self::Group { key, label: None, members: vec![chord] }),
++			}
++		}
++
++		// A label with nothing under it has nothing to show, and a single unlabelled chord is
++		// clearer as itself than as a group of one
++		rows
++			.into_iter()
++			.filter_map(|row| match row {
++				Self::Group { members, .. } if members.is_empty() => None,
++				Self::Group { label: None, members, .. } if members.len() == 1 => {
++					Some(Self::Chord { chord: members[0], times })
++				}
++				row => Some(row),
++			})
++			.collect()
++	}
+
+ 	fn keys(&self) -> Vec<String> {
+-		self.cand.on[self.times..].iter().map(ToString::to_string).collect()
++		match self {
++			Self::Chord { chord, times } => chord.on[*times..].iter().map(ToString::to_string).collect(),
++			Self::Group { key, .. } => vec![key.to_string()],
++		}
++	}
++
++	fn desc(&self) -> String {
++		match self {
++			Self::Chord { chord, .. } => chord.desc_or_run().into_owned(),
++			Self::Group { label: Some(label), .. } if !label.desc.is_empty() => {
++				format!("+{}", label.desc_or_run())
++			}
++			Self::Group { members, .. } => format!("+{}", members.len()),
++		}
+ 	}
+ }
+
+@@ -27,14 +89,81 @@ impl Widget for Cand<'_> {
+ 		spans.push(Span::styled(keys[0].clone(), THEME.which.cand.get()));
+
+ 		// Rest keys
+-		spans.extend(keys.iter().skip(1).map(|k| Span::styled(k, THEME.which.rest.get())));
++		spans.extend(keys.iter().skip(1).map(|k| Span::styled(k.clone(), THEME.which.rest.get())));
+
+ 		// Separator
+ 		spans.push(Span::styled(separator, THEME.which.separator_style.get()));
+
+ 		// Description
+-		spans.push(Span::styled(self.cand.desc_or_run(), THEME.which.desc.get()));
++		spans.push(Span::styled(self.desc(), THEME.which.desc.get()));
+
+ 		Line::from(spans).render(area, buf);
+ 	}
+ }
++
++#[cfg(test)]
++mod tests {
++	use super::*;
++
++	fn chord(on: &str, run: &str, desc: &str) -> ChordArc {
++		Chord {
++			on: on.split(' ').map(|k| k.parse().unwrap()).collect(),
++			run: if run.is_empty() { Default::default() } else { vec![run.parse().unwrap()].into() },
++			desc: desc.to_owned(),
++			..Default::default()
++		}
++		.into()
++	}
++
++	fn rows(cands: &[ChordArc], times: usize, fold: bool) -> Vec<String> {
++		Cand::rows(cands, times, fold).iter().map(|r| format!("{} {}", r.keys().join(""), r.desc())).collect()
++	}
++
++	fn show(cands: &[ChordArc], times: usize) -> Vec<String> { rows(cands, times, true) }
++
++	#[test]
++	fn without_fold_every_chord_is_a_row() {
++		let cands = [
++			chord("<Space> c", "quit", "Close"),
++			chord("<Space> a", "", "Archive"),
++			chord("<Space> a z", "quit", "Zip"),
++			chord("<Space> a t", "quit", "Tar"),
++		];
++		assert_eq!(rows(&cands, 1, false), ["c Close", "az Zip", "at Tar"]);
++	}
++
++	#[test]
++	fn folds_by_the_next_key() {
++		let cands = [
++			chord("<Space> c", "quit", "Close"),
++			chord("<Space> a z", "quit", "Zip"),
++			chord("<Space> a", "", "Archive"),
++			chord("<Space> a t", "quit", "Tar"),
++			chord("<Space> u h", "quit", "Hidden"),
++			chord("<Space> u g", "quit", "Git"),
++			chord("<Space> g g", "quit", "LazyGit"),
++			chord("<Space> m", "", "Empty"),
++		];
++		assert_eq!(show(&cands, 1), ["c Close", "a +Archive", "u +2", "gg LazyGit"]);
++	}
++
++	#[test]
++	fn a_typed_group_shows_its_chords() {
++		let cands = [
++			chord("<Space> a", "", "Archive"),
++			chord("<Space> a z", "quit", "Zip"),
++			chord("<Space> a t", "quit", "Tar"),
++		];
++		assert_eq!(show(&cands, 2), ["z Zip", "t Tar"]);
++	}
++
++	#[test]
++	fn a_label_without_a_description_counts() {
++		let cands = [
++			chord("<Space> a", "", ""),
++			chord("<Space> a z", "quit", "Zip"),
++			chord("<Space> a t", "quit", "Tar"),
++		];
++		assert_eq!(show(&cands, 1), ["a +2"]);
++	}
++}
+diff --git a/yazi-fm/src/which/which.rs b/yazi-fm/src/which/which.rs
+index 456d2d8..6801334 100644
+--- a/yazi-fm/src/which/which.rs
++++ b/yazi-fm/src/which/which.rs
+@@ -1,6 +1,6 @@
+ use ratatui_core::{buffer::Buffer, layout::{Constraint, Layout, Rect}, widgets::Widget};
+ use ratatui_widgets::{block::Block, borders::BorderType};
+-use yazi_config::THEME;
++use yazi_config::{THEME, YAZI};
+ use yazi_core::Core;
+ use yazi_widgets::clear::Clear;
+
+@@ -24,8 +24,9 @@ impl Widget for Which<'_> {
+ 			return;
+ 		}
+
++		let rows = Cand::rows(&which.cands, which.times, YAZI.which.fold);
+ 		let cols = THEME.which.cols.get() as usize;
+-		let height = area.height.min(which.cands.len().div_ceil(cols) as u16 + PADDING_Y * 2);
++		let height = area.height.min(rows.len().div_ceil(cols) as u16 + PADDING_Y * 2);
+ 		let area = Rect {
+ 			x: PADDING_X.min(area.width),
+ 			y: area.height.saturating_sub(height + PADDING_Y * 2),
+@@ -56,13 +57,14 @@ impl Widget for Which<'_> {
+ 			.split(inner)
+ 		};
+
+-		for y in 0..inner.height {
+-			for (x, chunk) in chunks.iter().enumerate() {
+-				let Some(cand) = which.cands.get(y as usize * cols + x) else {
+-					break;
++		let mut rows = rows.into_iter();
++		'fill: for y in 0..inner.height {
++			for chunk in chunks.iter() {
++				let Some(row) = rows.next() else {
++					break 'fill;
+ 				};
+
+-				Cand::new(cand, which.times).render(Rect { y: chunk.y + y, height: 1, ..*chunk }, buf);
++				row.render(Rect { y: chunk.y + y, height: 1, ..*chunk }, buf);
+ 			}
+ 		}
+ 	}

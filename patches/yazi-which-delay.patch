@@ -1,0 +1,176 @@
+diff --git a/yazi-actor/src/which/activate.rs b/yazi-actor/src/which/activate.rs
+index a63ab7d..eff7652 100644
+--- a/yazi-actor/src/which/activate.rs
++++ b/yazi-actor/src/which/activate.rs
+@@ -1,6 +1,9 @@
++use std::time::Duration;
++
+ use anyhow::Result;
++use yazi_config::YAZI;
+ use yazi_core::which::WhichSorter;
+-use yazi_macro::{render, succ};
++use yazi_macro::{emit, relay, render, succ};
+ use yazi_parser::{spark::SparkKind, which::ActivateForm};
+ use yazi_shared::{Source, data::Data};
+
+@@ -21,6 +24,7 @@ impl Actor for Activate {
+ 			succ!();
+ 		}
+
++		let from_keymap = cx.source() == Source::Unknown;
+ 		let which = &mut cx.which;
+ 		which.tx = opt.tx;
+ 		which.layer = opt.layer;
+@@ -29,6 +33,20 @@ impl Actor for Activate {
+
+ 		which.active = true;
+ 		which.silent = opt.silent;
++
++		// A component the keymap opens waits for `[which] delay`, so a chord typed fast never
++		// shows it; one a plugin asks for shows at once
++		if let Some(reveal) = which.reveal.take() {
++			reveal.abort();
++		}
++		if !opt.silent && from_keymap && YAZI.which.delay > 0.0 {
++			let delay = Duration::from_secs_f64(YAZI.which.delay);
++			which.silent = true;
++			which.reveal = Some(tokio::spawn(async move {
++				tokio::time::sleep(delay).await;
++				emit!(Call(relay!(which:reveal)));
++			}));
++		}
+ 		succ!(render!());
+ 	}
+
+diff --git a/yazi-actor/src/which/mod.rs b/yazi-actor/src/which/mod.rs
+index fb07775..bfc1049 100644
+--- a/yazi-actor/src/which/mod.rs
++++ b/yazi-actor/src/which/mod.rs
+@@ -1 +1 @@
+-yazi_macro::mod_flat!(activate dismiss);
++yazi_macro::mod_flat!(activate dismiss reveal);
+diff --git a/yazi-actor/src/which/reveal.rs b/yazi-actor/src/which/reveal.rs
+new file mode 100644
+index 0000000..51b8e6e
+--- /dev/null
++++ b/yazi-actor/src/which/reveal.rs
+@@ -0,0 +1,26 @@
++use anyhow::Result;
++use yazi_macro::{render, succ};
++use yazi_parser::VoidForm;
++use yazi_shared::data::Data;
++
++use crate::{Actor, Ctx};
++
++pub struct Reveal;
++
++impl Actor for Reveal {
++	type Form = VoidForm;
++
++	const NAME: &str = "reveal";
++
++	fn act(cx: &mut Ctx, _: Self::Form) -> Result<Data> {
++		let which = &mut cx.which;
++
++		// Only the component the timer was started for, and only while it is still open
++		if which.reveal.take().is_none() || !which.active {
++			succ!();
++		}
++
++		which.silent = false;
++		succ!(render!());
++	}
++}
+diff --git a/yazi-config/preset/yazi-default.toml b/yazi-config/preset/yazi-default.toml
+index 8fe7047..1eb3123 100644
+--- a/yazi-config/preset/yazi-default.toml
++++ b/yazi-config/preset/yazi-default.toml
+@@ -260,3 +260,4 @@ sort_sensitive = false
+ sort_reverse 	 = false
+ sort_translit  = false
+ fold           = false
++delay          = 0.0
+diff --git a/yazi-config/src/which/which.rs b/yazi-config/src/which/which.rs
+index 5fe4f75..1baef4f 100644
+--- a/yazi-config/src/which/which.rs
++++ b/yazi-config/src/which/which.rs
+@@ -13,4 +13,7 @@ pub struct Which {
+
+ 	// Grouping
+ 	pub fold: bool,
++
++	// Seconds the component waits before it shows, for chords typed from the keymap
++	pub delay: f64,
+ }
+diff --git a/yazi-core/src/which/which.rs b/yazi-core/src/which/which.rs
+index 9b3d28e..4d83257 100644
+--- a/yazi-core/src/which/which.rs
++++ b/yazi-core/src/which/which.rs
+@@ -1,4 +1,4 @@
+-use tokio::sync::mpsc;
++use tokio::{sync::mpsc, task::JoinHandle};
+ use yazi_config::keymap::{ChordArc, Key};
+ use yazi_macro::{emit, render_and};
+ use yazi_shared::Layer;
+@@ -13,6 +13,9 @@ pub struct Which {
+ 	// Active state
+ 	pub active: bool,
+ 	pub silent: bool,
++
++	// The timer that shows a component held back by `[which] delay`
++	pub reveal: Option<JoinHandle<()>>,
+ }
+
+ impl Which {
+@@ -50,6 +53,9 @@ impl Which {
+
+ 		self.active = false;
+ 		self.silent = false;
++		if let Some(reveal) = self.reveal.take() {
++			reveal.abort();
++		}
+
+ 		if let Some(tx) = self.tx.take() {
+ 			_ = tx.send(chord.as_ref().map(Into::into));
+diff --git a/yazi-fm/src/executor.rs b/yazi-fm/src/executor.rs
+index aa943ce..4e4323d 100644
+--- a/yazi-fm/src/executor.rs
++++ b/yazi-fm/src/executor.rs
+@@ -380,6 +380,7 @@ impl<'a> Executor<'a> {
+
+ 		on!(activate);
+ 		on!(dismiss);
++		on!(reveal);
+
+ 		succ!();
+ 	}
+diff --git a/yazi-parser/src/spark/spark.rs b/yazi-parser/src/spark/spark.rs
+index 06efa87..a186693 100644
+--- a/yazi-parser/src/spark/spark.rs
++++ b/yazi-parser/src/spark/spark.rs
+@@ -164,6 +164,7 @@ pub enum Spark<'a> {
+ 	// Which
+ 	WhichActivate(crate::which::ActivateForm),
+ 	WhichDismiss(crate::VoidForm),
++	WhichReveal(crate::VoidForm),
+ }
+
+ impl<'a> Spark<'a> {
+@@ -368,6 +369,7 @@ impl<'a> IntoLua for Spark<'a> {
+ 			// Which
+ 			Self::WhichActivate(b) => b.into_lua(lua),
+ 			Self::WhichDismiss(b) => b.into_lua(lua),
++			Self::WhichReveal(b) => b.into_lua(lua),
+ 		}
+ 	}
+ }
+@@ -393,7 +395,8 @@ try_from_spark!(
+ 	mgr:suspend,
+ 	mgr:unyank,
+ 	input:remember,
+-	which:dismiss
++	which:dismiss,
++	which:reveal
+ );
+
+ // App

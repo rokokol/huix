@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, whichKeyDelay, ... }:
 
 # The nixpkgs wrapper already puts the stock previewers' tools on yazi's PATH (7zz, ffmpeg,
 # poppler, imagemagick, chafa, resvg, fd, ripgrep, fzf, zoxide, jq, file)
@@ -44,6 +44,13 @@
         sort_by = "natural";
         sort_dir_first = true;
         show_symlink = true;
+      };
+
+      # The which popup folds each leader group under its label from keymap.nix and waits as
+      # long as nixvim's which-key does; both options come from patches in flake.nix
+      which = {
+        fold = true;
+        delay = whichKeyDelay / 1000.0;
       };
 
       # Markdown reads as rendered text rather than as source; piper hands glow the pane's
