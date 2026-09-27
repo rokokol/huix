@@ -178,6 +178,15 @@ local function paste()
 	local files = M.files(has(GNOME) and paste_type(bin, GNOME), has(URIS) and paste_type(bin, URIS))
 	local own, own_cut, cwd = yanked()
 	if files and M.same(own, files.paths) then
+		-- Thunar moves a cut it did not put there and cannot clear the clipboard after it, so
+		-- the files may be gone; then the yank is spent, as if pasted here
+		for _, path in ipairs(own) do
+			if not fs.cha(Url(path)) then
+				ya.emit("unyank", {})
+				run(bin .. "/wl-copy", { "--clear" })
+				return ya.notify { title = "Clipboard", content = "The yanked files are gone", level = "info", timeout = 5 }
+			end
+		end
 		-- the clipboard holds yazi's own yank: its paste shows progress and can be cancelled
 		ya.emit("paste", {})
 		if own_cut then
