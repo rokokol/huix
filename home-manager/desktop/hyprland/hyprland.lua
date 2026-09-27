@@ -10,7 +10,8 @@
 -------------
 
 local terminal = "kitty"
-local fileManager = "thunar"
+-- home in whatever opens folders, which home-manager/programs/yazi/desktop.nix makes yazi
+local fileManager = "xdg-open ~"
 -- HUIX.menu is set by the generated file, from rokokol.hyprland.menuCommand
 local tabsNum = 4
 local getScreen = 'grim -g "$(slurp -b ffffff66 -w 1 && sleep 0.2)"'

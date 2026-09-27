@@ -36,20 +36,6 @@ _:
       "application/x-cbr" = "org.gnome.Evince.desktop";
       "application/epub+zip" = "org.gnome.Evince.desktop";
 
-      "application/zip" = "xarchiver.desktop";
-      "application/gzip" = "xarchiver.desktop";
-      "application/zstd" = "xarchiver.desktop";
-      "application/x-7z-compressed" = "xarchiver.desktop";
-      "application/x-bzip2" = "xarchiver.desktop";
-      "application/x-rar" = "xarchiver.desktop";
-      "application/x-tar" = "xarchiver.desktop";
-      "application/x-xz" = "xarchiver.desktop";
-      "application/vnd.rar" = "xarchiver.desktop";
-      "application/x-compressed-tar" = "xarchiver.desktop";
-      "application/x-bzip2-compressed-tar" = "xarchiver.desktop";
-      "application/x-xz-compressed-tar" = "xarchiver.desktop";
-      "application/x-zstd-compressed-tar" = "xarchiver.desktop";
-
       "application/octet-stream" = "selectdefaultapplication.desktop";
     };
   };

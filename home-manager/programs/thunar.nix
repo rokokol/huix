@@ -1,15 +1,8 @@
 { pkgs, huixDir, ... }:
 
 {
+  # Folders open in yazi (programs/yazi/desktop.nix); Thunar stays at hand
   home.packages = with pkgs; [ thunar ];
-
-  xdg.mimeApps = {
-    enable = true;
-    defaultApplications = {
-      "inode/directory" = "thunar.desktop";
-      "application/x-directory" = "thunar.desktop";
-    };
-  };
 
   xdg.configFile."Thunar/uca.xml".text = ''
     <?xml version="1.0" encoding="UTF-8"?>
