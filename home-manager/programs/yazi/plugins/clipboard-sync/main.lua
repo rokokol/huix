@@ -186,8 +186,9 @@ local function paste()
 			end
 		end
 		if #found < #files.paths then
+			-- nothing pasted is a failed paste; some pasted is a paste with a warning
 			local content = string.format("%d of %d files are gone", #files.paths - #found, #files.paths)
-			ya.notify { title = "Clipboard", content = content, level = "info", timeout = 5 }
+			ya.notify { title = "Clipboard", content = content, level = #found == 0 and "error" or "warn", timeout = 5 }
 		end
 		if #found == 0 then
 			return run(bin .. "/wl-copy", { "--clear" })
