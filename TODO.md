@@ -12,7 +12,7 @@ The yazi project wants every issue, pull request and commit description written 
 | sxyazi/yazi | group labels and `[which] fold` | `patches/yazi-which-groups.patch`, branch `which-groups` | code and tests ready; screenshots in `~/Pictures/yazi-pr` |
 | sxyazi/yazi | `[which] delay` | `patches/yazi-which-delay.patch`, branch `which-delay`, on top of `which-groups` | code ready |
 | sxyazi/yazi | issue: `ya.emit()` refuses the chords of `cx.which.cands`, so the example in #3617 fails | fix on branch `chordarc-data-any`, one line | facts collected |
-| YaLTeR/wl-clipboard-rs | `wl-copy --offer MIME FILE`, several types at once | `patches/wl-copy-offer.patch`, branch `wl-copy-multi-types` of the wl-clipboard-rs clone | waits for a check that files copied in yazi paste into Thunar |
+| YaLTeR/wl-clipboard-rs | `wl-copy --offer MIME FILE`, several types at once | `patches/wl-copy-offer.patch`, branch `wl-copy-multi-types` of the wl-clipboard-rs clone | sent as [#88](https://github.com/YaLTeR/wl-clipboard-rs/pull/88) |
 | yazi-rs/plugins | `git.yazi`: an option to show and hide its status column | `plugins/git-column` and the wrapper around `Linemode.children_add` in `init.lua`, both of which go once the option exists | not started |
 | folke/which-key.nvim | keys read through `'langmap'` | `patches/which-key-langmap.patch` | optional: no commit upstream since 2025-10 |
 
