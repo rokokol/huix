@@ -1,7 +1,7 @@
 -- The spot window on `I`, with more than yazi's own spotters show: owner, permissions, the size
--- on a compressed btrfs, file(1)'s verdict beside the type yazi took, and a section for the kind
--- of file. Multi-selection, trash, remote and unreadable files keep the spotter they had. The
--- parsers are pure and are what test.lua checks
+-- on disk with the compression a btrfs gave it, file(1)'s verdict beside the type yazi took, and
+-- a section for the kind of file. Multi-selection, trash, remote and unreadable files keep the
+-- spotter they had. The parsers are pure and are what test.lua checks
 local M = {}
 
 -- `compsize -b`: the TOTAL row, in bytes
@@ -9,6 +9,19 @@ function M.compsize(text)
 	local percent, disk, uncompressed = ("\n" .. text):match("\nTOTAL%s+(%d+)%%%s+(%d+)%s+(%d+)")
 	if percent then
 		return { percent = tonumber(percent), disk = tonumber(disk), uncompressed = tonumber(uncompressed) }
+	end
+end
+
+-- `du -sB1`: the bytes the file or the folder takes
+function M.du(text) return tonumber(text:match("^(%d+)%s")) end
+
+-- What the On disk row shows: the compression where compsize found some, else the plain size,
+-- from compsize on an uncompressed btrfs and from du on any other filesystem
+function M.on_disk(compressed, du)
+	if compressed and compressed.disk < compressed.uncompressed then
+		return compressed
+	elseif compressed or du then
+		return { disk = compressed and compressed.disk or du }
 	end
 end
 
@@ -283,13 +296,14 @@ local SECTIONS = {
 	end,
 }
 
--- The size btrfs spends on the file and what file(1) calls it; `disk` is false where compsize
--- is not set up or has nothing to say
+-- The size the file takes on disk and what file(1) calls it. compsize answers on btrfs alone and
+-- only where it is set up; du answers everywhere else. `disk` is false when neither can
 local function probe_general(job, path)
 	local compsize = compsize_path()
-	local disk = compsize and M.compsize(run("sudo", { "-n", compsize, "-b", "-x", "--", path }))
+	local compressed = compsize and M.compsize(run("sudo", { "-n", compsize, "-b", "-x", "--", path }))
+	local du = not compressed and M.du(run("du", { "-sxB1", "--", path }))
 	local verdict = not job.file.cha.is_dir and run("file", { "-b", "--", path }):gsub("\n$", "")
-	return { compsize = compsize ~= nil, disk = disk or false, verdict = verdict or nil }
+	return { disk = M.on_disk(compressed or nil, du or nil) or false, verdict = verdict or nil }
 end
 
 -- Owner, permissions and the probe's answers, or PENDING in their rows while `g` is nil
@@ -304,13 +318,12 @@ local function general(job, g)
 	local group = ya.group_name and ya.group_name(cha.gid) or tostring(cha.gid)
 	rows[#rows + 1] = row("Owner", string.format("%s:%s", user, group))
 
-	if not g or g.compsize then
-		local disk = g and g.disk
-		rows[#rows + 1] = row(
-			"On disk",
-			probed(g, disk and string.format("%s of %s (%d%%)", ya.readable_size(disk.disk), ya.readable_size(disk.uncompressed), disk.percent))
-		)
+	local disk = g and g.disk
+	local size = disk and ya.readable_size(disk.disk)
+	if disk and disk.uncompressed then
+		size = string.format("%s of %s (%d%%)", size, ya.readable_size(disk.uncompressed), disk.percent)
 	end
+	rows[#rows + 1] = row("On disk", probed(g, size))
 	if not cha.is_dir then
 		rows[#rows + 1] = row("file(1)", probed(g, g and g.verdict))
 	end

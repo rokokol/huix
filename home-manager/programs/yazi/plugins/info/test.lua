@@ -24,6 +24,23 @@ expect("uncompressed", disk and disk.uncompressed, 31744)
 expect("percent", disk and disk.percent, 24)
 expect("no total", info.compsize("All empty or still-delalloced files.\n"), nil)
 
+-- du -sB1: the bytes a file or a folder takes, whatever the filesystem
+expect("du", info.du("20480\t/mnt/data/file.bin\n"), 20480)
+expect("du error", info.du("du: cannot access '2024.txt': No such file or directory\n"), nil)
+
+-- On disk: the compression only where there is some, else the plain size
+local packed = info.on_disk({ percent = 24, disk = 7680, uncompressed = 31744 }, nil)
+expect("packed disk", packed and packed.disk, 7680)
+expect("packed of", packed and packed.uncompressed, 31744)
+expect("packed percent", packed and packed.percent, 24)
+local flat = info.on_disk({ percent = 100, disk = 4096, uncompressed = 4096 }, nil)
+expect("uncompressed btrfs", flat and flat.disk, 4096)
+expect("uncompressed btrfs, no ratio", flat and flat.uncompressed, nil)
+local other = info.on_disk(nil, 20480)
+expect("other filesystem", other and other.disk, 20480)
+expect("other filesystem, no ratio", other and other.percent, nil)
+expect("nothing known", info.on_disk(nil, nil), nil)
+
 -- 7z l -slt: a 7z marks a folder by its attributes, a zip by Folder = +
 local seven = info.archive(table.concat({
 	"--",
