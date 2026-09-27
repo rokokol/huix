@@ -1,4 +1,9 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 # yazi's own desktop file asks for a terminal, and xdg-open cannot provide one, so this entry
 # opens it in a kitty window, as nixvim/opener.nix does for nvim. Folders and archives open
@@ -26,6 +31,17 @@ let
     "application/zip"
     "application/zstd"
   ];
+
+  # org.freedesktop.FileManager1 is how a browser or Telegram shows a file in its folder. The
+  # service runs this with the method and the paths, the file:// taken off and the rest still
+  # percent-encoded; gtk-launch takes them back as URIs into the entry below, where yazi opens
+  # a folder or reveals a file. ShowItemProperties reveals too
+  filemanager1 = pkgs.writeShellScript "yazi-filemanager1" ''
+    shift
+    uris=()
+    for path; do uris+=("file://$path"); done
+    exec ${pkgs.gtk3}/bin/gtk-launch yazi-kitty "''${uris[@]}"
+  '';
 in
 lib.mkIf config.programs.yazi.enable {
   xdg.desktopEntries.yazi-kitty = {
@@ -40,4 +56,14 @@ lib.mkIf config.programs.yazi.enable {
     enable = true;
     defaultApplications = lib.genAttrs (folders ++ archives) (_: "yazi-kitty.desktop");
   };
+
+  xdg.configFile."org.freedesktop.FileManager1.common/config".text = ''
+    cmd=${filemanager1}
+  '';
+
+  # Thunar ships a service file for the same name; the bus reads $XDG_DATA_HOME before the
+  # system's folders, so this one is started. A running Thunar still holds the name while it
+  # runs
+  xdg.dataFile."dbus-1/services/org.freedesktop.FileManager1.service".source =
+    "${pkgs.org-freedesktop-filemanager1-common}/share/dbus-1/services/org.freedesktop.FileManager1.service";
 }
