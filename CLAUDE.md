@@ -75,7 +75,7 @@ What neither checker can know, because it is this repository's own:
 
 - **`cfg = config.rokokol.<name>` is bound only when the config is read more than once** — a `let` for a single reference is noise
 - **All user-facing text is English** — every notify-send, rofi prompt, `usage()` and waybar tooltip. The sole exception is `README.md` files, which stay in Russian
-- **Every path in this repository is kebab-case, not only the `.nix` ones** — assets included. The checker judges `.nix` paths alone, because elsewhere it met Cargo, pytest and X11, which choose their own names; here every file is yours, so the wider rule holds and a human keeps it. When renaming, `git mv` and grep the tree for references. The exceptions are conventional root metadata (`README.md`, `LICENSE`, `ASSETS.md`, `WORKAROUNDS.md`, `DEVIATIONS.md`) and the X11 cursor names under `assets/sayori-cursor-v2/cursors/`, which are a protocol
+- **Every path in this repository is kebab-case, not only the `.nix` ones** — assets included. The checker judges `.nix` paths alone, because elsewhere it met Cargo, pytest and X11, which choose their own names; here every file is yours, so the wider rule holds and a human keeps it. When renaming, `git mv` and grep the tree for references. The exceptions are conventional root metadata (`README.md`, `LICENSE`, `ASSETS.md`, `WORKAROUNDS.md`, `DEVIATIONS.md`, `TODO.md`) and the X11 cursor names under `assets/sayori-cursor-v2/cursors/`, which are a protocol
 - **An exception the checker must know goes in `check-nix.allow`**, one line each; an entry that excuses nothing is itself a finding. There is none at the moment
 - Don't touch `system.stateVersion` / `home.stateVersion` unless doing an explicit migration
 
