@@ -301,6 +301,7 @@
             ./patches/yazi-which-groups.patch
             ./patches/yazi-which-delay.patch
           ];
+          requiredSystemFeatures = (previous.requiredSystemFeatures or [ ]) ++ [ "big-parallel" ];
         });
         yaziPlugins = prev.yaziPlugins // {
           compress = prev.yaziPlugins.compress.overrideAttrs {

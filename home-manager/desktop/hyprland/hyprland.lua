@@ -130,10 +130,6 @@ hl.config({
     rounding = 7,
     rounding_power = 2,
 
-    -- opacity of the active and inactive window
-    active_opacity = 1.0,
-    inactive_opacity = 0.98,
-
     shadow = {
       enabled = true,
       range = 4,
@@ -238,7 +234,7 @@ hl.animation({ leaf = "zoomFactor", enabled = true, speed = 7, bezier = "quick" 
 
 hl.config({
   dwindle = {
-    preserve_split = true,     -- usually what you want
+    preserve_split = true, -- usually what you want
     -- a dragged window lands on the side of the target the cursor is over,
     -- not only in the gaps
     precise_mouse_move = true,
@@ -253,8 +249,8 @@ hl.config({
 
 hl.config({
   misc = {
-    force_default_wallpaper = 2,       -- 0 or 1 -- disable the mascot wallpaper
-    disable_hyprland_logo = false,     -- true -- remove the random Hyprland logo/anime girl
+    force_default_wallpaper = 2,   -- 0 or 1 -- disable the mascot wallpaper
+    disable_hyprland_logo = false, -- true -- remove the random Hyprland logo/anime girl
     -- if the locker died without releasing the lock (hyprlock crash), let a new
     -- instance lock the session again -- otherwise only a tty is left
     allow_session_lock_restore = true,
