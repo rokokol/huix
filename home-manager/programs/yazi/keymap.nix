@@ -183,6 +183,12 @@ in
         (bind "T" "plugin tab-hovered" "Hovered directory in a new tab")
         (bind "y" (exported "yank") "Copy, to the system clipboard too")
         (bind "x" (exported "yank --cut") "Cut, to the system clipboard too")
+        # Beside the stock `c` group, which copies paths and names; wl-copy takes the type from
+        # the content, so an image goes as an image
+        (bind [
+          "c"
+          "t"
+        ] "shell '${pkgs.wl-clipboard-rs}/bin/wl-copy < %h'" "Copy the file's contents")
         (bind "Y" (exported "unyank") "Cancel the copy or cut")
         (bind "X" (exported "unyank") "Cancel the copy or cut")
         # y and x put the files on the system clipboard as well, so one paste reads it all:
