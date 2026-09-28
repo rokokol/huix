@@ -239,7 +239,8 @@ in
         (bind (leader "m") "plugin mount" "Drives: mount, unmount, eject")
         (bind [ "g" "r" ] "plugin recent" "Recent files, via fzf")
 
-        (bind (leader "ts") "shell --block $SHELL" "Shell in place, exit returns")
+        (bind (leader "tf") "shell --block $SHELL" "Shell in place, exit returns")
+        (bind (leader "tn") "shell --orphan 'kitty --detach --directory .'" "New terminal here")
         (bind (leader "xt") "shell --orphan 'thunar .'" "Open Thunar here")
         (bind (leader "xd") (onSelection "plugin nvim-diff") "Diff 2 to 8 selected files in nvim")
         (bind (leader "xc") (onSelection "plugin chmod") "Change the mode bits")

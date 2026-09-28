@@ -4,6 +4,7 @@
   imports = [
     ./colorizer.nix
     ./mini.nix
+    ./render-markdown.nix
     ./neo-tree.nix
     ./telescope.nix
     ./toggleterm.nix
