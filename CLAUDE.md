@@ -23,7 +23,7 @@ nix eval .#nixosConfigurations.nixos-pc.config.system.build.toplevel.drvPath
 
 # Both hosts at once, plus the nixvim init.lua — ~30 s, and what the check job runs
 nix flake check
-nix fmt -- --ci             # nixfmt over every .nix; fails instead of rewriting
+nix fmt -- --ci             # formats every file, and fails if that changed any
 
 # Inputs
 nix flake update            # all
