@@ -9,7 +9,7 @@ The yazi project wants every issue, pull request and commit description written 
 | Upstream | Change | Here | State |
 |---|---|---|---|
 | sxyazi/yazi | `[langmap]` in `keymap.toml` | `patches/yazi-langmap.patch`, branch `langmap` of the yazi clone | code ready |
-| sxyazi/yazi | group labels and `[which] fold` | `patches/yazi-which-groups.patch`, branch `which-groups` | code and tests ready; screenshots in `~/Pictures/yazi-pr` |
+| sxyazi/yazi | group labels and `[which] fold` | `patches/yazi-which-groups.patch`, branch `which-groups` | sent as [#4380](https://github.com/sxyazi/yazi/pull/4380) |
 | sxyazi/yazi | `[which] delay` | `patches/yazi-which-delay.patch`, branch `which-delay`, on top of `which-groups` | code ready |
 | sxyazi/yazi | issue: `ya.emit()` refuses the chords of `cx.which.cands`, so the example in #3617 fails | fix on branch `chordarc-data-any`, one line | facts collected |
 | YaLTeR/wl-clipboard-rs | `wl-copy --offer MIME FILE`, several types at once | the `wl-clipboard-rs` input, branch `wl-copy-multi-types` of the wl-clipboard-rs clone | sent as [#88](https://github.com/YaLTeR/wl-clipboard-rs/pull/88) |

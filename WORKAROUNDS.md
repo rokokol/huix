@@ -249,6 +249,8 @@ grep -c 'is_label' "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.yaz
 
 `0` -> keep the patch. Anything else -> yazi has its own groups; drop the patch and the overlay line, match how it names a group against `keymap.nix`, then press `Space`
 
+**Upstream:** [sxyazi/yazi#4380](https://github.com/sxyazi/yazi/pull/4380), from branch `which-groups` of `~/Projects/yazi`
+
 **Upstream:** not proposed yet
 
 ---
