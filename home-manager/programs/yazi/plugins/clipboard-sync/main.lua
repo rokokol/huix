@@ -77,7 +77,8 @@ function M.pick(types)
 	end
 end
 
--- The types a browser pastes as a picture, where a link to the file would go in as its path
+-- The types a browser pastes as a picture, where a link to the file would go in as its path.
+-- Only pictures: Zen gives a page no video/mp4 from the clipboard, as a paste into GitHub shows
 local PICTURES = { ["image/png"] = true, ["image/jpeg"] = true, ["image/gif"] = true, ["image/webp"] = true }
 
 -- The type to offer a yank's contents in beside its files: only for one picture
