@@ -48,9 +48,11 @@ in
     icon-theme = iconThemeName;
   };
 
+  # The portal's platform theme: the gtk3 one draws GTK's file dialog inside the program and
+  # never asks the portal, which hands Open and Save to yazi (programs/yazi/desktop.nix)
   qt = {
     enable = true;
-    platformTheme.name = "gtk3";
+    platformTheme.name = "xdgdesktopportal";
   };
 
   home.sessionVariables = {
