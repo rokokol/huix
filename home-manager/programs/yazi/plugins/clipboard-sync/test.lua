@@ -56,6 +56,10 @@ for _, source in ipairs { { gnome, nil }, { nil, uris } } do
 end
 expect("copy head", (clipboard.offers({ "/a" }, false)):match("^[^\n]*"), "copy")
 
+-- Pasted as text, the files are their paths as written, one a line, as Thunar gives them
+local _, _, text = clipboard.offers({ "/home/me/a b.txt", "/tmp/ф.md" }, false)
+expect("plain paths", text, "/home/me/a b.txt\n/tmp/ф.md")
+
 -- The same files in any order are the same set; one more or one other is not
 expect("same", clipboard.same({ "/a", "/b" }, { "/b", "/a" }), true)
 expect("one more", clipboard.same({ "/a" }, { "/a", "/b" }), false)
@@ -70,6 +74,15 @@ expect("plain text", clipboard.pick("STRING\ntext/plain\n"), "text/plain")
 expect("links as text", clipboard.pick("text/uri-list\n"), "text/uri-list")
 expect("nothing usable", clipboard.pick("application/x-foo\n"), nil)
 expect("empty", clipboard.pick(""), nil)
+
+-- A yank of one picture offers the picture too, in a type a browser takes; anything else, or
+-- more than one file, offers the files alone
+expect("one png", clipboard.picture(1, "image/png"), "image/png")
+expect("one jpeg", clipboard.picture(1, "image/jpeg"), "image/jpeg")
+expect("two pictures", clipboard.picture(2, "image/png"), nil)
+expect("a raw photo", clipboard.picture(1, "image/x-canon-cr2"), nil)
+expect("a song", clipboard.picture(1, "audio/mpeg"), nil)
+expect("no type", clipboard.picture(1, nil), nil)
 
 if failed > 0 then
 	io.stderr:write(failed .. " failed\n")

@@ -1,13 +1,15 @@
 -- The system clipboard as yazi's own. `export`, run after a yank, offers the yanked files to
--- other programs; `paste` puts what the clipboard holds into the current folder, and with
--- `--force` overwrites a file of the same name instead of picking a free one. Files are copied,
--- or moved when they were cut, as yazi tasks; an image or a text becomes a file of its own. yazi's built-in `clipboard` reads files through the terminal on kitty's paste and only
--- copies them; this one works in any terminal. `files`, `offers`, `same` and `pick` are pure
--- and are what test.lua checks
+-- other programs, and one picture as the picture too; `paste` puts what the clipboard holds
+-- into the current folder, and with `--force` overwrites a file of the same name instead of
+-- picking a free one. Files are copied, or moved when they were cut, as yazi tasks; an image
+-- or a text becomes a file of its own. yazi's built-in `clipboard` reads files through the
+-- terminal on kitty's paste and only copies them; this one works in any terminal. `files`,
+-- `offers`, `same`, `pick` and `picture` are pure and are what test.lua checks
 local M = {}
 
 local GNOME = "x-special/gnome-copied-files"
 local URIS = "text/uri-list"
+local TEXT = "text/plain;charset=utf-8"
 
 -- The local files a clipboard holds, and whether they were cut. `gnome` is the
 -- x-special/gnome-copied-files text, which file managers use and which alone says cut; `uris`
@@ -28,13 +30,16 @@ function M.files(gnome, uris)
 	return #paths > 0 and { cut = cut, paths = paths } or nil
 end
 
--- The gnome-copied-files and uri-list texts that offer these files
+-- The gnome-copied-files and uri-list texts that offer these files, and the plain text of their
+-- paths for a program that pastes text
 function M.offers(paths, cut)
 	local uris = {}
 	for i, path in ipairs(paths) do
 		uris[i] = "file://" .. ya.percent_encode(path)
 	end
-	return (cut and "cut" or "copy") .. "\n" .. table.concat(uris, "\n"), table.concat(uris, "\r\n") .. "\r\n"
+	return (cut and "cut" or "copy") .. "\n" .. table.concat(uris, "\n"),
+		table.concat(uris, "\r\n") .. "\r\n",
+		table.concat(paths, "\n")
 end
 
 -- Whether two lists hold the same files, in any order; two empty lists hold nothing to compare
@@ -65,12 +70,18 @@ function M.pick(types)
 	if image then
 		return image
 	end
-	for _, mime in ipairs { "text/plain;charset=utf-8", "text/plain", URIS } do
+	for _, mime in ipairs { TEXT, "text/plain", URIS } do
 		if has[mime] then
 			return mime
 		end
 	end
 end
+
+-- The types a browser pastes as a picture, where a link to the file would go in as its path
+local PICTURES = { ["image/png"] = true, ["image/jpeg"] = true, ["image/gif"] = true, ["image/webp"] = true }
+
+-- The type to offer a yank's contents in beside its files: only for one picture
+function M.picture(count, mime) return count == 1 and PICTURES[mime] and mime or nil end
 
 function M:setup(opts) self.bin = (opts or {}).wl_clipboard end
 
@@ -121,14 +132,24 @@ local function export()
 		return set_exported(nil)
 	end
 
-	local gnome, uris = M.offers(paths, cut)
+	local gnome, uris, text = M.offers(paths, cut)
 	local dir = os.getenv("XDG_RUNTIME_DIR") or "/tmp"
 	local gnome_file, uris_file = dir .. "/yazi-clipboard-gnome", dir .. "/yazi-clipboard-uris"
-	if not (write(gnome_file, gnome) and write(uris_file, uris)) then
+	local text_file = dir .. "/yazi-clipboard-text"
+	if not (write(gnome_file, gnome) and write(uris_file, uris) and write(text_file, text)) then
 		return fail("Cannot write the offers to " .. dir)
 	end
-	-- wl-copy reads both files before it forks, so they are free again once it returns
-	local _, err = run(bin .. "/wl-copy", { "--offer", GNOME, gnome_file, "--offer", URIS, uris_file })
+	-- wl-copy offers the first text type also as text/plain, STRING and the rest, so the paths
+	-- come first and a text field gets them rather than the file:// links
+	local args = { "--offer", TEXT, text_file, "--offer", GNOME, gnome_file, "--offer", URIS, uris_file }
+	-- one picture goes as the picture too, so a web page takes the image and not its path
+	local mime = #paths == 1 and run("file", { "-b", "--mime-type", "--", paths[1] })
+	local picture = mime and M.picture(1, (mime:gsub("%s+$", "")))
+	if picture then
+		args[#args + 1], args[#args + 2], args[#args + 3] = "--offer", picture, paths[1]
+	end
+	-- wl-copy reads every file before it forks, so they are free again once it returns
+	local _, err = run(bin .. "/wl-copy", args)
 	if err then
 		return fail("wl-copy: " .. err)
 	end
