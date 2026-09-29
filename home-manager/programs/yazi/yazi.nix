@@ -65,13 +65,14 @@
         delay = whichKeyDelay / 1000.0;
       };
 
-      # The stock text/* rule offers only the editor; an HTML page goes to the browser first
+      # The stock text/* rule offers only the editor; Enter keeps it, and the Shift+Enter menu
+      # gains xdg-open, so an HTML page can still reach the browser
       open.prepend_rules = [
         {
-          mime = "text/html";
+          mime = "text/*";
           use = [
-            "open"
             "edit"
+            "open"
             "reveal"
           ];
         }
