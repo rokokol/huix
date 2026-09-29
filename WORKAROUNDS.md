@@ -1,6 +1,6 @@
 # Workarounds
 
-Things in this repo that exist **only** because something upstream is broken or missing. Each entry says what to run to find out whether it is still needed, and what makes it removable. Nothing here is a design decision — deliberate choices belong in the module they live in, not on this list
+Things in this repo that exist **only** because something upstream is broken or missing. Each entry says what to run to find out whether it is still needed, and what makes it removable. Nothing here is a design decision: a permanent choice that differs from the obvious arrangement belongs in `DEVIATIONS.md`
 
 Rules for this file: one entry per workaround, and every entry must carry a **mechanical** removal check (a command whose output decides it), never a date
 
@@ -82,7 +82,7 @@ PropagatesStopTo=graphical-session.target
 
 uwsm's `wayland-session@.target` in turn declares `BindsTo=graphical-session.target`, and the compositor unit `wayland-wm@hyprland.desktop.service` declares `BindsTo=wayland-session@%i.target`. So the stop cascades all the way into the compositor. In the journal this looks like a **clean stop job** — `Stopped Main service for Hyprland` plus `Triggering OnSuccess=`, no `Main process exited`, and the Hyprland log in `/run/user/1000/hypr/<sig>/hyprland.log` just ends mid-render with no backtrace. Easy to misread as a GPU or driver fault; it is neither. Plain Hyprland survives because there the compositor is a bare process, not a systemd unit, so nothing is bound to the target
 
-**Why turning it off is free:** Hyprland does the same work natively — it links `libsystemd` and on startup runs
+**Why this works:** turning the integration off costs nothing, because Hyprland does the same work natively — it links `libsystemd` and on startup runs
 
 ```
 systemctl --user import-environment DISPLAY WAYLAND_DISPLAY HYPRLAND_INSTANCE_SIGNATURE XDG_CURRENT_DESKTOP QT_QPA_PLATFORMTHEME PATH XDG_DATA_DIRS
@@ -249,9 +249,7 @@ grep -c 'is_label' "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.yaz
 
 `0` -> keep the patch. Anything else -> yazi has its own groups; drop the patch and the overlay line, match how it names a group against `keymap.nix`, then press `Space`
 
-**Upstream:** [sxyazi/yazi#4380](https://github.com/sxyazi/yazi/pull/4380), from branch `which-groups` of `~/Projects/yazi`
-
-**Upstream:** not proposed yet
+**Upstream:** [sxyazi/yazi#4380](https://github.com/sxyazi/yazi/pull/4380), from branch `which-groups` of `rokokol/yazi`
 
 ---
 
@@ -291,7 +289,7 @@ grep -c 'langmap' "$(nix build --no-link --print-out-paths --inputs-from . nixpk
 
 `0` on every file -> keep the input. Anything else -> which-key handles `langmap` itself; drop the input, the overlay and the `package` line, then press `<leader>ф` in the Russian layout
 
-**Upstream:** [folke/which-key.nvim#1068](https://github.com/folke/which-key.nvim/pull/1068), from branch `langmap` of `~/Projects/which-key.nvim`; the feature request [#846](https://github.com/folke/which-key.nvim/issues/846) was closed as stale
+**Upstream:** [folke/which-key.nvim#1068](https://github.com/folke/which-key.nvim/pull/1068), from branch `langmap` of `rokokol/which-key.nvim`; the feature request [#846](https://github.com/folke/which-key.nvim/issues/846) was closed as stale
 
 ---
 
@@ -311,7 +309,7 @@ grep -c 'offer' "$(nix build --no-link --print-out-paths --inputs-from . nixpkgs
 
 `0` -> keep the input. Anything else -> wl-copy has its own way; drop the input and the overlay, match the plugin's call to it, then press `y` on a file in yazi and paste it into Thunar
 
-**Upstream:** [YaLTeR/wl-clipboard-rs#88](https://github.com/YaLTeR/wl-clipboard-rs/pull/88), from branch `wl-copy-multi-types` of `~/Projects/wl-clipboard-rs`
+**Upstream:** [YaLTeR/wl-clipboard-rs#88](https://github.com/YaLTeR/wl-clipboard-rs/pull/88), from branch `wl-copy-multi-types` of `rokokol/wl-clipboard-rs`
 
 ---
 
