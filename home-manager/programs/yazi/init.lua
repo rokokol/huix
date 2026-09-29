@@ -13,6 +13,9 @@ do
 	Linemode.children_add = add
 end
 
+-- Every directory yazi enters goes into zoxide's database, as a cd in the shell does
+require("zoxide"):setup { update_db = true }
+
 -- A prepended chord shadows a stock one only in part: when the keys typed so far complete a
 -- chord, yazi runs it at once, however many longer chords share the start. So a chord that is
 -- a prefix of, or equal to, a chord above it goes, which lets the leader take <Space>. A group
