@@ -67,7 +67,7 @@ in
     rokokol.bookmarks = [
       { path = downloadsDir; }
       {
-        key = "a";
+        key = "u";
         path = huixDir;
       }
       {
