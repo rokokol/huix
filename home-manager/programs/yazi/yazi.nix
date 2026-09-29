@@ -65,6 +65,18 @@
         delay = whichKeyDelay / 1000.0;
       };
 
+      # The stock text/* rule offers only the editor; an HTML page goes to the browser first
+      open.prepend_rules = [
+        {
+          mime = "text/html";
+          use = [
+            "open"
+            "edit"
+            "reveal"
+          ];
+        }
+      ];
+
       # Markdown reads as rendered text rather than as source; piper hands glow the pane's
       # width and the terminal's light or dark scheme
       plugin.prepend_previewers = [
