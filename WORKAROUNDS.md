@@ -350,3 +350,25 @@ grep -c 'ya.mgr_emit' "$(nix build --no-link --print-out-paths --inputs-from . n
 Anything but `0` -> keep the patch. `0` -> drop the patch and its line in `overlay-yazi`, then try `5j` in yazi
 
 **Upstream:** [dedukun/relative-motions.yazi#32](https://github.com/dedukun/relative-motions.yazi/pull/32) (open)
+
+---
+
+## `epson_201310w` names its resource file relative to the filter
+
+**Where:** `epson-l120` in `nixos/services/devices/printer.nix`, on the hosts with `rokokol.printer.enable`
+
+**Symptom it prevents:** every job to a queue with `EPSON_L120.ppd` ends in `Filter failed`. The printer gets only a job header and prints nothing. The filter opens `…/resource//nix/store/…/resource/Epson_201310w.1.data`, which does not exist, and exits with code 1
+
+**Why it happens:** the `postFixup` of the nixpkgs package replaces `Epson_201310w.1.data` in the PPD with an absolute store path. The filter prefixes its own resource directory to the value of `*epcgResourceData`, so the path is doubled. Epson's original PPD carries only the file name
+
+**Why this works:** the override puts the plain file name back into the PPD after the package's own `postFixup`, so the filter builds the correct path once
+
+**Removal check:** look at the PPD as nixpkgs ships it
+
+```sh
+grep epcgResourceData "$(nix build --no-link --print-out-paths --inputs-from . nixpkgs#epson_201310w)/share/cups/model/EPSON_L120.ppd"
+```
+
+The value is an absolute path -> keep the override. The value is `"Epson_201310w.1.data"` -> use `pkgs.epson_201310w` directly. The `--replace-fail` of the override then also breaks the build
+
+**Upstream:** not reported yet
