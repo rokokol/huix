@@ -9,10 +9,11 @@
 [![huix](https://img.shields.io/badge/huix-наверх-222222?style=for-the-badge&logo=nixos&logoColor=white)](../../README.md)
 [![home-manager](https://img.shields.io/badge/home--manager-юзер_слой-5E81AC?style=for-the-badge)](../README.md)
 [![nixvim](https://img.shields.io/badge/nixvim-neovim-019733?style=for-the-badge&logo=neovim&logoColor=white)](nixvim/README.md)
+[![yazi](https://img.shields.io/badge/yazi-файлы-FFC107?style=for-the-badge)](yazi/README.md)
 
 Сюда попадают конфиги для программ, которые занимают больше одной строки в `home.packages`. Например, если тянут какие-то свои дополнительные зависимости или имеют нужные мне декларативные настройки. Или просто связанные с ними штуки (_≧m≦_)
 
-Файл на программу; сгруппированы только шелл-утилиты (`cli/`), терминал с шеллом (`term/`), [`nixvim/`](nixvim/README.md) и файловый менеджер `yazi/`. Host-специфики тут нет — программы общие для обоих хостов, разводка по хостам живет в [пакеты desktop-слоя](../desktop/packages)
+Файл на программу; сгруппированы только шелл-утилиты (`cli/`), терминал с шеллом (`term/`), [`nixvim/`](nixvim/README.md) и файловый менеджер [`yazi/`](yazi/README.md). Host-специфики тут нет — программы общие для обоих хостов, разводка по хостам живет в [пакеты desktop-слоя](../desktop/packages)
 
 ## Тонкости
 
