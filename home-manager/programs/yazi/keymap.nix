@@ -52,6 +52,11 @@ let
     "plugin clipboard-sync export"
   ];
 
+  # An interactive zsh, so the prompt has the completion, the aliases and the history of the shell
+  shellPrompt = pkgs.writeScript "yazi-shell-prompt" (
+    "#!${lib.getExe pkgs.zsh} -i\n" + builtins.readFile ./shell-prompt.zsh
+  );
+
   ownPlugin =
     name:
     builtins.path {
@@ -196,6 +201,7 @@ in
         (bind "p" "plugin clipboard-sync paste" "Paste the clipboard")
         (bind "P" "plugin clipboard-sync 'paste --force'" "Paste the clipboard, overwriting")
         (bind "I" "spot" "File info")
+        (bind ":" "shell --block '${shellPrompt} %s'" "Run a shell command, with completion")
         (bind "e" "shell --block 'nvim %s'" "Open in nvim here")
         (bind "E" "shell --orphan 'kitty --detach nvim %s'" "Open in nvim in a new window")
 
