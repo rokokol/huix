@@ -371,4 +371,4 @@ grep epcgResourceData "$(nix build --no-link --print-out-paths --inputs-from . n
 
 The value is an absolute path -> keep the override. The value is `"Epson_201310w.1.data"` -> use `pkgs.epson_201310w` directly. The `--replace-fail` of the override then also breaks the build
 
-**Upstream:** not reported yet
+**Upstream:** [NixOS/nixpkgs#568735](https://github.com/NixOS/nixpkgs/pull/568735) (open)
