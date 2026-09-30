@@ -15,7 +15,7 @@
 
 Всё, что про пользовательское окружение: конфиги приложений, шелл, тема, Hyprland/Waybar, per-user пакеты и systemd-user юниты. Системное (boot, железо, сервисы) — это в [`nixos/`](../nixos/README.md)
 
-HM подключён как NixOS-модуль, поэтому системный и пользовательский слой делят один набор пакетов, а вся настройка пакетов живёт в [`flake.nix`](../flake.nix)
+HM подключён как NixOS-модуль, поэтому системный и пользовательский слой делят один набор пакетов, а вся настройка пакетов живёт на уровне флейка: в [`flake.nix`](../flake.nix) и в [`overlays/`](../overlays)
 
 Точка входа — `home-pc.nix` / `home-laptop.nix`: все значения `rokokol.*` задаются там, а не в модулях. Дальше пакеты в `desktop/packages/`, десктоп в [`desktop/hyprland/`](desktop/hyprland/README.md), тема в `desktop/theme/`, конфиги отдельных программ в [`programs/`](programs/README.md), XDG-каталоги и переменные окружения — в `desktop/user.nix`
 

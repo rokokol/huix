@@ -114,7 +114,7 @@ Note Hyprland's own flake does not change any of this: its `homeManagerModules.d
 
 ## hyprbars button icons take `bar_text_font`
 
-**Where:** `patches/hyprbars-icon-font.patch`, applied by `overlay-hyprland` in `flake.nix` to the plugin from the `hyprland-plugins` flake, for `home-manager/desktop/hyprland/services/titlebars.nix`
+**Where:** `patches/hyprbars-icon-font.patch`, applied by `overlays/hyprland.nix` to the plugin from the `hyprland-plugins` flake, for `home-manager/desktop/hyprland/services/titlebars.nix`
 
 **Symptom it prevents:** the close and fullscreen buttons are Nerd Font glyphs, but hyprbars renders every button icon with the font literal `"sans"` (`barDeco.cpp`, the `renderText` call under `// render icon`), and `bar_text_font` reaches the title only. Which font then draws a private-use glyph is fontconfig's fallback choice among every Nerd Font installed, so the buttons could come out of Doki Nerd Font Mono on one rebuild and DepartureMono on the next
 
@@ -134,7 +134,7 @@ A hit -> keep the patch. No hit -> the plugin renders icons with the configured 
 
 ## rofi from its development branch
 
-**Where:** the `rofi` input in `flake.nix` (`ref=next`, with submodules) and `overlay-rofi`, which builds `rofi-unwrapped` from it on both hosts with the nixpkgs recipe; the wrapper and the rofi plugins take the unwrapped package from the overlay. `preVersionCheck` there matches the `2.0.0-dev` the branch reports
+**Where:** the `rofi` input in `flake.nix` (`ref=next`, with submodules) and `overlays/rofi.nix`, which builds `rofi-unwrapped` from it on both hosts with the nixpkgs recipe; the wrapper and the rofi plugins take the unwrapped package from the overlay. `preVersionCheck` there matches the `2.0.0-dev` the branch reports
 
 **Symptom it prevents:** rofi 2.0.0 on Wayland binds no `wl_touch` and cannot close on a click outside its window: a finger does nothing in the menu the bar button and the bottom-edge swipe open, and the only way out of it is Escape, which a folded laptop has no key for
 
@@ -154,7 +154,7 @@ nix eval --impure --raw --expr '(builtins.getFlake (toString ./.)).inputs.nixpkg
 
 ## blueman connects a device on `row-activated`
 
-**Where:** `patches/blueman-row-activated.patch`, applied by `overlay-blueman` in `flake.nix` on the laptop, the host with `services.blueman.enable`
+**Where:** `patches/blueman-row-activated.patch`, applied by `overlays/blueman.nix` on the laptop, the host with `services.blueman.enable`
 
 **Symptom it prevents:** in blueman-manager a double tap on a device only selects it; connecting needs a mouse. The device list connects on `button-press-event` and acts only when the event is `_2BUTTON_PRESS` (`ManagerDeviceList.py`, `_on_event_clicked`). GDK emulates a pointer press from each touch, but never a double press, so that branch does not run for a finger, however the taps land: measured with a GTK3 tree view under `WAYLAND_DEBUG`, every tap arrived as a single `button-press` and the double tap arrived only as `row-activated`
 
@@ -194,7 +194,7 @@ nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.waybar.version
 
 ## kitty takes a finger on Wayland
 
-**Where:** `patches/kitty-wayland-touch.patch`, applied by `overlay-kitty` in `flake.nix` to `kitty` on the laptop, the host with a touchscreen
+**Where:** `patches/kitty-wayland-touch.patch`, applied by `overlays/kitty.nix` to `kitty` on the laptop, the host with a touchscreen
 
 **Symptom it prevents:** kitty builds its own copy of GLFW, and its Wayland backend binds `wl_pointer` and `wl_keyboard` from the seat and never `wl_touch` (`glfw/wl_init.c`, `seatHandleCapabilities`): a finger on the terminal does nothing, neither a tap nor a scroll
 
@@ -215,7 +215,7 @@ Both `0` -> keep the patch. Only the first non-zero -> GLFW reports touch but ki
 
 ## yazi takes a langmap
 
-**Where:** `patches/yazi-langmap.patch`, applied by `overlay-yazi` in `flake.nix` to `yazi-unwrapped` on both hosts, for the `keymap.langmap` that `home-manager/programs/yazi/keymap.nix` builds from `lib/ru-layout.nix`
+**Where:** `patches/yazi-langmap.patch`, applied by `overlays/yazi.nix` to `yazi-unwrapped` on both hosts, for the `keymap.langmap` that `home-manager/programs/yazi/keymap.nix` builds from `lib/ru-layout.nix`
 
 **Symptom it prevents:** with the Russian layout on, no binding answers: yazi matches a key by the character it types, so `j` arrives as `о`. That holds for plugin menus too, such as the drive list of mount.yazi
 
@@ -235,7 +235,7 @@ grep -c 'langmap' "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.yazi
 
 ## yazi folds leader groups in its which popup
 
-**Where:** `patches/yazi-which-groups.patch`, applied by `overlay-yazi` in `flake.nix` to `yazi-unwrapped` on both hosts, for the group labels that `home-manager/programs/yazi/keymap.nix` adds to the keymap, the `[which] fold` that `home-manager/programs/yazi/yazi.nix` turns on, and the check in `home-manager/programs/yazi/init.lua` that keeps the labels
+**Where:** `patches/yazi-which-groups.patch`, applied by `overlays/yazi.nix` to `yazi-unwrapped` on both hosts, for the group labels that `home-manager/programs/yazi/keymap.nix` adds to the keymap, the `[which] fold` that `home-manager/programs/yazi/yazi.nix` turns on, and the check in `home-manager/programs/yazi/init.lua` that keeps the labels
 
 **Symptom it prevents:** `Space` opens a popup with every leader chord in one flat list, three columns of them, instead of one row a group as nixvim's which-key shows. yazi has no group in its keymap and no way to name one
 
@@ -255,7 +255,7 @@ grep -c 'is_label' "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.yaz
 
 ## yazi waits before its which popup
 
-**Where:** `patches/yazi-which-delay.patch`, applied by `overlay-yazi` in `flake.nix` to `yazi-unwrapped` on both hosts after the groups patch, for the `[which] delay` that `home-manager/programs/yazi/yazi.nix` sets from `whichKeyDelay` in `flake.nix`
+**Where:** `patches/yazi-which-delay.patch`, applied by `overlays/yazi.nix` to `yazi-unwrapped` on both hosts after the groups patch, for the `[which] delay` that `home-manager/programs/yazi/yazi.nix` sets from `whichKeyDelay` in `flake.nix`
 
 **Symptom it prevents:** the popup flashes on every leader chord, however fast it is typed, where nixvim's which-key shows it only when a key is not followed quickly. yazi shows it at once
 
@@ -275,7 +275,7 @@ grep -c 'delay' "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.yazi-u
 
 ## which-key reads keys through 'langmap'
 
-**Where:** the `which-key-nvim` input in `flake.nix`, which `overlay-which-key` builds as `vimPlugins.which-key-nvim` on both hosts. `home-manager/programs/nixvim/plugins/editor/which-key.nix` takes the plugin from the global `pkgs`, because nixvim builds plugins from its own nixpkgs, which no overlay here reaches
+**Where:** the `which-key-nvim` input in `flake.nix`, which `overlays/which-key.nix` builds as `vimPlugins.which-key-nvim` on both hosts. `home-manager/programs/nixvim/plugins/editor/which-key.nix` takes the plugin from the global `pkgs`, because nixvim builds plugins from its own nixpkgs, which no overlay here reaches
 
 **Symptom it prevents:** in the Russian layout, `<leader>ф` opens an empty or half-empty popup instead of the `<leader>a` group. which-key reads every key after a prefix itself through `getcharstr()`, and Neovim applies `langmap` only to keys it reads itself. So `ф` walks into langmapper's Cyrillic twins, which the `filter` in `which-key.nix` hides
 
@@ -295,7 +295,7 @@ grep -c 'langmap' "$(nix build --no-link --print-out-paths --inputs-from . nixpk
 
 ## wl-copy offers several MIME types
 
-**Where:** the `wl-clipboard-rs` input in `flake.nix`, which `overlay-wl-clipboard-rs` builds as `wl-clipboard-rs` on both hosts. The yazi plugin `clipboard-sync`, set up in `home-manager/programs/yazi/keymap.nix`, calls this `wl-copy` by its store path; the `wl-copy` on the PATH stays the one from wl-clipboard
+**Where:** the `wl-clipboard-rs` input in `flake.nix`, which `overlays/wl-clipboard-rs.nix` builds as `wl-clipboard-rs` on both hosts. The yazi plugin `clipboard-sync`, set up in `home-manager/programs/yazi/keymap.nix`, calls this `wl-copy` by its store path; the `wl-copy` on the PATH stays the one from wl-clipboard
 
 **Symptom it prevents:** files copied in yazi paste into Telegram but not into Thunar, or the other way round. A file manager has to offer `text/uri-list`, which most programs read, and `x-special/gnome-copied-files`, which Thunar reads alone and which alone says the files were cut. The two hold different text, and every `wl-copy` offers one content under one type
 
@@ -315,7 +315,7 @@ grep -c 'offer' "$(nix build --no-link --print-out-paths --inputs-from . nixpkgs
 
 ## compress.yazi from its main branch
 
-**Where:** the `compress-yazi` input in `flake.nix`, swapped into `yaziPlugins.compress` by `overlay-yazi` on both hosts, for the archive keys in `home-manager/programs/yazi/keymap.nix`
+**Where:** the `compress-yazi` input in `flake.nix`, swapped into `yaziPlugins.compress` by `overlays/yazi.nix` on both hosts, for the archive keys in `home-manager/programs/yazi/keymap.nix`
 
 **Symptom it prevents:** packing anything fails at once, and yazi's task list shows `attempt to call a nil value (field 'unique_name')`. The plugin's last tag, the one nixpkgs packages, still calls `fs.unique_name()`, which yazi 26 replaced with `fs.unique()`
 
@@ -327,7 +327,7 @@ grep -c 'offer' "$(nix build --no-link --print-out-paths --inputs-from . nixpkgs
 grep -c 'fs.unique_name' "$(nix build --no-link --print-out-paths --inputs-from . nixpkgs#yaziPlugins.compress)/main.lua"
 ```
 
-Anything but `0` -> keep the input. `0` -> nixpkgs ships the fix; drop the input and its line in `overlay-yazi`, then pack a zip from yazi
+Anything but `0` -> keep the input. `0` -> nixpkgs ships the fix; drop the input and its line in `overlays/yazi.nix`, then pack a zip from yazi
 
 **Upstream:** fixed on [KKV9/compress.yazi](https://github.com/KKV9/compress.yazi) main, no tag carries it yet
 
@@ -335,7 +335,7 @@ Anything but `0` -> keep the input. `0` -> nixpkgs ships the fix; drop the input
 
 ## relative-motions.yazi calls `ya.emit`
 
-**Where:** `patches/relative-motions-ya-emit.patch`, applied by `overlay-yazi` in `flake.nix` to `yaziPlugins.relative-motions` on both hosts, for the counts and line numbers in `home-manager/programs/yazi/`
+**Where:** `patches/relative-motions-ya-emit.patch`, applied by `overlays/yazi.nix` to `yaziPlugins.relative-motions` on both hosts, for the counts and line numbers in `home-manager/programs/yazi/`
 
 **Symptom it prevents:** a count shows in the status bar (`5j`) and the cursor stays where it was. The plugin moves the cursor through `ya.mgr_emit()`, which yazi 26 no longer has
 
@@ -347,7 +347,7 @@ Anything but `0` -> keep the input. `0` -> nixpkgs ships the fix; drop the input
 grep -c 'ya.mgr_emit' "$(nix build --no-link --print-out-paths --inputs-from . nixpkgs#yaziPlugins.relative-motions)/main.lua"
 ```
 
-Anything but `0` -> keep the patch. `0` -> drop the patch and its line in `overlay-yazi`, then try `5j` in yazi
+Anything but `0` -> keep the patch. `0` -> drop the patch and its line in `overlays/yazi.nix`, then try `5j` in yazi
 
 **Upstream:** [dedukun/relative-motions.yazi#32](https://github.com/dedukun/relative-motions.yazi/pull/32) (open)
 

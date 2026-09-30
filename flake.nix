@@ -155,13 +155,7 @@
   };
 
   outputs =
-    {
-      nixpkgs,
-      nixpkgs-stable,
-      home-manager,
-      nix-matlab,
-      ...
-    }@inputs:
+    { nixpkgs, nix-matlab, ... }@inputs:
 
     let
       system = "x86_64-linux";
@@ -217,146 +211,16 @@
         cudaCapabilities = [ "8.6" ];
       };
 
-      overlay-stable = _final: _prev: {
-        stable = import nixpkgs-stable {
-          inherit system;
-          config = nixpkgsConfig;
-        };
-      };
+      # Every file in overlays/ is one overlay, named after the file; a host picks the ones it
+      # wants by that name
+      overlays = nixpkgs.lib.mapAttrs' (
+        file: _:
+        nixpkgs.lib.nameValuePair (nixpkgs.lib.removeSuffix ".nix" file) (
+          import ./overlays/${file} (commonArgs // { inherit nixpkgsConfig; })
+        )
+      ) (builtins.readDir ./overlays);
 
-      # The compositor, its portal and the two plugins come from their flakes, built against
-      # one Hyprland revision; under the nixpkgs names, so programs.hyprland, the HM module,
-      # xdg.portal and every script's PATH take them without a line each. hyprbars draws its
-      # button icons with a hard-coded font (see WORKAROUNDS.md)
-      overlay-hyprland = _final: prev: {
-        inherit (inputs.hyprland.packages.${system}) hyprland xdg-desktop-portal-hyprland;
-        hyprlandPlugins = prev.hyprlandPlugins // {
-          hyprgrass = inputs.hyprgrass.packages.${system}.default;
-          hyprbars = inputs.hyprland-plugins.packages.${system}.hyprbars.overrideAttrs (previous: {
-            patches = (previous.patches or [ ]) ++ [ ./patches/hyprbars-icon-font.patch ];
-          });
-        };
-      };
-
-      # rofi from its development branch (see WORKAROUNDS.md). The wrapper and every plugin
-      # take the unwrapped package from the overlay, so nothing else changes
-      overlay-rofi = _final: prev: {
-        rofi-unwrapped = prev.rofi-unwrapped.overrideAttrs {
-          version = "2.0.0-unstable-${inputs.rofi.lastModifiedDate}";
-          src = inputs.rofi;
-          # The branch reports itself as 2.0.0-dev, not by the date the lock gives it
-          preVersionCheck = "version=2.0.0-dev";
-        };
-      };
-
-      # blueman connects a device on a raw double-click event, which a touchscreen never
-      # produces; the patch moves that to the tree view's own activation (see WORKAROUNDS.md)
-      overlay-blueman = _final: prev: {
-        blueman = prev.blueman.overrideAttrs (previous: {
-          patches = (previous.patches or [ ]) ++ [ ./patches/blueman-row-activated.patch ];
-        });
-      };
-
-      # kitty's own copy of GLFW binds no wl_touch, so a finger does nothing in it; the patch
-      # makes the first finger a click, a scroll or a selection (see WORKAROUNDS.md)
-      overlay-kitty = _final: prev: {
-        kitty = prev.kitty.overrideAttrs (previous: {
-          patches = (previous.patches or [ ]) ++ [ ./patches/kitty-wayland-touch.patch ];
-        });
-      };
-
-      # which-key reads the keys after a prefix itself, so 'langmap' never reaches them and a
-      # Russian key finds only langmapper's hidden twins; the branch applies it (see WORKAROUNDS.md)
-      overlay-which-key = _final: prev: {
-        vimPlugins = prev.vimPlugins.extend (
-          _: previous: {
-            which-key-nvim = previous.which-key-nvim.overrideAttrs { src = inputs.which-key-nvim; };
-          }
-        );
-      };
-
-      # wl-copy offers one MIME type at a time, and a file manager has to offer two with different
-      # data; the branch adds --offer, which yazi's clipboard calls by path (see WORKAROUNDS.md)
-      overlay-wl-clipboard-rs = final: prev: {
-        wl-clipboard-rs = prev.wl-clipboard-rs.overrideAttrs (previous: {
-          version = "0.9.3-unstable-${inputs.wl-clipboard-rs.lastModifiedDate}";
-          src = inputs.wl-clipboard-rs;
-          # read from the branch's own lock, so no vendor hash goes stale on an input update
-          cargoDeps = final.rustPlatform.importCargoLock {
-            lockFile = "${inputs.wl-clipboard-rs}/Cargo.lock";
-          };
-          # the branch's tests live in the tools package, which a bare `cargo test` skips
-          cargoTestFlags = previous.cargoBuildFlags;
-        });
-      };
-
-      # yazi matches a key by the character it types, so the Russian layout misses every
-      # binding, and its which popup lists every chord flat and at once; the patches add a
-      # vim-style langmap, group labels with `[which] fold`, and `[which] delay`, all of which
-      # the yazi module sets (see WORKAROUNDS.md). The delay patch applies on top of the groups
-      overlay-yazi = _final: prev: {
-        yazi-unwrapped = prev.yazi-unwrapped.overrideAttrs (previous: {
-          patches = (previous.patches or [ ]) ++ [
-            ./patches/yazi-langmap.patch
-            ./patches/yazi-which-groups.patch
-            ./patches/yazi-which-delay.patch
-          ];
-          requiredSystemFeatures = (previous.requiredSystemFeatures or [ ]) ++ [ "big-parallel" ];
-        });
-        yaziPlugins = prev.yaziPlugins // {
-          compress = prev.yaziPlugins.compress.overrideAttrs {
-            version = "0.6-unstable-${inputs.compress-yazi.lastModifiedDate}";
-            src = inputs.compress-yazi;
-          };
-          relative-motions = prev.yaziPlugins.relative-motions.overrideAttrs (previous: {
-            patches = (previous.patches or [ ]) ++ [ ./patches/relative-motions-ya-emit.patch ];
-          });
-        };
-      };
-
-      mkHost =
-        {
-          configuration,
-          home,
-          overlays,
-        }:
-        nixpkgs.lib.nixosSystem {
-          specialArgs = commonArgs;
-          modules = [
-            configuration
-            inputs.virtual-media-devices.nixosModules.default
-            inputs.skvpn.nixosModules.default
-            inputs.telegram-skill.nixosModules.default
-
-            {
-              nixpkgs.hostPlatform = system;
-              nixpkgs.config = nixpkgsConfig;
-              nixpkgs.overlays = overlays;
-            }
-
-            home-manager.nixosModules.home-manager
-            {
-              home-manager = {
-                useGlobalPkgs = true;
-                useUserPackages = true;
-                backupFileExtension = "bak";
-                sharedModules = [
-                  inputs.zen-browser.homeModules.default
-                  inputs.hyprland-screen-shader.homeModules.default
-                  inputs.rofi-wooordhunt.homeModules.default
-                  inputs.ddlc-rofi-theme.homeModules.default
-                  inputs.claude-account.homeModules.default
-                  inputs.virtual-media-devices.homeModules.default
-                  inputs.papers-skill.homeModules.default
-                ];
-
-                extraSpecialArgs = commonArgs;
-
-                users.${rokokolName} = import home;
-              };
-            }
-          ];
-        };
+      mkHost = import ./lib/mk-host.nix { inherit commonArgs nixpkgsConfig; };
     in
     assert
       paletteNodes == [ "ddlc-palette" ]
@@ -366,12 +230,12 @@
         configuration = ./nixos/configuration-pc.nix;
         home = ./home-manager/home-pc.nix;
         overlays = [
-          overlay-stable
-          overlay-hyprland
-          overlay-rofi
-          overlay-yazi
-          overlay-which-key
-          overlay-wl-clipboard-rs
+          overlays.stable
+          overlays.hyprland
+          overlays.rofi
+          overlays.yazi
+          overlays.which-key
+          overlays.wl-clipboard-rs
           nix-matlab.overlay
         ];
       };
@@ -380,72 +244,20 @@
         configuration = ./nixos/configuration-laptop.nix;
         home = ./home-manager/home-laptop.nix;
         overlays = [
-          overlay-stable
-          overlay-hyprland
-          overlay-rofi
-          overlay-blueman
-          overlay-kitty
-          overlay-yazi
-          overlay-which-key
-          overlay-wl-clipboard-rs
+          overlays.stable
+          overlays.hyprland
+          overlays.rofi
+          overlays.blueman
+          overlays.kitty
+          overlays.yazi
+          overlays.which-key
+          overlays.wl-clipboard-rs
         ];
       };
 
       formatter.${system} = pkgs.nixfmt-tree;
 
-      # nix flake check already evaluates both hosts. The nixvim entries add the one thing
-      # evaluation cannot say: whether the Lua nixvim assembles out of every module is
-      # parseable — nixvim runs stylua over the generated init.lua, so a syntax error fails
-      # the build.
-      # nix-lint holds every .nix file here to the standard the skill carries. It runs in a
-      # build sandbox, so it leaves out the rules that need this flake's inputs; the eval
-      # job runs the whole checker through apps.check-nix, where the inputs are there
-      checks.${system} =
-        nixpkgs.lib.mapAttrs' (
-          name: cfg:
-          nixpkgs.lib.nameValuePair "nixvim-init-${name}"
-            cfg.config.home-manager.users.${rokokolName}.programs.nixvim.build.initFile
-        ) inputs.self.nixosConfigurations
-        // {
-          nix-lint = inputs.nix-best-practices.lib.mkCheck {
-            inherit pkgs;
-            root = ./.;
-            namespaces = [ "rokokol" ];
-          };
-
-          # The scripts against stubbed commands: every keyword rotate-screen.sh and
-          # tablet-mode.sh emit is asserted here, where there is no compositor to ask
-          script-tests =
-            pkgs.runCommand "script-tests"
-              {
-                nativeBuildInputs = with pkgs; [ jq ];
-                scripts = builtins.path {
-                  name = "huix-scripts";
-                  path = ./scripts;
-                };
-              }
-              ''
-                bash "$scripts/tests/run.sh"
-                touch "$out"
-              '';
-
-          # The pure half of yazi's own plugins, under plain Lua with yazi's globals stubbed
-          yazi-plugin-tests =
-            pkgs.runCommand "yazi-plugin-tests"
-              {
-                nativeBuildInputs = with pkgs; [ lua5_4 ];
-                plugins = builtins.path {
-                  name = "huix-yazi-plugins";
-                  path = ./home-manager/programs/yazi/plugins;
-                };
-              }
-              ''
-                for test in "$plugins"/*/test.lua; do
-                  (cd "$(dirname "$test")" && lua test.lua)
-                done
-                touch "$out"
-              '';
-        };
+      checks.${system} = import ./checks.nix (commonArgs // { inherit pkgs; });
 
       # `nix run .#check-nix -- -N rokokol` — the whole checker, pinned by flake.lock rather
       # than looked up at the moment a job runs
