@@ -947,11 +947,11 @@
     "rofi": {
       "flake": false,
       "locked": {
-        "lastModified": 1790322392,
-        "narHash": "sha256-yyCJLU8mUkbQ+mhBT9ax7TStDLDtBYDUO6OA5MaQjPY=",
+        "lastModified": 1790856183,
+        "narHash": "sha256-NlyPrTooEOsILhbq2dw08IHEp4YUKySK03PQReb+zc0=",
         "ref": "next",
-        "rev": "b5f7e007952d8db4365576db1ca3472d347d5af9",
-        "revCount": 4353,
+        "rev": "1ad1df6b72d4c8b0e40e8ced1249ef8a8a6bc0ad",
+        "revCount": 4358,
         "submodules": true,
         "type": "git",
         "url": "https://github.com/davatorium/rofi"
