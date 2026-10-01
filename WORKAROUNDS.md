@@ -63,7 +63,7 @@ grep -A1 'notifyOpts =' "$(nix eval --raw .#nixosConfigurations.nixos-pc.pkgs.pa
 
 No `ns.enable` in the condition -> keep `wall`. `ns.enable` is in it -> `wall` becomes a free choice
 
-**Upstream:** not reported yet
+**Upstream:** [NixOS/nixpkgs#569022](https://github.com/NixOS/nixpkgs/pull/569022) (the same change with a NixOS test, open)
 
 ---
 
