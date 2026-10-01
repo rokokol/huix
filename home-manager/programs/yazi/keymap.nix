@@ -226,8 +226,8 @@ in
 
         (bind (leader "uh") "hidden toggle" "Hidden files")
         (bind (leader "ug") "plugin git-column" "Git status column")
-        (bind (leader "uv") "plugin toggle-pane min-preview" "Preview pane")
-        (bind (leader "uV") "plugin toggle-pane max-preview" "Preview pane, full width")
+        (bind (leader "uV") "plugin toggle-pane min-preview" "Preview pane")
+        (bind (leader "uv") "plugin toggle-pane max-preview" "Preview pane, full width")
         (bind (leader "uP") "plugin toggle-pane min-parent" "Parent pane")
 
         (bind (leader "gg") "shell --block lazygit" "LazyGit")
