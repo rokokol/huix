@@ -1131,11 +1131,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1790191257,
-        "narHash": "sha256-W3KPidVKVSqkeJ3TXMED8y+QVXUYU/N9wSPOfwUGdUI=",
+        "lastModified": 1790801216,
+        "narHash": "sha256-wldoWL4oINv7zjVWVN6qmFLI9NLUITf3cPmzO9Fk1U8=",
         "owner": "rokokol",
         "repo": "telegram-skill",
-        "rev": "0864d8aea04b00fcce26e7c7f9e80c4d93f91d0c",
+        "rev": "a458986f01f43f7e4c80ac58ff2d82ca16dfbc59",
         "type": "github"
       },
       "original": {
