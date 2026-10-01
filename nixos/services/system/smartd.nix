@@ -13,8 +13,10 @@
 
     # -a watches health, attributes and the error and self-test logs. The long test starts at
     # 19:00 on Saturday and Sunday, and the slowest disk needs 85 minutes, so it ends before 21:00.
-    # The short test runs at 14:00 each day and at 20:00 on weekdays, away from the long test
-    defaults.monitored = "-a -s (L/../../[67]/19|S/../.././14|S/../../[1-5]/20)";
+    # The short test runs at 14:00 each day and at 20:00 on weekdays, away from the long test.
+    # -I 194 stops the tracking of the temperature attribute: it changes on most polls and fills
+    # the journal with lines that are not alerts. NVMe disks have no such attribute and ignore it
+    defaults.monitored = "-a -I 194 -s (L/../../[67]/19|S/../.././14|S/../../[1-5]/20)";
 
     notifications = {
       # Sends the alert to the desktop notification daemon of the graphical session
