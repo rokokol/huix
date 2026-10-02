@@ -21,7 +21,15 @@ in
     settings.devices = {
       laptop.id = "IACQG6Z-QHUKT7Y-EZXPKTH-BIT3LJR-BCXTRV6-FZZK3LB-SUKSHBR-UG44GAM";
       nixos-pc.id = "MNSJ7QK-4YOWUOS-3O5MSOT-UXON7VW-PZFY2YC-34MDG2H-UHTWJ7H-QLTDKQV";
-      phone.id = "QAMHANE-X4B6XWI-45LGTZD-AH4BHDX-FHVWOWE-SBEHXO2-JL5TXBK-CBIUAQB";
+      phone = {
+        id = "QAMHANE-X4B6XWI-45LGTZD-AH4BHDX-FHVWOWE-SBEHXO2-JL5TXBK-CBIUAQB";
+        # The phone never announces its tailnet address: the tailscale endpoint of its
+        # sing-box makes no system interface, so Syncthing there cannot see it
+        addresses = [
+          "dynamic"
+          "tcp://mobile-1:22000"
+        ];
+      };
     };
 
     # Claude Code shared state (chats, memory, plugins) — ext4, PC-only, no account cookies
