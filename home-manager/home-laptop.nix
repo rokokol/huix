@@ -1,4 +1,4 @@
-{ huixDir, ... }:
+{ ... }:
 
 {
   imports = [
@@ -11,13 +11,14 @@
 
     hyprland = {
       enable = true;
-      monitorScale = 1.33;
+      # A broken EDID leaves only the kernel's fallback modes, and preferred then takes the
+      # first of them, 640x480; highres takes the biggest
+      monitorMode = "highres";
       touchpadNaturalScroll = true;
       lidNoSleep = true;
       tabletMode = true;
       titlebars = true;
       touchGestures = true;
-      wallpaperImage = "${huixDir}/assets/say-sketch2.webp";
     };
 
     waybar = {
@@ -44,6 +45,16 @@
     name = "wacom-pen-and-multitouch-sensor-pen";
     output = "eDP-1";
   };
+
+  # Only the built-in panel is scaled; an external screen keeps the default scale of 1
+  wayland.windowManager.hyprland.settings.monitor = [
+    {
+      output = "eDP-1";
+      mode = "preferred";
+      position = "auto";
+      scale = 1.33;
+    }
+  ];
 
   # Forwards AVRCP commands from Bluetooth headphones (tap, wear sensor) to MPRIS players
   services.mpris-proxy.enable = true;

@@ -37,6 +37,12 @@ in
       description = "the scale of every monitor no rule names";
     };
 
+    monitorMode = lib.mkOption {
+      type = lib.types.str;
+      default = "preferred";
+      description = "the mode of every monitor no rule names: preferred, highres, highrr, maxwidth or WxH@Hz";
+    };
+
     kbOptions = lib.mkOption {
       type = lib.types.str;
       default = osConfig.services.xserver.xkb.options;
@@ -101,13 +107,16 @@ in
           };
         };
 
-        # The rule with no output is the fallback for every monitor
-        monitor = {
-          output = "";
-          mode = "preferred";
-          position = "auto";
-          scale = cfg.monitorScale;
-        };
+        # The rule with no output is the fallback for every monitor; a list, so a host can add
+        # rules for named outputs
+        monitor = [
+          {
+            output = "";
+            mode = cfg.monitorMode;
+            position = "auto";
+            scale = cfg.monitorScale;
+          }
+        ];
 
         on = lib.optional (cfg.wallpaperImage != null) {
           _args = [

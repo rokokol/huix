@@ -55,7 +55,6 @@ hl.on("hyprland.start", function()
     "hyprctl eval 'hl.config({ cursor = { no_hardware_cursors = 1 } })' && "
     .. "hyprctl eval 'hl.config({ cursor = { no_hardware_cursors = 0 } })'"
   )
-
   -- also runs on every reload below (config.reloaded), like the original
   -- "exec = ..." line, which unlike "exec-once" fires again on every reload
   hl.exec_cmd(HUIX.scripts .. "/toggle-theme.sh --sync")
