@@ -17,6 +17,9 @@
     # Russian destinations leave directly: the exit refuses them fail-closed
     direct.russia.enable = true;
 
+    # Torrents leave directly, so the exit's address never joins a swarm
+    direct.bittorrent.enable = true;
+
     # With no profile up, AI services are refused rather than reached from a Russian address
     guard.ai.enable = true;
   };
