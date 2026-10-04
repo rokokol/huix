@@ -23,5 +23,8 @@
 
     # With no profile up, AI services are refused rather than reached from a Russian address
     guard.ai.enable = true;
+
+    # DNS-over-TLS through the proxy goes to Quad9 rather than the module's default
+    dns.remoteServer = "9.9.9.9";
   };
 }
