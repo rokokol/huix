@@ -9,6 +9,11 @@
     # The daemon punches out on its own; this opens the direct UDP path so peers reach it
     # without falling back to a DERP relay
     openFirewall = true;
+
+    # Shell between my machines is Tailscale SSH: the ssh section of the tailnet policy decides
+    # who logs in as whom, with no keys. It reuses the host keys in /etc/ssh while they exist,
+    # so a host key pinned elsewhere stays valid
+    extraSetFlags = [ "--ssh" ];
   };
 
   # Peers on the tailnet reach services bound on this host; the tailnet policy decides which

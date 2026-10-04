@@ -15,7 +15,6 @@
         hostName = "nixos-pc";
         protocol = "ssh-ng";
         sshUser = rokokolName;
-        sshKey = "/home/${rokokolName}/.ssh/id_ed25519";
         systems = [ "x86_64-linux" ];
         maxJobs = 4;
         speedFactor = 4;

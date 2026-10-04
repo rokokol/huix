@@ -17,7 +17,6 @@
     ./system/skvpn.nix
     ./system/smartd.nix
     ./system/sops.nix
-    ./system/sshd.nix
     ./system/tailscale.nix
     ./tools/libre-translate.nix
     ./tools/paper-search.nix
