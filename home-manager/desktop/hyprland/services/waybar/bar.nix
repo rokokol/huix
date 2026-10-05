@@ -35,6 +35,9 @@ in
 
       settings = {
         mainBar = {
+          output = lib.optional (
+            config.rokokol.hyprland.primaryMonitor != ""
+          ) config.rokokol.hyprland.primaryMonitor;
           layer = "top";
           position = "top";
           height = 24;
@@ -74,6 +77,7 @@ in
           # hidden and stays off the bar; an urgent one has no icon of its own here, the
           # urgent class in style.nix marks it
           "ext/workspaces" = {
+            all-outputs = true;
             format = "{icon}";
             on-click = "activate";
             sort-by-number = true;
@@ -82,6 +86,10 @@ in
               "2" = "🧁";
               "3" = "🍵";
               "4" = "🎹";
+              "5" = "🌸";
+              "6" = "🍓";
+              "7" = "🌙";
+              "8" = "🫧";
               active = "✒️";
               default = "🤍";
             };

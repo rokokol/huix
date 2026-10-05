@@ -11,6 +11,7 @@
 
     hyprland = {
       enable = true;
+      primaryMonitor = "eDP-1";
       # A broken EDID leaves only the kernel's fallback modes, and preferred then takes the
       # first of them, 640x480; highres takes the biggest
       monitorMode = "highres";

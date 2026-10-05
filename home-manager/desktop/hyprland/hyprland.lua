@@ -13,17 +13,12 @@ local terminal = "kitty"
 -- home in whatever opens folders, which home-manager/programs/yazi/desktop.nix makes yazi
 local fileManager = "xdg-open ~"
 -- HUIX.menu is set by the generated file, from rokokol.hyprland.menuCommand
-local tabsNum = 4
+local workspaces = dofile(HUIX.scripts .. "/../home-manager/desktop/hyprland/workspaces.lua")
 local getScreen = 'grim -g "$(slurp -b ffffff66 -w 1 && sleep 0.2)"'
 
--- The wheel cycles through the tab workspaces 1..tabsNum: the workspace that is offset
--- steps away from the active one, wrapping around. A function, so the active workspace
--- is read at press time and no shell is spawned
 local function tab(offset, dispatcher)
   return function()
-    local id = hl.get_active_workspace().id
-    local target = tostring(((id - 1 + offset) % tabsNum) + 1)
-    hl.dispatch(dispatcher(target))
+    workspaces.step(offset, dispatcher)
   end
 end
 local function focusWorkspace(target)
@@ -267,7 +262,13 @@ hl.config({
 -----------
 
 -- touchpad gestures
-hl.gesture({ fingers = 3, direction = "horizontal", action = "workspace" })
+hl.gesture({ fingers = 3, direction = "horizontal", action = workspaces.swipe() })
+if hl.plugin.hyprgrass then
+  hl.plugin.hyprgrass.gesture({
+    pattern = { kind = "swipe", fingers = 3, direction = "horizontal" },
+    action = workspaces.swipe(true),
+  })
+end
 -- two-finger pinch screen zoom (a live magnifier around the cursor). The
 -- mouse_up/mouse_down binds (wheel zoom below) work ONLY with a physical mouse
 -- wheel -- on the touchpad scroll binds never fire at all, so on the laptop the
@@ -484,7 +485,7 @@ hl.bind("SUPER + SHIFT + 0", hl.dsp.window.move({ workspace = "10" }))
 hl.bind("SUPER + S", hl.dsp.workspace.toggle_special("magic"))
 hl.bind("SUPER + SHIFT + S", hl.dsp.window.move({ workspace = "special:magic" }))
 
--- Mouse wheel cycles through the tab workspaces (1..tabsNum)
+-- Each output has its own cycle; see workspaces.lua
 hl.bind("SUPER + mouse_down", tab(1, focusWorkspace))
 hl.bind("SUPER + mouse_up", tab(-1, focusWorkspace))
 hl.bind("SUPER + SHIFT + mouse_down", tab(1, moveToWorkspace))

@@ -1,6 +1,9 @@
-_:
+{ inputs, system, ... }:
 
 {
+  # Hyprland loads Mesa into its process, so both must use a compatible glibc
+  hardware.graphics.package = inputs.hyprland.inputs.nixpkgs.legacyPackages.${system}.mesa;
+
   # Essential for Intel
   services.thermald.enable = true;
   services.tlp = {

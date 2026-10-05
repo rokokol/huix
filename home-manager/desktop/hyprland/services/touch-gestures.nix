@@ -95,14 +95,6 @@ in
         };
 
         "plugin.hyprgrass.gesture" = [
-          {
-            pattern = {
-              kind = "swipe";
-              fingers = 3;
-              direction = "horizontal";
-            };
-            action = "workspace";
-          }
           # The bar's scroll-driven modules are out of a finger's reach: the bar takes the
           # touch sequence and answers no wheel while a touch is down, so the brightness and
           # the volume have sliders along the edges instead

@@ -6,7 +6,7 @@
 [![scripts](https://img.shields.io/badge/scripts-скрипты-4EAA25?style=for-the-badge&logo=gnubash&logoColor=white)](../../../../../scripts/README.md)
 [![screen-shader](https://img.shields.io/badge/screen--shader-эффекты-FF4088?style=for-the-badge&logo=opengl&logoColor=white)](https://github.com/rokokol/hyprland-screen-shader)
 
-Один бар на ПК и ноут, собранный из компонентов: база в `bar.nix`, весь CSS в `style.nix`, дальше файл на каждую возможность — индикатор GPU, батарея, подсветка, шейдеры, уведомления, память со swap, кнопки лаунчера и экранной клавиатуры. Хост только включает нужные флаги `rokokol.waybar.*` в `home-<host>.nix`. Бар следует переключению темы
+Один бар на ПК и ноут, собранный из компонентов: база в `bar.nix`, весь CSS в `style.nix`, дальше файл на каждую возможность — индикатор GPU, батарея, подсветка, шейдеры, уведомления, память со swap, кнопки лаунчера и экранной клавиатуры. Хост только включает нужные флаги `rokokol.waybar.*` в `home-<host>.nix`. Бар следует переключению темы и отображается только на основном экране, который задаёт `rokokol.hyprland.primaryMonitor`
 
 ## Индикаторы и управление
 

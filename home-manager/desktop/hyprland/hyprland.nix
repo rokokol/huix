@@ -40,6 +40,12 @@ in
       description = "the scale of every monitor no rule names";
     };
 
+    primaryMonitor = lib.mkOption {
+      type = lib.types.str;
+      default = "";
+      description = "Primary output for the workspace group and Waybar";
+    };
+
     monitorMode = lib.mkOption {
       type = lib.types.str;
       default = "preferred";
@@ -139,6 +145,7 @@ in
         HUIX = {
           menu = ${toLua cfg.menuCommand},
           scripts = ${toLua "${huixDir}/scripts"},
+          primaryMonitor = ${toLua cfg.primaryMonitor},
         }
         dofile(${toLua "${huixDir}/home-manager/desktop/hyprland/hyprland.lua"})
       '';
