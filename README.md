@@ -4,7 +4,7 @@
 
 # huix
 
-**Мой NixOS-флейк на два хоста — десктоп с NVIDIA/CUDA и ноут, оба на Hyprland** （´ω｀♡%）
+**Мой NixOS-флейк — десктоп с NVIDIA/CUDA и ноут на Hyprland плюс домашний сервер без экрана** （´ω｀♡%）
 
 ![NixOS](https://img.shields.io/badge/NixOS-unstable-5277C3?style=flat&logo=nixos&logoColor=white)
 ![Nix](https://img.shields.io/badge/Nix-flakes-7EBAE4?style=flat&logo=nixos&logoColor=white)
@@ -28,6 +28,13 @@ rebuild                                        # алиас на то же дл�
 rebuilds                                       # то же, но пакеты с зеркала Яндекса — если проблемы с сетью
 ```
 
+Станция своего чекаута не держит: её собирает ПК и заливает по Tailscale SSH
+
+```sh
+nixos-rebuild switch --flake .#nixos-station --target-host rokokol@nixos-station --sudo --ask-sudo-password
+nix build .#station-boot-test -L   # станция в виртуалках рядом с роутером и ПК, только по запросу
+```
+
 При смене железа:
 
 ```sh
@@ -47,6 +54,7 @@ nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHW
 | -------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | `nixos-pc`     | `nixos/configuration-pc.nix` + `home-manager/home-pc.nix`         | NVIDIA/CUDA, `ollama-cuda`, SearxNG, виртуализация, печать, планшет, виртуальная камера, Steam, тяжёлый creative-стек |
 | `nixos-laptop` | `nixos/configuration-laptop.nix` + `home-manager/home-laptop.nix` | трансформер: тачскрин с жестами, перо, автоповорот и режим планшета; CPU-only `ollama-cpu`, Bluetooth, батарея и подсветка в баре, тумблер "крышка не усыпляет" |
+| `nixos-station` | `nixos/configuration-station.nix` + `home-manager/home-station.nix` | сервер без рабочего стола: принимает restic-бэкапы остальных машин в append-only, следит, что они не пропадают, шлёт алерты почтой и будит ПК по сети |
 
 ## Карта репозитория
 
@@ -81,7 +89,7 @@ nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHW
 
 - `SUPER+A` переключает светлую/темную темы на лету — она выбирается в рантайме и переживает ребилд, декларативно она нигде не настроена
 - цвета тут не выбираются вообще: [ddlc-palette](https://github.com/rokokol/ddlc-palette) снимает их с ddlc.moe и отдаёт готовыми, темы приложений приезжают собранными из своих репо. Хекс в модуле — повод спросить, почему он не оттуда
-- все сервисы слушают только `127.0.0.1`, наружу firewall не открывает ничего — [подробнее](nixos/services/README.md#сеть)
+- сервисы слушают только `127.0.0.1`, кроме приёмника бэкапов на станции, а наружу firewall не открывает ничего — [подробнее](nixos/services/README.md#сеть)
 
 <br/>
 

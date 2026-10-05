@@ -1,6 +1,6 @@
 { commonArgs, nixpkgsConfig }:
 # One NixOS system with Home Manager inside it; the host brings its configuration, its home
-# and the overlays it wants, and everything else is the same on both
+# and the overlays it wants, and everything else is the same on every host
 {
   configuration,
   home,

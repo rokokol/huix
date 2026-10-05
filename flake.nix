@@ -170,7 +170,7 @@
       pkgs = nixpkgs.legacyPackages.${system};
       rokokolName = "rokokol";
       huixDir = "/home/${rokokolName}/huix";
-      # Same on both hosts on purpose: absolute paths into the vault travel through Syncthing
+      # Same on every host on purpose: absolute paths into the vault travel through Syncthing
       myWikiDir = "/home/${rokokolName}/myWiki";
       # Read by two modules that never meet: the XDG bookmarks and the sync unit's sweep
       projectsDir = "/home/${rokokolName}/Projects";
@@ -290,7 +290,7 @@
           meta.description = "Hold this repository to the standard nix-best-practices carries";
         };
 
-        # `nix run .#drv-diff` — both hosts and every check, here and at another revision
+        # `nix run .#drv-diff` — every host and every check, here and at another revision
         drv-diff = {
           type = "app";
           program = nixpkgs.lib.getExe inputs.nix-best-practices.packages.${system}.drv-diff;

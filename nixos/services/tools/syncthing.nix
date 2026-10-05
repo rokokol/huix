@@ -12,7 +12,7 @@ let
 in
 {
   options.rokokol.syncthing.enable =
-    lib.mkEnableOption "Syncthing between the hosts and the phone"
+    lib.mkEnableOption "Syncthing between the workstations and the phone"
     // {
       default = config.rokokol.workstation.enable;
     };

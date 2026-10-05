@@ -13,9 +13,9 @@
 
 Сюда попадают конфиги для программ, которые занимают больше одной строки в `home.packages`. Например, если тянут какие-то свои дополнительные зависимости или имеют нужные мне декларативные настройки. Или просто связанные с ними штуки (_≧m≦_)
 
-Файл на программу; сгруппированы только шелл-утилиты (`cli/`), терминал с шеллом (`term/`), [`nixvim/`](nixvim/README.md) и файловый менеджер [`yazi/`](yazi/README.md). Host-специфики тут нет — программы общие для обоих хостов, разводка по хостам живет в [пакеты desktop-слоя](../desktop/packages)
+Файл на программу; сгруппированы только шелл-утилиты (`cli/`), терминал с шеллом (`term/`), [`nixvim/`](nixvim/README.md) и файловый менеджер [`yazi/`](yazi/README.md). Host-специфики тут нет — программы общие для всех хостов, разводка по хостам живет в [пакеты desktop-слоя](../desktop/packages). Графические программы и графические куски общих включаются вместе с `rokokol.workstation.enable`, так что на станцию без рабочего стола они не попадают
 
 ## Тонкости
 
 - часть файлов — это швы к вынесенным флейкам, и в них только включение и то, чего флейк не везёт: `virtual-mic.nix` → [virtual-media-devices](https://github.com/rokokol/virtual-media-devices) (камерная половина того же флейка включается системным слоем — ей нужен модуль ядра), `cli/claude.nix` → [claude-account](https://github.com/rokokol/claude-account), `cli/papers.nix` → [papers-skill](https://github.com/rokokol/papers-skill) (пакет `paper-search-mcp` и путь к env-файлу с ключами, который рендерит sops на системном слое), `rofi.nix` → [ddlc-rofi-theme](https://github.com/rokokol/ddlc-rofi-theme) плюс настройки шрифтов `Doki` и `DepartureMono`, которых в темах нет
-- содержимое Клода тут не декларируется совсем — `settings.json`, `skills/`, `plugins/`, `commands/`, `agents/` живут в `~/.local/share/claude-shared` обычными файлами и ездят между хостами Syncthing'ом
+- содержимое Клода тут не декларируется совсем — `settings.json`, `skills/`, `plugins/`, `commands/`, `agents/` живут в `~/.local/share/claude-shared` обычными файлами и ездят между рабочими машинами Syncthing'ом

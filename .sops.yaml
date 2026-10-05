@@ -1,5 +1,6 @@
-# Personal age key, not a host key: neither host runs sshd, so there is no
-# /etc/ssh/ssh_host_ed25519_key for sops.age.sshKeyPaths to derive from
+# Age keys, not host keys: no host runs sshd, so none is sure to have the
+# /etc/ssh/ssh_host_ed25519_key that sops.age.sshKeyPaths derives from. The desktops share
+# the owner's personal key
 keys:
   - &rokokol age1q6v869swhlr392csqmadk346n4z9q69mktgncvztn0z5cw0ngayqnlqwvy
   # The station has a key of its own: it holds the backups of other machines and must not

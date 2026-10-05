@@ -9,7 +9,7 @@
   imports = [ inputs.sops-nix.nixosModules.sops ];
 
   # sops-nix only decrypts at activation, through its own sops-install-secrets binary — it puts
-  # nothing on PATH. Editing secrets/secrets.yaml needs the CLIs
+  # nothing on PATH. Editing a file in secrets/ needs the CLIs
   environment.systemPackages = with pkgs; [
     age
     sops
@@ -25,10 +25,11 @@
       }
     );
 
-    # A personal age key, not sops.age.sshKeyPaths: a host key is regenerated on reinstall,
-    # and every recipient change means re-encrypting the secrets. Keep it off /home: sops-nix
-    # decrypts secrets during early activation, before a separate /home may be mounted.
-    # Back this file up — losing it means re-encrypting secrets/secrets.yaml from scratch
+    # An age key, not sops.age.sshKeyPaths: a host key is regenerated on reinstall, and every
+    # recipient change means re-encrypting the secrets. The desktops hold the owner's key, the
+    # station its own (.sops.yaml). Keep it off /home: sops-nix decrypts secrets during early
+    # activation, before a separate /home may be mounted. Back this file up — losing it means
+    # re-encrypting the host's secrets file from scratch
     age.keyFile = "/var/lib/sops-nix/key.txt";
   };
 }

@@ -15,7 +15,7 @@ in
   options.rokokol.hyprland.lidNoSleep = lib.mkEnableOption "toggle \"lid blanks the screen instead of suspending\" (laptop only)";
 
   config = lib.mkIf (cfg.enable && cfg.lidNoSleep) {
-    # hyprland.lua is shared by both hosts, so the laptop-only binds live here
+    # hyprland.lua is shared by both workstations, so the laptop-only binds live here
     wayland.windowManager.hyprland.settings.bind = [
       {
         _args = [
