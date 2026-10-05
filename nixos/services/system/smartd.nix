@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 
 # SMART monitoring of every disk the host finds at boot, with desktop alerts. smartd polls every
 # 30 minutes and starts a scheduled self-test in the first poll inside the matching hour. A test
@@ -19,8 +19,9 @@
     defaults.monitored = "-a -I 194 -s (L/../../[67]/19|S/../.././14|S/../../[1-5]/20)";
 
     notifications = {
-      # Sends the alert to the desktop notification daemon of the graphical session
-      systembus-notify.enable = true;
+      # Sends the alert to the desktop notification daemon of the graphical session. A host
+      # without one mails the alert, which alert-mail.nix turns on
+      systembus-notify.enable = config.rokokol.workstation.enable;
 
       # systembus-notify alone gets no alerts, see WORKAROUNDS.md
       wall.enable = true;

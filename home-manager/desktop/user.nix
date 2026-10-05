@@ -54,7 +54,8 @@ in
 
   config = lib.mkMerge [
     {
-      home.stateVersion = "25.11";
+      # The home is created with the system, so both take the release of that install
+      home.stateVersion = osConfig.system.stateVersion;
       programs.home-manager.enable = true;
     }
 

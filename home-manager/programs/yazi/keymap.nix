@@ -142,7 +142,11 @@ in
         fuse-archive
       ]
       ++ lib.optional workstation libnotify
-      ++ [ ripgrep-all ];
+      # rga reads media through ffmpeg, and the full ffmpeg brings SDL with its audio and
+      # display stack. A host without a desktop takes the build without them
+      ++ [
+        (if workstation then ripgrep-all else ripgrep-all.override { ffmpeg = ffmpeg-headless; })
+      ];
 
     plugins =
       lib.genAttrs [
