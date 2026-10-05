@@ -8,5 +8,6 @@
     ./nvidia.nix
     ./options.nix
     ./system.nix
+    ./wake-on-lan.nix
   ];
 }
