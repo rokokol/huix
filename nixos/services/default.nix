@@ -11,9 +11,12 @@
     ./devices/printer.nix
     ./devices/sensors.nix
     ./devices/tablet.nix
+    ./system/alert-mail.nix
     ./system/appimage.nix
+    ./system/backup-heartbeat.nix
     ./system/cachix.nix
     ./system/nix-ld.nix
+    ./system/restic-server.nix
     ./system/skvpn.nix
     ./system/smartd.nix
     ./system/sops.nix

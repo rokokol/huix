@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Runs the scripts against stubs of hyprctl, monitor-sensor, systemctl, evtest, pkill,
-# notify-send and df that record what they were asked and answer from environment variables, so
-# every keyword a script emits is asserted without a compositor. Wired as the script-tests
-# flake check; run by hand from anywhere
+# notify-send, df and wakeonlan that record what they were asked and answer from environment
+# variables, so every keyword a script emits is asserted without a compositor. Wired as the
+# script-tests flake check; run by hand from anywhere
 # No -e: every failing assertion is printed and counted, and the run exits on the counter
 # Needs jq beside bash
 set -uo pipefail
@@ -15,7 +15,7 @@ run.sh — the tests of the scripts beside this directory, against stubbed comma
   run.sh help     this text
 
 Nothing here reaches the network or touches the session: hyprctl, monitor-sensor,
-systemctl, evtest, pkill, notify-send and df are stubs for the duration of the run
+systemctl, evtest, pkill, notify-send, df and wakeonlan are stubs for the duration of the run
 Exit 0 when every test passes, 1 when one fails, 2 on a usage error
 EOF
 }
@@ -385,6 +385,40 @@ is "a missing data directory fails" 1 "$?"
 
 bash "$heartbeat" check "$backup" "$work/htpasswd-alpha" 36x 10G >/dev/null 2>&1
 is "an age without a unit it knows is a usage error" 2 "$?"
+
+# wake-pc.sh, against a wakeonlan stub, with the MAC in a file as sops leaves it
+wake=$SCRIPTS/wake-pc.sh
+cat >"$work/bin/wakeonlan" <<'EOF'
+#!/usr/bin/env bash
+printf 'wakeonlan %s\n' "$*" >>"$STUB_LOG"
+EOF
+sed -i "1s|.*|#!$BASH|" "$work/bin/wakeonlan"
+chmod +x "$work/bin/wakeonlan"
+printf 'AA:BB:CC:DD:EE:0F\n' >"$work/pc-mac"
+printf 'not a mac\n' >"$work/bad-mac"
+export WAKE_PC_BROADCAST=192.168.0.255
+
+reset_log
+WAKE_PC_MAC_FILE=$work/pc-mac bash "$wake" >/dev/null 2>&1
+is "wake-pc sends the packet" 0 "$?"
+logged "the packet goes to the LAN broadcast, for the MAC in the file" \
+  '^wakeonlan' '-i 192\.168\.0\.255' 'AA:BB:CC:DD:EE:0F'
+
+reset_log
+WAKE_PC_MAC_FILE=$work/bad-mac bash "$wake" >/dev/null 2>&1
+is "a file that holds no MAC is a failure" 1 "$?"
+not_logged "no packet goes out for a bad MAC" '^wakeonlan'
+
+WAKE_PC_MAC_FILE=$work/missing bash "$wake" >/dev/null 2>&1
+is "an unreadable MAC file is a failure" 1 "$?"
+
+WAKE_PC_MAC_FILE=$work/pc-mac bash "$wake" now >/dev/null 2>&1
+is "wake-pc takes no argument" 2 "$?"
+
+WAKE_PC_MAC_FILE='' bash "$wake" >/dev/null 2>&1
+is "without the host's settings it is a usage error" 2 "$?"
+
+is "help answers without the host's settings" 0 "$(env -u WAKE_PC_BROADCAST bash "$wake" help >/dev/null 2>&1; echo $?)"
 
 if ((failures)); then
   printf 'run.sh: %d test(s) failed\n' "$failures" >&2

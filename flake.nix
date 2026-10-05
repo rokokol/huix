@@ -148,6 +148,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     freesmlauncher = {
       url = "github:FreesmTeam/FreesmLauncher";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -255,9 +260,26 @@
         ];
       };
 
+      # Headless: built on the PC and pushed with --target-host, so it never evaluates this
+      # flake itself
+      nixosConfigurations.nixos-station = mkHost {
+        configuration = ./nixos/configuration-station.nix;
+        home = ./home-manager/home-station.nix;
+        overlays = [
+          overlays.yazi
+          overlays.which-key
+        ];
+      };
+
       formatter.${system} = pkgs.nixfmt-tree;
 
       checks.${system} = import ./checks.nix (commonArgs // { inherit pkgs; });
+
+      # Built only when asked: `nix flake check` evaluates a package and builds only checks,
+      # and three VMs are too heavy for every check run
+      packages.${system}.station-boot-test = import ./nixos/station/tests/boot.nix (
+        commonArgs // { inherit pkgs; }
+      );
 
       # `nix run .#check-nix -- -N rokokol` — the whole checker, pinned by flake.lock rather
       # than looked up at the moment a job runs
