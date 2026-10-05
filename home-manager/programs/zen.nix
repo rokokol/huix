@@ -135,13 +135,12 @@ in
         ];
 
         search = {
-          default = "google";
+          default = "ddg";
           force = true;
           engines = {
             "amazondotcom-us".metaData.hidden = true;
             "ebay-uk".metaData.hidden = true;
             "twitter".metaData.hidden = true;
-            "ddg".metaData.hidden = true;
             "perplexity".metaData.hidden = true;
             "bing".metaData.hidden = true;
 

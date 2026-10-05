@@ -21,7 +21,7 @@
       "/home"
     ];
 
-    searxng.enable = true;
+    searxng.enable = false;
     telegram-agent.enable = true;
 
     printer.enable = true;
