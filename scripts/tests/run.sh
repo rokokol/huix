@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Runs the scripts against stubs of hyprctl, monitor-sensor, systemctl, evtest, pkill and
-# notify-send that record what they were asked and answer from environment variables, so
+# Runs the scripts against stubs of hyprctl, monitor-sensor, systemctl, evtest, pkill,
+# notify-send and df that record what they were asked and answer from environment variables, so
 # every keyword a script emits is asserted without a compositor. Wired as the script-tests
 # flake check; run by hand from anywhere
 # No -e: every failing assertion is printed and counted, and the run exits on the counter
@@ -15,7 +15,7 @@ run.sh — the tests of the scripts beside this directory, against stubbed comma
   run.sh help     this text
 
 Nothing here reaches the network or touches the session: hyprctl, monitor-sensor,
-systemctl, evtest, pkill and notify-send are stubs for the duration of the run
+systemctl, evtest, pkill, notify-send and df are stubs for the duration of the run
 Exit 0 when every test passes, 1 when one fails, 2 on a usage error
 EOF
 }
@@ -220,7 +220,7 @@ logged "on pokes the bar on the signal it declared" '^pkill' 'RTMIN\+10' 'waybar
 
 reset_log
 # Explicitly empty: the shell running the tests may carry the session's own signal number
-STUB_ACTIVE=0 HUIX_TABLET_SIGNAL= bash "$tablet" on >/dev/null 2>&1
+STUB_ACTIVE=0 HUIX_TABLET_SIGNAL='' bash "$tablet" on >/dev/null 2>&1
 not_logged "without a bar signal declared nothing is poked" '^pkill'
 
 reset_log
@@ -297,6 +297,94 @@ bash "$memory" status extra >/dev/null 2>&1
 is "status takes no argument" 2 "$?"
 HUIX_MEMINFO=$work/missing bash "$memory" status >/dev/null 2>&1
 is "an unreadable memory file is a failure" 1 "$?"
+
+# backup-heartbeat.sh, over repositories laid out here the way rest-server writes them:
+# <data>/<user>/snapshots/<id>. alpha pushed an hour ago, beta three days ago, gamma never
+heartbeat=$SCRIPTS/backup-heartbeat.sh
+backup=$work/backup
+now=$(date +%s)
+mkdir -p "$backup/alpha/snapshots" "$backup/beta/snapshots"
+touch -d "@$((now - 3600))" "$backup/alpha/snapshots/a1"
+touch -d "@$((now - 3 * 86400))" "$backup/alpha/snapshots/a0" "$backup/beta/snapshots/b0"
+# The hashes are never read: the expected repositories are the names before the colon
+printf 'alpha:hash\n' >"$work/htpasswd-alpha"
+printf '# nodes\nalpha:hash\n\nbeta:hash\n' >"$work/htpasswd-beta"
+printf 'alpha:hash\ngamma:hash\n' >"$work/htpasswd-gamma"
+printf 'alpha:hash\nbeta:hash\ngamma:hash\n' >"$work/htpasswd-all"
+printf '# nobody yet\n\n' >"$work/htpasswd-empty"
+# rest-server reserves the name: this user reads /metrics and never pushes
+printf 'alpha:hash\nmetrics:hash\n' >"$work/htpasswd-metrics"
+printf 'metrics:hash\n' >"$work/htpasswd-only-metrics"
+# The df stub answers in KiB, as df -P -k does: 50 GiB free unless a case says otherwise
+cat >"$work/bin/df" <<'EOF'
+#!/usr/bin/env bash
+printf 'df %s\n' "$*" >>"$STUB_LOG"
+printf 'Filesystem 1024-blocks Used Available Capacity Mounted on\n'
+printf '/dev/stub 104857600 0 %s 50%% /srv\n' "${STUB_DF_AVAIL:-52428800}"
+EOF
+sed -i "1s|.*|#!$BASH|" "$work/bin/df"
+chmod +x "$work/bin/df"
+
+# beat HTPASSWD [ARG]... — run a check with a 36h limit and a 10G floor, the output in $beat_out
+beat() {
+  local htpasswd=$1
+  shift
+  beat_out=$(bash "$heartbeat" check "$@" "$backup" "$work/$htpasswd" 36h 10G 2>&1)
+}
+# last_line — the line a mail subject is taken from
+last_line() { tail -n 1 <<<"$beat_out"; }
+
+beat htpasswd-alpha
+is "a repository with a fresh snapshot passes" 0 "$?"
+
+beat htpasswd-beta
+is "a stale repository fails" 1 "$?"
+is "the stale repository is named in the last line" yes "$(grep -q beta <<<"$(last_line)" && echo yes)"
+is "the fresh repository is not reported" "" "$(grep -v '^backup-heartbeat.sh: everything' <<<"$beat_out" | grep -o alpha)"
+
+beat htpasswd-gamma
+is "a repository that never pushed fails" 1 "$?"
+is "the missing repository is named in the last line" yes "$(grep -q gamma <<<"$(last_line)" && echo yes)"
+
+beat htpasswd-all
+is "two failures fail" 1 "$?"
+is "both failures are named in the last line" yes \
+  "$(grep -q beta <<<"$(last_line)" && grep -q gamma <<<"$(last_line)" && echo yes)"
+
+STUB_DF_AVAIL=1048576 beat htpasswd-alpha
+is "free space under the floor fails with every repository fresh" 1 "$?"
+
+beat htpasswd-empty
+is "an htpasswd with no user is a usage error, not a pass" 2 "$?"
+
+beat htpasswd-metrics
+is "the metrics reader is not an expected repository" 0 "$?"
+
+beat htpasswd-only-metrics
+is "an htpasswd with only the metrics reader is a usage error" 2 "$?"
+
+beat htpasswd-alpha -m "$work/metrics/backup.prom"
+is "a metrics file is written beside a passing check" 0 "$?"
+is "the metrics carry the repository's newest snapshot time" yes \
+  "$(grep -Eq "^[a-z_]+\{repository=\"alpha\"\} $((now - 3600))$" "$work/metrics/backup.prom" && echo yes)"
+
+beat htpasswd-gamma -m "$work/metrics/backup.prom"
+is "a missing repository is in the metrics as time zero" yes \
+  "$(grep -Eq '^[a-z_]+\{repository="gamma"\} 0$' "$work/metrics/backup.prom" && echo yes)"
+
+# A repository one level deeper than the contract is missing, and the nested path is named
+mkdir -p "$backup/gamma/laptop/snapshots"
+touch "$backup/gamma/laptop/config" "$backup/gamma/laptop/snapshots/g0"
+beat htpasswd-gamma
+is "a nested repository does not count as the user's repository" 1 "$?"
+is "the nested repository is named" yes "$(grep -q 'gamma/laptop' <<<"$beat_out" && echo yes)"
+rm -r "$backup/gamma"
+
+bash "$heartbeat" check "$work/no-such-dir" "$work/htpasswd-alpha" 36h 10G >/dev/null 2>&1
+is "a missing data directory fails" 1 "$?"
+
+bash "$heartbeat" check "$backup" "$work/htpasswd-alpha" 36x 10G >/dev/null 2>&1
+is "an age without a unit it knows is a usage error" 2 "$?"
 
 if ((failures)); then
   printf 'run.sh: %d test(s) failed\n' "$failures" >&2
