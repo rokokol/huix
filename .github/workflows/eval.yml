@@ -18,12 +18,39 @@ permissions:
   contents: read
 
 jobs:
+  # The matrix below reads the host list from the flake, so a new host is evaluated without an
+  # edit here
+  hosts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      hosts: ${{ steps.list.outputs.hosts }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
+
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            accept-flake-config = true
+
+      # A separate assignment, because a failed command substitution inside echo leaves the
+      # step green with an empty list
+      - id: list
+        run: |
+          hosts=$(nix eval --no-write-lock-file --json .#nixosConfigurations --apply builtins.attrNames)
+          echo "hosts: $hosts"
+          echo "hosts=$hosts" >>"$GITHUB_OUTPUT"
+
   eval:
+    needs: hosts
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        host: [nixos-pc, nixos-laptop]
+        host: ${{ fromJSON(needs.hosts.outputs.hosts) }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -55,7 +82,7 @@ jobs:
             experimental-features = nix-command flakes
             accept-flake-config = true
 
-      # Evaluates both hosts again — this time through the flake's own outputs, so the
+      # Evaluates every host again — this time through the flake's own outputs, so the
       # formatter and the checks are validated too — and builds the generated init.lua,
       # which nixvim runs stylua over: broken Lua in any module fails here and nowhere else
       - run: nix flake check --no-write-lock-file

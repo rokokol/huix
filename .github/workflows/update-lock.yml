@@ -3,7 +3,7 @@ name: update-lock
 # Takes every input's current revision, runs the very same checks a push runs — eval.yml itself,
 # not a copy of its commands — and lands the bump on master only if they pass. What this cannot
 # do is build the closure — nixos-laptop's toplevel is 40.8 GiB against a runner's 14, so "green"
-# here means both hosts evaluate, not that they build
+# here means every host evaluates, not that it builds
 #
 # Manual only: an unattended bump landing on master turned every rebuild into a surprise, and a
 # lock is better moved when someone is ready to rebuild against it. `nix flake update` locally is
