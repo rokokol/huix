@@ -10,6 +10,7 @@
 
 let
   cfg = config.rokokol.packages;
+  workstation = config.rokokol.workstation.enable;
 in
 {
   imports = [ ./mime-apps.nix ];
@@ -20,70 +21,87 @@ in
   };
 
   config = lib.mkMerge [
-    # --- Shared by both hosts ---
+    # --- Shared by every host ---
+    # The GUI and the heavy packages sit in the list where the shared ones do, so a
+    # workstation gets the same list in the same order
     {
-      home.packages = with pkgs; [
-        # --- Common desktop apps ---
-        ayugram-desktop
-        baobab
-        celluloid
-        chromium
-        evince
-        # IfcOpenShell fails against Boost 1.91; see WORKAROUNDS.md
-        stable.freecad
-        geary
-        gnome-disk-utility
-        obs-studio
-        obsidian
-        super-productivity
-        tauon
-
-        # --- CLI ---
-        curl
-        dig
-        exiftool
-        fastfetch
-        file
-        gthumb
-        imagemagick
-        jq
-        killall
-        lazygit
-        libreoffice-stable
-        pup
-        python3Packages.huggingface-hub
-        ripgrep
-        shellcheck
-        shfmt
-        texliveFull
-        tree
-        unzip
-        usbutils
-        wget
-
+      home.packages =
+        with pkgs;
+        lib.optionals workstation [
+          # --- Common desktop apps ---
+          ayugram-desktop
+          baobab
+          celluloid
+          chromium
+          evince
+          # IfcOpenShell fails against Boost 1.91; see WORKAROUNDS.md
+          stable.freecad
+          geary
+          gnome-disk-utility
+          obs-studio
+          obsidian
+          super-productivity
+          tauon
+        ]
+        ++ [
+          # --- CLI ---
+          curl
+          dig
+          exiftool
+          fastfetch
+          file
+        ]
+        ++ lib.optional workstation gthumb
+        ++ [
+          imagemagick
+          jq
+          killall
+          lazygit
+        ]
+        ++ lib.optional workstation libreoffice-stable
+        ++ [ pup ]
+        ++ lib.optional workstation python3Packages.huggingface-hub
+        ++ [
+          ripgrep
+          shellcheck
+          shfmt
+        ]
+        ++ lib.optional workstation texliveFull
+        ++ [
+          tree
+          unzip
+          usbutils
+          wget
+        ]
         # Python
-        (python313.withPackages (
-          ps: with ps; [
-            matplotlib
-            numpy
-            pandas
-            pyyaml
-            requests
-            rich
-            scipy
-            sympy
-            tqdm
-          ]
-        ))
-        uv
-      ];
+        ++ lib.optional workstation (
+          python313.withPackages (
+            ps: with ps; [
+              matplotlib
+              numpy
+              pandas
+              pyyaml
+              requests
+              rich
+              scipy
+              sympy
+              tqdm
+            ]
+          )
+        )
+        ++ [ uv ];
 
       home.sessionVariables = {
         EDITOR = "nvim";
         VISUAL = "nvim";
-        TERMINAL = "kitty";
         HUIX = huixDir;
         PROJECTS_DIR = projectsDir;
+      };
+    }
+
+    (lib.mkIf workstation {
+      home.sessionVariables = {
+        TERMINAL = "kitty";
         NIXOS_OZONE_WL = "1";
       };
 
@@ -102,7 +120,7 @@ in
           Hidden=true
         '';
       };
-    }
+    })
 
     (lib.mkIf cfg.pc {
       home.packages =

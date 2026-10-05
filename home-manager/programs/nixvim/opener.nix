@@ -2,7 +2,7 @@
 
 # nvim's own desktop file asks for a terminal, and xdg-open cannot provide one, so this entry
 # opens it in a kitty window. It only serves as an opener, so the launcher hides it
-lib.mkIf config.programs.nixvim.enable {
+lib.mkIf (config.programs.nixvim.enable && config.rokokol.workstation.enable) {
   xdg.desktopEntries.nvim-kitty = {
     name = "Neovim";
     genericName = "Text Editor";

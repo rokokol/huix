@@ -1,4 +1,9 @@
-{ pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   hyprlandPortalConfig = {
@@ -19,7 +24,7 @@ let
     ];
   };
 in
-{
+lib.mkIf config.rokokol.workstation.enable {
   programs.dconf.enable = true;
 
   xdg.portal = {

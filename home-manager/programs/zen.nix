@@ -92,9 +92,15 @@ let
   '';
 in
 {
-  options.rokokol.zen.russianTrustedCertificates = lib.mkEnableOption "Ministry of Digital Development CAs in Zen's NSS store";
+  options.rokokol.zen = {
+    enable = lib.mkEnableOption "the Zen browser" // {
+      default = config.rokokol.workstation.enable;
+    };
 
-  config = {
+    russianTrustedCertificates = lib.mkEnableOption "Ministry of Digital Development CAs in Zen's NSS store";
+  };
+
+  config = lib.mkIf config.rokokol.zen.enable {
     programs.zen-browser = {
       enable = true;
 

@@ -1,4 +1,9 @@
-{ pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   # the plugin resolves <desktop-id>.tap only inside its own libexec, so xarchiver's wrapper
@@ -10,29 +15,37 @@ let
   });
 in
 {
-  services = {
-    gvfs.enable = true;
-    tumbler.enable = true;
-    udisks2.enable = true;
-  };
+  options.rokokol.file-manager.enable =
+    lib.mkEnableOption "Thunar with its mount, thumbnail and archive helpers"
+    // {
+      default = config.rokokol.workstation.enable;
+    };
 
-  environment.systemPackages = with pkgs; [
-    dosfstools
-    exfatprogs
-    ffmpegthumbnailer
-    libgsf
-    ntfs3g
-    p7zip
-    poppler
-    selectdefaultapplication
-    thunar
-    thunar-archive-plugin-xarchiver
-    thunar-media-tags-plugin
-    thunar-volman
-    unar
-    unzip
-    xarchiver
-    xfce4-exo
-    zip
-  ];
+  config = lib.mkIf config.rokokol.file-manager.enable {
+    services = {
+      gvfs.enable = true;
+      tumbler.enable = true;
+      udisks2.enable = true;
+    };
+
+    environment.systemPackages = with pkgs; [
+      dosfstools
+      exfatprogs
+      ffmpegthumbnailer
+      libgsf
+      ntfs3g
+      p7zip
+      poppler
+      selectdefaultapplication
+      thunar
+      thunar-archive-plugin-xarchiver
+      thunar-media-tags-plugin
+      thunar-volman
+      unar
+      unzip
+      xarchiver
+      xfce4-exo
+      zip
+    ];
+  };
 }

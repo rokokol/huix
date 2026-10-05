@@ -1,9 +1,14 @@
-{ pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 # Persistent Wayland clipboard daemon. A user-session service, so it lives in HM
 # alongside the other graphical-session units (mako, hypridle, swayosd) rather
 # than in nixos/. wl-clipboard (wl-copy/wl-paste) comes from other HM modules
-{
+lib.mkIf config.rokokol.hyprland.enable {
   home.packages = with pkgs; [ wl-clip-persist ];
 
   systemd.user.services.wl-clip-persist = {

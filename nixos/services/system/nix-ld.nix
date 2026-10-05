@@ -1,99 +1,110 @@
-{ pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 # nix-ld makes non-Nix prebuilt binaries find their shared libs via NIX_LD instead of dying
 # with "No such file or directory"
 {
-  programs.nix-ld.enable = true;
+  options.rokokol.nix-ld.enable = lib.mkEnableOption "nix-ld with a desktop set of libraries" // {
+    default = config.rokokol.workstation.enable;
+  };
 
-  programs.nix-ld.libraries = with pkgs; [
-    # Core C/C++ runtime + system glue
-    stdenv.cc.cc
-    stdenv.cc.cc.lib
-    zlib
-    zstd
-    xz
-    bzip2
-    openssl
-    curl
-    libssh
-    libssh2
-    pam
-    acl
-    attr
-    util-linux # libuuid, libmount, libblkid
-    systemd # libsystemd, libudev
-    libcap
-    libxcrypt
-    icu
-    libxml2
-    libxslt
-    expat
-    pcre2
+  config = lib.mkIf config.rokokol.nix-ld.enable {
+    programs.nix-ld.enable = true;
 
-    # Graphics / GL / Vulkan. The NVIDIA userspace is mixed in per-host from
-    # nixos/pc/nvidia.nix so its version matches hardware.nvidia.package
-    libGL
-    libglvnd
-    libdrm
-    mesa
-    vulkan-loader
-    libgbm
+    programs.nix-ld.libraries = with pkgs; [
+      # Core C/C++ runtime + system glue
+      stdenv.cc.cc
+      stdenv.cc.cc.lib
+      zlib
+      zstd
+      xz
+      bzip2
+      openssl
+      curl
+      libssh
+      libssh2
+      pam
+      acl
+      attr
+      util-linux # libuuid, libmount, libblkid
+      systemd # libsystemd, libudev
+      libcap
+      libxcrypt
+      icu
+      libxml2
+      libxslt
+      expat
+      pcre2
 
-    # GUI toolkits (GTK/Qt applications, Electron, browsers)
-    glib
-    gtk3
-    gdk-pixbuf
-    pango
-    cairo
-    atk
-    at-spi2-atk
-    at-spi2-core
-    gobject-introspection
-    harfbuzz
-    fontconfig
-    freetype
-    fribidi
-    dbus
-    cups
-    nspr
-    nss
-    libnotify
-    libappindicator-gtk3
-    librsvg
+      # Graphics / GL / Vulkan. The NVIDIA userspace is mixed in per-host from
+      # nixos/pc/nvidia.nix so its version matches hardware.nvidia.package
+      libGL
+      libglvnd
+      libdrm
+      mesa
+      vulkan-loader
+      libgbm
 
-    # X11 / Wayland client libs (the xorg.* set is deprecated → top-level lib* names)
-    libx11
-    libxext
-    libxrender
-    libxrandr
-    libxcursor
-    libxi
-    libxfixes
-    libxdamage
-    libxcomposite
-    libxtst
-    libxscrnsaver
-    libxcb
-    libxft
-    libxshmfence
-    libxkbcommon
-    wayland
+      # GUI toolkits (GTK/Qt applications, Electron, browsers)
+      glib
+      gtk3
+      gdk-pixbuf
+      pango
+      cairo
+      atk
+      at-spi2-atk
+      at-spi2-core
+      gobject-introspection
+      harfbuzz
+      fontconfig
+      freetype
+      fribidi
+      dbus
+      cups
+      nspr
+      nss
+      libnotify
+      libappindicator-gtk3
+      librsvg
 
-    # Sound
-    alsa-lib
-    libpulseaudio
-    pipewire
+      # X11 / Wayland client libs (the xorg.* set is deprecated → top-level lib* names)
+      libx11
+      libxext
+      libxrender
+      libxrandr
+      libxcursor
+      libxi
+      libxfixes
+      libxdamage
+      libxcomposite
+      libxtst
+      libxscrnsaver
+      libxcb
+      libxft
+      libxshmfence
+      libxkbcommon
+      wayland
 
-    # Media / other frequently linked
-    ffmpeg
-    libusb1
-    libuv
-    libsodium
-    libunwind
-    flac
-    libvorbis
-    libjpeg
-    libpng
-    gmp
-  ];
+      # Sound
+      alsa-lib
+      libpulseaudio
+      pipewire
+
+      # Media / other frequently linked
+      ffmpeg
+      libusb1
+      libuv
+      libsodium
+      libunwind
+      flac
+      libvorbis
+      libjpeg
+      libpng
+      gmp
+    ];
+  };
 }

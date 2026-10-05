@@ -2,6 +2,7 @@
 # Author: sev (https://ko-fi.com/sevverae)
 # Original: https://ko-fi.com/s/8e05db90c4
 {
+  config,
   lib,
   pkgs,
   inputs,
@@ -72,7 +73,7 @@ let
     };
   };
 in
-{
+lib.mkIf config.rokokol.theme.enable {
   home.pointerCursor = {
     enable = true;
     package = sayori-cursor;

@@ -1,4 +1,9 @@
-{ pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   port = 5000;
@@ -16,52 +21,58 @@ let
   '';
 in
 {
-  services.libretranslate = {
-    enable = true;
-    inherit port;
-    # Don't update the models at startup: with --update-models the service hangs until the
-    # network timeout (~16 min offline). They already sit in /var/lib/libretranslate, and the
-    # libretranslate-update-models unit below refreshes them
-    updateModels = false;
-
-    extraArgs = {
-      "load-only" = langs;
-    };
+  options.rokokol.libre-translate.enable = lib.mkEnableOption "the LibreTranslate server" // {
+    default = config.rokokol.workstation.enable;
   };
 
-  # Model refresh as its own oneshot unit: weekly by timer, by hand via
-  # `sudo systemctl start libretranslate-update-models`. Offline the ExecCondition skips the
-  # run quietly (skipped, not failed)
-  systemd.services.libretranslate-update-models = {
-    description = "Update LibreTranslate language models";
-    environment.HOME = "/var/lib/libretranslate";
-    serviceConfig = {
-      Type = "oneshot";
-      User = "libretranslate";
-      Group = "libretranslate";
-      # Cheap probe: an unreachable argos model index means the host is offline
-      ExecCondition = "${pkgs.curl}/bin/curl -sfm 10 -o /dev/null https://raw.githubusercontent.com/argosopentech/argospm-index/main/index.json";
-      ExecStart = updateScript;
-      # Restart the server so it picks up the refreshed models
-      ExecStartPost = "+${pkgs.systemd}/bin/systemctl try-restart libretranslate.service";
-      TimeoutStartSec = "1h";
+  config = lib.mkIf config.rokokol.libre-translate.enable {
+    services.libretranslate = {
+      enable = true;
+      inherit port;
+      # Don't update the models at startup: with --update-models the service hangs until the
+      # network timeout (~16 min offline). They already sit in /var/lib/libretranslate, and the
+      # libretranslate-update-models unit below refreshes them
+      updateModels = false;
+
+      extraArgs = {
+        "load-only" = langs;
+      };
     };
-  };
 
-  systemd.timers.libretranslate-update-models = {
-    wantedBy = [ "timers.target" ];
-    timerConfig = {
-      OnCalendar = "weekly";
-      # Catch up a run missed while the laptop was off; with no network at the moment it fires,
-      # the attempt is skipped until the next week
-      Persistent = true;
-      RandomizedDelaySec = "1h";
+    # Model refresh as its own oneshot unit: weekly by timer, by hand via
+    # `sudo systemctl start libretranslate-update-models`. Offline the ExecCondition skips the
+    # run quietly (skipped, not failed)
+    systemd.services.libretranslate-update-models = {
+      description = "Update LibreTranslate language models";
+      environment.HOME = "/var/lib/libretranslate";
+      serviceConfig = {
+        Type = "oneshot";
+        User = "libretranslate";
+        Group = "libretranslate";
+        # Cheap probe: an unreachable argos model index means the host is offline
+        ExecCondition = "${pkgs.curl}/bin/curl -sfm 10 -o /dev/null https://raw.githubusercontent.com/argosopentech/argospm-index/main/index.json";
+        ExecStart = updateScript;
+        # Restart the server so it picks up the refreshed models
+        ExecStartPost = "+${pkgs.systemd}/bin/systemctl try-restart libretranslate.service";
+        TimeoutStartSec = "1h";
+      };
     };
-  };
 
-  environment.systemPackages = with pkgs; [ libretranslate ];
+    systemd.timers.libretranslate-update-models = {
+      wantedBy = [ "timers.target" ];
+      timerConfig = {
+        OnCalendar = "weekly";
+        # Catch up a run missed while the laptop was off; with no network at the moment it fires,
+        # the attempt is skipped until the next week
+        Persistent = true;
+        RandomizedDelaySec = "1h";
+      };
+    };
 
-  environment.sessionVariables = {
-    LIBRE_TRANSLATE_PORT = port;
+    environment.systemPackages = with pkgs; [ libretranslate ];
+
+    environment.sessionVariables = {
+      LIBRE_TRANSLATE_PORT = port;
+    };
   };
 }

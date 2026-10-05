@@ -1,61 +1,75 @@
-{ myWikiDir, rokokolName, ... }:
+{
+  config,
+  lib,
+  myWikiDir,
+  rokokolName,
+  ...
+}:
 
 let
   homeDir = "/home/${rokokolName}";
   port = 8384;
 in
 {
-  services.syncthing = {
-    enable = true;
-    user = rokokolName;
-    guiAddress = "127.0.0.1:${toString port}";
-    dataDir = "${homeDir}/Documents";
-    configDir = "${homeDir}/.config/syncthing";
+  options.rokokol.syncthing.enable =
+    lib.mkEnableOption "Syncthing between the hosts and the phone"
+    // {
+      default = config.rokokol.workstation.enable;
+    };
 
-    openDefaultPorts = true;
+  config = lib.mkIf config.rokokol.syncthing.enable {
+    services.syncthing = {
+      enable = true;
+      user = rokokolName;
+      guiAddress = "127.0.0.1:${toString port}";
+      dataDir = "${homeDir}/Documents";
+      configDir = "${homeDir}/.config/syncthing";
 
-    # additive: myWiki also rides the phone, which is configured from the phone side
-    overrideDevices = false;
-    overrideFolders = false;
+      openDefaultPorts = true;
 
-    settings.devices = {
-      laptop.id = "IACQG6Z-QHUKT7Y-EZXPKTH-BIT3LJR-BCXTRV6-FZZK3LB-SUKSHBR-UG44GAM";
-      nixos-pc.id = "MNSJ7QK-4YOWUOS-3O5MSOT-UXON7VW-PZFY2YC-34MDG2H-UHTWJ7H-QLTDKQV";
-      phone = {
-        id = "QAMHANE-X4B6XWI-45LGTZD-AH4BHDX-FHVWOWE-SBEHXO2-JL5TXBK-CBIUAQB";
-        # The phone never announces its tailnet address: the tailscale endpoint of its
-        # sing-box makes no system interface, so Syncthing there cannot see it
-        addresses = [
-          "dynamic"
-          "tcp://mobile-1:22000"
+      # additive: myWiki also rides the phone, which is configured from the phone side
+      overrideDevices = false;
+      overrideFolders = false;
+
+      settings.devices = {
+        laptop.id = "IACQG6Z-QHUKT7Y-EZXPKTH-BIT3LJR-BCXTRV6-FZZK3LB-SUKSHBR-UG44GAM";
+        nixos-pc.id = "MNSJ7QK-4YOWUOS-3O5MSOT-UXON7VW-PZFY2YC-34MDG2H-UHTWJ7H-QLTDKQV";
+        phone = {
+          id = "QAMHANE-X4B6XWI-45LGTZD-AH4BHDX-FHVWOWE-SBEHXO2-JL5TXBK-CBIUAQB";
+          # The phone never announces its tailnet address: the tailscale endpoint of its
+          # sing-box makes no system interface, so Syncthing there cannot see it
+          addresses = [
+            "dynamic"
+            "tcp://mobile-1:22000"
+          ];
+        };
+      };
+
+      # Claude Code shared state (chats, memory, plugins) — ext4, PC-only, no account cookies
+      settings.folders."claude-shared" = {
+        id = "claude-shared";
+        path = "${homeDir}/.local/share/claude-shared";
+        devices = [
+          "laptop"
+          "nixos-pc"
         ];
+        type = "sendreceive";
+      };
+
+      settings.folders."myWiki" = {
+        id = "3heyc-wgheb";
+        path = myWikiDir;
+        devices = [
+          "laptop"
+          "nixos-pc"
+          "phone"
+        ];
+        type = "sendreceive";
       };
     };
 
-    # Claude Code shared state (chats, memory, plugins) — ext4, PC-only, no account cookies
-    settings.folders."claude-shared" = {
-      id = "claude-shared";
-      path = "${homeDir}/.local/share/claude-shared";
-      devices = [
-        "laptop"
-        "nixos-pc"
-      ];
-      type = "sendreceive";
+    environment.sessionVariables = {
+      SYNCTHING_PORT = port;
     };
-
-    settings.folders."myWiki" = {
-      id = "3heyc-wgheb";
-      path = myWikiDir;
-      devices = [
-        "laptop"
-        "nixos-pc"
-        "phone"
-      ];
-      type = "sendreceive";
-    };
-  };
-
-  environment.sessionVariables = {
-    SYNCTHING_PORT = port;
   };
 }

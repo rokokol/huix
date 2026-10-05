@@ -43,7 +43,7 @@ let
     exec ${pkgs.gtk3}/bin/gtk-launch yazi-kitty "''${uris[@]}"
   '';
 in
-lib.mkIf config.programs.yazi.enable {
+lib.mkIf (config.programs.yazi.enable && config.rokokol.workstation.enable) {
   xdg.desktopEntries.yazi-kitty = {
     name = "Yazi";
     genericName = "File Manager";

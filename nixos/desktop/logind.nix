@@ -1,6 +1,6 @@
-_:
+{ config, lib, ... }:
 
-{
+lib.mkIf config.rokokol.workstation.enable {
   # Power key → Hyprland (XF86PowerOff → rofi-power.sh); without ignore logind would poweroff
   # immediately
   services.logind.settings.Login.HandlePowerKey = "ignore";

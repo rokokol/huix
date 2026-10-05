@@ -1,11 +1,11 @@
 { pkgs, rokokolName, ... }:
 
-# Shared system baseline for both hosts. The truly host-specific bits
+# Shared system baseline for every host. The truly host-specific bits
 # (hostName, user description) live in nixos/<host>/system.nix; membership
 # in groups owned by modules (docker, nvidia, …) stays in those modules
 # themselves
 {
-  networking.networkmanager.enable = true;
+  programs.zsh.enable = true;
 
   # Time and locale
   time.timeZone = "Europe/Moscow";
@@ -29,7 +29,6 @@
     home = "/home/${rokokolName}";
     shell = pkgs.zsh;
     extraGroups = [
-      "networkmanager"
       "wheel"
       "video"
       "render"
@@ -58,6 +57,4 @@
       options = "--delete-older-than 7d";
     };
   };
-
-  services.xserver.desktopManager.runXdgAutostartIfNone = true;
 }

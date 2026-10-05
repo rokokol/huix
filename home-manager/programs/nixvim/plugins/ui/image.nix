@@ -1,6 +1,7 @@
-_:
+{ config, lib, ... }:
 
-{
+# The images go through ImageMagick and kitty's graphics protocol, which only a desktop ships
+lib.mkIf config.rokokol.workstation.enable {
   programs.nixvim.plugins.image = {
     enable = true;
     settings = {

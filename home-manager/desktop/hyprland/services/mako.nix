@@ -1,6 +1,12 @@
-{ pkgs, palette, ... }:
-
 {
+  config,
+  lib,
+  pkgs,
+  palette,
+  ...
+}:
+
+lib.mkIf config.rokokol.hyprland.enable {
   services.mako = {
     enable = true;
 

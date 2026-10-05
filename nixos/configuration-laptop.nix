@@ -10,6 +10,7 @@
   system.stateVersion = "25.11";
   services.ollama.package = pkgs.ollama-cpu;
 
+  rokokol.workstation.enable = true;
   rokokol.sensors.enable = true;
 
   rokokol.btrfs.mounts = [

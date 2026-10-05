@@ -1,6 +1,6 @@
-_:
+{ config, lib, ... }:
 
-{
+lib.mkIf config.rokokol.workstation.enable {
   xdg.mimeApps = {
     enable = true;
 

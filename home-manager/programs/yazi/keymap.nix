@@ -11,6 +11,10 @@
 # key, which is how <Space>, <Tab> and `m` change their meaning here. The langmap turns a key
 # typed in the Russian layout into the Latin one on the same place before any of this matches
 let
+  # The bindings that open kitty or Thunar or reach the Wayland clipboard sit where the rest
+  # do, so a desktop gets the same keymap in the same order
+  workstation = config.rokokol.workstation.enable;
+
   # `leader "fg"` is <Space> f g: one character per key
   leader = keys: [ "<Space>" ] ++ lib.stringToCharacters keys;
 
@@ -131,12 +135,14 @@ let
 in
 {
   programs.yazi = {
-    extraPackages = with pkgs; [
-      archivemount
-      fuse-archive
-      libnotify
-      ripgrep-all
-    ];
+    extraPackages =
+      with pkgs;
+      [
+        archivemount
+        fuse-archive
+      ]
+      ++ lib.optional workstation libnotify
+      ++ [ ripgrep-all ];
 
     plugins =
       lib.genAttrs [
@@ -156,16 +162,18 @@ in
           setup = true;
           settings.compsize = lib.getExe pkgs.compsize;
         };
+        # setup subscribes to cd, which unmounts the archives no tab looks into
+        archive-mount = {
+          package = ownPlugin "archive-mount";
+          setup = true;
+        };
+      }
+      // lib.optionalAttrs workstation {
         # wl-clipboard-rs carries the --offer patch (see WORKAROUNDS.md)
         clipboard-sync = {
           package = ownPlugin "clipboard-sync";
           setup = true;
           settings.wl_clipboard = "${pkgs.wl-clipboard-rs}/bin";
-        };
-        # setup subscribes to cd, which unmounts the archives no tab looks into
-        archive-mount = {
-          package = ownPlugin "archive-mount";
-          setup = true;
         };
       };
 
@@ -186,6 +194,8 @@ in
         (bind "<Tab>" "tab_switch 1 --relative" "Next tab")
         (bind "<S-Tab>" "tab_switch -1 --relative" "Previous tab")
         (bind "T" "plugin tab-hovered" "Hovered directory in a new tab")
+      ]
+      ++ lib.optionals workstation [
         (bind "y" (exported "yank") "Copy, to the system clipboard too")
         (bind "x" (exported "yank --cut") "Cut, to the system clipboard too")
         # Beside the stock `c` group, which copies paths and names; wl-copy takes the type from
@@ -200,11 +210,16 @@ in
         # yazi's own yank, other programs' files, an image or a text
         (bind "p" "plugin clipboard-sync paste" "Paste the clipboard")
         (bind "P" "plugin clipboard-sync 'paste --force'" "Paste the clipboard, overwriting")
+      ]
+      ++ [
         (bind "I" "spot" "File info")
         (bind ":" "shell --block '${shellPrompt} %s'" "Run a shell command, with completion")
         (bind "e" "shell --block 'nvim %s'" "Open in nvim here")
-        (bind "E" "shell --orphan 'kitty --detach nvim %s'" "Open in nvim in a new window")
-
+      ]
+      ++ lib.optional workstation (
+        bind "E" "shell --orphan 'kitty --detach nvim %s'" "Open in nvim in a new window"
+      )
+      ++ [
         (bind (leader "c") "close" "Close tab")
         (bind (leader "nr") "rename --cursor=before_ext" "Rename, several at once in nvim")
         (bind (leader "nc") (onSelection "plugin naming kebab") "kebab-case")
@@ -246,8 +261,12 @@ in
         (bind [ "g" "r" ] "plugin recent" "Recent files, via fzf")
 
         (bind (leader "tf") "shell --block $SHELL" "Shell in place, exit returns")
+      ]
+      ++ lib.optionals workstation [
         (bind (leader "tn") "shell --orphan 'kitty --detach --directory .'" "New terminal here")
         (bind (leader "xt") "shell --orphan 'thunar .'" "Open Thunar here")
+      ]
+      ++ [
         (bind (leader "xd") (onSelection "plugin nvim-diff") "Diff 2 to 8 selected files in nvim")
         (bind (leader "xc") (onSelection "plugin chmod") "Change the mode bits")
 

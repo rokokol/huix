@@ -16,6 +16,8 @@
   };
 
   rokokol = {
+    workstation.enable = true;
+
     btrfs.mounts = [
       "/"
       "/home"

@@ -1,6 +1,6 @@
-{ config, ... }:
+{ config, lib, ... }:
 
-{
+lib.mkIf config.rokokol.hyprland.enable {
   services.hypridle = {
     enable = true;
     settings = {
@@ -8,8 +8,10 @@
         # every lock path funnels through here, so this is where the dialog
         # animation is started; it blocks for the whole lock, like hyprlock did
         lock_cmd = "pidof hyprlock || ${config.ddlc.hyprlock.lockCommand}";
-        before_sleep_cmd = "loginctl lock-session"; # block until the sleep
-        after_sleep_cmd = "hyprctl dispatch 'hl.dsp.dpms({ action = \"on\" })'"; # turn on the screen on wakeup
+        # The session locks before the host sleeps, so it never wakes unlocked
+        before_sleep_cmd = "loginctl lock-session";
+        # The blanking listener below turns the screen off, and a wake leaves it off
+        after_sleep_cmd = "hyprctl dispatch 'hl.dsp.dpms({ action = \"on\" })'";
       };
 
       listener = [

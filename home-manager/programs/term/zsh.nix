@@ -6,28 +6,32 @@
   ...
 }:
 
+let
+  workstation = config.rokokol.workstation.enable;
+in
 {
   home.shellAliases = {
     ll = "ls -l";
     la = "ls -la";
     v = "nvim";
-    syssync = "bash \"${huixDir}/scripts/sync.sh\"";
-    download-music = "yt-dlp -x --audio-format mp3 --audio-quality 0 --embed-metadata --embed-thumbnail -o '%(title)s.%(ext)s'";
 
     ".." = "cd ..";
     "..." = "cd ../..";
 
     tp = "trash-put";
+  }
+  # A host without a desktop has no checkout of huix: it is deployed from one that has
+  // lib.optionalAttrs workstation {
+    syssync = "bash \"${huixDir}/scripts/sync.sh\"";
+    download-music = "yt-dlp -x --audio-format mp3 --audio-quality 0 --embed-metadata --embed-thumbnail -o '%(title)s.%(ext)s'";
     rebuild = "sudo nixos-rebuild switch --flake ${huixDir}";
     rebuilds = "sudo nixos-rebuild switch --flake ${huixDir} --option substituters \"https://mirror.yandex.ru/nixos\"";
   };
 
   home.packages =
     with pkgs;
-    [
-      trash-cli
-      yt-dlp
-    ]
+    [ trash-cli ]
+    ++ lib.optional workstation yt-dlp
     ++ lib.optional (!(config.programs.nixvim.enable or false)) neovim;
 
   programs.zoxide = {

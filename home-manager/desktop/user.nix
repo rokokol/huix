@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  osConfig,
   huixDir,
   myWikiDir,
   projectsDir,
@@ -21,6 +22,14 @@ in
     ./theme/default.nix
   ];
 
+  # The user half of the system's umbrella, read across the boundary at this one place: every
+  # desktop module of the home defaults its own flag to this option, not to the system's
+  options.rokokol.workstation.enable =
+    lib.mkEnableOption "the desktop session and the GUI programs"
+    // {
+      default = osConfig.rokokol.workstation.enable;
+    };
+
   # The one list of bookmarks: Thunar's side pane reads it through GTK, and yazi binds each key
   # after `g`
   options.rokokol.bookmarks = lib.mkOption {
@@ -39,68 +48,73 @@ in
         };
       }
     );
+    default = [ ];
     description = "folders to bookmark, in the order the side pane lists them";
   };
 
-  config = {
-    home.stateVersion = "25.11";
-    programs.home-manager.enable = true;
+  config = lib.mkMerge [
+    {
+      home.stateVersion = "25.11";
+      programs.home-manager.enable = true;
+    }
 
-    xdg.userDirs = {
-      enable = true;
-      createDirectories = true;
-      setSessionVariables = true;
+    (lib.mkIf config.rokokol.workstation.enable {
+      xdg.userDirs = {
+        enable = true;
+        createDirectories = true;
+        setSessionVariables = true;
 
-      music = "${myWikiDir}/00. Вложения/02. Music";
-      documents = "${homeDir}/Documents";
-      pictures = "${homeDir}/Pictures";
-      videos = "${homeDir}/Videos";
+        music = "${myWikiDir}/00. Вложения/02. Music";
+        documents = "${homeDir}/Documents";
+        pictures = "${homeDir}/Pictures";
+        videos = "${homeDir}/Videos";
 
-      download = downloadsDir;
+        download = downloadsDir;
 
-      desktop = null;
-      templates = null;
-      publicShare = null;
-    };
+        desktop = null;
+        templates = null;
+        publicShare = null;
+      };
 
-    # yazi's own `g d` goes to ~/Downloads
-    rokokol.bookmarks = [
-      { path = downloadsDir; }
-      {
-        key = "u";
-        path = huixDir;
-      }
-      {
-        key = "e";
-        path = tempDir;
-      }
-      {
-        key = "p";
-        path = projectsDir;
-      }
-      {
-        key = "w";
-        path = myWikiDir;
-      }
-      {
-        key = "/";
-        path = "/";
-      }
-    ];
+      # yazi's own `g d` goes to ~/Downloads
+      rokokol.bookmarks = [
+        { path = downloadsDir; }
+        {
+          key = "u";
+          path = huixDir;
+        }
+        {
+          key = "e";
+          path = tempDir;
+        }
+        {
+          key = "p";
+          path = projectsDir;
+        }
+        {
+          key = "w";
+          path = myWikiDir;
+        }
+        {
+          key = "/";
+          path = "/";
+        }
+      ];
 
-    gtk = {
-      enable = true;
-      gtk3.bookmarks = map (b: "file://${lib.removeSuffix "/" b.path}/") config.rokokol.bookmarks;
-    };
+      gtk = {
+        enable = true;
+        gtk3.bookmarks = map (b: "file://${lib.removeSuffix "/" b.path}/") config.rokokol.bookmarks;
+      };
 
-    # Directories
-    systemd.user.tmpfiles.rules = [
-      "d ${projectsDir} 0755 - - -"
-      "D ${tempDir} 0777 - - -"
-    ];
+      # Directories
+      systemd.user.tmpfiles.rules = [
+        "d ${projectsDir} 0755 - - -"
+        "D ${tempDir} 0777 - - -"
+      ];
 
-    home.sessionVariables = {
-      MY_WIKI = myWikiDir;
-    };
-  };
+      home.sessionVariables = {
+        MY_WIKI = myWikiDir;
+      };
+    })
+  ];
 }

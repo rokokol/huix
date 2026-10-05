@@ -1,4 +1,9 @@
-{ pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   gtkThemeName = "Gruvbox-Light";
@@ -19,52 +24,59 @@ let
   };
 in
 {
-  # toggle-theme.sh flips gtk-theme at runtime, so the theme name is not pinned
-  # declaratively. Only the package is installed, and gruvbox-gtk-theme below ships both
-  # variants
-  gtk = {
-    enable = true;
+  # cursor.nix follows the same flag: the cursor is one piece of the desktop's look
+  options.rokokol.theme.enable = lib.mkEnableOption "the GTK, Qt, icon and cursor theme" // {
+    default = config.rokokol.workstation.enable;
+  };
 
-    iconTheme = {
-      name = iconThemeName;
-      package = pkgs.mint-y-icons;
+  config = lib.mkIf config.rokokol.theme.enable {
+    # toggle-theme.sh flips gtk-theme at runtime, so the theme name is not pinned
+    # declaratively. Only the package is installed, and gruvbox-gtk-theme below ships both
+    # variants
+    gtk = {
+      enable = true;
+
+      iconTheme = {
+        name = iconThemeName;
+        package = pkgs.mint-y-icons;
+      };
+
+      gtk3.extraConfig = settingsIni;
+      gtk4.extraConfig = settingsIni;
     };
 
-    gtk3.extraConfig = settingsIni;
-    gtk4.extraConfig = settingsIni;
-  };
+    home.packages = with pkgs; [
+      # Removed from nixpkgs; vendored locally (see gruvbox-gtk-theme.nix)
+      gruvbox
+      gnome-themes-extra
+      gsettings-desktop-schemas
+      gtk3
+      qt5.qtwayland
+      qt6.qtwayland
+    ];
 
-  home.packages = with pkgs; [
-    # Removed from nixpkgs; vendored locally (see gruvbox-gtk-theme.nix)
-    gruvbox
-    gnome-themes-extra
-    gsettings-desktop-schemas
-    gtk3
-    qt5.qtwayland
-    qt6.qtwayland
-  ];
+    dconf.settings."org/gnome/desktop/interface" = {
+      icon-theme = iconThemeName;
+    };
 
-  dconf.settings."org/gnome/desktop/interface" = {
-    icon-theme = iconThemeName;
-  };
+    # The portal's platform theme: the gtk3 one draws GTK's file dialog inside the program and
+    # never asks the portal, which hands Open and Save to yazi (programs/yazi/desktop.nix)
+    qt = {
+      enable = true;
+      platformTheme.name = "xdgdesktopportal";
+    };
 
-  # The portal's platform theme: the gtk3 one draws GTK's file dialog inside the program and
-  # never asks the portal, which hands Open and Save to yazi (programs/yazi/desktop.nix)
-  qt = {
-    enable = true;
-    platformTheme.name = "xdgdesktopportal";
-  };
-
-  home.sessionVariables = {
-    GTK_THEME_KEY = "/org/gnome/desktop/interface/gtk-theme";
-    COLOR_SCHEME_KEY = "/org/gnome/desktop/interface/color-scheme";
-    LIGHT_THEME = gtkThemeName;
-    DARK_THEME = darkGtkThemeName;
-    LIGHT_SCHEME = colorScheme;
-    DARK_SCHEME = darkColorScheme;
-    # libadwaita recolour sheets for toggle-theme.sh (need a fresh login to appear)
-    GTK4_LIGHT_CSS = "${gruvbox}/share/themes/${gtkThemeName}/gtk-4.0/gtk-colors.css";
-    GTK4_DARK_CSS = "${gruvbox}/share/themes/${darkGtkThemeName}/gtk-4.0/gtk-colors.css";
-    THUNARX_DIRS = "/run/current-system/sw/lib/thunarx-3";
+    home.sessionVariables = {
+      GTK_THEME_KEY = "/org/gnome/desktop/interface/gtk-theme";
+      COLOR_SCHEME_KEY = "/org/gnome/desktop/interface/color-scheme";
+      LIGHT_THEME = gtkThemeName;
+      DARK_THEME = darkGtkThemeName;
+      LIGHT_SCHEME = colorScheme;
+      DARK_SCHEME = darkColorScheme;
+      # libadwaita recolour sheets for toggle-theme.sh (need a fresh login to appear)
+      GTK4_LIGHT_CSS = "${gruvbox}/share/themes/${gtkThemeName}/gtk-4.0/gtk-colors.css";
+      GTK4_DARK_CSS = "${gruvbox}/share/themes/${darkGtkThemeName}/gtk-4.0/gtk-colors.css";
+      THUNARX_DIRS = "/run/current-system/sw/lib/thunarx-3";
+    };
   };
 }

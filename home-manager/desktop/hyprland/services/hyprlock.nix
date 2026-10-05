@@ -1,4 +1,9 @@
-{ config, inputs, ... }:
+{
+  config,
+  lib,
+  inputs,
+  ...
+}:
 
 # The lock screen and Monika's dialog live in rokokol/ddlc-hyprlock; the seam is the font it
 # ships none of and the shader it flashes the screen with. The dialog is on by default — the
@@ -9,9 +14,11 @@
 {
   imports = [ inputs.ddlc-hyprlock.homeModules.default ];
 
-  ddlc.hyprlock = {
-    enable = true;
-    font = "Doki";
-    screenShader = config.programs.screen-shader.package;
+  config = lib.mkIf config.rokokol.hyprland.enable {
+    ddlc.hyprlock = {
+      enable = true;
+      font = "Doki";
+      screenShader = config.programs.screen-shader.package;
+    };
   };
 }

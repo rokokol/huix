@@ -1,4 +1,9 @@
-{ pkgs, inputs, ... }:
+{
+  lib,
+  pkgs,
+  inputs,
+  ...
+}:
 
 {
   imports = [ inputs.sops-nix.nixosModules.sops ];
@@ -11,11 +16,14 @@
   ];
 
   sops = {
-    # builtins.path so the hash follows the secrets file, not every commit
-    defaultSopsFile = builtins.path {
-      name = "huix-secrets";
-      path = "${inputs.self}/secrets/secrets.yaml";
-    };
+    # builtins.path so the hash follows the secrets file, not every commit. A default, so a
+    # host with secrets of its own can point at another file
+    defaultSopsFile = lib.mkDefault (
+      builtins.path {
+        name = "huix-secrets";
+        path = "${inputs.self}/secrets/secrets.yaml";
+      }
+    );
 
     # A personal age key, not sops.age.sshKeyPaths: a host key is regenerated on reinstall,
     # and every recipient change means re-encrypting the secrets. Keep it off /home: sops-nix

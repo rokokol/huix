@@ -1,40 +1,51 @@
-{ lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 {
-  fonts.packages = with pkgs; [
-    (stdenv.mkDerivation {
-      name = "my-fonts";
-      # Only the font files: this module and the README live in the same directory, so a
-      # bare ../fonts rebuilds the package (and everything downstream) on any edit to them
-      src = lib.fileset.toSource {
-        root = ../fonts;
-        fileset = lib.fileset.unions [
-          (lib.fileset.fileFilter (f: f.hasExt "ttf") ../fonts)
-          (lib.fileset.fileFilter (f: f.hasExt "otf") ../fonts)
-        ];
-      };
-      installPhase = ''
-        mkdir -p $out/share/fonts/truetype
-        mkdir -p $out/share/fonts/opentype
-        find $src -name "*.ttf" -exec cp {} $out/share/fonts/truetype/ \;
-        find $src -name "*.otf" -exec cp {} $out/share/fonts/opentype/ \;
-      '';
+  options.rokokol.fonts.enable = lib.mkEnableOption "the desktop fonts" // {
+    default = config.rokokol.workstation.enable;
+  };
 
-      meta = {
-        description = "Font files this repository carries directly, outside nixpkgs";
-        # The set holds the DDLC game font, which Team Salvato owns, so the whole
-        # derivation is unfree. ASSETS.md names each file and its owner
-        license = lib.licenses.unfree;
-        platforms = lib.platforms.all;
-      };
-    })
-    inter
-    (google-fonts.override { fonts = [ "Spectral" ]; })
-  ];
+  config = lib.mkIf config.rokokol.fonts.enable {
+    fonts.packages = with pkgs; [
+      (stdenv.mkDerivation {
+        name = "my-fonts";
+        # Only the font files: this module and the README live in the same directory, so a
+        # bare ../fonts rebuilds the package (and everything downstream) on any edit to them
+        src = lib.fileset.toSource {
+          root = ../fonts;
+          fileset = lib.fileset.unions [
+            (lib.fileset.fileFilter (f: f.hasExt "ttf") ../fonts)
+            (lib.fileset.fileFilter (f: f.hasExt "otf") ../fonts)
+          ];
+        };
+        installPhase = ''
+          mkdir -p $out/share/fonts/truetype
+          mkdir -p $out/share/fonts/opentype
+          find $src -name "*.ttf" -exec cp {} $out/share/fonts/truetype/ \;
+          find $src -name "*.otf" -exec cp {} $out/share/fonts/opentype/ \;
+        '';
 
-  fonts.fontconfig.defaultFonts = {
-    monospace = [ "DepartureMono Nerd Font Mono" ];
-    sansSerif = [ "Spectral" ];
-    serif = [ "Spectral" ];
+        meta = {
+          description = "Font files this repository carries directly, outside nixpkgs";
+          # The set holds the DDLC game font, which Team Salvato owns, so the whole
+          # derivation is unfree. ASSETS.md names each file and its owner
+          license = lib.licenses.unfree;
+          platforms = lib.platforms.all;
+        };
+      })
+      inter
+      (google-fonts.override { fonts = [ "Spectral" ]; })
+    ];
+
+    fonts.fontconfig.defaultFonts = {
+      monospace = [ "DepartureMono Nerd Font Mono" ];
+      sansSerif = [ "Spectral" ];
+      serif = [ "Spectral" ];
+    };
   };
 }

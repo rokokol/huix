@@ -29,7 +29,10 @@ in
   ];
 
   options.rokokol.hyprland = {
-    enable = lib.mkEnableOption "Hyprland";
+    # Every module under this directory follows this flag
+    enable = lib.mkEnableOption "Hyprland" // {
+      default = config.rokokol.workstation.enable;
+    };
 
     monitorScale = lib.mkOption {
       type = lib.types.float;

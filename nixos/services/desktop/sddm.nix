@@ -1,16 +1,27 @@
-{ inputs, ... }:
+{
+  config,
+  lib,
+  inputs,
+  ...
+}:
 
 {
   imports = [ inputs.ddlc-sddm-theme.nixosModules.default ];
 
-  services.displayManager.sddm = {
-    enable = true;
-    wayland.enable = true;
-    wayland.compositor = "kwin";
+  options.rokokol.sddm.enable = lib.mkEnableOption "the SDDM login screen" // {
+    default = config.rokokol.workstation.enable;
   };
 
-  # Theme, cursors and the QML-cache workaround come from the module
-  ddlc.sddm.enable = true;
+  config = lib.mkIf config.rokokol.sddm.enable {
+    services.displayManager.sddm = {
+      enable = true;
+      wayland.enable = true;
+      wayland.compositor = "kwin";
+    };
 
-  security.pam.services.login.nodelay = true;
+    # Theme, cursors and the QML-cache workaround come from the module
+    ddlc.sddm.enable = true;
+
+    security.pam.services.login.nodelay = true;
+  };
 }

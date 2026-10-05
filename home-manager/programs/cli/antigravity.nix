@@ -1,4 +1,9 @@
-{ pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   antigravity-cli-patched = pkgs.antigravity-cli.overrideAttrs (oldAttrs: {
@@ -13,5 +18,11 @@ let
   });
 in
 {
-  home.packages = [ antigravity-cli-patched ];
+  options.rokokol.antigravity.enable = lib.mkEnableOption "the Antigravity CLI" // {
+    default = config.rokokol.workstation.enable;
+  };
+
+  config = lib.mkIf config.rokokol.antigravity.enable {
+    home.packages = [ antigravity-cli-patched ];
+  };
 }
