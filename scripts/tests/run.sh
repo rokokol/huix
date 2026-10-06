@@ -4,7 +4,7 @@
 # variables, so every keyword a script emits is asserted without a compositor. Wired as the
 # script-tests flake check; run by hand from anywhere
 # No -e: every failing assertion is printed and counted, and the run exits on the counter
-# Needs jq beside bash
+# Needs jq and xorriso beside bash
 set -uo pipefail
 
 usage() {
@@ -15,7 +15,8 @@ run.sh — the tests of the scripts beside this directory, against stubbed comma
   run.sh help     this text
 
 Nothing here reaches the network or touches the session: hyprctl, monitor-sensor,
-systemctl, evtest, pkill, notify-send, df and wakeonlan are stubs for the duration of the run
+systemctl, evtest, pkill, notify-send, df and wakeonlan are stubs for the duration of the run.
+make-station-iso.sh runs the real xorriso on a small image in a temporary directory
 Exit 0 when every test passes, 1 when one fails, 2 on a usage error
 EOF
 }
@@ -419,6 +420,128 @@ WAKE_PC_MAC_FILE='' bash "$wake" >/dev/null 2>&1
 is "without the host's settings it is a usage error" 2 "$?"
 
 is "help answers without the host's settings" 0 "$(env -u WAKE_PC_BROADCAST bash "$wake" help >/dev/null 2>&1; echo $?)"
+
+# make-station-iso.sh, with the real xorriso on a small image made here. Every run writes into
+# $iso_work, so a file the script leaves anywhere else in it is found by a listing
+make_iso=$SCRIPTS/make-station-iso.sh
+iso_work=$work/iso
+mkdir -p "$iso_work/content" "$iso_work/secrets/ts-state" "$iso_work/out"
+printf 'not a boot image\n' >"$iso_work/content/version.txt"
+xorriso -as mkisofs -quiet -r -J -V HUIX-TEST -o "$iso_work/in.iso" "$iso_work/content" 2>/dev/null
+# Fixtures in the shape the owner's files have, never real secrets
+printf '# public key: age1test\nAGE-SECRET-KEY-1TESTTESTTEST\n' >"$iso_work/secrets/age-key.txt"
+printf '{}\n' >"$iso_work/secrets/ts-state/tailscaled.state"
+printf 'marker\n' >"$iso_work/secrets/ts-state/marker"
+tar -C "$iso_work/secrets" -cf "$iso_work/secrets/tailscale-state.tar" ts-state
+rm -r "$iso_work/secrets/ts-state"
+chmod 600 "$iso_work/secrets"/*
+
+# make_iso_run OUTPUT [ARG]... — run with the fixtures, the status in $make_status and the
+# messages in $make_out. HOME and TMPDIR point into $iso_work, so a stray file lands there
+make_iso_run() {
+  local out=$1
+  shift
+  make_out=$(HOME=$iso_work/home TMPDIR=$iso_work/tmp bash "$make_iso" write -s "$iso_work/secrets" "$@" \
+    "$iso_work/in.iso" "$out" 2>&1)
+  make_status=$?
+}
+# listing — every path under $iso_work, the outputs left out
+listing() { find "$iso_work" -path "$iso_work/out" -prune -o -print | LC_ALL=C sort; }
+mkdir -p "$iso_work/home" "$iso_work/tmp"
+before=$(listing)
+
+make_iso_run "$iso_work/out/station.iso"
+is "make-station-iso writes the image" 0 "$make_status"
+is "the image is readable by its owner alone" 600 "$(stat -c %a "$iso_work/out/station.iso")"
+is "nothing is written outside the output" "$before" "$(listing)"
+# xorriso prints one line per file: mode, links, owner, group, size, date, quoted path
+in_image=$(xorriso -indev "$iso_work/out/station.iso" -lsdl '/station-secrets/*' 2>/dev/null)
+is "both secrets are in the image" yes \
+  "$(grep -q "/age-key.txt'$" <<<"$in_image" && grep -q "/tailscale-state.tar'$" <<<"$in_image" && echo yes)"
+is "the secrets in the image belong to root and no one else may read them" yes \
+  "$(awk '$3 != 0 || $4 != 0 || $1 != "-rw-------" { bad = 1 } END { if (NR == 2 && !bad) print "yes" }' <<<"$in_image")"
+is "their directory in the image is closed to all but root" yes \
+  "$(xorriso -indev "$iso_work/out/station.iso" -lsdl /station-secrets 2>/dev/null |
+    awk '$1 == "drwx------" && $3 == 0 && $4 == 0 { print "yes" }')"
+mkdir -p "$iso_work/check"
+xorriso -osirrox on -indev "$iso_work/out/station.iso" \
+  -extract /station-secrets "$iso_work/check/secrets" >/dev/null 2>&1
+is "the age key in the image is the given one" yes \
+  "$(cmp -s "$iso_work/secrets/age-key.txt" "$iso_work/check/secrets/age-key.txt" && echo yes)"
+is "the tar in the image is the given one" yes \
+  "$(cmp -s "$iso_work/secrets/tailscale-state.tar" "$iso_work/check/secrets/tailscale-state.tar" && echo yes)"
+rm -rf "$iso_work/check"
+is "the image keeps the volume ID the installer finds its medium by" yes \
+  "$(xorriso -indev "$iso_work/out/station.iso" -pvd_info 2>/dev/null | grep -q "^Volume Id *: HUIX-TEST$" && echo yes)"
+is "the image keeps the Joliet tree of the original" yes \
+  "$(xorriso -indev "$iso_work/out/station.iso" -assess_indev_features plain 2>/dev/null |
+    grep -qx 'Indev feature: joliet=1' && echo yes)"
+is "the end says the output is a secret to delete" yes \
+  "$(grep -qF "$iso_work/out/station.iso" <<<"$make_out" && grep -qi delete <<<"$make_out" && echo yes)"
+
+before_out=$(stat -c '%s %Y' "$iso_work/out/station.iso")
+make_iso_run "$iso_work/out/station.iso"
+is "an existing output is a usage error" 2 "$make_status"
+is "an existing output is left as it was" "$before_out" "$(stat -c '%s %Y' "$iso_work/out/station.iso")"
+rm "$iso_work/out/station.iso"
+
+mkdir -p "$iso_work/out/repo/.git" "$iso_work/out/repo/sub"
+make_iso_run "$iso_work/out/repo/sub/station.iso"
+is "an output inside a git work tree is a usage error" 2 "$make_status"
+is "nothing is written inside the work tree" "" "$(find "$iso_work/out/repo" -name '*.iso')"
+ln -s "$iso_work/out/repo/sub" "$iso_work/out/link"
+make_iso_run "$iso_work/out/link/station.iso"
+is "a symlink into a work tree is followed and refused" 2 "$make_status"
+
+# The store is a path the build sandbox has as well, and the refusal comes before any write
+make_iso_run /nix/store/huix-station-test.iso
+is "an output in the Nix store is a usage error" 2 "$make_status"
+is "the refusal names the store" yes "$(grep -qi store <<<"$make_out" && echo yes)"
+
+# Each secret in turn is taken out of a copy of the fixtures
+for name in age-key.txt tailscale-state.tar; do
+  rm -rf "$iso_work/partial"
+  cp -R "$iso_work/secrets" "$iso_work/partial"
+  rm "$iso_work/partial/$name"
+  make_out=$(bash "$make_iso" write -s "$iso_work/partial" "$iso_work/in.iso" "$iso_work/out/station.iso" 2>&1)
+  is "a missing $name is a failure" 1 "$?"
+  is "the missing $name is named" yes "$(grep -qF "$name" <<<"$make_out" && echo yes)"
+  is "no image is written without $name" "" "$(find "$iso_work/out" -name '*.iso')"
+done
+
+rm -rf "$iso_work/partial"
+cp -R "$iso_work/secrets" "$iso_work/partial"
+mkdir -p "$iso_work/flat"
+printf '{}\n' >"$iso_work/flat/tailscaled.state"
+tar -C "$iso_work/flat" -cf "$iso_work/partial/tailscale-state.tar" tailscaled.state
+bash "$make_iso" write -s "$iso_work/partial" "$iso_work/in.iso" "$iso_work/out/station.iso" >/dev/null 2>&1
+is "a tar without its ts-state directory is a failure" 1 "$?"
+printf 'not a key\n' >"$iso_work/partial/age-key.txt"
+cp "$iso_work/secrets/tailscale-state.tar" "$iso_work/partial/"
+bash "$make_iso" write -s "$iso_work/partial" "$iso_work/in.iso" "$iso_work/out/station.iso" >/dev/null 2>&1
+is "a key file without an age key is a failure" 1 "$?"
+
+# A writer that dies halfway: the part it wrote holds the secrets, so it must not stay
+cat >"$work/bin/xorriso" <<'EOF'
+#!/usr/bin/env bash
+while (($#)); do
+  if [ "$1" = -outdev ]; then printf 'partial' >"$2"; fi
+  shift
+done
+exit 5
+EOF
+sed -i "1s|.*|#!$BASH|" "$work/bin/xorriso"
+chmod +x "$work/bin/xorriso"
+make_iso_run "$iso_work/out/station.iso"
+is "a failed write is a failure" 1 "$make_status"
+is "a failed write leaves no part of the image" "" "$(find "$iso_work/out" -name '*.iso')"
+rm "$work/bin/xorriso"
+
+bash "$make_iso" write "$iso_work/in.iso" >/dev/null 2>&1
+is "make-station-iso without an output is a usage error" 2 "$?"
+
+bash "$make_iso" >/dev/null 2>&1
+is "make-station-iso without a subcommand is a usage error" 2 "$?"
 
 if ((failures)); then
   printf 'run.sh: %d test(s) failed\n' "$failures" >&2

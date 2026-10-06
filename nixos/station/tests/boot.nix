@@ -12,32 +12,7 @@ let
   pcMac = "52:54:00:12:01:01";
   stationMac = "52:54:00:12:01:03";
 
-  # Fixtures, never real secrets. A throwaway age key is made at build time, and the five names
-  # of secrets/station.yaml get dummy values, encrypted to that key only
-  fixtures =
-    pkgs.runCommand "station-boot-test-fixtures"
-      {
-        nativeBuildInputs = with pkgs; [
-          age
-          mkpasswd
-          sops
-        ];
-      }
-      ''
-        mkdir $out
-        age-keygen -o $out/key.txt 2>/dev/null
-        {
-          printf 'rokokol-password-hash: %s\n' "$(mkpasswd -m sha-512 test)"
-          printf 'pc-mac: %s\n' '${pcMac}'
-          printf 'restic-server-htpasswd: pc:%s\n' "$(mkpasswd -m bcrypt test)"
-          printf 'alert-mail-msmtprc: |\n'
-          printf '  account default\n  host 192.168.0.1\n  port 1025\n'
-          printf '  from station@test\n  auth off\n  tls off\n'
-          printf 'alert-mail-aliases: "root: owner@test"\n'
-        } >plain.yaml
-        sops --encrypt --age "$(age-keygen -y $out/key.txt)" \
-          --input-type yaml --output-type yaml plain.yaml >$out/station.yaml
-      '';
+  fixtures = import ./fixtures.nix { inherit pkgs pcMac; };
 
   lanNode = address: {
     virtualisation.vlans = [ 1 ];
@@ -52,21 +27,11 @@ in
 pkgs.testers.runNixOSTest {
   name = "station-boot";
 
-  # The test's meta declares neither field, and the derivation takes its meta from the
-  # option alone; a second declaration of the submodule adds them
   imports = [
-    {
-      options.meta = lib.mkOption {
-        type = lib.types.submodule {
-          options.description = lib.mkOption { type = lib.types.str; };
-          options.license = lib.mkOption { type = lib.types.attrs; };
-        };
-      };
-      config.meta = {
-        description = "Boot nixos-station in a VM and check its network, backups, secrets and alerts";
-        license = lib.licenses.mit;
-      };
-    }
+    (import ./test-meta.nix {
+      inherit lib;
+      description = "Boot nixos-station in a VM and check its network, backups, secrets and alerts";
+    })
   ];
 
   # The station brings its own nixpkgs config and overlays, as outside the test
@@ -76,41 +41,30 @@ pkgs.testers.runNixOSTest {
 
   nodes.station = {
     imports = station._module.args.modules ++ [
-      (
-        { lib, ... }:
-        {
-          virtualisation = {
-            vlans = [ 1 ];
-            memorySize = 3072;
-            cores = 2;
-            emptyDiskImages = [ 2048 ];
-            # The VM mounts its own disks in place of disko's. The backup volume is the empty
-            # disk, with the file system and the options the host declares
-            fileSystems."/srv/backup" = {
-              device = "/dev/vdb";
-              inherit (backup) fsType options;
-              autoFormat = true;
-            };
+      (import ./fixture-host.nix { inherit fixtures stationMac; })
+      (_: {
+        virtualisation = {
+          vlans = [ 1 ];
+          memorySize = 3072;
+          cores = 2;
+          emptyDiskImages = [ 2048 ];
+          # The VM mounts its own disks in place of disko's. The backup volume is the empty
+          # disk, with the file system and the options the host declares
+          fileSystems."/srv/backup" = {
+            device = "/dev/vdb";
+            inherit (backup) fsType options;
+            autoFormat = true;
           };
+        };
 
-          systemd.network.networks."10-lan".matchConfig.PermanentMACAddress = lib.mkForce stationMac;
-
-          # sops-nix refuses a key in the store, so activation copies it to the host's path
-          # before sops-nix reads it; the installer does the same with the real key
-          sops.defaultSopsFile = lib.mkForce "${fixtures}/station.yaml";
-          # Validation reads the file at evaluation, which would build the fixtures under
-          # `nix flake check`. The host keeps it, and here the VM decrypts every secret anyway
-          sops.validateSopsFiles = false;
-          system.activationScripts.testAgeKey.text = ''
-            install -D -m 0400 ${fixtures}/key.txt /var/lib/sops-nix/key.txt
-          '';
-          system.activationScripts.setupSecretsForUsers.deps = [ "testAgeKey" ];
-          system.activationScripts.setupSecrets.deps = [ "testAgeKey" ];
-
-          # A virtual disk has no SMART data, and smartd fails with no device to watch
-          services.smartd.enable = lib.mkForce false;
-        }
-      )
+        # sops-nix refuses a key in the store, so activation copies it to the host's path
+        # before sops-nix reads it; the installer does the same with the real key
+        system.activationScripts.testAgeKey.text = ''
+          install -D -m 0400 ${fixtures}/key.txt /var/lib/sops-nix/key.txt
+        '';
+        system.activationScripts.setupSecretsForUsers.deps = [ "testAgeKey" ];
+        system.activationScripts.setupSecrets.deps = [ "testAgeKey" ];
+      })
     ];
   };
 

@@ -24,11 +24,15 @@ pkgs.lib.mapAttrs' (
   };
 
   # The scripts against stubbed commands: every keyword rotate-screen.sh and
-  # tablet-mode.sh emit is asserted here, where there is no compositor to ask
+  # tablet-mode.sh emit is asserted here, where there is no compositor to ask.
+  # make-station-iso.sh runs the real xorriso on a small image
   script-tests =
     pkgs.runCommand "script-tests"
       {
-        nativeBuildInputs = with pkgs; [ jq ];
+        nativeBuildInputs = with pkgs; [
+          jq
+          xorriso
+        ];
         scripts = builtins.path {
           name = "huix-scripts";
           path = ./scripts;

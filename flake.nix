@@ -275,11 +275,24 @@
 
       checks.${system} = import ./checks.nix (commonArgs // { inherit pkgs; });
 
-      # Built only when asked: `nix flake check` evaluates a package and builds only checks,
-      # and three VMs are too heavy for every check run
-      packages.${system}.station-boot-test = import ./nixos/station/tests/boot.nix (
-        commonArgs // { inherit pkgs; }
-      );
+      # Built only when asked: `nix flake check` evaluates a package and builds only checks. The
+      # VM tests and the image each take minutes and gigabytes, too much for every check run
+      packages.${system} = {
+        station-boot-test = import ./nixos/station/tests/boot.nix (commonArgs // { inherit pkgs; });
+
+        # The installer image without its secrets; scripts/make-station-iso.sh adds them
+        station-installer =
+          nixpkgs.lib.addMetaAttrs
+            {
+              description = "Installer image that erases the station's disk and installs nixos-station";
+              license = nixpkgs.lib.licenses.mit;
+            }
+            (import ./nixos/station/installer/mk-image.nix commonArgs {
+              target = inputs.self.nixosConfigurations.nixos-station;
+            }).config.system.build.isoImage;
+
+        station-install-test = import ./nixos/station/tests/install.nix (commonArgs // { inherit pkgs; });
+      };
 
       # `nix run .#check-nix -- -N rokokol` — the whole checker, pinned by flake.lock rather
       # than looked up at the moment a job runs
