@@ -27,9 +27,6 @@
     AllowSuspendThenHibernate = "no";
   };
 
-  # The disk has no swap partition
-  zramSwap.enable = true;
-
   # The owner connects from kitty, which sets TERM=xterm-kitty over SSH
   environment.systemPackages = with pkgs; [ kitty.terminfo ];
 }

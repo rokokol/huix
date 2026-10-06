@@ -9,6 +9,8 @@
 
   system.stateVersion = "25.11";
   services.ollama.package = pkgs.stable.ollama-cuda;
+  # The owner keeps this host without swap of any kind
+  zramSwap.enable = false;
 
   services.virtual-media-devices.camera = {
     enable = true;
