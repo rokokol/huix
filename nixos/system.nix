@@ -56,6 +56,9 @@
         "flakes"
       ];
       auto-optimise-store = true;
+      # Profile links and defexpr live under ~/.local/state/nix rather than as ~/.nix-profile
+      # and ~/.nix-defexpr: Home Manager runs nix-env on every activation, which makes them
+      use-xdg-base-directories = true;
       trusted-users = [
         "root"
         "@wheel"
