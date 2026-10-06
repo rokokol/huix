@@ -192,21 +192,21 @@ hl.animation({
   enabled = true,
   speed = 1.94,
   bezier = "almostLinear",
-  style = "fade",
+  style = "slide",
 })
 hl.animation({
   leaf = "workspacesIn",
   enabled = true,
   speed = 1.21,
   bezier = "almostLinear",
-  style = "fade",
+  style = "slide",
 })
 hl.animation({
   leaf = "workspacesOut",
   enabled = true,
   speed = 1.94,
   bezier = "almostLinear",
-  style = "fade",
+  style = "slide",
 })
 hl.animation({ leaf = "zoomFactor", enabled = true, speed = 7, bezier = "quick" })
 
@@ -262,11 +262,18 @@ hl.config({
 -----------
 
 -- touchpad gestures
-hl.gesture({ fingers = 3, direction = "horizontal", action = workspaces.swipe() })
+hl.config({
+  gestures = {
+    workspace_swipe_create_new = false,
+    workspace_swipe_use_r = false,
+    workspace_swipe_touch_invert = true,
+  },
+})
+hl.gesture({ fingers = 3, direction = "horizontal", action = "workspace" })
 if hl.plugin.hyprgrass then
   hl.plugin.hyprgrass.gesture({
     pattern = { kind = "swipe", fingers = 3, direction = "horizontal" },
-    action = workspaces.swipe(true),
+    action = "workspace",
   })
 end
 -- two-finger pinch screen zoom (a live magnifier around the cursor). The

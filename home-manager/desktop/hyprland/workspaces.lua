@@ -1,6 +1,20 @@
+local workspaceCounts = {
+  primary = 4,
+  secondary = 4,
+  tertiary = 1,
+}
+
+local groupOrder = { "primary", "secondary", "tertiary" }
+local groups, first = {}, 1
+for _, role in ipairs(groupOrder) do
+  local count = workspaceCounts[role]
+  assert(type(count) == "number" and count >= 1 and count % 1 == 0, "Workspace counts must be positive integers")
+  groups[role] = { first = first, count = count }
+  first = first + count
+end
+
 local M = {}
-local groupSize = 4
-local secondary, topology
+local assigned, topology = {}, nil
 
 local function sync(excluded)
   local monitors = hl.get_monitors()
@@ -21,41 +35,82 @@ local function sync(excluded)
     end
   end
   if not main then
-    secondary, topology = nil, nil
+    assigned, topology = {}, nil
     return
   end
-  local external
+
+  local available = {}
   for _, monitor in ipairs(outputs) do
     if monitor ~= main then
-      external = monitor
-      break
+      available[monitor.name] = monitor
     end
   end
-  local key = main.name .. ":" .. (external and external.name or "")
+
+  -- Existing workspace bindings keep a new output from taking another output's group
+  local function select(role)
+    local monitor = available[assigned[role]]
+    if not monitor then
+      local group = groups[role]
+      for id = group.first, group.first + group.count - 1 do
+        local workspace = hl.get_workspace(tostring(id))
+        local owner = workspace and workspace.monitor
+        if owner and available[owner.name] then
+          monitor = available[owner.name]
+          break
+        end
+      end
+    end
+    if not monitor then
+      for _, candidate in ipairs(outputs) do
+        if available[candidate.name] then
+          monitor = candidate
+          break
+        end
+      end
+    end
+    if monitor then
+      available[monitor.name] = nil
+    end
+    return monitor
+  end
+
+  local selected = { primary = main }
+  selected.secondary = select("secondary")
+  selected.tertiary = select("tertiary")
+  local names = {}
+  for _, role in ipairs(groupOrder) do
+    names[#names + 1] = selected[role] and selected[role].name or ""
+  end
+  local key = table.concat(names, ":")
   if key == topology then
     return
   end
-  secondary, topology = external and external.name, key
-
-  for id = 1, groupSize * 2 do
-    local firstGroup = id <= groupSize
-    local target = firstGroup and main or external or main
-    hl.workspace_rule({
-      workspace = tostring(id),
-      monitor = target.name,
-      persistent = firstGroup or external ~= nil,
-      default = id == 1 or (id == groupSize + 1 and external ~= nil),
-    })
-    local workspace = hl.get_workspace(tostring(id))
-    if workspace and workspace.monitor ~= target then
-      hl.dispatch(hl.dsp.workspace.move({ workspace = tostring(id), monitor = target.name }))
-    end
+  topology = key
+  for _, role in ipairs(groupOrder) do
+    assigned[role] = selected[role] and selected[role].name
   end
-  for _, monitor in ipairs({ main, external }) do
-    local first = monitor == main and 1 or groupSize + 1
-    local active = monitor.active_workspace
-    if not active or not active.id or active.id < first or active.id >= first + groupSize then
-      monitor:set_workspace(tostring(first))
+
+  for _, role in ipairs(groupOrder) do
+    local group = groups[role]
+    local monitor = selected[role]
+    local target = monitor or main
+    for id = group.first, group.first + group.count - 1 do
+      hl.workspace_rule({
+        workspace = tostring(id),
+        monitor = target.name,
+        persistent = monitor ~= nil,
+        default = id == group.first and monitor ~= nil,
+      })
+      local workspace = hl.get_workspace(tostring(id))
+      if workspace and workspace.monitor ~= target then
+        hl.dispatch(hl.dsp.workspace.move({ workspace = tostring(id), monitor = target.name }))
+      end
+    end
+    if monitor then
+      local active = monitor.active_workspace
+      if not active or not active.id or active.id < group.first or active.id >= group.first + group.count then
+        monitor:set_workspace(tostring(group.first))
+      end
     end
   end
 end
@@ -65,44 +120,21 @@ function M.step(offset, dispatcher, monitor)
   if not monitor then
     return
   end
-  local first = monitor.name == secondary and groupSize + 1 or 1
+  local group = groups.primary
+  for _, role in ipairs(groupOrder) do
+    if monitor.name == assigned[role] then
+      group = groups[role]
+      break
+    end
+  end
+  local first, count = group.first, group.count
   local workspace = monitor.active_workspace
   local id = workspace and workspace.id
-  if not id or id < first or id >= first + groupSize then
+  if not id or id < first or id >= first + count then
     id = offset > 0 and first - 1 or first
   end
-  local target = tostring(first + ((id - first + offset) % groupSize))
+  local target = tostring(first + ((id - first + offset) % count))
   hl.dispatch(dispatcher(target))
-end
-
--- A callback shares the exact cycle with the wheel, even after an output disconnects
-function M.swipe(touchscreen)
-  local monitor, distance, threshold, invert
-  return {
-    start = function()
-      monitor = hl.get_monitor_at_cursor() or hl.get_active_monitor()
-      distance = 0
-      threshold = hl.get_config("gestures.workspace_swipe_distance")
-        * hl.get_config("gestures.workspace_swipe_cancel_ratio")
-      invert =
-        hl.get_config(touchscreen and "gestures.workspace_swipe_touch_invert" or "gestures.workspace_swipe_invert")
-    end,
-    update = function(event)
-      distance = distance + event.delta.x
-    end,
-    finish = function(event)
-      if event.cancelled or not monitor or not monitor.name or math.abs(distance) < math.max(2, threshold) then
-        return
-      end
-      local offset = distance > 0 and 1 or -1
-      if invert then
-        offset = -offset
-      end
-      M.step(offset, function(target)
-        return hl.dsp.focus({ workspace = target })
-      end, monitor)
-    end,
-  }
 end
 
 hl.on("monitor.added", function()
