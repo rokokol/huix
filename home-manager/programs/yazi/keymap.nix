@@ -171,6 +171,12 @@ in
           package = ownPlugin "archive-mount";
           setup = true;
         };
+        # A notice inside yazi once a batch of tasks that ran this many seconds is over
+        task-notify = {
+          package = ownPlugin "task-notify";
+          setup = true;
+          settings.after = 5;
+        };
       }
       // lib.optionalAttrs workstation {
         # wl-clipboard-rs carries the --offer patch (see WORKAROUNDS.md)
@@ -186,6 +192,15 @@ in
     # The spot has nothing else on `c`, so the value under the cursor is copied without the
     # stock second press
     keymap.spot.prepend_keymap = [ (bind "c" "copy cell" "Copy the value") ];
+
+    # yazi drops a cancelled task as it drops a finished one, so task-notify learns of a cancel
+    # from the key, in the main Lua state while the task is still listed
+    keymap.tasks.prepend_keymap = [
+      (bind "x" [
+        "lua 'require(\"task-notify\"):cancelling()'"
+        "cancel"
+      ] "Cancel the task")
+    ];
 
     # A digit starts a count for relative-motions; tabs switch on <Tab> instead
     keymap.mgr.prepend_keymap =
