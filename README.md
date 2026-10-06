@@ -32,8 +32,11 @@ rebuilds                                       # то же, но пакеты с
 
 ```sh
 nixos-rebuild switch --flake .#nixos-station --target-host rokokol@nixos-station --sudo --ask-sudo-password
-nix build .#station-boot-test -L   # станция в виртуалках рядом с роутером и ПК, только по запросу
+nix build .#station-boot-test -L      # станция в виртуалках рядом с роутером и ПК, только по запросу
+nix build .#station-install-test -L   # её установочный образ в виртуалках: отказы и полная установка
 ```
+
+Первый раз станция ставится с флешки: образ без секретов собирает `nix build .#station-installer`, секреты в копию добавляет `nix run .#make-station-iso -- write result/iso/*.iso OUTPUT`, и этот OUTPUT после установки удаляют. Что он делает на станции — в [`nixos/`](nixos/README.md#станция)
 
 При смене железа:
 

@@ -31,6 +31,11 @@ nix fmt -- --ci             # formats every file, and fails if that changed any
 # The station booted in VMs beside a router and the PC — only when asked
 nix build .#station-boot-test -L
 
+# The station's installer image, its VM test, and the copy with the secrets inside
+nix build .#station-installer                                 # result/iso/*.iso, no secret in it
+nix run .#make-station-iso -- write result/iso/*.iso OUTPUT   # OUTPUT is a secret: outside the repo, deleted after
+nix build .#station-install-test -L                           # every refusal, then a full install, ~15 min
+
 # Inputs
 nix flake update            # all
 nix flake update <input>    # one
@@ -38,7 +43,7 @@ nix flake update <input>    # one
 
 `nix flake check` evaluates every host configuration — that is where a bad option or a type error surfaces — and realises `checks.<system>.nixvim-init-<host>`, the generated `init.lua`. nixvim runs stylua over that file, so **broken Lua in any nixvim module fails there and nowhere else**: evaluation does not parse it, and the wrapper in the store never loads it (Home Manager writes the config to `~/.config/nvim`, so a bare `nvim` out of the package starts empty). A runtime fault — a `require` of a plugin that is not there, a `setup` that throws — is still only visible on the next real `nvim`
 
-There is no per-module test, and no check builds a host closure: `ollama-cuda` misses every cache and compiles from source, so a hosted runner cannot finish one. The one test that boots a host is `station-boot-test`, a package rather than a check, so `nix flake check` evaluates it and never builds it. It runs the station's own module list and replaces only what a VM cannot have; build it after a change to anything the station imports
+There is no per-module test, and no check builds a host closure: `ollama-cuda` misses every cache and compiles from source, so a hosted runner cannot finish one. The tests that boot a host are `station-boot-test` and `station-install-test`, packages rather than checks, so `nix flake check` evaluates them and never builds them. The first runs the station's own module list and replaces only what a VM cannot have (`nixos/station/tests/fixture-host.nix`); build it after a change to anything the station imports. The second boots the installer image: four VMs where it must refuse, one it installs onto and boots from, and a Ventoy stick; build it after a change under `nixos/station/installer/`, to `disko.nix` or to `scripts/install-station.sh`. The image itself, `station-installer`, is the same kind of package: `nix flake check` never builds its 3 GB
 
 ## Architecture you must internalize
 
@@ -83,7 +88,7 @@ What neither checker can know, because it is this repository's own:
 - **`cfg = config.rokokol.<name>` is bound only when the config is read more than once** — a `let` for a single reference is noise
 - **All user-facing text is English** — every notify-send, rofi prompt, `usage()` and waybar tooltip. The sole exception is `README.md` files, which stay in Russian
 - **Every path in this repository is kebab-case, not only the `.nix` ones** — assets included. The checker judges `.nix` paths alone, because elsewhere it met Cargo, pytest and X11, which choose their own names; here every file is yours, so the wider rule holds and a human keeps it. When renaming, `git mv` and grep the tree for references. The exceptions are conventional root metadata (`README.md`, `LICENSE`, `ASSETS.md`, `WORKAROUNDS.md`, `DEVIATIONS.md`, `TODO.md`) and the X11 cursor names under `assets/sayori-cursor-v2/cursors/`, which are a protocol
-- **An exception the checker must know goes in `check-nix.allow`**, one line each; an entry that excuses nothing is itself a finding. There is none at the moment
+- **An exception the checker must know goes in `check-nix.allow`**, one line each; an entry that excuses nothing is itself a finding. The one entry there is `nixos/station/tests/test-meta.nix`, which extends the test framework's own `meta` option
 - Don't touch `system.stateVersion` unless doing an explicit migration; `home.stateVersion` follows it in `home-manager/desktop/user.nix`, so it moves with it
 
 ## Committing
@@ -115,7 +120,8 @@ What neither checker can know, because it is this repository's own:
 
 ## The station
 
-- **It holds no checkout and never evaluates the flake** — the PC builds it and pushes it with `--target-host` (the command is above), over Tailscale SSH, the only shell into it; the console password from sops is the way back in when the tailnet is down. With no checkout there is no `HUIX`, so a script a station unit runs is copied into the store with `builtins.path` (`wake-pc.nix`, `backup-heartbeat.nix`), never read from `huixDir`
+- **It holds no checkout and never evaluates the flake** — the PC builds it and pushes it with `--target-host` (the command is above), over Tailscale SSH, the only shell into it; the console password from sops is the way back in when the tailnet is down. With no checkout there is no `HUIX`, so a script a station unit runs is copied into the store with `builtins.path` (`wake-pc.nix`, `backup-heartbeat.nix`, the installer's `iso.nix` and `make-iso.nix`), never read from `huixDir`
+- **The installer image is built without its secrets, and `make-station-iso.sh` adds them to a copy outside the store**: everything Nix builds is world-readable in `/nix/store`, so the age key and the Tailscale state never enter a derivation. Every fact about what the image installs — the disk, the mount root, the key path, the toplevel — is read from the station's configuration in `nixos/station/installer/iso.nix`, so `disko.nix` is the one place that names the disk. The installed system's secrets travel in `~/.local/state/huix/station-bootstrap/`, which `make-station-iso.sh help` describes, and nothing in the repository reads that directory at evaluation
 - **Its secrets are its own**: `nixos/station/sops.nix` points `defaultSopsFile` at `secrets/station.yaml`, which `.sops.yaml` encrypts to the owner's key and the station's own, so the station cannot read the desktops' file. A secret a shared module asks for on the station goes into that file too, or the build fails on the missing key
 
 ## Extracted flakes
