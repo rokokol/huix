@@ -16,16 +16,49 @@ local fileManager = "xdg-open ~"
 local workspaces = dofile(HUIX.scripts .. "/../home-manager/desktop/hyprland/workspaces.lua")
 local getScreen = 'grim -g "$(slurp -b ffffff66 -w 1 && sleep 0.2)"'
 
+local workspaceAnimationStyle = "slide"
+local workspaceAnimations = {
+  { leaf = "workspaces", speed = 1.94 },
+  { leaf = "workspacesIn", speed = 1.21 },
+  { leaf = "workspacesOut", speed = 1.94 },
+}
+local function setWorkspaceAnimationStyle(style)
+  for _, animation in ipairs(workspaceAnimations) do
+    hl.animation({
+      leaf = animation.leaf,
+      enabled = true,
+      speed = animation.speed,
+      bezier = "almostLinear",
+      style = style,
+    })
+  end
+end
+
 local function tab(offset, dispatcher)
   return function()
     workspaces.step(offset, dispatcher)
   end
 end
+local function wheelDispatcher(dispatcher)
+  local style = HUIX.workspaceWheelAnimationStyle
+  if not style then
+    return dispatcher
+  end
+  return function()
+    -- Hyprland selects the transition style synchronously inside the dispatcher
+    setWorkspaceAnimationStyle(style)
+    local ok, err = pcall(hl.dispatch, dispatcher)
+    setWorkspaceAnimationStyle(workspaceAnimationStyle)
+    if not ok then
+      error(err)
+    end
+  end
+end
 local function focusWorkspace(target)
-  return hl.dsp.focus({ workspace = target })
+  return wheelDispatcher(hl.dsp.focus({ workspace = target }))
 end
 local function moveToWorkspace(target)
-  return hl.dsp.window.move({ workspace = target })
+  return wheelDispatcher(hl.dsp.window.move({ workspace = target }))
 end
 
 ---------------
@@ -187,27 +220,7 @@ hl.animation({
 hl.animation({ leaf = "layersOut", enabled = true, speed = 1.5, bezier = "linear", style = "fade" })
 hl.animation({ leaf = "fadeLayersIn", enabled = true, speed = 1.79, bezier = "almostLinear" })
 hl.animation({ leaf = "fadeLayersOut", enabled = true, speed = 1.39, bezier = "almostLinear" })
-hl.animation({
-  leaf = "workspaces",
-  enabled = true,
-  speed = 1.94,
-  bezier = "almostLinear",
-  style = "slide",
-})
-hl.animation({
-  leaf = "workspacesIn",
-  enabled = true,
-  speed = 1.21,
-  bezier = "almostLinear",
-  style = "slide",
-})
-hl.animation({
-  leaf = "workspacesOut",
-  enabled = true,
-  speed = 1.94,
-  bezier = "almostLinear",
-  style = "slide",
-})
+setWorkspaceAnimationStyle(workspaceAnimationStyle)
 hl.animation({ leaf = "zoomFactor", enabled = true, speed = 7, bezier = "quick" })
 
 -- "smart gaps" / "no gaps when there's a single window" -- uncomment if desired
@@ -266,7 +279,7 @@ hl.config({
   gestures = {
     workspace_swipe_create_new = false,
     workspace_swipe_use_r = false,
-    workspace_swipe_touch_invert = true,
+    workspace_swipe_invert = true,
   },
 })
 hl.gesture({ fingers = 3, direction = "horizontal", action = "workspace" })

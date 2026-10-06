@@ -46,6 +46,12 @@ in
       description = "Primary output for the workspace group and Waybar";
     };
 
+    workspaceWheelAnimationStyle = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      description = "Animation style for workspace wheel transitions; null preserves the normal style";
+    };
+
     monitorMode = lib.mkOption {
       type = lib.types.str;
       default = "preferred";
@@ -146,6 +152,7 @@ in
           menu = ${toLua cfg.menuCommand},
           scripts = ${toLua "${huixDir}/scripts"},
           primaryMonitor = ${toLua cfg.primaryMonitor},
+          workspaceWheelAnimationStyle = ${toLua cfg.workspaceWheelAnimationStyle},
         }
         dofile(${toLua "${huixDir}/home-manager/desktop/hyprland/hyprland.lua"})
       '';

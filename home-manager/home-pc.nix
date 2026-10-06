@@ -16,6 +16,7 @@
     hyprland = {
       enable = true;
       primaryMonitor = "DP-1";
+      workspaceWheelAnimationStyle = "fade";
       monitorScale = 1.0;
       wallpaperCollage = false; # for Felix wallspaper :3
     };
