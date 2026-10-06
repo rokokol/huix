@@ -52,25 +52,15 @@ let
     }).config.system.build.isoImage;
   plainIso = "${plain}/iso/${plain.isoName}";
 
-  makeIsoScripts = builtins.path {
-    name = "make-station-iso";
-    path = "${inputs.self}/scripts";
-    filter =
-      path: _:
-      builtins.elem (lib.removePrefix "${inputs.self}/scripts/" path) [
-        "make-station-iso.sh"
-        "lib"
-        "lib/station-secrets.sh"
-      ];
-  };
+  makeIso = import ../installer/make-iso.nix { inherit pkgs inputs; };
 
   # The fixture Tailscale state: an empty state store, which tailscaled reads as a node that
   # never logged in, and a marker that shows the contents of ts-state/ arrived
   secretsIso =
     pkgs.runCommand "station-installer-test-with-secrets.iso"
       {
-        nativeBuildInputs = with pkgs; [ xorriso ];
-        meta.description = "The test's installer image with fixture secrets added by make-station-iso.sh";
+        nativeBuildInputs = [ makeIso ];
+        meta.description = "The test's installer image with fixture secrets added by make-station-iso";
       }
       ''
         mkdir -p secrets/ts-state
@@ -80,7 +70,7 @@ let
         tar -C secrets -cf secrets/tailscale-state.tar ts-state
         rm -r secrets/ts-state
         # The script refuses the store, so it writes here and the file moves after
-        bash ${makeIsoScripts}/make-station-iso.sh write -s secrets ${plainIso} "$PWD/station.iso"
+        make-station-iso write -s secrets ${plainIso} "$PWD/station.iso"
         mv station.iso $out
       '';
 

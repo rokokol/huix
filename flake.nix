@@ -309,6 +309,16 @@
           program = nixpkgs.lib.getExe inputs.nix-best-practices.packages.${system}.drv-diff;
           meta.description = "Say whether a change moved any derivation this flake builds";
         };
+
+        # `nix run .#make-station-iso -- write ISO OUTPUT` — the station's image with its secrets
+        # added, with xorriso from the lock rather than from the shell's PATH
+        make-station-iso = {
+          type = "app";
+          program = nixpkgs.lib.getExe (
+            import ./nixos/station/installer/make-iso.nix { inherit pkgs inputs; }
+          );
+          meta.description = "Copy the station's installer image with its secrets added inside";
+        };
       };
     };
 }
