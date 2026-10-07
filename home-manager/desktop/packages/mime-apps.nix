@@ -36,6 +36,9 @@ lib.mkIf config.rokokol.workstation.enable {
       "application/x-cbr" = "org.gnome.Evince.desktop";
       "application/epub+zip" = "org.gnome.Evince.desktop";
 
+      "x-scheme-handler/magnet" = "de.haeckerfelix.Fragments.desktop";
+      "application/x-bittorrent" = "de.haeckerfelix.Fragments.desktop";
+
       "application/octet-stream" = "selectdefaultapplication.desktop";
     };
   };

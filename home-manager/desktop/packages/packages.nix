@@ -34,6 +34,7 @@ in
           celluloid
           chromium
           evince
+          fragments
           freecad
           geary
           gnome-disk-utility
