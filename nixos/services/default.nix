@@ -11,6 +11,7 @@
     ./devices/printer.nix
     ./devices/sensors.nix
     ./devices/tablet.nix
+    ./devices/vial.nix
     ./system/alert-mail.nix
     ./system/appimage.nix
     ./system/backup-heartbeat.nix

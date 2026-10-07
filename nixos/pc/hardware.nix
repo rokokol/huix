@@ -11,9 +11,6 @@ _:
   services.libinput.enable = false;
 
   services.udev.extraRules = ''
-    # For Vial to work correctly
-    KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{serial}=="*vial:f64c2b3c*", MODE="0660", TAG+="uaccess", TAG+="udev-acl"
-
     # Prevent the sound card from going to sleep
     ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="0d8c", ATTR{idProduct}=="0268", ATTR{power/control}="on"
   '';
