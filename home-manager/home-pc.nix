@@ -29,20 +29,19 @@
     };
   };
 
-  # Fixed positions: with "auto", the order in which DRM finds the connectors decides which
-  # screen is on the left, and that order changes between boots
-  wayland.windowManager.hyprland.settings.monitor = [
-    {
-      output = config.rokokol.hyprland.primaryMonitor;
-      mode = "preferred";
-      position = "0x0";
-      scale = 1.0;
-    }
-    {
-      output = "HDMI-A-1";
-      mode = "preferred";
-      position = "1920x0";
-      scale = 1.0;
-    }
-  ];
+  # The primary is pinned to the left edge; Hyprland puts every "auto" monitor to the right of
+  # the pinned ones. With no pin, the order in which DRM finds the connectors decides the
+  # layout, and that order changes between boots
+  wayland.windowManager.hyprland.settings.monitor =
+    let
+      cfg = config.rokokol.hyprland;
+    in
+    [
+      {
+        output = cfg.primaryMonitor;
+        mode = cfg.monitorMode;
+        position = "0x0";
+        scale = cfg.monitorScale;
+      }
+    ];
 }
