@@ -112,23 +112,29 @@ Note Hyprland's own flake does not change any of this: its `homeManagerModules.d
 
 ---
 
-## hyprbars button icons take `bar_text_font`
+## hyprbars from the head of an open pull request
 
-**Where:** `patches/hyprbars-icon-font.patch`, applied by `overlays/hyprland.nix` to the plugin from the `hyprland-plugins` flake, for `home-manager/desktop/hyprland/services/titlebars.nix`
+**Where:** the `hyprland-plugins` input in `flake.nix`, pinned to a commit of `LionHeartP/hyprland-plugins`; `overlays/hyprland.nix` takes `hyprbars` from it for `home-manager/desktop/hyprland/services/titlebars.nix` on the laptop
 
-**Symptom it prevents:** the close and fullscreen buttons are Nerd Font glyphs, but hyprbars renders every button icon with the font literal `"sans"` (`barDeco.cpp`, the `renderText` call under `// render icon`), and `bar_text_font` reaches the title only. Which font then draws a private-use glyph is fontconfig's fallback choice among every Nerd Font installed, so the buttons could come out of Doki Nerd Font Mono on one rebuild and DepartureMono on the next
+**Symptom it prevents:** hyprbars from `hyprwm/hyprland-plugins` master fails to compile against the Hyprland revision in the lock, and the whole laptop closure fails with it:
 
-**Why this works:** the patch is one line, the icon call takes `barTextFont` from the plugin's own config the way the title call already does
-
-**Removal check:** look at the plugin's source as the flake ships it
-
-```sh
-grep -n '"sans"' "$(nix eval --raw .#nixosConfigurations.nixos-pc.pkgs.hyprlandPlugins.hyprbars.src)/hyprbars/barDeco.cpp"
+```
+barDeco.cpp:614:27: error: no matching function for call to 'Render::GL::CHyprOpenGLImpl::scissor(std::nullptr_t)'
 ```
 
-A hit -> keep the patch. No hit -> the plugin renders icons with the configured font; drop the patch and its line in the overlay
+**Why it happens:** a Hyprland plugin compiles against the compositor's internal headers, which carry no stability promise. On 2026-10-03 a series of Hyprland commits (`969b4b11` and the ones beside it) made the draw calls take an explicit `CRenderContext&`. The last hyprbars change on master (#713) is older than that series
 
-**Upstream:** [hyprwm/hyprland-plugins#710](https://github.com/hyprwm/hyprland-plugins/pull/710) (the same change, open)
+**Why this works:** the pull request carries two commits on top of master that move hyprbars and borders-plus-plus to the new render API, including the button icon font change of #710. Built against the locked Hyprland without errors
+
+**Removal check:** the pull request's state
+
+```sh
+gh pr view 715 -R hyprwm/hyprland-plugins --json state --jq .state
+```
+
+`OPEN` -> keep it. `MERGED` -> point the input back at `github:hyprwm/hyprland-plugins` and run `nix flake update hyprland-plugins`. `CLOSED` -> look at master for another fix of the same compile error
+
+**Upstream:** [hyprwm/hyprland-plugins#715](https://github.com/hyprwm/hyprland-plugins/pull/715) (open)
 
 ---
 

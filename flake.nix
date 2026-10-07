@@ -62,8 +62,9 @@
     # `nix flake lock --override-input hyprland github:hyprwm/Hyprland/<rev>`
     hyprland.url = "github:hyprwm/Hyprland";
 
+    # The head of hyprwm/hyprland-plugins#715, until it is merged (see WORKAROUNDS.md)
     hyprland-plugins = {
-      url = "github:hyprwm/hyprland-plugins";
+      url = "github:LionHeartP/hyprland-plugins/e606588d590c301ec37244b55109ea6d9eb17e2c";
       inputs.hyprland.follows = "hyprland";
     };
 
