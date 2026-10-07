@@ -302,11 +302,6 @@ hl.gesture({
   mode = "live",
 })
 
-hl.device({
-  name = "gaomon-gaomon-tablet_s630",
-  output = "DP-1",
-})
-
 hl.config({
   xwayland = {
     force_zero_scaling = true,
