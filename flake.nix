@@ -275,6 +275,12 @@
 
       checks.${system} = import ./checks.nix (commonArgs // { inherit pkgs; });
 
+      # `nix develop -c bash scripts/tests/run.sh` — the script tests by hand, with the tools the
+      # check gives them, taken from the check rather than listed twice
+      devShells.${system}.default = pkgs.mkShell {
+        inputsFrom = [ inputs.self.checks.${system}.script-tests ];
+      };
+
       # Built only when asked: `nix flake check` evaluates a package and builds only checks. The
       # VM tests and the image each take minutes and gigabytes, too much for every check run
       packages.${system} = {

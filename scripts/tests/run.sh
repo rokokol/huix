@@ -2,9 +2,9 @@
 # Runs the scripts against stubs of hyprctl, monitor-sensor, systemctl, evtest, pkill,
 # notify-send, df and wakeonlan that record what they were asked and answer from environment
 # variables, so every keyword a script emits is asserted without a compositor. Wired as the
-# script-tests flake check; run by hand from anywhere
+# script-tests flake check; run by hand from anywhere, through `nix develop -c` for the tools
 # No -e: every failing assertion is printed and counted, and the run exits on the counter
-# Needs jq and xorriso beside bash
+# Needs jq and xorriso beside bash, which the flake's default dev shell takes from the check
 set -uo pipefail
 
 usage() {
@@ -271,25 +271,40 @@ logged "virt-keyboard hide hides a running keyboard" '^pkill' '-USR1' 'wvkbd'
 bash "$tablet" virt-keyboard >/dev/null 2>&1
 is "virt-keyboard without an action is a usage error" 2 "$?"
 
-# memory-status.sh, over a copy of /proc/meminfo: 8 GiB of RAM with 2 GiB available,
-# 4 GiB of swap with 0.75 GiB in use
+# memory-status.sh, over copies of /proc/meminfo and /proc/swaps: 8 GiB of RAM with 2 GiB
+# available; a partition at priority -2 with 0.25 GiB in use, listed before a zram device at
+# priority 5 with 0.75 GiB in use, as the kernel lists devices in the order they were enabled
 memory=$SCRIPTS/memory-status.sh
-export HUIX_MEMINFO=$work/meminfo
+export HUIX_MEMINFO=$work/meminfo HUIX_SWAPS=$work/swaps
 cat >"$HUIX_MEMINFO" <<'EOF'
 MemTotal:        8388608 kB
 MemFree:          524288 kB
 MemAvailable:    2097152 kB
-SwapTotal:       4194304 kB
-SwapFree:        3407872 kB
+SwapTotal:       8388608 kB
+SwapFree:        7340032 kB
+EOF
+cat >"$HUIX_SWAPS" <<'EOF'
+Filename				Type		Size		Used		Priority
+/dev/nvme0n1p3                          partition	4194304		262144		-2
+/dev/zram0                              partition	4194304		786432		5
+EOF
+status=$(bash "$memory" status)
+text=$(jq -r .text <<<"$status")
+tooltip=$(jq -r .tooltip <<<"$status")
+is "status shows used RAM, not free RAM" "yes" "$(grep -q '6\.0' <<<"$text" && ! grep -q '2\.0' <<<"$text" && echo yes)"
+is "each swap device is shown on its own, the higher priority first" "yes" \
+  "$(grep -q '0\.8+0\.2' <<<"$text" && echo yes)"
+is "the tooltip names each swap device with its priority, the higher first" "yes" \
+  "$(grep -n 'zram0' <<<"$tooltip" | grep -q '5' && grep -q 'nvme0n1p3.*-2' <<<"$tooltip" &&
+    [ "$(grep -n zram0 <<<"$tooltip" | cut -d: -f1)" -lt "$(grep -n nvme0n1p3 <<<"$tooltip" | cut -d: -f1)" ] && echo yes)"
+cat >"$HUIX_SWAPS" <<'EOF'
+Filename				Type		Size		Used		Priority
+/dev/zram0                              partition	4194304		786432		5
 EOF
 text=$(bash "$memory" status | jq -r .text)
-is "status shows used RAM, not free RAM" "yes" "$(grep -q '6\.0' <<<"$text" && ! grep -q '2\.0' <<<"$text" && echo yes)"
-is "status shows used swap beside it" "yes" "$(grep -q '0\.8' <<<"$text" && echo yes)"
-cat >"$HUIX_MEMINFO" <<'EOF'
-MemTotal:        8388608 kB
-MemAvailable:    2097152 kB
-SwapTotal:             0 kB
-SwapFree:              0 kB
+is "a single swap device is shown alone" "yes" "$(grep -q '/0\.8Gb' <<<"$text" && echo yes)"
+cat >"$HUIX_SWAPS" <<'EOF'
+Filename				Type		Size		Used		Priority
 EOF
 text=$(bash "$memory" status | jq -r .text)
 is "without a swap device the RAM is still shown" "yes" "$(grep -q '6\.0' <<<"$text" && echo yes)"
@@ -298,6 +313,8 @@ bash "$memory" status extra >/dev/null 2>&1
 is "status takes no argument" 2 "$?"
 HUIX_MEMINFO=$work/missing bash "$memory" status >/dev/null 2>&1
 is "an unreadable memory file is a failure" 1 "$?"
+HUIX_SWAPS=$work/missing bash "$memory" status >/dev/null 2>&1
+is "an unreadable swap list is a failure" 1 "$?"
 
 # backup-heartbeat.sh, over repositories laid out here the way rest-server writes them:
 # <data>/<user>/snapshots/<id>. alpha pushed an hour ago, beta three days ago, gamma never
