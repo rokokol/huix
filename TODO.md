@@ -18,9 +18,9 @@ The yazi project wants every issue, pull request and commit description written 
 
 ## Own repositories
 
-- `rename-case.yazi`: the `naming` plugin, with case tables generated from `UnicodeData.txt`, CI, and transliteration for several scripts
-- the `info` plugin, under a name still to choose; before that, its own Base and Image sections instead of the `spot_base` helpers of yazi's built-in plugins
-- the `archive-mount` plugin: an archive opened as a folder, read-only through `fuse-archive` or for editing through `archivemount`, unmounted when no tab looks into it. `fuse-archive.yazi` was tried first and rejected
+- `rename-case.yazi`: the `naming` plugin, with case tables generated from `UnicodeData.txt` and CI; transliteration stays Cyrillic (ICAO) for now, in a layout that takes other scripts later
+- `archive-mount.yazi`: the `archive-mount` plugin, an archive opened as a folder, read-only through `fuse-archive` or for editing through `archivemount`, unmounted when no tab looks into it. `fuse-archive.yazi` was tried first and rejected
+
 ## Forks
 
 - `nix-matlab` (`gitlab:doronbehar/nix-matlab`, the `nix-matlab` input): fork it and improve the repository; what to change is still open. GitHub cannot fork a GitLab project: a copy there is an import or a mirror, and a merge request back needs a fork on GitLab
