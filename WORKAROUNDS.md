@@ -195,7 +195,7 @@ grep -c 'wl_seat_get_touch' "$src/glfw/wl_init.c"; grep -c 'glfwSetTouchCallback
 
 Both `0` -> keep the patch. Only the first non-zero -> GLFW reports touch but kitty ignores it; the patch no longer applies, so cut it down to the second proposal. Both non-zero -> drop the patch and the overlay, then check a tap, a scroll and a selection
 
-**Upstream:** [kovidgoyal/kitty#10551](https://github.com/kovidgoyal/kitty/pull/10551) (the GLFW half, open); the kitty half waits for it on branch `kitty-touch-mouse` of `rokokol/kitty`
+**Upstream:** [kovidgoyal/kitty#10551](https://github.com/kovidgoyal/kitty/pull/10551) (the GLFW half, merged on 2026-10-02 after the 0.49.2 release, so no release carries it yet); the kitty half waits for it on branch `kitty-touch-mouse` of `rokokol/kitty`
 
 ---
 
@@ -235,7 +235,7 @@ grep -c 'is_label' "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.yaz
 
 `0` -> keep the patch. Anything else -> yazi has its own groups; drop the patch and the overlay line, match how it names a group against `keymap.nix`, then press `Space`
 
-**Upstream:** [sxyazi/yazi#4380](https://github.com/sxyazi/yazi/pull/4380), from branch `which-groups` of `rokokol/yazi`
+**Upstream:** [sxyazi/yazi#4380](https://github.com/sxyazi/yazi/pull/4380), from branch `which-groups` of `rokokol/yazi`, closed without a merge; the design is discussed in [sxyazi/yazi#3774](https://github.com/sxyazi/yazi/issues/3774), where the maintainer prefers a plugin
 
 ---
 
@@ -255,7 +255,7 @@ grep -c 'delay' "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.yazi-u
 
 `0` -> keep the patch. Anything else -> yazi has its own delay; drop the patch and the overlay line, match the option against `yazi.nix`, then press `Space` and wait for the popup
 
-**Upstream:** not proposed yet
+**Upstream:** proposed in [sxyazi/yazi#3774](https://github.com/sxyazi/yazi/issues/3774); the maintainer declined it for the core on 2026-10-05 and suggested a plugin, which can hide the popup through the `ind-which-activate` event and draw its own after a delay
 
 ---
 
