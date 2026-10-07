@@ -6,26 +6,6 @@ Rules for this file: one entry per workaround, and every entry must carry a **me
 
 ---
 
-## `stable.freecad`
-
-**Where:** `home-manager/desktop/packages/packages.nix` in the workstation list of the shared package group, so both workstations use the stable package set for FreeCAD
-
-**Symptom it prevents:** FreeCAD pulls `python3.14-ifcopenshell-0.8.0`, whose build fails in `IfcCShapeProfileDef.cpp` with `converting to 'boost::optional<double>' from initializer list would use explicit constructor`
-
-**Why it happens:** Boost 1.91 made the converting constructor of `boost::optional` unconditionally explicit, but IfcOpenShell 0.8.0 still initializes the optional radius through aggregate brace initialization. The stable package set builds the same FreeCAD 1.1.3 against Python 3.13 and Boost 1.89 and is available from the binary cache
-
-**Removal check:** build FreeCAD directly from the unstable package set rather than through `home.packages`
-
-```sh
-nix build --no-link .#nixosConfigurations.nixos-pc.pkgs.freecad
-```
-
-Fails in `IfcCShapeProfileDef.cpp` -> keep `stable.freecad`. Builds clean -> change it back to `freecad`
-
-**Upstream:** [IfcOpenShell#9138](https://github.com/IfcOpenShell/IfcOpenShell/pull/9138) (merged source fix), [NixOS/nixpkgs#563014](https://github.com/NixOS/nixpkgs/pull/563014) (pending nixpkgs patch)
-
----
-
 ## Separate Bambu Studio NVIDIA wrapper
 
 **Where:** `home-manager/desktop/packages/packages.nix` in the workstation package group

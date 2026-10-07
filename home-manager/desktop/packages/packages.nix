@@ -34,8 +34,7 @@ in
           celluloid
           chromium
           evince
-          # IfcOpenShell fails against Boost 1.91; see WORKAROUNDS.md
-          stable.freecad
+          freecad
           geary
           gnome-disk-utility
           obs-studio
