@@ -20,8 +20,12 @@ in
       host = "127.0.0.1";
       inherit port;
 
-      # Jan sends Origin: null, and ollama's CORS rejects it
-      environmentVariables.OLLAMA_ORIGINS = "null*";
+      environmentVariables = {
+        # Jan sends Origin: null, and ollama's CORS rejects it
+        OLLAMA_ORIGINS = "null*";
+        # With little VRAM ollama picks a 4096-token window and silently cuts longer prompts
+        OLLAMA_CONTEXT_LENGTH = "16384";
+      };
     };
 
     environment.sessionVariables = {
