@@ -40,6 +40,8 @@
       url = "github:rokokol/ddlc.nvim";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.ddlc-palette.follows = "ddlc-palette";
+      # Its syntax colours come from the same ddlc-themes the terminals use
+      inputs.ddlc-themes.follows = "ddlc-terminal-themes";
     };
 
     ddlc-hyprlock = {
