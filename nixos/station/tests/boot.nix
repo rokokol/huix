@@ -14,9 +14,10 @@ let
 
   fixtures = import ./fixtures.nix { inherit pkgs pcMac; };
 
-  # A site published to the tailnet, and the page its backend serves
+  # Two sites on one backend, one of them also open to the LAN, and the page the backend serves
   probe = {
     port = 8090;
+    lanPort = 8092;
     backendPort = 8091;
     page = pkgs.writeTextDir "index.html" "tailnet-web probe\n";
   };
@@ -73,9 +74,16 @@ pkgs.testers.runNixOSTest {
         system.activationScripts.setupSecrets.deps = [ "testAgeKey" ];
 
         # The station publishes no site yet, so the test brings one, with a backend on loopback
-        rokokol.tailnet-web.sites.probe = {
-          inherit (probe) port;
-          backend = "http://127.0.0.1:${toString probe.backendPort}";
+        rokokol.tailnet-web.sites = {
+          probe = {
+            inherit (probe) port;
+            backend = "http://127.0.0.1:${toString probe.backendPort}";
+          };
+          probe-lan = {
+            port = probe.lanPort;
+            backend = "http://127.0.0.1:${toString probe.backendPort}";
+            lan = true;
+          };
         };
         systemd.services.tailnet-web-probe = {
           wantedBy = [ "multi-user.target" ];
@@ -142,10 +150,11 @@ pkgs.testers.runNixOSTest {
     station.wait_for_unit("multi-user.target")
     station.wait_for_unit("systemd-networkd-wait-online.service")
 
-    with subtest("the wired link is configured by its MAC and carries the static address"):
-        station.succeed("networkctl status -n0 eth1 | grep -q 'Network File: /etc/systemd/network/10-lan.network'")
-        station.succeed("networkctl status -n0 eth1 | grep -q 'State: routable (configured)'")
-        station.succeed("ip -4 addr show eth1 | grep -q '192.168.0.104/24'")
+    with subtest("the wired link is named by its MAC, configured by it, and carries the static address"):
+        station.succeed("networkctl status -n0 lan | grep -q 'Link File: /etc/systemd/network/10-lan.link'")
+        station.succeed("networkctl status -n0 lan | grep -q 'Network File: /etc/systemd/network/10-lan.network'")
+        station.succeed("networkctl status -n0 lan | grep -q 'State: routable (configured)'")
+        station.succeed("ip -4 addr show lan | grep -q '192.168.0.104/24'")
         station.succeed("ip route | grep -q 'default via 192.168.0.1'")
 
     with subtest("skvpn has no profile and its guard is up"):
@@ -186,6 +195,13 @@ pkgs.testers.runNixOSTest {
         # The firewall keeps the LAN from the port at all: a 403 would make curl exit 0
         pc.fail("curl -s --max-time 5 -o /dev/null http://192.168.0.104:${toString probe.port}/")
 
+    with subtest("a site open to the LAN answers the LAN and the tailnet, and nobody else"):
+        page = pc.succeed("curl -sf --max-time 5 http://192.168.0.104:${toString probe.lanPort}/")
+        assert page == "tailnet-web probe\n", f"the LAN site served {page!r} to the PC"
+        station.succeed("curl -sf --interface 100.64.0.1 http://100.64.0.1:${toString probe.lanPort}/")
+        code = station.succeed("curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:${toString probe.lanPort}/")
+        assert code == "403", f"nginx answered {code} to loopback on the LAN site"
+
     with subtest("the password comes from sops before the users exist"):
         station.succeed("test -s /run/secrets-for-users/rokokol-password-hash")
         station.succeed("getent shadow rokokol | cut -d: -f2 | grep -q '^\\$6\\$'")
@@ -201,7 +217,7 @@ pkgs.testers.runNixOSTest {
         station.fail("su - nobody -s /bin/sh -c 'cat /run/secrets/pc-mac'")
 
     with subtest("the LAN broadcast address is bound to the wired link before any TUN rule"):
-        station.succeed("ip route get 192.168.0.255 | grep -q 'broadcast 192.168.0.255 dev eth1 table local'")
+        station.succeed("ip route get 192.168.0.255 | grep -q 'broadcast 192.168.0.255 dev lan table local'")
 
     with subtest("a failed heartbeat mails root through the relay"):
         station.fail("systemctl start backup-heartbeat.service")

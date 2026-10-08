@@ -4,6 +4,7 @@
 # test's own question
 { lib, ... }:
 {
+  systemd.network.links."10-lan".matchConfig.PermanentMACAddress = lib.mkForce stationMac;
   systemd.network.networks."10-lan".matchConfig.PermanentMACAddress = lib.mkForce stationMac;
 
   sops.defaultSopsFile = lib.mkForce "${fixtures}/station.yaml";
