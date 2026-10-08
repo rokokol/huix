@@ -17,6 +17,7 @@ in
 
   config = lib.mkIf config.rokokol.claude.enable {
     home.packages = with pkgs; [ claude-code ];
+    home.shellAliases.c = "claude";
 
     programs.claude-account = {
       enable = true;
