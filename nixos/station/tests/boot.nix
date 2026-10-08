@@ -171,6 +171,27 @@ pkgs.testers.runNixOSTest {
         )
         station.succeed("systemctl reset-failed backup-heartbeat.service")
 
+    with subtest("an alert waits for a relay that is down and arrives once it is up"):
+        alert = "alert-mail@backup-heartbeat.service.service"
+        # The mail of the subtest above would match the search below on its own
+        router.succeed("curl -sf -X DELETE http://127.0.0.1:8025/api/v1/messages")
+        assert "backup-heartbeat" not in mails(), "the mailbox kept the earlier alert"
+        router.succeed("systemctl stop mailpit-trap.service")
+        station.fail("systemctl start backup-heartbeat.service")
+        station.wait_until_succeeds(f"journalctl -u {alert} | grep -qF 'next try in'", timeout=timedelta(minutes=1))
+        state = station.succeed(f"systemctl show -P ActiveState {alert}").strip()
+        assert state == "activating", f"{alert} gave up while the relay was down: {state}"
+        router.succeed("systemctl start mailpit-trap.service")
+        router.wait_for_open_port(1025)
+        router.wait_until_succeeds(
+            "curl -s http://127.0.0.1:8025/api/v1/messages | grep -qF '[nixos-station] backup-heartbeat.service failed'",
+            timeout=timedelta(minutes=3),
+        )
+        station.wait_until_succeeds(f"test $(systemctl show -P ActiveState {alert}) = inactive", timeout=timedelta(minutes=1))
+        result = station.succeed(f"systemctl show -P Result {alert}").strip()
+        assert result == "success", f"{alert} ended with {result}"
+        station.succeed("systemctl reset-failed backup-heartbeat.service")
+
     with subtest("the backup volume is btrfs, mounted with the host's options"):
         station.succeed("findmnt -no FSTYPE /srv/backup | grep -qx btrfs")
         station.succeed("findmnt -no OPTIONS /srv/backup | tr , '\\n' | grep -qx noatime")

@@ -9,6 +9,10 @@
 # sendmail, so smartd and alert-mail@ reach an SMTP relay through it. The relay and the real
 # recipient are private: both arrive through sops and never enter the store
 let
+  # How long an alert keeps trying a relay that does not answer. msmtp has no queue, so without
+  # the retries an alert raised while the relay is down is lost
+  retrySeconds = 24 * 3600;
+
   # Mails the status and the last journal lines of the unit named in $1 to root. The aliases
   # file maps root to the real address, so the address is not in the store
   composeAlert = pkgs.writeShellApplication {
@@ -18,11 +22,15 @@ let
       config.systemd.package
     ];
     # The status holds UTF-8 such as the unit bullet, so the headers declare it. systemctl status
-    # exits 3 for a failed unit, and that unit is the reason for the mail
+    # exits 3 for a failed unit, and that unit is the reason for the mail. The message is composed
+    # once, so a late delivery still shows the unit as it was when it failed. msmtp exits 68, 69,
+    # 74 or 75 when the relay cannot be found, refuses the mail, drops the line or does not
+    # answer; those are retried, with a pause that doubles up to 15 minutes. Any other code is a
+    # fault in the configuration or the message, which a retry does not repair
     text = ''
       unit=$1
       host=$(uname -n)
-      {
+      message=$(
         printf 'To: root\n'
         printf 'Subject: [%s] %s failed\n' "$host" "$unit"
         printf 'MIME-Version: 1.0\n'
@@ -30,7 +38,24 @@ let
         printf 'Content-Transfer-Encoding: 8bit\n'
         printf '\n'
         systemctl status --full --no-pager --lines=50 -- "$unit" || true
-      } | sendmail -i -t
+      )
+      pause=30
+      while :; do
+        status=0
+        printf '%s\n' "$message" | sendmail -i -t || status=$?
+        case $status in
+          0) exit 0 ;;
+          68 | 69 | 74 | 75) ;;
+          *) exit "$status" ;;
+        esac
+        if ((SECONDS + pause > ${toString retrySeconds})); then
+          printf 'alert-mail: the relay did not take the alert for %s, giving up\n' "$unit" >&2
+          exit "$status"
+        fi
+        printf 'alert-mail: sendmail exited %s, next try in %s s\n' "$status" "$pause" >&2
+        sleep "$pause"
+        pause=$((pause * 2 > 900 ? 900 : pause * 2))
+      done
     '';
   };
 in
@@ -61,11 +86,13 @@ in
     programs.msmtp.enable = true;
     environment.etc."msmtprc".enable = false;
 
-    # OnFailure=alert-mail@%n.service in a unit sends one mail for each failure
+    # OnFailure=alert-mail@%n.service in a unit sends one mail for each failure. While an alert
+    # waits for the relay, a new failure of the same unit joins it and sends no mail of its own
     systemd.services."alert-mail@" = {
       description = "Mail an alert that %i failed";
 
-      # A flapping unit sends at most three mails an hour, and further starts fail
+      # A flapping unit sends at most three mails an hour, and further starts fail. The retries
+      # run inside one start, so they do not count against this limit
       startLimitIntervalSec = 3600;
       startLimitBurst = 3;
 
@@ -75,8 +102,9 @@ in
       serviceConfig = {
         Type = "oneshot";
         ExecStart = "${lib.getExe composeAlert} %i";
-        # A oneshot has no start timeout by default, and a dead relay must not hold the unit
-        TimeoutStartSec = "2min";
+        # The script stops retrying on its own; the timeout only catches a sendmail that hangs
+        # past that point
+        TimeoutStartSec = retrySeconds + 300;
       };
     };
   };
