@@ -169,6 +169,7 @@ pkgs.testers.runNixOSTest {
             "curl -s http://127.0.0.1:8025/api/v1/messages | grep -qF '[nixos-station] backup-heartbeat.service failed'",
             timeout=timedelta(minutes=1),
         )
+        assert "failed (attempt" not in mails(), "a mail sent at the first try names an attempt"
         station.succeed("systemctl reset-failed backup-heartbeat.service")
 
     with subtest("an alert waits for a relay that is down and arrives once it is up"):
@@ -183,8 +184,10 @@ pkgs.testers.runNixOSTest {
         assert state == "activating", f"{alert} gave up while the relay was down: {state}"
         router.succeed("systemctl start mailpit-trap.service")
         router.wait_for_open_port(1025)
+        # The subject says which try got through and how late the alert is
         router.wait_until_succeeds(
-            "curl -s http://127.0.0.1:8025/api/v1/messages | grep -qF '[nixos-station] backup-heartbeat.service failed'",
+            "curl -s http://127.0.0.1:8025/api/v1/messages"
+            " | grep -qE '\\[nixos-station\\] backup-heartbeat.service failed \\(attempt [2-9], [0-9]+ min late\\)'",
             timeout=timedelta(minutes=3),
         )
         station.wait_until_succeeds(f"test $(systemctl show -P ActiveState {alert}) = inactive", timeout=timedelta(minutes=1))

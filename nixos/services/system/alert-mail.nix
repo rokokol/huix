@@ -22,27 +22,33 @@ let
       config.systemd.package
     ];
     # The status holds UTF-8 such as the unit bullet, so the headers declare it. systemctl status
-    # exits 3 for a failed unit, and that unit is the reason for the mail. The message is composed
-    # once, so a late delivery still shows the unit as it was when it failed. msmtp exits 68, 69,
-    # 74 or 75 when the relay cannot be found, refuses the mail, drops the line or does not
-    # answer; those are retried, with a pause that doubles up to 15 minutes. Any other code is a
-    # fault in the configuration or the message, which a retry does not repair
+    # exits 3 for a failed unit, and that unit is the reason for the mail. The status is read
+    # once, so a late delivery still shows the unit as it was when it failed, and a late subject
+    # says which attempt got through and how late it is. msmtp exits 68, 69, 74 or 75 when the
+    # relay cannot be found, refuses the mail, drops the line or does not answer; those are
+    # retried, with a pause that doubles up to 15 minutes. Any other code is a fault in the
+    # configuration or the message, which a retry does not repair
     text = ''
       unit=$1
       host=$(uname -n)
-      message=$(
-        printf 'To: root\n'
-        printf 'Subject: [%s] %s failed\n' "$host" "$unit"
-        printf 'MIME-Version: 1.0\n'
-        printf 'Content-Type: text/plain; charset=UTF-8\n'
-        printf 'Content-Transfer-Encoding: 8bit\n'
-        printf '\n'
-        systemctl status --full --no-pager --lines=50 -- "$unit" || true
-      )
+      status_text=$(systemctl status --full --no-pager --lines=50 -- "$unit" || true)
+      attempt=1
       pause=30
       while :; do
+        late=
+        if ((attempt > 1)); then
+          late=" (attempt $attempt, $(((SECONDS + 59) / 60)) min late)"
+        fi
         status=0
-        printf '%s\n' "$message" | sendmail -i -t || status=$?
+        {
+          printf 'To: root\n'
+          printf 'Subject: [%s] %s failed%s\n' "$host" "$unit" "$late"
+          printf 'MIME-Version: 1.0\n'
+          printf 'Content-Type: text/plain; charset=UTF-8\n'
+          printf 'Content-Transfer-Encoding: 8bit\n'
+          printf '\n'
+          printf '%s\n' "$status_text"
+        } | sendmail -i -t || status=$?
         case $status in
           0) exit 0 ;;
           68 | 69 | 74 | 75) ;;
@@ -54,6 +60,7 @@ let
         fi
         printf 'alert-mail: sendmail exited %s, next try in %s s\n' "$status" "$pause" >&2
         sleep "$pause"
+        attempt=$((attempt + 1))
         pause=$((pause * 2 > 900 ? 900 : pause * 2))
       done
     '';
