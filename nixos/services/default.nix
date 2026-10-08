@@ -21,6 +21,7 @@
     ./system/skvpn.nix
     ./system/smartd.nix
     ./system/sops.nix
+    ./system/tailnet-web.nix
     ./system/tailscale.nix
     ./tools/libre-translate.nix
     ./tools/paper-search.nix

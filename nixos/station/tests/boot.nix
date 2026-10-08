@@ -14,6 +14,13 @@ let
 
   fixtures = import ./fixtures.nix { inherit pkgs pcMac; };
 
+  # A site published to the tailnet, and the page its backend serves
+  probe = {
+    port = 8090;
+    backendPort = 8091;
+    page = pkgs.writeTextDir "index.html" "tailnet-web probe\n";
+  };
+
   lanNode = address: {
     virtualisation.vlans = [ 1 ];
     networking.interfaces.eth1.ipv4.addresses = lib.mkForce [
@@ -64,6 +71,19 @@ pkgs.testers.runNixOSTest {
         '';
         system.activationScripts.setupSecretsForUsers.deps = [ "testAgeKey" ];
         system.activationScripts.setupSecrets.deps = [ "testAgeKey" ];
+
+        # The station publishes no site yet, so the test brings one, with a backend on loopback
+        rokokol.tailnet-web.sites.probe = {
+          inherit (probe) port;
+          backend = "http://127.0.0.1:${toString probe.backendPort}";
+        };
+        systemd.services.tailnet-web-probe = {
+          wantedBy = [ "multi-user.target" ];
+          serviceConfig = {
+            DynamicUser = true;
+            ExecStart = "${lib.getExe pkgs.python3} -m http.server --bind 127.0.0.1 --directory ${probe.page} ${toString probe.backendPort}";
+          };
+        };
       })
     ];
   };
@@ -145,6 +165,26 @@ pkgs.testers.runNixOSTest {
         station.wait_for_unit("restic-rest-server.socket")
         station.succeed("curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/ | grep -q 401")
         pc.fail("curl -s --max-time 5 http://192.168.0.104:8000/")
+
+    with subtest("a site answers the tailnet ranges, and nginx refuses every other address"):
+        station.wait_for_unit("nginx.service")
+        station.wait_for_unit("tailnet-web-probe.service")
+        station.wait_for_open_port(${toString probe.backendPort})
+        # The VM has no tailnet, so a dummy link carries one address of each Tailscale range.
+        # A connection to it runs over loopback, which the firewall lets in, so nginx alone judges
+        station.succeed(
+            "ip link add tailnet-probe type dummy && ip link set tailnet-probe up"
+            " && ip addr add 100.64.0.1/32 dev tailnet-probe"
+            " && ip addr add fd7a:115c:a1e0::1/128 dev tailnet-probe nodad"
+        )
+        for address in ["100.64.0.1", "[fd7a:115c:a1e0::1]"]:
+            page = station.succeed(f"curl -sf --interface {address.strip('[]')} http://{address}:${toString probe.port}/")
+            assert page == "tailnet-web probe\n", f"the site at {address} served {page!r}"
+        for address in ["127.0.0.1", "[::1]", "192.168.0.104"]:
+            code = station.succeed(f"curl -s -o /dev/null -w '%{{http_code}}' http://{address}:${toString probe.port}/")
+            assert code == "403", f"nginx answered {code} to {address}, outside the tailnet"
+        # The firewall keeps the LAN from the port at all: a 403 would make curl exit 0
+        pc.fail("curl -s --max-time 5 -o /dev/null http://192.168.0.104:${toString probe.port}/")
 
     with subtest("the password comes from sops before the users exist"):
         station.succeed("test -s /run/secrets-for-users/rokokol-password-hash")
