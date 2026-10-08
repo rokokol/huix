@@ -219,6 +219,28 @@ grep -c 'langmap' "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.yazi
 
 ---
 
+## git.yazi's status column is switched from outside
+
+**Where:** the wrapper around `Linemode.children_add` at the top of `home-manager/programs/yazi/init.lua`, the `git-column` plugin in `home-manager/programs/yazi/plugins/`, and its `Space u g` bind in `home-manager/programs/yazi/keymap.nix`, on every host
+
+**Symptom it prevents:** the git column takes space in every file list, and nothing can hide it for a while
+
+**Why it happens:** git.yazi's `setup` takes only `order`, and the plugin has no `entry`, so neither an option nor a key reaches the column
+
+**Why this works:** while `setup` runs, `init.lua` swaps `Linemode.children_add` for a version that wraps the column function in a check of the global `GIT_COLUMN`, then puts the original back. The `git-column` plugin flips that global and redraws. The cost: the wrapper depends on how `setup` adds its column, so a change there drops the switch silently
+
+**Removal check:** look for the option in git.yazi as nixpkgs ships it
+
+```sh
+grep -c 'hidden' "$(nix build --no-link --print-out-paths .#nixosConfigurations.nixos-laptop.pkgs.yaziPlugins.git)/main.lua"
+```
+
+`0` -> keep the wrapper. Anything else -> git.yazi switches its column itself; drop the wrapper, the `git-column` plugin and its name in `keymap.nix`, point `Space u g` at the plugin's own entry, then press it in a repository
+
+**Upstream:** [sxyazi/yazi#4409](https://github.com/sxyazi/yazi/issues/4409), the code is in yazi-rs/plugins
+
+---
+
 ## yazi folds leader groups in its which popup
 
 **Where:** `patches/yazi-which-groups.patch`, applied by `overlays/yazi.nix` to `yazi-unwrapped` on every host, for the group labels that `home-manager/programs/yazi/keymap.nix` adds to the keymap, the `[which] fold` that `home-manager/programs/yazi/yazi.nix` turns on, and the check in `home-manager/programs/yazi/init.lua` that keeps the labels

@@ -1,6 +1,4 @@
--- git.yazi's status column, hidden until the git-column plugin turns it on. The plugin adds
--- its column through Linemode:children_add and keeps no switch of its own, so the column it
--- hands over is wrapped on the way in
+-- git.yazi's status column, hidden until the git-column plugin turns it on (see WORKAROUNDS.md)
 GIT_COLUMN = false
 do
 	local add = Linemode.children_add
