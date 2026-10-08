@@ -6,10 +6,10 @@
 }:
 
 let
-  inherit (inputs.ddlc-terminal-themes.lib) kitty;
+  inherit (inputs.ddlc-themes.lib) kitty;
 in
 {
-  imports = [ inputs.ddlc-terminal-themes.homeModules.default ];
+  imports = [ inputs.ddlc-themes.homeModules.default ];
 
   options.rokokol.kitty.enable = lib.mkEnableOption "the kitty terminal" // {
     default = config.rokokol.workstation.enable;

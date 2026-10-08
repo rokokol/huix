@@ -53,11 +53,11 @@ nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHW
 
 ## Хосты
 
-| Host           | Точка входа                                                       | Чем выделяется                                                                                                                            |
-| -------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `nixos-pc`     | `nixos/configuration-pc.nix` + `home-manager/home-pc.nix`         | NVIDIA/CUDA, `ollama-cuda`, SearxNG, виртуализация, печать, планшет, виртуальная камера, Steam, тяжёлый creative-стек |
-| `nixos-laptop` | `nixos/configuration-laptop.nix` + `home-manager/home-laptop.nix` | трансформер: тачскрин с жестами, перо, автоповорот и режим планшета; CPU-only `ollama-cpu`, Bluetooth, батарея и подсветка в баре, тумблер "крышка не усыпляет" |
-| `nixos-station` | `nixos/configuration-station.nix` + `home-manager/home-station.nix` | сервер без рабочего стола: принимает restic-бэкапы остальных машин в append-only, следит, что они не пропадают, шлёт алерты почтой и будит ПК по сети |
+| Host            | Точка входа                                                         | Чем выделяется                                                                                                                                                  |
+| --------------- | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `nixos-pc`      | `nixos/configuration-pc.nix` + `home-manager/home-pc.nix`           | NVIDIA/CUDA, `ollama-cuda`, SearxNG, виртуализация, печать, планшет, виртуальная камера, Steam, тяжёлый creative-стек                                           |
+| `nixos-laptop`  | `nixos/configuration-laptop.nix` + `home-manager/home-laptop.nix`   | трансформер: тачскрин с жестами, перо, автоповорот и режим планшета; CPU-only `ollama-cpu`, Bluetooth, батарея и подсветка в баре, тумблер "крышка не усыпляет" |
+| `nixos-station` | `nixos/configuration-station.nix` + `home-manager/home-station.nix` | сервер без рабочего стола: принимает restic-бэкапы остальных машин в append-only, следит, что они не пропадают, шлёт алерты почтой и будит ПК по сети           |
 
 ## Карта репозитория
 
@@ -86,7 +86,7 @@ nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHW
 [![ddlc-hyprlock](https://img.shields.io/badge/ddlc--hyprlock-локскрин-58E1FF?style=for-the-badge)](https://github.com/rokokol/ddlc-hyprlock)
 [![ddlc-rofi-theme](https://img.shields.io/badge/ddlc--rofi--theme-тема_rofi-EE2A7B?style=for-the-badge)](https://github.com/rokokol/ddlc-rofi-theme)
 [![ddlc.nvim](https://img.shields.io/badge/ddlc.nvim-тема_редактора-76C332?style=for-the-badge&logo=neovim&logoColor=white)](https://github.com/rokokol/ddlc.nvim)
-[![ddlc-terminal-themes](https://img.shields.io/badge/ddlc--terminal--themes-kitty_и_btop-72D0FA?style=for-the-badge)](https://github.com/rokokol/ddlc-terminal-themes)
+[![ddlc-themes](https://img.shields.io/badge/ddlc--themes-kitty_и_btop-72D0FA?style=for-the-badge)](https://github.com/rokokol/ddlc-themes)
 
 ## FUQ
 
@@ -101,7 +101,7 @@ nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHW
 <div align="center">
 
 <img src="./assets/felix.png" alt="Felix Argail" width="480"/>
-  
+
 <em>an average nixos user :3</em>
 
 <br/>

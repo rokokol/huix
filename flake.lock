@@ -98,7 +98,7 @@
           "ddlc-palette"
         ],
         "ddlc-themes": [
-          "ddlc-terminal-themes"
+          "ddlc-themes"
         ],
         "nixpkgs": [
           "nixpkgs"
@@ -184,7 +184,7 @@
         "type": "github"
       }
     },
-    "ddlc-terminal-themes": {
+    "ddlc-themes": {
       "inputs": {
         "ddlc-palette": [
           "ddlc-palette"
@@ -1045,7 +1045,7 @@
         "ddlc-palette": "ddlc-palette",
         "ddlc-rofi-theme": "ddlc-rofi-theme",
         "ddlc-sddm-theme": "ddlc-sddm-theme",
-        "ddlc-terminal-themes": "ddlc-terminal-themes",
+        "ddlc-themes": "ddlc-themes",
         "disko": "disko",
         "freesmlauncher": "freesmlauncher",
         "home-manager": "home-manager",
