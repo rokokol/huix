@@ -215,7 +215,7 @@ grep -c 'langmap' "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.yazi
 
 `0` -> keep the patch. Anything else -> yazi carries a langmap itself; drop the patch and the overlay line, match the option's shape against `keymap.nix`, then press `о` and `Space ф` in the Russian layout
 
-**Upstream:** not proposed yet
+**Upstream:** [sxyazi/yazi#4411](https://github.com/sxyazi/yazi/issues/4411), the code on branch `langmap` of the yazi clone
 
 ---
 
