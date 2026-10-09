@@ -11,8 +11,7 @@ let
   forgejo = {
     inherit (station.config.rokokol.tailnet-web.sites.forgejo) port;
     backendPort = station.config.services.forgejo.settings.server.HTTP_PORT;
-    cli = lib.getExe station.config.services.forgejo.package;
-    inherit (station.config.services.forgejo) stateDir customDir;
+    cli = lib.getExe station.config.rokokol.forgejo.cli;
     inherit (station.config.rokokol.forgejo) initialPasswordFile owner;
   };
 
@@ -224,7 +223,7 @@ pkgs.testers.runNixOSTest {
         assert "Forgejo" in page, "the LAN site does not serve Forgejo"
 
     with subtest("the owner's account exists once, and its first password is Forgejo's alone"):
-        admins = "runuser -u forgejo -- env FORGEJO_WORK_DIR=${forgejo.stateDir} FORGEJO_CUSTOM=${forgejo.customDir} ${forgejo.cli} admin user list --admin"
+        admins = "runuser -u forgejo -- ${forgejo.cli} admin user list --admin"
         station.wait_until_succeeds(f"{admins} | grep -qw ${forgejo.owner}", timeout=timedelta(minutes=1))
         assert station.succeed("stat -c '%a %U' ${forgejo.initialPasswordFile}").strip() == "400 forgejo"
         station.fail("su - nobody -s /bin/sh -c 'cat ${forgejo.initialPasswordFile}'")

@@ -13,16 +13,19 @@
 let
   cfg = config.rokokol.forgejo;
   forgejo = config.services.forgejo;
-  exe = lib.getExe forgejo.package;
   port = 3000;
   backendPort = 3001;
 
-  # What the forgejo CLI needs to find the instance, as the upstream dump unit sets it
-  cliEnvironment = {
-    USER = forgejo.user;
-    HOME = forgejo.stateDir;
-    FORGEJO_WORK_DIR = forgejo.stateDir;
-    FORGEJO_CUSTOM = forgejo.customDir;
+  # The forgejo CLI with what it needs to find this instance, as the upstream dump unit sets it.
+  # It runs as the forgejo user, which owns the state
+  cli = pkgs.writeShellApplication {
+    name = "forgejo-cli";
+    text = ''
+      export USER=${forgejo.user} HOME=${forgejo.stateDir}
+      export FORGEJO_WORK_DIR=${forgejo.stateDir} FORGEJO_CUSTOM=${forgejo.customDir}
+      exec ${lib.getExe forgejo.package} "$@"
+    '';
+    meta.description = "The forgejo command line, pointed at the instance of this host";
   };
 in
 {
@@ -42,6 +45,14 @@ in
       defaultText = lib.literalExpression ''"''${config.services.forgejo.stateDir}/initial-admin-password"'';
       readOnly = true;
       description = "File with the first password of the owner's account, readable by forgejo alone";
+    };
+
+    cli = lib.mkOption {
+      type = lib.types.package;
+      default = cli;
+      defaultText = lib.literalMD "a `forgejo-cli` wrapper of `services.forgejo.package`";
+      readOnly = true;
+      description = "The forgejo command line for this instance, to run as the forgejo user";
     };
   };
 
@@ -78,6 +89,8 @@ in
       lan = true;
     };
 
+    environment.systemPackages = [ cli ];
+
     # The forgejo CLI prints the generated password, so it goes straight into the file and
     # never reaches the command line or the journal
     systemd.services.forgejo-owner = {
@@ -85,8 +98,8 @@ in
       requires = [ "forgejo.service" ];
       after = [ "forgejo.service" ];
       wantedBy = [ "multi-user.target" ];
-      environment = cliEnvironment;
       path = with pkgs; [
+        cli
         gawk
         gnugrep
         gnused
@@ -101,10 +114,10 @@ in
       # grep reads to the end, so that awk never dies of a closed pipe
       script = ''
         set -o pipefail
-        if ${exe} admin user list --admin | awk 'NR > 1 { print $2 }' | grep -x ${cfg.owner} >/dev/null; then
+        if forgejo-cli admin user list --admin | awk 'NR > 1 { print $2 }' | grep -x ${cfg.owner} >/dev/null; then
           exit 0
         fi
-        ${exe} admin user create --admin --username ${cfg.owner} \
+        forgejo-cli admin user create --admin --username ${cfg.owner} \
           --email ${cfg.owner}@${config.networking.hostName}.invalid \
           --random-password --must-change-password \
           | sed -n "s/^generated random password is '\(.*\)'$/\1/p" >${cfg.initialPasswordFile}
