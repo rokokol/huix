@@ -3,6 +3,8 @@
 set -euo pipefail
 
 # Screenshot to the clipboard + a preview notification, the file is removed after 5 s
+# The notification shows the size of the PNG itself, not of the slurp selection: on a scaled
+# output grim captures in physical pixels, so the selection is smaller than the image
 # $1: region (interactive selection, default) | full (the whole screen)
 mode="${1:-region}"
 file="/tmp/shot_$(date +%s).png"
@@ -16,6 +18,7 @@ else
 fi
 
 wl-copy <"$file"
-notify-send -u low -i "$file" "Copied"
+size="$(identify -format '%w×%h' "$file")"
+notify-send -u low -i "$file" "Copied" "$size px"
 sleep 5
 rm -f "$file"
