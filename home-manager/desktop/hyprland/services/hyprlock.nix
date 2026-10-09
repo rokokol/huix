@@ -5,8 +5,9 @@
   ...
 }:
 
-# The lock screen and Monika's dialog live in rokokol/ddlc-hyprlock; the seam is the font it
-# ships none of and the shader it flashes the screen with. The dialog is on by default — the
+# The lock screen and Monika's dialog live in rokokol/ddlc-hyprlock, and its default font is
+# Doki with Nunito Black behind it; the seam is the shader it flashes the screen with. The
+# dialog is on by default — the
 # laptop opts out in home-laptop.nix — and hypridle.nix reads ddlc.hyprlock.lockCommand
 # screenShader already implies flash = "screen-shader", so setting flash here would only
 # undo it. The layout is one attrset in the module, which also computes the engine's wrap
@@ -17,7 +18,6 @@
   config = lib.mkIf config.rokokol.hyprland.enable {
     ddlc.hyprlock = {
       enable = true;
-      font = "Doki";
       screenShader = config.programs.screen-shader.package;
     };
   };

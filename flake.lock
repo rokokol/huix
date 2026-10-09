@@ -79,11 +79,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1791558194,
-        "narHash": "sha256-e0ifVo3jBReYT/iRAV6q3g5uKgyv3GtCnwdVpiwP3R8=",
+        "lastModified": 1791587744,
+        "narHash": "sha256-1vz1hAlTHHBTSjuokqxkpkwnzc+jd4gb1dFoedaLxxI=",
         "owner": "rokokol",
         "repo": "ddlc-hyprlock",
-        "rev": "c94b580cdb874293e97919c52bc659dba0853558",
+        "rev": "2cea052a9ff9c5c1233b04281cc3d2d99436c431",
         "type": "github"
       },
       "original": {
@@ -151,11 +151,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1791585897,
-        "narHash": "sha256-zaQnkOYrsjdqO0Kx6JYHoAu7vjzBdikA8ZLAy1U8aXY=",
+        "lastModified": 1791587926,
+        "narHash": "sha256-wURwpXuOO7vAizJj9HVw1yRZ1xMNiMVDFKFCl4vRNDo=",
         "owner": "rokokol",
         "repo": "ddlc-rofi-theme",
-        "rev": "667ee0e6d486b59208d0efbc9d69c88adf9bb413",
+        "rev": "3101d6852ef218e6c19f325693bae3008d1ece0f",
         "type": "github"
       },
       "original": {
@@ -169,16 +169,19 @@
         "ddlc-palette": [
           "ddlc-palette"
         ],
+        "ddlc-themes": [
+          "ddlc-themes"
+        ],
         "nixpkgs": [
           "nixpkgs"
         ]
       },
       "locked": {
-        "lastModified": 1791558339,
-        "narHash": "sha256-AMuMniIL/VTGbEn8eBauL8NtYx5KtXvGvGpIibykj1I=",
+        "lastModified": 1791587045,
+        "narHash": "sha256-Sia1AzKikXAk8ZP4/DxpmPRDRVSfJzZwHrvsvNIHAEU=",
         "owner": "rokokol",
         "repo": "ddlc-sddm-theme",
-        "rev": "5972ea5e0621f3f04c1b6083d59da534875e804c",
+        "rev": "ec136caeee4684c657f79df451f879efd7eba743",
         "type": "github"
       },
       "original": {
