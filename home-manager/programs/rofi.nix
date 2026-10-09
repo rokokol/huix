@@ -20,8 +20,6 @@
       ];
 
       settings = {
-        font = "Doki 12";
-
         modi = "drun,calc";
         show-icons = false;
 
@@ -46,15 +44,14 @@
       };
     };
 
-    # The theme and its light/dark switch come from rokokol/ddlc-rofi-theme; only the fonts
-    # are set here, because it ships none. toggle-theme.sh calls ddlc-rofi-theme on SUPER+A
+    # The theme and its light/dark switch come from rokokol/ddlc-rofi-theme, and its fonts
+    # are this repository's own; only the message's face differs from its default
+    # monospace. toggle-theme.sh calls ddlc-rofi-theme on SUPER+A
     # No config.rasi and no configPath override: rofi resolves a theme name in
     # ~/.config/rofi/themes by itself, which is where the module puts both variants
     ddlc.rofi = {
       enable = true;
-      promptFont = "Doki 13";
       monoFont = "DepartureMono Nerd Font Mono 12";
-      placeholder = "Okay, everyone!";
     };
 
     home.packages = with pkgs; [

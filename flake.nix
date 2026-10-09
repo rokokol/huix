@@ -28,6 +28,7 @@
       url = "github:rokokol/ddlc-rofi-theme";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.ddlc-palette.follows = "ddlc-palette";
+      inputs.ddlc-themes.follows = "ddlc-themes";
     };
 
     ddlc-themes = {
