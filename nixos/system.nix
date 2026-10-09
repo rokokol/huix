@@ -1,9 +1,4 @@
-{
-  lib,
-  pkgs,
-  rokokolName,
-  ...
-}:
+{ pkgs, rokokolName, ... }:
 
 # Shared system baseline for every host. The truly host-specific bits
 # (hostName, user description) live in nixos/<host>/system.nix; membership
@@ -11,11 +6,6 @@
 # themselves
 {
   programs.zsh.enable = true;
-
-  # Swap compressed in RAM, used only under memory pressure: it holds cold pages in place of an
-  # OOM kill. Its priority is above a disk swap's default, so the laptop's partition takes only
-  # what zram cannot. A default, so a host can stay without swap
-  zramSwap.enable = lib.mkDefault true;
 
   # Time and locale
   time.timeZone = "Europe/Moscow";

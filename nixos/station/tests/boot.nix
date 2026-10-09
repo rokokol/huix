@@ -15,6 +15,10 @@ let
     inherit (station.config.rokokol.forgejo) initialPasswordFile owner;
   };
 
+  # The exporter that the station's Prometheus expects on the PC, as the real PC configures it
+  pcNodeExporter = inputs.self.nixosConfigurations.nixos-pc.config.services.prometheus.exporters.node;
+  prometheus = "http://127.0.0.1:${toString station.config.services.prometheus.port}";
+
   # The driver numbers the nodes in name order, and each card's MAC carries that number
   pcMac = "52:54:00:12:01:01";
   stationMac = "52:54:00:12:01:03";
@@ -203,6 +207,9 @@ pkgs.testers.runNixOSTest {
         rokokol.forgejo-mirrors.githubApi = github.url;
         services.forgejo.settings.migrations.ALLOW_LOCALNETWORKS = true;
         systemd.services.forgejo-mirrors.environment.GITHUB_PER_PAGE = "2";
+
+        # Prometheus finds the PC by its tailnet name, which here leads over the LAN
+        networking.hosts."192.168.0.102" = [ "nixos-pc" ];
       })
     ];
   };
@@ -263,8 +270,11 @@ pkgs.testers.runNixOSTest {
       (lanNode "192.168.0.102")
       inputs.sops-nix.nixosModules.sops
       ../../services/utils/forgejo-runner.nix
+      ../../services/system/node-exporter.nix
     ];
     _module.args.inputs = inputs;
+    # The tailnet trusts the exporter's port on the real PC; this one has only the LAN
+    networking.firewall.allowedTCPPorts = [ pcNodeExporter.port ];
     environment.systemPackages = with pkgs; [ tcpdump ];
     virtualisation = {
       memorySize = 2048;
@@ -345,6 +355,43 @@ pkgs.testers.runNixOSTest {
         station.wait_for_unit("restic-rest-server.socket")
         station.succeed("curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/ | grep -q 401")
         pc.fail("curl -s --max-time 5 http://192.168.0.104:8000/")
+
+    # The value of each series of a query, by the host it came from
+    def promql(query):
+        answer = station.succeed(f"curl -sf --get --data-urlencode 'query={query}' ${prometheus}/api/v1/query")
+        return {r["metric"].get("host"): float(r["value"][1]) for r in json.loads(answer)["data"]["result"]}
+
+    def wait_for_series(query, wanted):
+        deadline = time.monotonic() + 180
+        while (found := promql(query)) != wanted:
+            assert time.monotonic() < deadline, f"{query} gives {found}, not {wanted}"
+            time.sleep(5)
+
+    with subtest("Prometheus scrapes each host by name, and a host that is down shows as down"):
+        station.wait_for_unit("prometheus.service")
+        pc.wait_for_unit("prometheus-node-exporter.service")
+        # The laptop has no VM here, so it stands for a host that is off
+        wait_for_series('up{job="node"}', {"nixos-station": 1.0, "nixos-pc": 1.0, "nixos-laptop": 0.0})
+        listeners = station.succeed("ss -Hltn 'sport = :${toString station.config.services.prometheus.port}' | awk '{ print $4 }'").split()
+        assert listeners == ["${prometheus}".removeprefix("http://")], f"Prometheus listens on {listeners}"
+
+    with subtest("an exporter runs where the thing it measures does, and nowhere else"):
+        # smartd is off in the VM, so its exporter is too, and Prometheus does not ask the station
+        station.fail("systemctl cat prometheus-smartctl-exporter.service")
+        # The PC here runs node_exporter alone, so its other targets are down, as the laptop's
+        wait_for_series('up{job="smartctl"}', {"nixos-pc": 0.0, "nixos-laptop": 0.0})
+        wait_for_series('up{job="nvidia-gpu"}', {"nixos-pc": 0.0})
+
+    with subtest("the station reports the RAM zram takes and the swap traffic"):
+        wait_for_series('count by (host) (zram_memory_used_bytes)', {"nixos-station": 1.0})
+        assert "nixos-station" in promql("node_vmstat_pswpin"), "no swap-in counter of the station"
+        # The timer runs twice a minute and must not say so in the journal
+        station.succeed("test -s ${station.config.rokokol.node-exporter.textfileDir}/zram.prom")
+        quiet = station.succeed("journalctl -u zram-metrics.service -o cat").strip()
+        assert quiet == "", f"zram-metrics writes to the journal:\n{quiet}"
+
+    with subtest("the LAN cannot reach an exporter"):
+        pc.fail("curl -s --max-time 5 -o /dev/null http://192.168.0.104:${toString pcNodeExporter.port}/metrics")
 
     with subtest("a site answers the tailnet ranges, and nginx refuses every other address"):
         station.wait_for_unit("nginx.service")

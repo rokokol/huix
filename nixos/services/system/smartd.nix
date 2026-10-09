@@ -31,6 +31,10 @@
   # The module sets no state directory, and smartd does not create one
   systemd.services.smartd.serviceConfig.StateDirectory = "smartd";
 
+  # The history of the SMART attributes for the station's Prometheus, where smartd watches the
+  # disks; smartd stays the one that alerts. It listens as node-exporter.nix does
+  services.prometheus.exporters.smartctl.enable = config.services.smartd.enable;
+
   # smartctl for a manual look: `sudo smartctl -x /dev/sda`
   environment.systemPackages = with pkgs; [ smartmontools ];
 }

@@ -17,12 +17,15 @@
     ./system/backup-heartbeat.nix
     ./system/cachix.nix
     ./system/nix-ld.nix
+    ./system/node-exporter.nix
+    ./system/prometheus.nix
     ./system/restic-server.nix
     ./system/skvpn.nix
     ./system/smartd.nix
     ./system/sops.nix
     ./system/tailnet-web.nix
     ./system/tailscale.nix
+    ./system/zram.nix
     ./tools/forgejo-mirrors.nix
     ./tools/forgejo.nix
     ./tools/libre-translate.nix
