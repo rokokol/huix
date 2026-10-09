@@ -385,6 +385,16 @@ pkgs.testers.runNixOSTest {
             assert renewed == expected[name]["private"], f"{name}: made again {renewed}, private {expected[name]['private']}"
             assert readme(name) == f"{name}\n", f"{name} lost its content"
 
+    with subtest("no GitHub token lies in the clear on the disk of Forgejo or in its dump"):
+        # Forgejo encrypts the address of a pull mirror in its database and keeps only a bare one
+        # in the git config. The dump is a zip, which hides a string from grep, so it is unpacked
+        dump = "forgejo-dump.service"
+        assert run_to_end(dump) == "success", f"{dump} failed"
+        newest = station.succeed("ls -t ${station.config.services.forgejo.dump.backupDir}/*.zip | head -1").strip()
+        for token in json.loads('${builtins.toJSON github.tokens}'):
+            station.fail(f"grep -rqaF {token} /var/lib/forgejo")
+            station.fail(f"${lib.getExe pkgs.unzip} -p {newest} | grep -qaF {token}")
+
     with subtest("a swap that a stopped run left halfway is finished by the next run"):
         private = next(name for name, repo in expected.items() if repo["private"])
         body = json.dumps({
