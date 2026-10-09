@@ -19,7 +19,10 @@ let
   pcMac = "52:54:00:12:01:01";
   stationMac = "52:54:00:12:01:03";
 
-  fixtures = import ./fixtures.nix { inherit pkgs pcMac; };
+  fixtures = import ./fixtures.nix {
+    inherit pkgs pcMac;
+    githubToken = lib.head github.tokens;
+  };
 
   # Two sites on one backend, one of them also open to the LAN, and the page the backend serves
   probe = {
@@ -27,6 +30,48 @@ let
     lanPort = 8092;
     backendPort = 8091;
     page = pkgs.writeTextDir "index.html" "tailnet-web probe\n";
+  };
+
+  # GitHub on the router: an own public and private repository, the forks the station names,
+  # and one fork it does not. The fixtures give the station the first token
+  github = rec {
+    port = 8080;
+    url = "http://192.168.0.1:${toString port}";
+    tokens = [
+      "token-one"
+      "token-two"
+    ];
+    repos = [
+      {
+        name = "public-tool";
+        private = false;
+        fork = false;
+      }
+      {
+        name = "secret-notes";
+        private = true;
+        fork = false;
+      }
+      {
+        name = "stray-fork";
+        private = false;
+        fork = true;
+      }
+    ]
+    ++ map (name: {
+      inherit name;
+      private = false;
+      fork = true;
+    }) forks
+    ++ map (name: {
+      inherit name;
+      private = true;
+      fork = false;
+    }) exclude;
+    inherit (station.config.rokokol.forgejo-mirrors) forks exclude;
+    mirrored = lib.filter (
+      repo: (!repo.fork || lib.elem repo.name forks) && !lib.elem repo.name exclude
+    ) repos;
   };
 
   lanNode = address: {
@@ -99,6 +144,12 @@ pkgs.testers.runNixOSTest {
             ExecStart = "${lib.getExe pkgs.python3} -m http.server --bind 127.0.0.1 --directory ${probe.page} ${toString probe.backendPort}";
           };
         };
+
+        # The mirrors read the GitHub on the router, which is a private address that Forgejo
+        # refuses to migrate from by default. A small page makes the list take several pages
+        rokokol.forgejo-mirrors.githubApi = github.url;
+        services.forgejo.settings.migrations.ALLOW_LOCALNETWORKS = true;
+        systemd.services.forgejo-mirrors.environment.GITHUB_PER_PAGE = "2";
       })
     ];
   };
@@ -120,8 +171,35 @@ pkgs.testers.runNixOSTest {
     networking.firewall.allowedTCPPorts = [
       53
       1025
+      github.port
     ];
     networking.firewall.allowedUDPPorts = [ 53 ];
+
+    # Each repository is one commit whose README holds its name, served as dumb HTTP
+    systemd.services.fake-github = {
+      wantedBy = [ "multi-user.target" ];
+      path = with pkgs; [ git ];
+      preStart = ''
+        mkdir -p state git
+        printf '%s\n' ${lib.head github.tokens} >state/token
+        cp ${pkgs.writeText "repos.json" (builtins.toJSON github.repos)} state/repos.json
+        chmod u+w state/repos.json
+        for name in ${lib.concatMapStringsSep " " (repo: repo.name) github.repos}; do
+          work=$(mktemp -d)
+          git -C "$work" init -q -b main
+          printf '%s\n' "$name" >"$work/README"
+          git -C "$work" add README
+          git -C "$work" -c user.name=test -c user.email=test@test commit -q -m "first $name"
+          git clone -q --bare "$work" "git/$name.git"
+          git -C "git/$name.git" update-server-info
+        done
+      '';
+      serviceConfig = {
+        StateDirectory = "fake-github";
+        WorkingDirectory = "/var/lib/fake-github";
+        ExecStart = "${lib.getExe pkgs.python3} ${./fake-github.py} state /var/lib/fake-github/git ${github.url} ${toString github.port}";
+      };
+    };
   };
 
   nodes.pc = {
@@ -130,6 +208,7 @@ pkgs.testers.runNixOSTest {
   };
 
   testScript = ''
+    import json
     from datetime import timedelta
 
     map_logical = "${pkgs.btrfs-progs}/bin/btrfs-map-logical"
@@ -140,9 +219,10 @@ pkgs.testers.runNixOSTest {
     def mails():
         return router.succeed("curl -s http://127.0.0.1:8025/api/v1/messages")
 
-    # Starts a unit that returns at once and waits for its end; its Result is the verdict
+    # Runs a unit to its end; its Result is the verdict. The start waits for the job and fails
+    # with the unit, so its own status is left aside
     def run_to_end(unit):
-        station.succeed(f"systemctl start {unit}")
+        station.execute(f"systemctl start {unit}")
         station.wait_until_succeeds(
             f"case $(systemctl show -P ActiveState {unit}) in active|activating) exit 1;; esac",
             timeout=timedelta(minutes=2),
@@ -238,6 +318,96 @@ pkgs.testers.runNixOSTest {
         result = run_to_end(dump)
         assert result == "success", f"{dump} ended with {result}"
         station.succeed("ls ${station.config.services.forgejo.dump.backupDir}/*.zip")
+
+    mirrors_unit = "forgejo-mirrors.service"
+    api = "http://127.0.0.1:${toString forgejo.backendPort}/api/v1"
+    api_token = "/var/lib/${station.config.systemd.services.forgejo-mirrors.serviceConfig.StateDirectory}/api-token"
+    expected = {r["name"]: r for r in json.loads('${builtins.toJSON github.mirrored}')}
+
+    def forgejo_get(path):
+        return station.succeed(f"curl -sf -H \"Authorization: token $(cat {api_token})\" '{api}{path}'")
+
+    def mirrors():
+        return {r["name"]: r for r in json.loads(forgejo_get("/user/repos?limit=50"))}
+
+    def readme(name):
+        return forgejo_get(f"/repos/${forgejo.owner}/{name}/raw/README")
+
+    def use_github_token(token):
+        router.succeed(f"printf '%s\\n' {token} >/var/lib/fake-github/state/token")
+        station.succeed(f"printf '%s\\n' {token} >/run/secrets/github-mirror-token")
+
+    with subtest("the mirrors follow GitHub: each own repository and each named fork, private as there"):
+        router.wait_for_unit("fake-github.service")
+        router.wait_for_open_port(${toString github.port})
+        # Forgejo refuses the API to an account that still has to change its first password, so
+        # this stands for the owner's first login
+        station.succeed("runuser -u forgejo -- ${forgejo.cli} admin user must-change-password --unset ${forgejo.owner}")
+        station.succeed(f"systemctl show -P OnFailure {mirrors_unit} | grep -qx 'alert-mail@{mirrors_unit}.service'")
+        result = run_to_end(mirrors_unit)
+        assert result == "success", f"{mirrors_unit} ended with {result}"
+        found = mirrors()
+        assert set(found) == set(expected), f"the mirrors are {sorted(found)}, not {sorted(expected)}"
+        for name, repo in found.items():
+            assert repo["mirror"], f"{name} is not a mirror"
+            assert repo["private"] == expected[name]["private"], f"{name} has the wrong visibility"
+            # The private one only clones with the token, so its README proves the token got there
+            assert readme(name) == f"{name}\n", f"{name} holds the wrong content"
+
+    with subtest("a second run leaves every mirror as it was"):
+        before = {name: repo["id"] for name, repo in mirrors().items()}
+        assert run_to_end(mirrors_unit) == "success"
+        assert {name: repo["id"] for name, repo in mirrors().items()} == before, "a second run made a mirror again"
+
+    with subtest("a new token makes each private mirror again, and leaves the public ones alone"):
+        before = {name: repo["id"] for name, repo in mirrors().items()}
+        use_github_token("${lib.elemAt github.tokens 1}")
+        assert run_to_end(mirrors_unit) == "success"
+        after = mirrors()
+        assert set(after) == set(expected), f"after the new token the mirrors are {sorted(after)}"
+        for name, repo in after.items():
+            renewed = repo["id"] != before[name]
+            assert renewed == expected[name]["private"], f"{name}: made again {renewed}, private {expected[name]['private']}"
+            assert readme(name) == f"{name}\n", f"{name} lost its content"
+
+    with subtest("a swap that a stopped run left halfway is finished by the next run"):
+        private = next(name for name, repo in expected.items() if repo["private"])
+        body = json.dumps({
+            "clone_addr": f"${github.url}/git/{private}.git",
+            "repo_name": f"{private}-renewing",
+            "repo_owner": "${forgejo.owner}",
+            "service": "git",
+            "mirror": True,
+            "private": True,
+            "auth_username": "x-access-token",
+            "auth_password": "${lib.elemAt github.tokens 1}",
+        })
+        station.succeed(
+            f"printf '%s' '{body}' | curl -sf -X POST -H \"Authorization: token $(cat {api_token})\""
+            f" -H 'Content-Type: application/json' --data-binary @- '{api}/repos/migrate'"
+        )
+        halfway = mirrors()[f"{private}-renewing"]["id"]
+        assert run_to_end(mirrors_unit) == "success"
+        after = mirrors()
+        assert set(after) == set(expected), f"after the swap the mirrors are {sorted(after)}"
+        assert after[private]["id"] == halfway, "the next run did not take the mirror the stopped run made"
+
+    with subtest("a mirror whose repository left GitHub is kept"):
+        gone = next(name for name, repo in expected.items() if not repo["private"] and not repo["fork"])
+        left = json.dumps([r for r in json.loads('${builtins.toJSON github.repos}') if r["name"] != gone])
+        router.succeed(f"printf '%s' '{left}' >/var/lib/fake-github/state/repos.json")
+        assert run_to_end(mirrors_unit) == "success"
+        assert gone in mirrors(), f"{gone} left Forgejo with GitHub"
+
+    with subtest("a token that GitHub refuses fails the run, which mails root"):
+        router.succeed("curl -sf -X DELETE http://127.0.0.1:8025/api/v1/messages")
+        router.succeed("printf '%s\\n' refused-token >/var/lib/fake-github/state/token")
+        assert run_to_end(mirrors_unit) != "success", f"{mirrors_unit} passed with a refused token"
+        router.wait_until_succeeds(
+            f"curl -s http://127.0.0.1:8025/api/v1/messages | grep -qF '[nixos-station] {mirrors_unit} failed'",
+            timeout=timedelta(minutes=1),
+        )
+        station.succeed(f"systemctl reset-failed {mirrors_unit}")
 
     with subtest("the password comes from sops before the users exist"):
         station.succeed("test -s /run/secrets-for-users/rokokol-password-hash")

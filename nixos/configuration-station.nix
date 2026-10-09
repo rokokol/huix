@@ -19,5 +19,10 @@ _:
     backup-heartbeat.enable = true;
     alert-mail.enable = true;
     forgejo.enable = true;
+    forgejo-mirrors = {
+      enable = true;
+      forks = [ "obsidian-media-gallery" ];
+      exclude = [ "myWiki_real" ];
+    };
   };
 }

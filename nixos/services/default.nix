@@ -23,6 +23,7 @@
     ./system/sops.nix
     ./system/tailnet-web.nix
     ./system/tailscale.nix
+    ./tools/forgejo-mirrors.nix
     ./tools/forgejo.nix
     ./tools/libre-translate.nix
     ./tools/paper-search.nix
