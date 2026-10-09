@@ -7,7 +7,7 @@
     ./services
   ];
 
-  system.stateVersion = "25.11";
+  system.stateVersion = "26.05";
   services.ollama.package = pkgs.ollama-cpu;
 
   rokokol.workstation.enable = true;
