@@ -1,4 +1,6 @@
 {
+  config,
+  lib,
   pkgs,
   huixDir,
   myWikiDir,
@@ -19,6 +21,12 @@
       safe = {
         directory = myWikiDir;
       };
+
+      # A token for a forge other than GitHub, such as the station's Forgejo, goes into the
+      # GNOME keyring of the desktop. gh keeps GitHub to itself: its URL entries reset this list
+      credential.helper = lib.mkIf config.rokokol.workstation.enable (
+        lib.getExe' pkgs.gitFull "git-credential-libsecret"
+      );
     };
 
     # The host prefix every huix subject carries is written by a hook rather than by hand, so it

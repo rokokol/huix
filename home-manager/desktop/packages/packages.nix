@@ -50,6 +50,8 @@ in
           exiftool
           fastfetch
           file
+          # vpn-fleet keeps its files encrypted, and git runs this as their filter
+          git-crypt
         ]
         ++ lib.optional workstation gthumb
         ++ [
