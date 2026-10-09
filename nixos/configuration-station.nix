@@ -19,6 +19,7 @@ _:
     backup-heartbeat.enable = true;
     alert-mail.enable = true;
     prometheus.enable = true;
+    grafana.enable = true;
     forgejo = {
       enable = true;
       # The PC runs the CI jobs, through rokokol.forgejo-runner

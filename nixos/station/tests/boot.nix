@@ -19,6 +19,17 @@ let
   pcNodeExporter = inputs.self.nixosConfigurations.nixos-pc.config.services.prometheus.exporters.node;
   prometheus = "http://127.0.0.1:${toString station.config.services.prometheus.port}";
 
+  grafana = {
+    inherit (station.config.rokokol.tailnet-web.sites.grafana) port;
+    backendPort = station.config.services.grafana.settings.server.http_port;
+    # The admin password of the fixtures
+    password = "test";
+    datasource =
+      (lib.head station.config.services.grafana.provision.datasources.settings.datasources).uid;
+    dashboards =
+      (lib.head station.config.services.grafana.provision.dashboards.settings.providers).options.path;
+  };
+
   # The driver numbers the nodes in name order, and each card's MAC carries that number
   pcMac = "52:54:00:12:01:01";
   stationMac = "52:54:00:12:01:03";
@@ -300,6 +311,7 @@ pkgs.testers.runNixOSTest {
   testScript = ''
     import base64
     import json
+    import shlex
     import time
     from datetime import timedelta
 
@@ -419,6 +431,70 @@ pkgs.testers.runNixOSTest {
         station.succeed("curl -sf --interface 100.64.0.1 http://100.64.0.1:${toString probe.lanPort}/")
         code = station.succeed("curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:${toString probe.lanPort}/")
         assert code == "403", f"nginx answered {code} to loopback on the LAN site"
+
+    with subtest("Grafana shows Prometheus to anyone on the tailnet or the LAN, and only the admin may change it"):
+        station.wait_for_unit("grafana.service")
+        station.wait_for_open_port(${toString grafana.backendPort})
+        listeners = station.succeed("ss -Hltn 'sport = :${toString grafana.backendPort}' | awk '{ print $4 }'").split()
+        assert listeners == ["127.0.0.1:${toString grafana.backendPort}"], f"Grafana listens on {listeners}"
+        # Its plugins come from the store, so it never tries grafana.com for them
+        station.fail("journalctl -u grafana.service -o cat | grep -q 'Installing plugin'")
+        query = json.dumps({
+            "queries": [{"refId": "A", "datasource": {"uid": "${grafana.datasource}"}, "expr": "up", "instant": True}],
+            "from": "now-5m",
+            "to": "now",
+        })
+        for node, url, extra in [
+            (station, "http://100.64.0.1:${toString grafana.port}", "--interface 100.64.0.1"),
+            (pc, "http://192.168.0.104:${toString grafana.port}", ""),
+        ]:
+            # Without a login, as a viewer: the data comes through, the admin pages do not
+            answer = node.succeed(
+                f"curl -s {extra} -w '\\n%{{http_code}}' -H 'Content-Type: application/json' -d '{query}' {url}/api/ds/query"
+            )
+            body, code = answer.rsplit("\n", 1)
+            assert code == "200", f"a viewer at {url} got {code} from a query: {body}"
+            frames = json.loads(body)["results"]["A"]["frames"]
+            assert frames, f"Grafana gave no series of up to a viewer at {url}: {body}"
+            code = node.succeed(f"curl -s {extra} -o /dev/null -w '%{{http_code}}' {url}/api/admin/settings")
+            assert code in ("401", "403"), f"a viewer at {url} got {code} from the admin settings"
+            code = node.succeed(
+                f"curl -s {extra} -u admin:${grafana.password} -o /dev/null -w '%{{http_code}}' {url}/api/admin/settings"
+            )
+            assert code == "200", f"the admin got {code} at {url}"
+            code = node.succeed(
+                f"curl -s {extra} -u admin:wrong -o /dev/null -w '%{{http_code}}' {url}/api/admin/settings"
+            )
+            # A wrong password falls back to the anonymous viewer, which the admin pages refuse
+            assert code in ("401", "403"), f"a wrong admin password got {code} at {url}"
+
+    with subtest("the hosts dashboard is there for a viewer, and each of its queries runs in Prometheus"):
+        with open("${grafana.dashboards}/hosts.json") as listing:
+            dashboard = json.load(listing)
+        code = station.succeed(
+            "curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:${toString grafana.backendPort}/api/dashboards/uid/"
+            + dashboard["uid"]
+        )
+        assert code == "200", f"a viewer got {code} for the dashboard"
+        # The station stands for every host and the PC for every GPU; a VM has no CPU sensor
+        # and the PC here no GPU, so those panels may come back empty, but never with an error
+        values = {"$host": "nixos-station", "$gpu_host": "nixos-pc", "$__rate_interval": "2m"}
+        filled = {"CPU", "Memory", "Swap traffic", "Disks"}
+        for panel in (p for p in dashboard["panels"] if p["type"] != "row"):
+            for target in panel["targets"]:
+                expr = target["expr"]
+                for name, value in values.items():
+                    expr = expr.replace(name, value)
+                # A rate needs two scrapes in its window, which a station just booted may not have
+                deadline = time.monotonic() + 180
+                while True:
+                    answer = station.succeed(f"curl -s --get --data-urlencode {shlex.quote('query=' + expr)} ${prometheus}/api/v1/query")
+                    result = json.loads(answer)
+                    assert result["status"] == "success", f"{panel['title']}: {expr} failed: {answer}"
+                    if panel["title"] not in filled or result["data"]["result"]:
+                        break
+                    assert time.monotonic() < deadline, f"{panel['title']}: {expr} gave no series"
+                    time.sleep(5)
 
     with subtest("Forgejo listens on loopback alone, and its site serves it to the tailnet and the LAN"):
         station.wait_for_unit("forgejo.service")

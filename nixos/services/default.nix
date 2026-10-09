@@ -16,6 +16,7 @@
     ./system/appimage.nix
     ./system/backup-heartbeat.nix
     ./system/cachix.nix
+    ./system/grafana.nix
     ./system/nix-ld.nix
     ./system/node-exporter.nix
     ./system/prometheus.nix
