@@ -16,6 +16,8 @@ let
   forgejo = config.services.forgejo;
   port = 3000;
   backendPort = 3001;
+  runnerId = import ../../../lib/forgejo-runner-id.nix lib;
+  runnerSecret = name: "forgejo-runner-${name}";
 
   # The forgejo CLI with what it needs to find this instance, as the upstream dump unit sets it.
   # It runs as the forgejo user, which owns the state
@@ -46,6 +48,16 @@ in
       defaultText = lib.literalExpression ''"''${config.services.forgejo.stateDir}/initial-admin-password"'';
       readOnly = true;
       description = "File with the first password of the owner's account, readable by forgejo alone";
+    };
+
+    runners = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ ];
+      example = [ "nixos-pc" ];
+      description = ''
+        Names of the Actions runners to register. Each takes the last 24 hex characters of its
+        secret from the sops secret forgejo-runner-<name>; lib/forgejo-runner-id.nix makes the rest
+      '';
     };
 
     cli = lib.mkOption {
@@ -91,6 +103,38 @@ in
     };
 
     environment.systemPackages = [ cli ];
+
+    sops.secrets = lib.genAttrs (map runnerSecret cfg.runners) (_: { });
+    sops.templates = lib.listToAttrs (
+      map (
+        name:
+        lib.nameValuePair (runnerSecret name) {
+          owner = forgejo.user;
+          content = "${(runnerId name).prefix}${config.sops.placeholder.${runnerSecret name}}";
+          restartUnits = [ "forgejo-runners.service" ];
+        }
+      ) cfg.runners
+    );
+
+    # Registration under a known secret is idempotent, so the runner needs no token copied out
+    # of the web page. The wrapper runs `forgejo`, whose admin tools live under forgejo-cli
+    systemd.services.forgejo-runners = lib.mkIf (cfg.runners != [ ]) {
+      description = "Register the Forgejo Actions runners";
+      requires = [ "forgejo.service" ];
+      after = [ "forgejo.service" ];
+      wantedBy = [ "multi-user.target" ];
+      path = [ cli ];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        User = forgejo.user;
+        Group = forgejo.group;
+      };
+      script = lib.concatMapStrings (name: ''
+        forgejo-cli forgejo-cli actions register --name ${name} \
+          --secret-file ${config.sops.templates.${runnerSecret name}.path}
+      '') cfg.runners;
+    };
 
     # The forgejo CLI prints the generated password, so it goes straight into the file and
     # never reaches the command line or the journal

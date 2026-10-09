@@ -32,6 +32,7 @@
     ./tools/telegram-agent.nix
     ./utils/docker.nix
     ./utils/embedded.nix
+    ./utils/forgejo-runner.nix
     ./utils/virtualization.nix
   ];
 }

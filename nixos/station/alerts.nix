@@ -5,7 +5,8 @@
 # receiver and its socket are what the nodes push to, a scrub is the only report of a rotten
 # block (disko.nix names the two units' filesystems), smartd is the only watch on the disk, and
 # tailscaled with its flag-setting unit is the only shell into this host. Forgejo, its nightly
-# dump, the unit that makes the owner's account and the mirror run fail with no one looking.
+# dump, the units that make the owner's account and register the runners, and the mirror run
+# fail with no one looking.
 # A unit that fails
 # with the link down is left out, as the mail could not leave either
 let
@@ -23,6 +24,7 @@ in
     "forgejo-dump"
     "forgejo-mirrors"
     "forgejo-owner"
+    "forgejo-runners"
     "restic-rest-server"
     "smartd"
     "tailscaled"

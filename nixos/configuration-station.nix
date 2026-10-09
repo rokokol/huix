@@ -18,7 +18,11 @@ _:
 
     backup-heartbeat.enable = true;
     alert-mail.enable = true;
-    forgejo.enable = true;
+    forgejo = {
+      enable = true;
+      # The PC runs the CI jobs, through rokokol.forgejo-runner
+      runners = [ "nixos-pc" ];
+    };
     forgejo-mirrors = {
       enable = true;
       forks = [ "obsidian-media-gallery" ];

@@ -26,6 +26,7 @@ pkgs.runCommand "station-boot-test-fixtures"
       printf '  from station@test\n  auth off\n  tls off\n'
       printf 'alert-mail-aliases: "root: owner@test"\n'
       printf 'github-mirror-token: %s\n' '${githubToken}'
+      printf 'forgejo-runner-nixos-pc: %s\n' 0123456789abcdef01234567
     } >plain.yaml
     sops --encrypt --age "$(age-keygen -y $out/key.txt)" \
       --input-type yaml --output-type yaml plain.yaml >$out/station.yaml

@@ -76,6 +76,57 @@ let
     ) repos;
   };
 
+  # What a CI job runs in: a shell, the core tools and ip, which tries the privileged path
+  ciImage = pkgs.dockerTools.buildImage {
+    name = "huix-ci";
+    tag = "test";
+    copyToRoot = pkgs.buildEnv {
+      name = "huix-ci-root";
+      paths = with pkgs; [
+        bashInteractive
+        coreutils
+        iproute2
+      ];
+      pathsToLink = [ "/bin" ];
+    };
+    config.Env = [ "PATH=/bin" ];
+  };
+
+  # One job that only has to run, and one that asks for the host's root, the Docker socket and
+  # privileged mode, and passes only if it got none of them
+  workflows = {
+    "plain.yml" = ''
+      on: [push]
+      jobs:
+        plain:
+          runs-on: ci
+          steps:
+            - run: echo the job ran
+    '';
+    "hostile.yml" = ''
+      on: [push]
+      jobs:
+        hostile:
+          runs-on: ci
+          container:
+            image: ${ciImage.imageName}:${ciImage.imageTag}
+            options: --privileged --pid=host --network=host -v /:/host
+            volumes:
+              - /:/hostroot
+          steps:
+            - run: |
+                if [ -e /host/etc/NIXOS ] || [ -e /hostroot/etc/NIXOS ]; then
+                  echo "the job reached the host's root"; exit 1
+                fi
+                if [ -S /var/run/docker.sock ]; then
+                  echo "the job got the Docker socket"; exit 1
+                fi
+                if ip link add probe0 type dummy 2>/dev/null; then
+                  echo "the job could change the network, so it was privileged"; exit 1
+                fi
+    '';
+  };
+
   lanNode = address: {
     virtualisation.vlans = [ 1 ];
     networking.interfaces.eth1.ipv4.addresses = lib.mkForce [
@@ -205,13 +256,41 @@ pkgs.testers.runNixOSTest {
     };
   };
 
+  # The PC runs the runner module the real one runs, against the station's Forgejo over the LAN,
+  # with the jobs in a local image, since the VM has no registry to pull from
   nodes.pc = {
-    imports = [ (lanNode "192.168.0.102") ];
+    imports = [
+      (lanNode "192.168.0.102")
+      inputs.sops-nix.nixosModules.sops
+      ../../services/utils/forgejo-runner.nix
+    ];
+    _module.args.inputs = inputs;
     environment.systemPackages = with pkgs; [ tcpdump ];
+    virtualisation = {
+      memorySize = 2048;
+      diskSize = 4096;
+      docker.enable = true;
+    };
+
+    sops.age.keyFile = "/var/lib/sops-nix/key.txt";
+    system.activationScripts.testAgeKey.text = ''
+      install -D -m 0400 ${fixtures}/key.txt /var/lib/sops-nix/key.txt
+    '';
+    system.activationScripts.setupSecrets.deps = [ "testAgeKey" ];
+
+    rokokol.forgejo-runner = {
+      enable = true;
+      name = "nixos-pc";
+      url = "http://192.168.0.104:${toString forgejo.port}/";
+      labels = [ "ci:docker://${ciImage.imageName}:${ciImage.imageTag}" ];
+      secretsFile = "${fixtures}/station.yaml";
+    };
   };
 
   testScript = ''
+    import base64
     import json
+    import time
     from datetime import timedelta
 
     map_logical = "${pkgs.btrfs-progs}/bin/btrfs-map-logical"
@@ -444,6 +523,51 @@ pkgs.testers.runNixOSTest {
             timeout=timedelta(minutes=1),
         )
         station.succeed(f"systemctl reset-failed {mirrors_unit}")
+
+    def forgejo_send(method, path, body):
+        return station.succeed(
+            f"printf '%s' '{json.dumps(body)}' | curl -sf -X {method} -H \"Authorization: token $(cat {api_token})\""
+            f" -H 'Content-Type: application/json' --data-binary @- '{api}{path}'"
+        )
+
+    with subtest("the PC's runner registers, and runs CI jobs in Docker that cannot reach the host"):
+        pc.wait_for_unit("docker.service")
+        pc.succeed("docker load <${ciImage}")
+        station.wait_for_unit("forgejo-runners.service")
+        # The nixpkgs module escapes the unit's name as a path, so a pattern finds the one runner
+        runner_log = "journalctl -u 'forgejo-runner-*' -o cat"
+        try:
+            pc.wait_until_succeeds(
+                f"{runner_log} | grep -q 'declared successfully'", timeout=timedelta(minutes=2)
+            )
+        except Exception:
+            print(pc.execute(f"{runner_log} -n 40")[1])
+            print(station.execute("journalctl -u forgejo-runners -o cat -n 20")[1])
+            raise
+        repo = "/repos/${forgejo.owner}/ci-probe"
+        forgejo_send("POST", "/user/repos", {"name": "ci-probe", "private": True, "auto_init": True})
+        forgejo_send("PATCH", repo, {"has_actions": True})
+        with open("${pkgs.writeText "workflows.json" (builtins.toJSON workflows)}") as listing:
+            workflows = json.load(listing)
+        files = [
+            {
+                "operation": "create",
+                "path": f".forgejo/workflows/{name}",
+                "content": base64.b64encode(text.encode()).decode(),
+            }
+            for name, text in workflows.items()
+        ]
+        forgejo_send("POST", f"{repo}/contents", {"files": files, "message": "Add the CI probes"})
+        deadline = time.monotonic() + 300
+        while True:
+            runs = json.loads(forgejo_get(f"{repo}/actions/tasks"))["workflow_runs"]
+            done = [run for run in runs if run["status"] not in ("waiting", "running", "blocked")]
+            if len(done) == len(workflows):
+                break
+            assert time.monotonic() < deadline, f"the CI runs did not finish: {runs}"
+            time.sleep(5)
+        failed = [run["name"] for run in done if run["status"] != "success"]
+        assert not failed, f"these CI jobs did not pass: {failed}\n" + pc.succeed(f"{runner_log} -n 60")
 
     with subtest("the password comes from sops before the users exist"):
         station.succeed("test -s /run/secrets-for-users/rokokol-password-hash")
