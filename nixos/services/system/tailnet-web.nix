@@ -105,6 +105,12 @@ in
         message = "rokokol.tailnet-web.sites share a port: ${toString ports}";
       }
       {
+        # The Host passed on names the port, and a browser leaves the default ports out of the
+        # Origin, so a site on one of them would refuse every form
+        assertion = !(lib.elem 80 ports || lib.elem 443 ports);
+        message = "rokokol.tailnet-web.sites cannot use port 80 or 443: ${toString ports}";
+      }
+      {
         assertion = lanSites == { } || cfg.lan != null;
         message = "rokokol.tailnet-web.sites.${lib.head (lib.attrNames lanSites)}.lan needs rokokol.tailnet-web.lan";
       }
@@ -132,10 +138,21 @@ in
             + "deny all;\n";
           locations."/" = {
             proxyPass = site.backend;
-            recommendedProxySettings = true;
+            # Not recommendedProxySettings: it passes $host, which drops the port. A site lives
+            # on its own port, and a backend that checks the Origin of a form against the Host,
+            # as Forgejo does, then refuses every form. $http_host would carry the port too, but
+            # passes on whatever the client wrote, and the config check refuses it
+            recommendedProxySettings = false;
             # Harmless for a backend that never upgrades, and Grafana Live needs it
             proxyWebsockets = true;
-            inherit (site) extraConfig;
+            extraConfig = ''
+              proxy_set_header Host $host:$server_port;
+              proxy_set_header X-Forwarded-Host $host:$server_port;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header X-Forwarded-Proto $scheme;
+            ''
+            + site.extraConfig;
           };
         }
       ) cfg.sites;

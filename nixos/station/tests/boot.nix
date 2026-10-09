@@ -301,6 +301,16 @@ pkgs.testers.runNixOSTest {
         assert "Forgejo" in page, "the tailnet site does not serve Forgejo"
         page = pc.succeed("curl -sf --max-time 5 http://192.168.0.104:${toString forgejo.port}/")
         assert "Forgejo" in page, "the LAN site does not serve Forgejo"
+        # A browser on plain HTTP sends no Sec-Fetch-Site, so Forgejo checks the Origin against
+        # the Host it gets, port and all. Creating a repository is one of the checked forms
+        for node, origin, extra in [
+            (station, "http://100.64.0.1:${toString forgejo.port}", "--interface 100.64.0.1"),
+            (pc, "http://192.168.0.104:${toString forgejo.port}", ""),
+        ]:
+            answer = node.succeed(
+                f"curl -s {extra} -o /dev/null -w '%{{http_code}}' -X POST -H 'Origin: {origin}' -d x=y {origin}/repo/create"
+            )
+            assert answer != "403", f"Forgejo took a form posted from {origin} as cross-origin"
 
     with subtest("the owner's account exists once, and its first password is Forgejo's alone"):
         admins = "runuser -u forgejo -- ${forgejo.cli} admin user list --admin"
