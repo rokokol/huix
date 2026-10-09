@@ -18,5 +18,6 @@ _:
 
     backup-heartbeat.enable = true;
     alert-mail.enable = true;
+    forgejo.enable = true;
   };
 }

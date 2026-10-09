@@ -8,6 +8,14 @@ let
   inherit (pkgs) lib;
   backup = station.config.fileSystems."/srv/backup";
 
+  forgejo = {
+    inherit (station.config.rokokol.tailnet-web.sites.forgejo) port;
+    backendPort = station.config.services.forgejo.settings.server.HTTP_PORT;
+    cli = lib.getExe station.config.services.forgejo.package;
+    inherit (station.config.services.forgejo) stateDir customDir;
+    inherit (station.config.rokokol.forgejo) initialPasswordFile owner;
+  };
+
   # The driver numbers the nodes in name order, and each card's MAC carries that number
   pcMac = "52:54:00:12:01:01";
   stationMac = "52:54:00:12:01:03";
@@ -73,7 +81,7 @@ pkgs.testers.runNixOSTest {
         system.activationScripts.setupSecretsForUsers.deps = [ "testAgeKey" ];
         system.activationScripts.setupSecrets.deps = [ "testAgeKey" ];
 
-        # The station publishes no site yet, so the test brings one, with a backend on loopback
+        # Both kinds of site, on a backend that does nothing else, so a failure is the module's
         rokokol.tailnet-web.sites = {
           probe = {
             inherit (probe) port;
@@ -201,6 +209,36 @@ pkgs.testers.runNixOSTest {
         station.succeed("curl -sf --interface 100.64.0.1 http://100.64.0.1:${toString probe.lanPort}/")
         code = station.succeed("curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:${toString probe.lanPort}/")
         assert code == "403", f"nginx answered {code} to loopback on the LAN site"
+
+    with subtest("Forgejo listens on loopback alone, and its site serves it to the tailnet and the LAN"):
+        station.wait_for_unit("forgejo.service")
+        station.wait_for_open_port(${toString forgejo.backendPort})
+        listeners = station.succeed("ss -Hltn \"sport = :${toString forgejo.backendPort}\" | awk '{ print $4 }'").split()
+        assert listeners == ["127.0.0.1:${toString forgejo.backendPort}"], f"Forgejo listens on {listeners}"
+        # Its own SSH server is off, so it holds no socket but the one above
+        sockets = station.succeed("ss -Hltnp | grep -c \"pid=$(systemctl show -P MainPID forgejo.service),\" || true").strip()
+        assert sockets == "1", f"Forgejo holds {sockets} listening sockets"
+        page = station.succeed("curl -sf --interface 100.64.0.1 http://100.64.0.1:${toString forgejo.port}/")
+        assert "Forgejo" in page, "the tailnet site does not serve Forgejo"
+        page = pc.succeed("curl -sf --max-time 5 http://192.168.0.104:${toString forgejo.port}/")
+        assert "Forgejo" in page, "the LAN site does not serve Forgejo"
+
+    with subtest("the owner's account exists once, and its first password is Forgejo's alone"):
+        admins = "runuser -u forgejo -- env FORGEJO_WORK_DIR=${forgejo.stateDir} FORGEJO_CUSTOM=${forgejo.customDir} ${forgejo.cli} admin user list --admin"
+        station.wait_until_succeeds(f"{admins} | grep -qw ${forgejo.owner}", timeout=timedelta(minutes=1))
+        assert station.succeed("stat -c '%a %U' ${forgejo.initialPasswordFile}").strip() == "400 forgejo"
+        station.fail("su - nobody -s /bin/sh -c 'cat ${forgejo.initialPasswordFile}'")
+        # A second run finds the account and creates nothing
+        station.succeed("systemctl restart forgejo-owner.service")
+        count = station.succeed(f"{admins} | grep -cw ${forgejo.owner}").strip()
+        assert count == "1", f"{count} admin accounts named ${forgejo.owner}"
+
+    with subtest("a dump of Forgejo runs through its unit, which mails root if it fails"):
+        dump = "forgejo-dump.service"
+        station.succeed(f"systemctl show -P OnFailure {dump} | grep -qx 'alert-mail@{dump}.service'")
+        result = run_to_end(dump)
+        assert result == "success", f"{dump} ended with {result}"
+        station.succeed("ls ${station.config.services.forgejo.dump.backupDir}/*.zip")
 
     with subtest("the password comes from sops before the users exist"):
         station.succeed("test -s /run/secrets-for-users/rokokol-password-hash")
