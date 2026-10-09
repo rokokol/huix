@@ -128,7 +128,7 @@ in
             # and the emoji layer opens from the numbers
             "-l full,special,cyrillic,special"
             "--landscape-layers landscape,landscapespecial,cyrillic,landscapespecial"
-            "--fn 'Doki 14'"
+            "--fn 'Doki,Nunito 14 @wght=900'"
             "--bg ${bare.ink}"
             "--fg ${bare.jacket}"
             "--fg-sp ${bare.plum}"

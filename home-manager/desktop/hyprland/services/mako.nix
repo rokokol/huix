@@ -12,7 +12,7 @@ lib.mkIf config.rokokol.hyprland.enable {
 
     settings = {
       anchor = "top-right";
-      font = "Doki 12";
+      font = "Doki,Nunito 12 @wght=900";
       padding = "15";
 
       on-button-right = "exec makoctl menu -n $id -- ${pkgs.rofi}/bin/rofi -dmenu -p 💌";
