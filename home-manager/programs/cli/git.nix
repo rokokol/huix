@@ -4,6 +4,7 @@
   pkgs,
   huixDir,
   myWikiDir,
+  rokokolEmail,
   rokokolName,
   ...
 }:
@@ -14,7 +15,7 @@
     settings = {
       user = {
         Name = rokokolName;
-        Email = "git@rokokol.art";
+        Email = rokokolEmail;
       };
       core.editor = "nvim";
       core.quotepath = "false";

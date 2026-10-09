@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  rokokolEmail,
   rokokolName,
   ...
 }:
@@ -118,7 +119,7 @@ in
           exit 0
         fi
         forgejo-cli admin user create --admin --username ${cfg.owner} \
-          --email ${cfg.owner}@${config.networking.hostName}.invalid \
+          --email ${rokokolEmail} \
           --random-password --must-change-password \
           | sed -n "s/^generated random password is '\(.*\)'$/\1/p" >${cfg.initialPasswordFile}
         chmod 0400 ${cfg.initialPasswordFile}

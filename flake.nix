@@ -171,6 +171,8 @@
       # one owns them
       pkgs = nixpkgs.legacyPackages.${system};
       rokokolName = "rokokol";
+      # The address of the owner's commits; Forgejo links a commit to its account by it
+      rokokolEmail = "git@rokokol.art";
       huixDir = "/home/${rokokolName}/huix";
       # Same on every host on purpose: absolute paths into the vault travel through Syncthing
       myWikiDir = "/home/${rokokolName}/myWiki";
@@ -196,6 +198,7 @@
           myWikiDir
           palette
           projectsDir
+          rokokolEmail
           rokokolName
           ruLayout
           system
