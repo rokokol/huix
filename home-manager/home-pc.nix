@@ -25,7 +25,8 @@
       enable = true;
       nvidia = true;
       shader = true;
-      temperatureHwmon = "/sys/class/hwmon/hwmon0/temp1_input";
+      # k10temp of the Ryzen; temp1 is Tctl
+      temperatureSensor.device = "/sys/devices/pci0000:00/0000:00:18.3/hwmon";
     };
   };
 

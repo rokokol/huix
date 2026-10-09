@@ -14,10 +14,27 @@ in
   options.rokokol.waybar = {
     enable = lib.mkEnableOption "waybar";
 
-    temperatureHwmon = lib.mkOption {
-      type = lib.types.nullOr lib.types.str;
+    # By the device, not by /sys/class/hwmon/hwmonN: the kernel numbers the chips in the order
+    # their drivers load, which changes from one boot to the next
+    temperatureSensor = lib.mkOption {
+      type = lib.types.nullOr (
+        lib.types.submodule {
+          options = {
+            device = lib.mkOption {
+              type = lib.types.str;
+              example = "/sys/devices/pci0000:00/0000:00:18.3/hwmon";
+              description = "hwmon directory of the chip's device, without the hwmonN under it";
+            };
+            input = lib.mkOption {
+              type = lib.types.str;
+              default = "temp1_input";
+              description = "file of the sensor in the chip's hwmonN directory";
+            };
+          };
+        }
+      );
       default = null;
-      description = "hwmon-path for the temperature module; null — waybar auto-selects";
+      description = "CPU sensor of the temperature module; null — waybar auto-selects";
     };
 
     # The on-screen keyboard is a keyboard too: its keymap is named "wvkbd", which the layout
@@ -151,8 +168,9 @@ in
             critical-threshold = criticalTemperature;
             format-critical = "{temperatureC}°C ⚠️";
           }
-          // lib.optionalAttrs (cfg.temperatureHwmon != null) {
-            hwmon-path = cfg.temperatureHwmon;
+          // lib.optionalAttrs (cfg.temperatureSensor != null) {
+            hwmon-path-abs = cfg.temperatureSensor.device;
+            input-filename = cfg.temperatureSensor.input;
           };
 
           "memory" = {
