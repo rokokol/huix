@@ -41,8 +41,10 @@ class Handler(BaseHTTPRequestHandler):
             query = parse_qs(url.query)
             page = int(query.get("page", ["1"])[0])
             size = int(query.get("per_page", ["30"])[0])
+            # GitHub gives the size in kibibytes, and 0 for a repository with no commit
             listed = [
                 {
+                    "size": 1,
                     **repo,
                     "clone_url": f"{base}/git/{repo['name']}.git",
                     "html_url": f"{base}/{repo['name']}",

@@ -68,6 +68,8 @@ let
       private = true;
       fork = false;
     }) exclude;
+    # A repository whose git data the router holds back, as a clone that fails would
+    late = "late-tool";
     inherit (station.config.rokokol.forgejo-mirrors) forks exclude;
     mirrored = lib.filter (
       repo: (!repo.fork || lib.elem repo.name forks) && !lib.elem repo.name exclude
@@ -180,11 +182,11 @@ pkgs.testers.runNixOSTest {
       wantedBy = [ "multi-user.target" ];
       path = with pkgs; [ git ];
       preStart = ''
-        mkdir -p state git
+        mkdir -p state git held
         printf '%s\n' ${lib.head github.tokens} >state/token
         cp ${pkgs.writeText "repos.json" (builtins.toJSON github.repos)} state/repos.json
         chmod u+w state/repos.json
-        for name in ${lib.concatMapStringsSep " " (repo: repo.name) github.repos}; do
+        for name in ${lib.concatMapStringsSep " " (repo: repo.name) github.repos} ${github.late}; do
           work=$(mktemp -d)
           git -C "$work" init -q -b main
           printf '%s\n' "$name" >"$work/README"
@@ -193,6 +195,7 @@ pkgs.testers.runNixOSTest {
           git clone -q --bare "$work" "git/$name.git"
           git -C "git/$name.git" update-server-info
         done
+        mv git/${github.late}.git held/
       '';
       serviceConfig = {
         StateDirectory = "fake-github";
@@ -220,8 +223,10 @@ pkgs.testers.runNixOSTest {
         return router.succeed("curl -s http://127.0.0.1:8025/api/v1/messages")
 
     # Runs a unit to its end; its Result is the verdict. The start waits for the job and fails
-    # with the unit, so its own status is left aside
+    # with the unit, so its own status is left aside. reset-failed clears the start limit, which
+    # a test that runs one unit many times in a row would hit
     def run_to_end(unit):
+        station.succeed(f"systemctl reset-failed {unit}")
         station.execute(f"systemctl start {unit}")
         station.wait_until_succeeds(
             f"case $(systemctl show -P ActiveState {unit}) in active|activating) exit 1;; esac",
@@ -409,10 +414,21 @@ pkgs.testers.runNixOSTest {
         assert run_to_end(mirrors_unit) == "success"
         assert gone in mirrors(), f"{gone} left Forgejo with GitHub"
 
+    with subtest("a mirror whose first clone failed is made again once GitHub serves the data"):
+        # A failed migration leaves an empty mirror behind, which looks like a finished one
+        listed = json.loads(router.succeed("cat /var/lib/fake-github/state/repos.json"))
+        listed.append({"name": "${github.late}", "private": False, "fork": False})
+        router.succeed(f"printf '%s' '{json.dumps(listed)}' >/var/lib/fake-github/state/repos.json")
+        last_run = f"journalctl -u {mirrors_unit} -o cat -n 8"
+        assert run_to_end(mirrors_unit) == "exit-code", station.succeed(last_run)
+        router.succeed("mv /var/lib/fake-github/held/${github.late}.git /var/lib/fake-github/git/")
+        assert run_to_end(mirrors_unit) == "success", station.succeed(last_run)
+        assert readme("${github.late}") == "${github.late}\n", "the failed mirror stayed empty"
+
     with subtest("a token that GitHub refuses fails the run, which mails root"):
         router.succeed("curl -sf -X DELETE http://127.0.0.1:8025/api/v1/messages")
         router.succeed("printf '%s\\n' refused-token >/var/lib/fake-github/state/token")
-        assert run_to_end(mirrors_unit) != "success", f"{mirrors_unit} passed with a refused token"
+        assert run_to_end(mirrors_unit) == "exit-code", f"{mirrors_unit} did not fail on a refused token"
         router.wait_until_succeeds(
             f"curl -s http://127.0.0.1:8025/api/v1/messages | grep -qF '[nixos-station] {mirrors_unit} failed'",
             timeout=timedelta(minutes=1),

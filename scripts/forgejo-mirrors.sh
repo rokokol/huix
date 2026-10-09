@@ -19,8 +19,10 @@ when its repository is, and only a private mirror is given the token, so a publi
 touched when the token changes. Forgejo cannot change the credentials of a mirror, so when the
 token differs from the one the last full run saw (its hash in STATE), each private mirror is
 made again: the new one is made beside it as <name>-renewing, then takes its place. A run that
-stops halfway finishes the swap the next time. A mirror whose repository left GitHub is kept,
-and a repository of OWNER that is not a mirror is never touched
+stops halfway finishes the swap the next time. A failed clone leaves Forgejo an empty mirror,
+so an empty mirror of a repository that GitHub reports as not empty is made again the same
+way. A mirror whose repository left GitHub is kept, and a repository of OWNER that is not a
+mirror is never touched
 
 GITHUB_PER_PAGE sets the page size of the GitHub list, 100 by default
 Exit 0 when every mirror is in place, 1 when GitHub or Forgejo refused a request or a FORK is
@@ -104,7 +106,7 @@ all='[]'
 page=1
 while :; do
   batch=$(github "/user/repos?affiliation=owner&per_page=$per_page&page=$page" |
-    jq -c 'map({name, private, fork, clone_url, html_url})') || {
+    jq -c 'map({name, private, fork, size, clone_url, html_url})') || {
     note "GitHub did not give page $page of the repository list"
     exit 1
   }
@@ -128,7 +130,7 @@ have='[]'
 page=1
 while :; do
   batch=$(forgejo GET "/user/repos?limit=50&page=$page" |
-    jq -c 'map({name, mirror, private, owner: .owner.login})') || {
+    jq -c 'map({name, mirror, private, empty, owner: .owner.login})') || {
     note "Forgejo did not give page $page of the repository list"
     exit 1
   }
@@ -163,6 +165,13 @@ while read -r repo; do
     fi
   elif ! jq -e .mirror <<<"$mine" >/dev/null; then
     note "$name: a repository of $owner that is not a mirror has this name, so it is left alone"
+  elif jq -e --argjson repo "$repo" '.empty and $repo.size > 0' <<<"$mine" >/dev/null; then
+    if migrate "$repo" "$name$renewing" && swap "$name"; then
+      note "$name: mirrored again, as a failed clone had left it empty"
+    else
+      note "$name: could not mirror it again, and it stays empty"
+      status=1
+    fi
   elif $renew && jq -e .private <<<"$mine" >/dev/null; then
     if migrate "$repo" "$name$renewing" && swap "$name"; then
       note "$name: mirrored again with the new token"
