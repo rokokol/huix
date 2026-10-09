@@ -32,13 +32,15 @@
 
         meta = {
           description = "Font files this repository carries directly, outside nixpkgs";
-          # The set holds the DDLC game font, which Team Salvato owns, so the whole
-          # derivation is unfree. ASSETS.md names each file and its owner
+          # The set holds Doki, a personal-use font by 538Fonts, so the whole derivation
+          # is unfree. ASSETS.md names each file and its owner
           license = lib.licenses.unfree;
           platforms = lib.platforms.all;
         };
       })
       inter
+      # The prose face of the DDLC themes, and the headings' face where Doki is missing
+      nunito
       (google-fonts.override { fonts = [ "Spectral" ]; })
     ];
 

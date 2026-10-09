@@ -6,12 +6,6 @@
 
 Doki Doki Literature Club and Doki Doki Literature Club Plus are the property of [Team Salvato](https://teamsalvato.com/). This project is **unaffiliated with and not endorsed by Team Salvato**
 
-The following are derived from or contain official DDLC assets:
-
-| Path                                                                       | What                                               |
-| -------------------------------------------------------------------------- | -------------------------------------------------- |
-| `nixos/fonts/doki.otf`, `doki-patched.ttf`, `doki-nerd-font-mono-regular.otf` | the in-game font, and a Nerd-patched variant of it |
-
 The greeter sprites and the greeter cursor left with the theme — they live in [rokokol/ddlc-sddm-theme](https://github.com/rokokol/ddlc-sddm-theme) now, under the same conditions. The lock screen's background, its dialog box and every line it types went the same way, into [rokokol/ddlc-hyprlock](https://github.com/rokokol/ddlc-hyprlock)
 
 Use here follows [Team Salvato's IP guidelines](https://teamsalvato.com/ip-guidelines): this is non-commercial fan content, nothing containing official assets is sold, and no claim of affiliation is made. If you reuse any of it, the same conditions apply to you
@@ -27,6 +21,8 @@ It is not my artwork and it is not the greeter cursor — that one is cut from t
 ## Other bundled fonts
 
 `nixos/fonts/departure-mono-*` — [Departure Mono](https://departuremono.com/), Nerd Fonts patched. Check the upstream licence before redistributing
+
+`nixos/fonts/doki.otf`, `doki-patched.ttf`, `doki-nerd-font-mono-regular.otf` — Doki, a font by 538Fonts from 2015, and variants of it patched here. It is free for personal use only and is not part of the game
 
 ## Everything else
 
