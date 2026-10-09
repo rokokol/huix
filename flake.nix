@@ -191,10 +191,13 @@
       # Milliseconds a key popup waits before it shows, in nixvim's which-key and in yazi alike;
       # which-key's own default, so a fast chord never flashes a popup
       whichKeyDelay = 200;
+      # Degrees Celsius of the CPU from which waybar and the station's dashboard both show alarm
+      criticalTemperature = 80;
 
       commonArgs = {
         inherit
           base16
+          criticalTemperature
           huixDir
           inputs
           myWikiDir

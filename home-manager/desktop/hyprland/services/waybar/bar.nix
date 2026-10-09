@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  criticalTemperature,
   palette,
   ...
 }:
@@ -147,7 +148,7 @@ in
 
           "temperature" = {
             format = "{temperatureC}°C 🌡️";
-            critical-threshold = 80;
+            critical-threshold = criticalTemperature;
             format-critical = "{temperatureC}°C ⚠️";
           }
           // lib.optionalAttrs (cfg.temperatureHwmon != null) {
