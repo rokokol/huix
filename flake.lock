@@ -151,11 +151,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1791588364,
-        "narHash": "sha256-AkeCsBfGf+QFp1HyeQEiWbetxnq81wgfjKrNnnv0HmY=",
+        "lastModified": 1791593317,
+        "narHash": "sha256-Z84mvaoAmwHniZkB5wyxABhbqfC3ZzqbI6LU+Poacrg=",
         "owner": "rokokol",
         "repo": "ddlc-rofi-theme",
-        "rev": "434b0e44b1605bd10dec29fe157d3701b346ca31",
+        "rev": "d1c2a3197f3818f356698bba6ef4f46a2327a0f3",
         "type": "github"
       },
       "original": {
