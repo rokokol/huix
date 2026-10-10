@@ -467,9 +467,10 @@ pkgs.testers.runNixOSTest {
             timeout=timedelta(minutes=2),
         )
 
-    # Two files, since the first hour of staggered versioning keeps one version in 30 seconds
+    # Two files, since the first hour of staggered versioning keeps one version in 30 seconds.
+    # Private modes, as Claude Code gives its transcripts
     with subtest("what the PC overwrites or deletes stays on the archive, readable by the owner"):
-        as_syncthing(pc, f"mkdir -p {on_pc}/notes && echo old >{on_pc}/notes/kept.md && echo gone >{on_pc}/notes/gone.md")
+        as_syncthing(pc, f"umask 077 && mkdir -p {on_pc}/notes && echo old >{on_pc}/notes/kept.md && echo gone >{on_pc}/notes/gone.md")
         for name, text in [("kept", "old"), ("gone", "gone")]:
             station.wait_until_succeeds(f"grep -qx {text} {on_station}/notes/{name}.md", timeout=timedelta(minutes=2))
         as_syncthing(pc, f"echo new >{on_pc}/notes/kept.md && rm {on_pc}/notes/gone.md")

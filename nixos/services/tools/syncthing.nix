@@ -141,7 +141,8 @@ in
         ];
 
         # The default user, not the owner: the archive needs no home. The owner reads the old
-        # versions through the group, and the folders' files keep the modes of the peers
+        # versions through the group. The files take the default modes, not the peers' own: a
+        # private mode there, as on Claude Code's transcripts, would shut the owner out here
         services.syncthing = {
           # tailscale.nix trusts the tailnet interface, and the LAN stays shut out
           openDefaultPorts = false;
@@ -154,6 +155,7 @@ in
             inherit (folder) id devices;
             path = "${cfg.archive.dir}/${name}";
             type = "receiveonly";
+            ignorePerms = true;
             versioning = {
               type = "staggered";
               params.maxAge = toString (folder.keepDays * 24 * 60 * 60);
