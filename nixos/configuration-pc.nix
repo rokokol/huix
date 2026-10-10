@@ -37,6 +37,8 @@
     tablet.enable = true;
     virtualization.enable = true;
 
+    syncthing.deviceId = "MNSJ7QK-4YOWUOS-3O5MSOT-UXON7VW-PZFY2YC-34MDG2H-UHTWJ7H-QLTDKQV";
+
     # The CI of the station's Forgejo; the station lists this host in rokokol.forgejo.runners
     forgejo-runner = {
       enable = true;

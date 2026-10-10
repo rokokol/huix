@@ -12,6 +12,7 @@
 
   rokokol.workstation.enable = true;
   rokokol.sensors.enable = true;
+  rokokol.syncthing.deviceId = "IACQG6Z-QHUKT7Y-EZXPKTH-BIT3LJR-BCXTRV6-FZZK3LB-SUKSHBR-UG44GAM";
 
   rokokol.btrfs.mounts = [
     "/"

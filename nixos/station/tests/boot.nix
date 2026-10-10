@@ -30,6 +30,11 @@ let
       (lib.head station.config.services.grafana.provision.dashboards.settings.providers).options.path;
   };
 
+  syncthing = {
+    inherit (station.config.services.syncthing.settings.folders.myWiki) id path;
+    config = "${station.config.services.syncthing.configDir}/config.xml";
+  };
+
   # The driver numbers the nodes in name order, and each card's MAC carries that number
   pcMac = "52:54:00:12:01:01";
   stationMac = "52:54:00:12:01:03";
@@ -306,6 +311,18 @@ pkgs.testers.runNixOSTest {
       labels = [ "ci:docker://${ciImage.imageName}:${ciImage.imageTag}" ];
       secretsFile = "${fixtures}/station.yaml";
     };
+
+    # A peer of the archive with the vault's folder. Its identity is made at boot, so the test
+    # pairs the two at run time; the station's own folders come from its configuration
+    services.syncthing = {
+      enable = true;
+      openDefaultPorts = true;
+      settings.folders.myWiki = {
+        inherit (syncthing) id;
+        path = "/var/lib/syncthing/myWiki";
+      };
+    };
+    networking.hosts."192.168.0.104" = [ "nixos-station" ];
   };
 
   testScript = ''
@@ -315,7 +332,8 @@ pkgs.testers.runNixOSTest {
     import time
     from datetime import timedelta
 
-    map_logical = "${pkgs.btrfs-progs}/bin/btrfs-map-logical"
+    jq = "${lib.getExe pkgs.jq}"
+    map_logical ="${pkgs.btrfs-progs}/bin/btrfs-map-logical"
     filefrag = "${pkgs.e2fsprogs}/bin/filefrag"
     scrub = "btrfs-scrub@srv-backup.service"
     scrub_subject = "[nixos-station] " + scrub + " failed"
@@ -405,6 +423,72 @@ pkgs.testers.runNixOSTest {
 
     with subtest("the LAN cannot reach an exporter"):
         pc.fail("curl -s --max-time 5 -o /dev/null http://192.168.0.104:${toString pcNodeExporter.port}/metrics")
+
+    # A call to the Syncthing of a node, as a command; both nodes run it as the default user, so
+    # the key is at the same path
+    def st_curl(node, method, path, body=None):
+        key = node.succeed("grep -oP '(?<=<apikey>)[^<]+' ${syncthing.config}").strip()
+        data = f" -H 'Content-Type: application/json' -d {shlex.quote(json.dumps(body))}" if body is not None else ""
+        return f"curl -sf -X {method} -H 'X-API-Key: {key}'{data} 'http://127.0.0.1:8384/rest/{path}'"
+
+    def st(node, method, path, body=None):
+        answer = node.succeed(st_curl(node, method, path, body))
+        return json.loads(answer) if answer.strip() else None
+
+    def as_syncthing(node, command):
+        node.succeed(f"runuser -u syncthing -- sh -c {shlex.quote(command)}")
+
+    def pair(node, device, address):
+        st(node, "POST", "config/devices", {"deviceID": device, "addresses": [address]})
+        folder = st(node, "GET", "config/folders/${syncthing.id}")
+        folder["devices"].append({"deviceID": device})
+        st(node, "PUT", "config/folders/${syncthing.id}", folder)
+
+    on_pc = "/var/lib/syncthing/myWiki"
+    on_station = "${syncthing.path}"
+
+    with subtest("the archive keeps each folder on the backup volume, receive-only and with old versions"):
+        station.wait_for_unit("syncthing-init.service")
+        station.succeed("systemctl show -P OnFailure syncthing.service | grep -qx 'alert-mail@syncthing.service.service'")
+        for folder in st(station, "GET", "config/folders"):
+            assert folder["type"] == "receiveonly", f"{folder['id']} is {folder['type']}"
+            assert folder["versioning"]["type"] == "staggered", f"{folder['id']} keeps no versions"
+            station.succeed(f"findmnt -no TARGET -T {shlex.quote(folder['path'])} | grep -qx /srv/backup")
+
+    with subtest("the LAN cannot reach the archive's Syncthing, and the archive reaches the PC"):
+        pc.wait_for_unit("syncthing-init.service")
+        pc.fail("timeout 5 bash -c '</dev/tcp/192.168.0.104/22000'")
+        pc_id = st(pc, "GET", "system/status")["myID"]
+        station_id = st(station, "GET", "system/status")["myID"]
+        pair(station, pc_id, "tcp://nixos-pc:22000")
+        pair(pc, station_id, "tcp://nixos-station:22000")
+        station.wait_until_succeeds(
+            st_curl(station, "GET", "system/connections") + f" | {jq} -e '.connections[\"{pc_id}\"].connected'",
+            timeout=timedelta(minutes=2),
+        )
+
+    # Two files, since the first hour of staggered versioning keeps one version in 30 seconds
+    with subtest("what the PC overwrites or deletes stays on the archive, readable by the owner"):
+        as_syncthing(pc, f"mkdir -p {on_pc}/notes && echo old >{on_pc}/notes/kept.md && echo gone >{on_pc}/notes/gone.md")
+        for name, text in [("kept", "old"), ("gone", "gone")]:
+            station.wait_until_succeeds(f"grep -qx {text} {on_station}/notes/{name}.md", timeout=timedelta(minutes=2))
+        as_syncthing(pc, f"echo new >{on_pc}/notes/kept.md && rm {on_pc}/notes/gone.md")
+        station.wait_until_succeeds(f"grep -qx new {on_station}/notes/kept.md", timeout=timedelta(minutes=2))
+        station.wait_until_succeeds(f"! test -e {on_station}/notes/gone.md", timeout=timedelta(minutes=2))
+        for name, text in [("kept", "old"), ("gone", "gone")]:
+            version = station.succeed(f"runuser -u rokokol -- sh -c 'cat {on_station}/.stversions/notes/{name}~*.md'")
+            assert version == f"{text}\n", f"the archive kept {version!r} of {name}.md"
+        # The versions stay where they were made
+        pc.succeed(f"test ! -e {on_pc}/.stversions")
+
+    with subtest("a change made on the archive stays there"):
+        as_syncthing(station, f"echo local >{on_station}/local.md")
+        st(station, "POST", "db/scan?folder=${syncthing.id}")
+        station.wait_until_succeeds(
+            st_curl(station, "GET", "db/status?folder=${syncthing.id}") + f" | {jq} -e '.receiveOnlyChangedFiles == 1'",
+            timeout=timedelta(minutes=1),
+        )
+        pc.succeed(f"test ! -e {on_pc}/local.md")
 
     with subtest("a site answers the tailnet ranges, and nginx refuses every other address"):
         station.wait_for_unit("nginx.service")

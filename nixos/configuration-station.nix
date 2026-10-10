@@ -1,5 +1,8 @@
 _:
 
+let
+  backup = "/srv/backup";
+in
 {
   imports = [
     ./default.nix
@@ -12,8 +15,13 @@ _:
   rokokol = {
     restic-server = {
       enable = true;
-      mountPoint = "/srv/backup";
-      dataDir = "/srv/backup/restic";
+      mountPoint = backup;
+      dataDir = "${backup}/restic";
+    };
+    syncthing.archive = {
+      enable = true;
+      mountPoint = backup;
+      dir = "${backup}/syncthing";
     };
 
     backup-heartbeat.enable = true;
