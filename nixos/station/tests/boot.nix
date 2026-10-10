@@ -381,6 +381,7 @@ pkgs.testers.runNixOSTest {
 
     with subtest("Prometheus scrapes each host by name, and a host that is down shows as down"):
         station.wait_for_unit("prometheus.service")
+        station.succeed("systemctl show -P OnFailure prometheus.service | grep -qx 'alert-mail@prometheus.service.service'")
         pc.wait_for_unit("prometheus-node-exporter.service")
         # The laptop has no VM here, so it stands for a host that is off
         wait_for_series('up{job="node"}', {"nixos-station": 1.0, "nixos-pc": 1.0, "nixos-laptop": 0.0})
@@ -434,6 +435,7 @@ pkgs.testers.runNixOSTest {
 
     with subtest("Grafana shows Prometheus to anyone on the tailnet or the LAN, and only the admin may change it"):
         station.wait_for_unit("grafana.service")
+        station.succeed("systemctl show -P OnFailure grafana.service | grep -qx 'alert-mail@grafana.service.service'")
         station.wait_for_open_port(${toString grafana.backendPort})
         listeners = station.succeed("ss -Hltn 'sport = :${toString grafana.backendPort}' | awk '{ print $4 }'").split()
         assert listeners == ["127.0.0.1:${toString grafana.backendPort}"], f"Grafana listens on {listeners}"
