@@ -6,10 +6,9 @@
 
 **Мой NixOS-флейк — десктоп с NVIDIA/CUDA и ноут на Hyprland плюс домашний сервер без экрана** （´ω｀♡%）
 
-![NixOS](https://img.shields.io/badge/NixOS-unstable-5277C3?style=flat&logo=nixos&logoColor=white)
+![NixOS](https://img.shields.io/badge/NixOS-system-5277C3?style=flat&logo=nixos&logoColor=white)
 ![Nix](https://img.shields.io/badge/Nix-flakes-7EBAE4?style=flat&logo=nixos&logoColor=white)
 ![Hyprland](https://img.shields.io/badge/WM-Hyprland-00AAAE?style=flat&logo=hyprland&logoColor=white)
-![platform](https://img.shields.io/badge/platform-x86__64--linux-1793D1?style=flat&logo=linux&logoColor=white)
 [![assets](https://img.shields.io/badge/assets-third--party-FF80C0?style=flat)](ASSETS.md)
 [![workarounds](https://img.shields.io/badge/docs-workarounds-555?style=flat)](WORKAROUNDS.md)
 [![deviations](https://img.shields.io/badge/docs-deviations-555?style=flat)](DEVIATIONS.md)
@@ -18,7 +17,7 @@
 
 </div>
 
-Короче, это мой конфиг для NixOS. Сижу на Hyprland, юзаю nixvim как IDE, часть штук типа Obsidian, SP или Zen синхронизирую через git/облако, а не декларативно, кривые пакеты тяну через flatpak; рядом крутятся MATLAB/Python/C++
+Короче, это мой NixOS для двух рабочих станций и домашнего сервера: Hyprland, nixvim, разработка, игры и куча приложений для повседневных дел. Часть программ я держу отдельно от конфига, а для всего остального стараюсь собрать удобную среду под себя
 
 ## Команды
 
@@ -36,15 +35,15 @@ nix build .#station-boot-test -L      # станция в виртуалках �
 nix build .#station-install-test -L   # её установочный образ в виртуалках: отказы и полная установка
 ```
 
-Первый раз станция ставится с флешки: образ без секретов собирает `nix build .#station-installer`, секреты в копию добавляет `nix run .#make-station-iso -- write result/iso/*.iso OUTPUT`, и этот OUTPUT после установки удаляют. Что он делает на станции — в [`nixos/`](nixos/README.md#станция)
+Первый раз станция ставится с флешки: образ без секретов собирает `nix build .#station-installer`, секреты в копию добавляет `nix run .#make-station-iso -- write result/iso/*.iso OUTPUT`, и этот OUTPUT после установки удаляют. Что станция умеет — в [описании системного слоя](nixos/README.md#станция)
 
-При смене железа:
+Если поменялось железо, обнови его описание:
 
 ```sh
 sudo nixos-generate-config --show-hardware-config > nixos/<host>/hardware-configuration.nix
 ```
 
-Матлаб (как-то позволяет скачать матлаб на комп (★^O^★)):
+Матлаб тоже можно запустить через Nix (★^O^★):
 
 ```sh
 nix run gitlab:doronbehar/nix-matlab#matlab-shell
@@ -53,11 +52,11 @@ nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHW
 
 ## Хосты
 
-| Host            | Точка входа                                                         | Чем выделяется                                                                                                                                                  |
-| --------------- | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `nixos-pc`      | `nixos/configuration-pc.nix` + `home-manager/home-pc.nix`           | NVIDIA/CUDA, `ollama-cuda`, SearxNG, виртуализация, печать, планшет, виртуальная камера, Steam, тяжёлый creative-стек                                           |
-| `nixos-laptop`  | `nixos/configuration-laptop.nix` + `home-manager/home-laptop.nix`   | трансформер: тачскрин с жестами, перо, автоповорот и режим планшета; CPU-only `ollama-cpu`, Bluetooth, батарея и подсветка в баре, тумблер "крышка не усыпляет" |
-| `nixos-station` | `nixos/configuration-station.nix` + `home-manager/home-station.nix` | сервер без рабочего стола: принимает restic-бэкапы остальных машин в append-only, следит, что они не пропадают, шлёт алерты почтой и будит ПК по сети           |
+| Хост | Назначение |
+| ---- | ---------- |
+| Рабочий ПК | Графическая рабочая станция для разработки, игр и творческих задач |
+| Ноутбук-трансформер | Мобильная рабочая станция с сенсорным экраном, пером и режимом планшета |
+| Домашний сервер | Хранит резервные копии, собирает состояние хостов и предоставляет домашние службы |
 
 ## Карта репозитория
 
@@ -88,11 +87,10 @@ nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHW
 [![ddlc.nvim](https://img.shields.io/badge/ddlc.nvim-тема_редактора-76C332?style=for-the-badge&logo=neovim&logoColor=white)](https://github.com/rokokol/ddlc.nvim)
 [![ddlc-themes](https://img.shields.io/badge/ddlc--themes-kitty_и_btop-72D0FA?style=for-the-badge)](https://github.com/rokokol/ddlc-themes)
 
-## FUQ
+## Пара заметок
 
-- `SUPER+A` переключает светлую/темную темы на лету — она выбирается в рантайме и переживает ребилд, декларативно она нигде не настроена
-- цвета тут не выбираются вообще: [ddlc-palette](https://github.com/rokokol/ddlc-palette) снимает их с ddlc.moe и отдаёт готовыми, темы приложений приезжают собранными из своих репо. Хекс в модуле — повод спросить, почему он не оттуда
-- сервисы слушают только `127.0.0.1`, кроме приёмника бэкапов на станции, а наружу firewall не открывает ничего — [подробнее](nixos/services/README.md#сеть)
+- Светлую и тёмную темы можно переключать на лету — выбор переживает перезагрузки и пересборки
+- О том, что крутится на машинах, читай в [системном слое](nixos/README.md) и разделе [служб](nixos/services/README.md)
 
 <br/>
 

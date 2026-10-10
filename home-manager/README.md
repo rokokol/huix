@@ -13,10 +13,8 @@
 [![programs](https://img.shields.io/badge/programs-программы-7E57C2?style=for-the-badge)](programs/README.md)
 [![nixvim](https://img.shields.io/badge/nixvim-neovim-019733?style=for-the-badge&logo=neovim&logoColor=white)](programs/nixvim/README.md)
 
-Всё, что про пользовательское окружение: конфиги приложений, шелл, тема, Hyprland/Waybar, per-user пакеты и systemd-user юниты. Системное (boot, железо, сервисы) — это в [`nixos/`](../nixos/README.md)
+Здесь собирается всё, чем пользуешься каждый день: приложения, оболочка, оформление и сам рабочий стол. Железо и системные службы — в [NixOS-слое](../nixos/README.md)
 
-HM подключён как NixOS-модуль, поэтому системный и пользовательский слой делят один набор пакетов, а вся настройка пакетов живёт на уровне флейка: в [`flake.nix`](../flake.nix) и в [`overlays/`](../overlays)
+На ПК и ноутбуке — полноценный графический рабочий стол, на сервере — нужные в терминале инструменты. Про приложения подробнее написано в разделе [программ](programs/README.md)
 
-Точка входа — `home-pc.nix` / `home-laptop.nix` / `home-station.nix`: все значения `rokokol.*` задаются там, а не в модулях. Десктопная часть включается вместе с `rokokol.workstation.enable` системы, поэтому станции достаётся только то, что живёт в терминале, а её `home-station.nix` не задаёт ничего. Без рабочего стола у nixvim нет своего буфера обмена, и копирование уходит в буфер терминала, из которого зашли по SSH. Дальше пакеты в `desktop/packages/`, десктоп в [`desktop/hyprland/`](desktop/hyprland/README.md), тема в `desktop/theme/`, конфиги отдельных программ в [`programs/`](programs/README.md), XDG-каталоги и переменные окружения — в `desktop/user.nix`
-
-Волт заметок лежит по одному и тому же пути на всех хостах: Syncthing возит симлинки как есть, и разные пути дали бы битые ссылки на другом хосте
+Загляни в разделы [Hyprland](desktop/hyprland/README.md) и [Nixvim](programs/nixvim/README.md), если хочется посмотреть на рабочий стол и редактор
