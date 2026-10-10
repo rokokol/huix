@@ -8,7 +8,8 @@
 # The dashboard of the hosts, as Grafana's JSON model: a row of each host with its CPU, memory,
 # swap traffic, CPU temperature and disks, and a row of each host that has a GPU. Every colour is
 # a role of ddlc-themes, and the temperature turns to danger where waybar does. Grafana keeps one
-# colour per series whatever its theme, so the colours are the dark roles and the UI is dark too
+# colour per series whatever its theme, so the colours are the dark roles and the UI is dark too.
+# No series takes series-2: it is the red of danger, and a plain line in it reads as an alarm
 let
   ds = {
     type = "prometheus";
@@ -200,12 +201,12 @@ in
           "node_memory_MemTotal_bytes{${host}} - node_memory_MemAvailable_bytes{${host}}"
           "RAM used"
         )
-        (query "B" roles.series-2
+        (query "B" roles.series-3
           "node_memory_SwapTotal_bytes{${host}} - node_memory_SwapFree_bytes{${host}}"
           "swap used"
         )
         # Swap counts zram's pages at their full size; this is the RAM they take
-        (query "C" roles.series-3 "sum by (host) (zram_memory_used_bytes{${host}})" "RAM of zram")
+        (query "C" roles.series-4 "sum by (host) (zram_memory_used_bytes{${host}})" "RAM of zram")
       ];
     })
     (panel {
@@ -217,7 +218,7 @@ in
       min = 0;
       queries = [
         (query "A" roles.series-1 "rate(node_vmstat_pswpin{${host}}[$__rate_interval])" "in")
-        (query "B" roles.series-2 "rate(node_vmstat_pswpout{${host}}[$__rate_interval])" "out")
+        (query "B" roles.series-3 "rate(node_vmstat_pswpout{${host}}[$__rate_interval])" "out")
       ];
     })
     (panel {
@@ -277,7 +278,7 @@ in
       min = 0;
       queries = [
         (query "A" roles.series-1 "nvidia_smi_temperature_gpu{${gpu}}" "°C")
-        (query "B" roles.series-2 "nvidia_smi_power_draw_watts{${gpu}}" "W")
+        (query "B" roles.series-3 "nvidia_smi_power_draw_watts{${gpu}}" "W")
       ];
     })
   ];
