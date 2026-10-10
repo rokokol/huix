@@ -3,7 +3,7 @@
 [![huix](https://img.shields.io/badge/huix-наверх-222222?style=for-the-badge&logo=nixos&logoColor=white)](../../../README.md)
 [![programs](https://img.shields.io/badge/programs-программы-7E57C2?style=for-the-badge)](../README.md)
 
-Nixvim — мой Neovim для кода и обычного текста. В нём есть навигация по проекту, форматирование, Git и просмотр медиа прямо из редактора
+Nixvim — мой сигма самодельный дистрибутив Neovim как универсальнй текстовый редактор. В нём есть навигация по проекту, форматирование, Git и просмотр медиа прямо из редактора
 
 ## Особенности
 
