@@ -18,10 +18,14 @@ in
       mountPoint = backup;
       dataDir = "${backup}/restic";
     };
-    syncthing.archive = {
-      enable = true;
-      mountPoint = backup;
-      dir = "${backup}/syncthing";
+    syncthing = {
+      # Made by the station's Syncthing at its first start; a reinstall makes a new one
+      deviceId = "6CQJLFE-TE77FII-NTQQIOX-XKDOALI-WFDZU4D-SJLMJ62-MUMN5S4-KSPMJQV";
+      archive = {
+        enable = true;
+        mountPoint = backup;
+        dir = "${backup}/syncthing";
+      };
     };
 
     backup-heartbeat.enable = true;
