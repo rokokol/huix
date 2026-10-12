@@ -12,6 +12,10 @@ _:
       CPU_ENERGY_PERF_POLICY_ON_BAT = "balance_power";
       CPU_ENERGY_PERF_POLICY_ON_AC = "balance_performance";
 
+      # Autosuspend stops the SATA link after 15 idle seconds and aborts a running SMART
+      # self-test. ALPM still sleeps the idle link, so the battery cost is small
+      AHCI_RUNTIME_PM_ON_BAT = "on";
+
       # The Wacom digitizer carries both the pen and the touchscreen. Autosuspended after two
       # idle seconds, it drops the first pen and touch events while it wakes up, which reads as a
       # pen that starts to track late. It stays awake; a USB HID device draws far below the
