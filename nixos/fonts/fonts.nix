@@ -46,7 +46,7 @@
 
     fonts.fontconfig.defaultFonts = {
       monospace = [ "DepartureMono Nerd Font Mono" ];
-      sansSerif = [ "Spectral" ];
+      sansSerif = [ "Nunito" ];
       serif = [ "Spectral" ];
     };
   };
