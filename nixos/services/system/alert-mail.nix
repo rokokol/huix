@@ -2,13 +2,19 @@
   config,
   lib,
   pkgs,
+  inputs,
   ...
 }:
 
-# Alert e-mail for a host with no desktop to show a notification on. msmtp becomes the system
-# sendmail, so smartd and alert-mail@ reach an SMTP relay through it. The relay and the real
-# recipient are private: both arrive through sops and never enter the store
+# Alerts for a host with no desktop to show a notification on, in two levels. A problem is sent
+# once when it opens and once when it closes, by mail and, where it is on, by Telegram and to an
+# agent; a daily mail lists what is still open. msmtp becomes the system sendmail, so smartd and
+# the alerts reach an SMTP relay through it. The relay and the real recipient are private: both
+# arrive through sops and never enter the store
 let
+  cfg = config.rokokol.alert-mail;
+  stateDir = "/var/lib/alerts";
+
   # How long an alert keeps trying a relay that does not answer. msmtp has no queue, so without
   # the retries an alert raised while the relay is down is lost
   retrySeconds = 24 * 3600;
@@ -55,32 +61,49 @@ let
     '';
   };
 
-  # Mails the status and the last journal lines of the unit named in $1 to root. The aliases
-  # file maps root to the real address, so the address is not in the store
-  composeAlert = pkgs.writeShellApplication {
-    name = "alert-mail";
-    runtimeInputs = [
-      pkgs.coreutils
+  # The registry of open problems, scripts/alert.sh, with its environment. The aliases file maps
+  # root to the real address, so the address is not in the store
+  alert = pkgs.writeShellApplication {
+    name = "alert";
+    runtimeInputs = with pkgs; [
+      coreutils
+      curl
+      util-linux
       config.systemd.package
     ];
-    # The status holds UTF-8 such as the unit bullet, so the headers declare it. systemctl status
-    # exits 3 for a failed unit, and that unit is the reason for the mail. The status is read
-    # once, so a late delivery still shows the unit as it was when it failed
     text = ''
-      unit=$1
-      host=$(uname -n)
-      status_text=$(systemctl status --full --no-pager --lines=50 -- "$unit" || true)
-      {
-        printf 'To: root\n'
-        printf 'Subject: [%s] %s failed\n' "$host" "$unit"
-        printf 'MIME-Version: 1.0\n'
-        printf 'Content-Type: text/plain; charset=UTF-8\n'
-        printf 'Content-Transfer-Encoding: 8bit\n'
-        printf '\n'
-        printf '%s\n' "$status_text"
-      } | ${lib.getExe sendmailRetry} -i -t
+      export ALERT_STATE=${stateDir}
+      export ALERT_MAIL="${lib.getExe sendmailRetry} -i -t"
+      export ALERT_TELEGRAM_API=${lib.optionalString cfg.telegram.enable cfg.telegram.api}
+      export ALERT_TELEGRAM_TOKEN=${telegramSecret "telegram-bot-token"}
+      export ALERT_TELEGRAM_CHAT=${telegramSecret "telegram-owner-chat-id"}
+      export ALERT_NOTIFY=${lib.optionalString (cfg.notify != null) cfg.notify}
+      export ALERT_METRICS=${config.rokokol.node-exporter.textfileDir}/alerts.prom
+      exec ${lib.getExe pkgs.bash} ${alertScript} "$@"
     '';
   };
+
+  alertScript = builtins.path {
+    name = "alert";
+    path = "${inputs.self}/scripts/alert.sh";
+  };
+
+  # Opens the problem of the unit named in $1 with its status and last journal lines. systemctl
+  # status exits 3 for a failed unit, and that unit is the reason for the alert. The status is
+  # read once, so a late delivery still shows the unit as it was when it failed
+  composeAlert = pkgs.writeShellApplication {
+    name = "alert-unit";
+    runtimeInputs = [ config.systemd.package ];
+    text = ''
+      status_text=$(systemctl status --full --no-pager --lines=50 -- "$1" || true)
+      printf '%s\n' "$status_text" | ${lib.getExe alert} raise "unit:$1" "[$(uname -n)] $1 failed"
+    '';
+  };
+
+  # Read from /run/secrets by the alert units, which run as root. Not systemd credentials: a
+  # unit whose credential is missing does not start at all, so a Telegram secret not yet in
+  # sops would stop the mail as well
+  telegramSecret = name: lib.optionalString cfg.telegram.enable config.sops.secrets.${name}.path;
 
   # smartd runs its mailer and waits for it, so a mailer that retried in place would stop the
   # watch of every disk while the relay is down. This one hands the mail to a transient unit
@@ -100,9 +123,43 @@ let
   };
 in
 {
-  options.rokokol.alert-mail.enable = lib.mkEnableOption "alert e-mail through an SMTP relay";
+  options.rokokol.alert-mail = {
+    enable = lib.mkEnableOption "alert e-mail through an SMTP relay";
 
-  config = lib.mkIf config.rokokol.alert-mail.enable {
+    telegram = {
+      enable = lib.mkEnableOption ''
+        a copy of each alert in the owner's Telegram, through the bot whose token and the
+        owner's chat id are the sops secrets telegram-bot-token and telegram-owner-chat-id
+      '';
+
+      api = lib.mkOption {
+        type = lib.types.str;
+        default = "https://api.telegram.org";
+        description = "Base URL of the Telegram Bot API";
+      };
+    };
+
+    notify = lib.mkOption {
+      type = lib.types.nullOr lib.types.path;
+      default = null;
+      description = "Command that takes one line of text as its argument and hands it to an agent";
+    };
+
+    digestTime = lib.mkOption {
+      type = lib.types.str;
+      default = "09:00";
+      description = "Time of day of the mail that lists every problem still open";
+    };
+  };
+
+  config = lib.mkIf cfg.enable {
+    sops.secrets."telegram-bot-token" = lib.mkIf cfg.telegram.enable { };
+    sops.secrets."telegram-owner-chat-id" = lib.mkIf cfg.telegram.enable { };
+
+    # Anyone on the host may read what is open and what changed; only root writes it
+    environment.systemPackages = [ alert ];
+    systemd.tmpfiles.rules = [ "d ${stateDir} 0755 root root -" ];
+
     sops.secrets."alert-mail-msmtprc" = { };
     sops.secrets."alert-mail-aliases" = { };
 
@@ -126,13 +183,14 @@ in
     programs.msmtp.enable = true;
     environment.etc."msmtprc".enable = false;
 
-    # OnFailure=alert-mail@%n.service in a unit sends one mail for each failure. While an alert
-    # waits for the relay, a new failure of the same unit joins it and sends no mail of its own
+    # OnFailure=alert-mail@%n.service in a unit opens its problem, which is sent once. A failure
+    # while the problem is open only updates it, and alert-reconcile closes it once the unit
+    # recovers. While an alert waits for the relay, a new failure of the same unit joins it
     systemd.services."alert-mail@" = {
-      description = "Mail an alert that %i failed";
+      description = "Raise an alert that %i failed";
 
-      # A flapping unit sends at most three mails an hour, and further starts fail. The retries
-      # run inside one start, so they do not count against this limit
+      # A flapping unit raises at most three times an hour, and further starts fail. The
+      # retries run inside one start, so they do not count against this limit
       startLimitIntervalSec = 3600;
       startLimitBurst = 3;
 
@@ -142,6 +200,42 @@ in
         # The script stops retrying on its own; the timeout only catches a sendmail that hangs
         # past that point
         TimeoutStartSec = retrySeconds + 300;
+      };
+    };
+
+    # Closes the problem of each unit that recovered, and keeps the reboot problem current
+    systemd.services.alert-reconcile = {
+      description = "Close the alerts whose cause is gone";
+      serviceConfig = {
+        Type = "oneshot";
+        ExecStart = "${lib.getExe alert} reconcile";
+        TimeoutStartSec = retrySeconds + 300;
+      };
+    };
+
+    systemd.timers.alert-reconcile = {
+      wantedBy = [ "timers.target" ];
+      timerConfig.OnCalendar = "*:0/5";
+    };
+
+    # The second level: a mail with every problem still open, and nothing when all is well
+    systemd.services.alert-digest = {
+      description = "Mail the alerts still open";
+      after = [ "alert-reconcile.service" ];
+      serviceConfig = {
+        Type = "oneshot";
+        ExecStartPre = "${lib.getExe alert} reconcile";
+        ExecStart = "${lib.getExe alert} digest";
+        TimeoutStartSec = retrySeconds + 300;
+      };
+    };
+
+    systemd.timers.alert-digest = {
+      wantedBy = [ "timers.target" ];
+      timerConfig = {
+        OnCalendar = cfg.digestTime;
+        # A digest missed while the host was off comes at the next boot
+        Persistent = true;
       };
     };
 

@@ -79,6 +79,9 @@ let
   pcMac = "52:54:00:12:01:01";
   stationMac = "52:54:00:12:01:03";
 
+  # The Bot API stand-in on the router, which the station sends its alerts to
+  telegramPort = 8088;
+
   fixtures = import ./fixtures.nix {
     inherit pkgs pcMac;
     githubToken = lib.head github.tokens;
@@ -294,6 +297,8 @@ pkgs.testers.runNixOSTest {
         # Prometheus finds the PC by its tailnet name, which here leads over the LAN
         networking.hosts."192.168.0.102" = [ "nixos-pc" ];
 
+        rokokol.alert-mail.telegram.api = "http://192.168.0.1:${toString telegramPort}";
+
         # The fixtures hold a Syncthing key, as the real secrets will
         rokokol.syncthing.keyFromSops = true;
 
@@ -322,8 +327,35 @@ pkgs.testers.runNixOSTest {
       53
       1025
       github.port
+      telegramPort
     ];
     networking.firewall.allowedUDPPorts = [ 53 ];
+
+    # The Telegram Bot API: each request is one line of its path and form, answered with ok
+    systemd.services.fake-telegram = {
+      wantedBy = [ "multi-user.target" ];
+      serviceConfig = {
+        StateDirectory = "fake-telegram";
+        ExecStart = "${lib.getExe pkgs.python3} ${pkgs.writeText "fake-telegram.py" ''
+          import http.server
+          import urllib.parse
+
+          class Handler(http.server.BaseHTTPRequestHandler):
+              def do_POST(self):
+                  body = self.rfile.read(int(self.headers["Content-Length"])).decode()
+                  form = urllib.parse.parse_qs(body)
+                  line = " ".join([self.path] + [f"{k}={v[0]!r}" for k, v in sorted(form.items())])
+                  with open("/var/lib/fake-telegram/requests", "a") as log:
+                      log.write(line + "\n")
+                  self.send_response(200)
+                  self.send_header("Content-Type", "application/json")
+                  self.end_headers()
+                  self.wfile.write(b'{"ok":true}')
+
+          http.server.HTTPServer(("0.0.0.0", ${toString telegramPort}), Handler).serve_forever()
+        ''}";
+      };
+    };
 
     # Each repository is one commit whose README holds its name, served as dumb HTTP
     systemd.services.fake-github = {
@@ -911,6 +943,8 @@ pkgs.testers.runNixOSTest {
         assert readme("${github.late}") == "${github.late}\n", "the failed mirror stayed empty"
 
     with subtest("a token that GitHub refuses fails the run, which mails root"):
+        # The run that failed above is a problem until it is closed, and an open one is not sent
+        station.succeed("systemctl start alert-reconcile.service")
         router.succeed("curl -sf -X DELETE http://127.0.0.1:8025/api/v1/messages")
         router.succeed("printf '%s\\n' refused-token >/var/lib/fake-github/state/token")
         assert run_to_end(mirrors_unit) == "exit-code", f"{mirrors_unit} did not fail on a refused token"
@@ -983,13 +1017,32 @@ pkgs.testers.runNixOSTest {
         station.succeed("ip route get 192.168.0.255 | grep -q 'broadcast 192.168.0.255 dev lan table local'")
 
     with subtest("a failed heartbeat mails root through the relay"):
+        # An hourly run may have failed already, and a problem still open is not sent again, so
+        # the subtests below start from a closed one and hold the timer
+        station.succeed("systemctl stop backup-heartbeat.timer")
+        station.succeed("systemctl reset-failed backup-heartbeat.service")
+        station.succeed("systemctl start alert-reconcile.service")
         station.fail("systemctl start backup-heartbeat.service")
         router.wait_until_succeeds(
             "curl -s http://127.0.0.1:8025/api/v1/messages | grep -qF '[nixos-station] backup-heartbeat.service failed'",
             timeout=timedelta(minutes=1),
         )
         assert "failed (attempt" not in mails(), "a mail sent at the first try names an attempt"
+        router.wait_until_succeeds(
+            "grep -F 'backup-heartbeat.service failed' /var/lib/fake-telegram/requests"
+            " | grep -F \"chat_id='${agent.ownerChatId}'\" | grep -qF '/bot123456789:test-token/sendMessage'",
+            timeout=timedelta(minutes=1),
+        )
+        # grep reads the whole list: with -q it would close the pipe early and fail the writer
+        station.succeed("su - rokokol -c 'alert list' | grep '^unit:backup-heartbeat.service'")
+        # The problem stays open until the unit recovers, and then closes once
         station.succeed("systemctl reset-failed backup-heartbeat.service")
+        station.succeed("systemctl start alert-reconcile.service")
+        router.wait_until_succeeds(
+            "curl -s http://127.0.0.1:8025/api/v1/messages | grep -qF 'backup-heartbeat.service failed (resolved)'",
+            timeout=timedelta(minutes=1),
+        )
+        assert "unit:backup-heartbeat.service" not in station.succeed("alert list"), "the problem stayed open"
 
     with subtest("an alert waits for a relay that is down and arrives once it is up"):
         alert = "alert-mail@backup-heartbeat.service.service"
@@ -1013,6 +1066,31 @@ pkgs.testers.runNixOSTest {
         result = station.succeed(f"systemctl show -P Result {alert}").strip()
         assert result == "success", f"{alert} ended with {result}"
         station.succeed("systemctl reset-failed backup-heartbeat.service")
+
+    with subtest("the digest lists the open problems, quiet ones too, and says nothing when none is"):
+        # The timers would open or close problems in the middle of the subtest; with them held and
+        # every failed unit reset, the reconcile closes whatever the subtests above left open
+        station.succeed("systemctl stop alert-reconcile.timer node-push-watch.timer")
+        station.succeed("systemctl reset-failed")
+        station.succeed("systemctl start alert-reconcile.service")
+        left = station.succeed("alert list")
+        assert left == "", f"problems stayed open with every unit reset:\n{left}"
+        router.succeed("curl -sf -X DELETE http://127.0.0.1:8025/api/v1/messages")
+        station.succeed("echo 'probe body' | alert raise -q probe:quiet '[nixos-station] a quiet probe'")
+        station.succeed("systemctl start alert-reconcile.service")
+        assert "a quiet probe" not in mails(), "a quiet problem was mailed when it opened"
+        station.succeed("systemctl start alert-digest.service")
+        router.wait_until_succeeds(
+            "curl -s http://127.0.0.1:8025/api/v1/messages | grep -qF '[nixos-station] 1 unresolved'",
+            timeout=timedelta(minutes=1),
+        )
+        station.succeed("alert clear probe:quiet")
+        router.succeed("curl -sf -X DELETE http://127.0.0.1:8025/api/v1/messages")
+        station.succeed("systemctl start alert-digest.service")
+        assert "unresolved" not in mails(), "a digest of nothing was mailed"
+        journal = station.succeed("cut -f2,3 /var/lib/alerts/journal")
+        assert "OPEN\tprobe:quiet\nRESOLVED\tprobe:quiet" in journal, f"the journal is\n{journal}"
+        station.succeed("systemctl start alert-reconcile.timer backup-heartbeat.timer node-push-watch.timer")
 
     with subtest("a smartd alert raised while the relay is down arrives once it is up"):
         # smartd is off in the VM, so its mailer is called the way smartd calls it

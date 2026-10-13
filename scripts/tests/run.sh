@@ -4,7 +4,7 @@
 # variables, so every keyword a script emits is asserted without a compositor. Wired as the
 # script-tests flake check; run by hand from anywhere, through `nix develop -c` for the tools
 # No -e: every failing assertion is printed and counted, and the run exits on the counter
-# Needs jq and xorriso beside bash, which the flake's default dev shell takes from the check
+# Needs jq, flock and xorriso beside bash, which the flake's default dev shell takes from the check
 set -uo pipefail
 
 usage() {
@@ -116,6 +116,8 @@ cat >"$work/bin/systemctl" <<'EOF'
 printf 'systemctl %s\n' "$*" >>"$STUB_LOG"
 case "$*" in
   *is-active*) [ "${STUB_ACTIVE:-}" = 1 ] ;;
+  "show -P ActiveState "*) printf '%s\n' "${STUB_ACTIVE_STATE:-inactive}" ;;
+  "show -P Result "*) printf '%s\n' "${STUB_RESULT:-success}" ;;
 esac
 EOF
 cat >"$work/bin/evtest" <<'EOF'
@@ -445,6 +447,156 @@ is "a silence limit without a unit it knows is a usage error" 2 "$?"
 
 bash "$heartbeat" push "$work/htpasswd-empty" 1h <"$work/pushgateway.prom" >/dev/null 2>&1
 is "a push check with no node is a usage error" 2 "$?"
+
+# alert.sh, with its state in a temporary directory. The mailer stub keeps each message, the
+# curl stub stands for the Telegram Bot API, and the notify stub for the agent
+alert=$SCRIPTS/alert.sh
+export ALERT_STATE=$work/alerts
+export ALERT_MAIL=$work/bin/alert-mailer
+export ALERT_NOTIFY=$work/bin/alert-notify
+export ALERT_METRICS=$work/metrics/alerts.prom
+export ALERT_TELEGRAM_API=http://telegram.test
+# No system here, so reconcile has no kernel to compare unless a case gives it one
+export ALERT_BOOTED=$work/no-system ALERT_CURRENT=$work/no-system
+export ALERT_TELEGRAM_TOKEN=$work/telegram-bot-token ALERT_TELEGRAM_CHAT=$work/telegram-owner-chat-id
+printf 'bot-token\n' >"$ALERT_TELEGRAM_TOKEN"
+printf '42\n' >"$ALERT_TELEGRAM_CHAT"
+cat >"$work/bin/alert-mailer" <<'EOF'
+#!/usr/bin/env bash
+printf 'mail %s %s\n' "$*" "$(grep -m1 '^Subject: ' | tr -d '\n')" >>"$STUB_LOG"
+EOF
+cat >"$work/bin/alert-notify" <<'EOF'
+#!/usr/bin/env bash
+printf 'notify %s\n' "$*" >>"$STUB_LOG"
+exit "${STUB_NOTIFY:-0}"
+EOF
+# The text it sends spans lines, and the log keeps one line for each call
+cat >"$work/bin/curl" <<'EOF'
+#!/usr/bin/env bash
+printf 'curl %s\n' "$(tr '\n' ' ' <<<"$*")" >>"$STUB_LOG"
+# The answer goes where -o says, as curl sends it
+out=/dev/stdout
+while (($#)); do
+  if [ "$1" = -o ]; then out=$2; fi
+  shift
+done
+if [ -n "${STUB_CURL_REFUSE:-}" ]; then
+  printf '{"ok":false,"error_code":400,"description":"%s"}' "$STUB_CURL_REFUSE" >"$out"
+  exit 22
+fi
+EOF
+sed -i "1s|.*|#!$BASH|" "$work/bin/alert-mailer" "$work/bin/alert-notify" "$work/bin/curl"
+chmod +x "$work/bin/alert-mailer" "$work/bin/alert-notify" "$work/bin/curl"
+
+# raise ARG... — raise with a body on stdin; the status in $alert_status
+raise() {
+  alert_status=0
+  printf 'the body of %s\n' "$*" | bash "$alert" raise "$@" >/dev/null 2>&1 || alert_status=$?
+}
+listed() { bash "$alert" list 2>/dev/null | cut -f1 | paste -sd' ' -; }
+
+reset_log
+raise unit:beat.service "beat.service failed"
+is "a new problem is raised" 0 "$alert_status"
+logged "a new problem is mailed" '^mail ' 'Subject: beat\.service failed'
+logged "a new problem goes to Telegram" '^curl ' 'telegram\.test/botbot-token/sendMessage' 'chat_id=42' 'beat\.service failed'
+logged "a new problem goes to the agent" '^notify ' 'beat\.service failed'
+is "the problem is open" "unit:beat.service" "$(listed)"
+is "the open problem is in the metrics with the time it opened" yes \
+  "$(grep -Eq '^alert_open_since_seconds\{key="unit:beat.service"\} [0-9]+$' "$ALERT_METRICS" && echo yes)"
+
+reset_log
+raise unit:beat.service "beat.service failed"
+not_logged "a problem raised again is not sent again" '^(mail|curl|notify) '
+is "a problem raised again stays open once" "unit:beat.service" "$(listed)"
+
+reset_log
+raise -q reboot "a reboot is due"
+not_logged "a quiet problem is not sent" '^(mail|curl|notify) '
+is "a quiet problem is open beside the other" "reboot unit:beat.service" "$(listed)"
+
+reset_log
+bash "$alert" digest >/dev/null 2>&1
+logged "the digest mails every open problem" '^mail ' 'Subject: .*2 unresolved'
+not_logged "the digest goes to mail alone" '^(curl|notify) '
+
+reset_log
+bash "$alert" clear reboot >/dev/null 2>&1
+not_logged "a quiet problem is cleared in silence" '^(mail|curl|notify) '
+STUB_NOTIFY=1 bash "$alert" clear unit:beat.service >/dev/null 2>&1
+is "a clear whose agent is down still succeeds" 0 "$?"
+logged "a cleared problem is mailed as resolved" '^mail ' 'Subject: .*beat\.service failed.*resolved'
+logged "a cleared problem goes to Telegram as resolved" '^curl ' 'resolved'
+is "nothing is open after the clears" "" "$(listed)"
+is "a cleared problem leaves the metrics" "" "$(grep '^alert_open_since_seconds{' "$ALERT_METRICS")"
+
+reset_log
+bash "$alert" clear unit:never.service >/dev/null 2>&1
+is "clearing what is not open succeeds" 0 "$?"
+not_logged "clearing what is not open sends nothing" '^(mail|curl|notify) '
+
+reset_log
+bash "$alert" digest >/dev/null 2>&1
+not_logged "the digest of nothing sends nothing" '^mail '
+
+journal=$(cut -f2,3 "$ALERT_STATE/journal")
+is "the journal keeps each change of a problem" \
+  "OPEN unit:beat.service|UPDATE unit:beat.service|OPEN reboot|RESOLVED reboot|RESOLVED unit:beat.service" \
+  "$(tr '\t\n' ' |' <<<"$journal" | sed 's/|$//')"
+
+# reconcile asks systemd about each open unit, through the systemctl stub
+for case in "failed exit-code open" "active success resolved" "inactive success resolved" "inactive exit-code open"; do
+  read -r state result verdict <<<"$case"
+  raise unit:x.service "x.service failed"
+  STUB_ACTIVE_STATE=$state STUB_RESULT=$result bash "$alert" reconcile >/dev/null 2>&1
+  if [ -n "$(listed)" ]; then got=open; else got=resolved; fi
+  is "reconcile: a unit $state with result $result is $verdict" "$verdict" "$got"
+  bash "$alert" clear unit:x.service >/dev/null 2>&1
+done
+
+# The reboot is due when the booted kernel is not the current one
+mkdir -p "$work/booted" "$work/current-old" "$work/current-new"
+printf 'kernel-1\n' >"$work/k1"
+printf 'kernel-2\n' >"$work/k2"
+ln -sfn "$work/k1" "$work/booted/kernel"
+ln -sfn "$work/k1" "$work/current-old/kernel"
+ln -sfn "$work/k2" "$work/current-new/kernel"
+reset_log
+ALERT_BOOTED=$work/booted ALERT_CURRENT=$work/current-new bash "$alert" reconcile >/dev/null 2>&1
+is "a new kernel opens a quiet reboot problem" "reboot" "$(listed)"
+not_logged "the reboot problem is not sent" '^(mail|curl|notify) '
+ALERT_BOOTED=$work/booted ALERT_CURRENT=$work/current-old bash "$alert" reconcile >/dev/null 2>&1
+is "the booted kernel clears the reboot problem" "" "$(listed)"
+
+reset_log
+ALERT_TELEGRAM_API='' raise unit:y.service "y.service failed"
+not_logged "no Telegram API means no Telegram" '^curl '
+logged "without Telegram the mail still goes" '^mail ' 'y\.service failed'
+bash "$alert" clear unit:y.service >/dev/null 2>&1
+
+# Telegram refuses, as it does for a chat that never started the bot
+reset_log
+refused=$(printf 'body\n' | STUB_CURL_REFUSE='Bad Request: chat not found' bash "$alert" raise unit:r.service "r.service failed" 2>&1)
+is "a refusal of Telegram names its reason" yes "$(grep -q 'chat not found' <<<"$refused" && echo yes)"
+logged "a refusal of Telegram still lets the mail go" '^mail ' 'r\.service failed'
+bash "$alert" clear unit:r.service >/dev/null 2>&1
+
+# The secrets of Telegram missing, as before the owner puts them in sops
+reset_log
+ALERT_TELEGRAM_TOKEN=$work/no-such-token raise unit:z.service "z.service failed"
+is "a missing Telegram secret does not fail the alert" 0 "$alert_status"
+not_logged "a missing Telegram secret sends nothing to Telegram" '^curl '
+logged "a missing Telegram secret still lets the mail go" '^mail ' 'z\.service failed'
+bash "$alert" clear unit:z.service >/dev/null 2>&1
+
+raise "bad/key" "bad"
+is "a key that is not a file name is a usage error" 2 "$alert_status"
+
+bash "$alert" >/dev/null 2>&1
+is "alert without a subcommand is a usage error" 2 "$?"
+unset ALERT_STATE ALERT_MAIL ALERT_NOTIFY ALERT_METRICS ALERT_TELEGRAM_API ALERT_BOOTED ALERT_CURRENT
+unset ALERT_TELEGRAM_TOKEN ALERT_TELEGRAM_CHAT
+rm "$work/bin/curl"
 
 # wake-pc.sh, against a wakeonlan stub, with the MAC in a file as sops leaves it
 wake=$SCRIPTS/wake-pc.sh

@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ config, lib, ... }:
 
 # The units whose failure mails root through alert-mail@. Each one fails where nothing else would
 # say so: the heartbeat is the only report of a missed backup or a missing backup volume, the
@@ -43,4 +43,11 @@ in
   ];
 
   systemd.sockets = onFailure [ "restic-rest-server" ];
+
+  # Telegram is the channel that does not pass through the mail node, so an alert about that
+  # node still arrives. The agent gets each alert too, to act on it at once
+  rokokol.alert-mail = {
+    telegram.enable = true;
+    inherit (config.rokokol.claude-agent) notify;
+  };
 }

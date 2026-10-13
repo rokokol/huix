@@ -31,6 +31,8 @@ pkgs.lib.mapAttrs' (
       {
         nativeBuildInputs = with pkgs; [
           jq
+          # flock, which alert.sh takes its lock with
+          util-linux
           xorriso
         ];
         scripts = builtins.path {
