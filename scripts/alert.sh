@@ -12,6 +12,7 @@ alert.sh — keep the open problems of this host, and tell the owner when one op
 
   alert.sh raise [-q] KEY SUBJECT < BODY   open a problem, or update the one open under KEY
   alert.sh clear KEY                       close the problem open under KEY
+  alert.sh sync SOURCE FILE                make the problems under SOURCE:… the causes in FILE
   alert.sh reconcile                       close each unit problem whose unit recovered, and
                                            open or close the reboot problem
   alert.sh digest                          mail every open problem, when there is one
@@ -25,6 +26,11 @@ is a file name: letters, digits and . _ : @ - only. A KEY of the form unit:NAME 
 reconcile once systemd reports NAME active, or inactive with the result success. The reboot
 problem is open while the kernel, initrd or modules of the current system differ from the
 booted one
+
+sync reads FILE, one cause a line: a CAUSE made of the same characters as a KEY, a tab, and
+its SUBJECT. Each cause is a problem under SOURCE:CAUSE, opened and sent once; each problem
+under SOURCE that FILE no longer lists is closed. An empty FILE closes them all; a FILE that
+cannot be read, or a cause that is not a key, changes nothing and fails
 
 list prints KEY, the time it opened, and SUBJECT, separated by tabs. Every change is also a
 line in $ALERT_STATE/journal: time, OPEN, UPDATE or RESOLVED, KEY, SUBJECT, by tabs
@@ -210,6 +216,43 @@ cmd_clear() {
   clear_key "$1"
 }
 
+# The list is read whole and checked before anything changes, so a list cut short or broken
+# never closes a problem that is still there
+cmd_sync() {
+  (($# == 2)) || die "sync takes SOURCE FILE"
+  check_key "$1"
+  setup
+  local source=$1 file=$2 line cause subject keys="" dir key
+  [ -r "$file" ] || fail "cannot read $file"
+  local causes
+  causes=$(cat -- "$file") || fail "cannot read $file"
+  while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    cause=${line%%$'\t'*}
+    case "$cause" in
+      '' | .* | *[!A-Za-z0-9._:@-]*) fail "$file: not a usable cause: $cause" ;;
+    esac
+    keys+=" $source:$cause "
+  done <<<"$causes"
+
+  while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    cause=${line%%$'\t'*}
+    subject=${line#*$'\t'}
+    [ "$subject" != "$line" ] || subject=$cause
+    # A cause already open stays as it is, or each run of the check would add to the journal
+    [ ! -d "$state/open/$source:$cause" ] || continue
+    printf '%s\n' "$subject" | raise "$source:$cause" "$subject"
+  done <<<"$causes"
+
+  for dir in "$state/open/$source":*; do
+    [ -d "$dir" ] || continue
+    key=${dir##*/}
+    case "$keys" in *" $key "*) continue ;; esac
+    clear_key "$key"
+  done
+}
+
 cmd_reconcile() {
   (($# == 0)) || die "reconcile takes nothing"
   setup
@@ -281,6 +324,7 @@ cmd="${1:-}"
 case "$cmd" in
   raise) cmd_raise "$@" ;;
   clear) cmd_clear "$@" ;;
+  sync) cmd_sync "$@" ;;
   reconcile) cmd_reconcile "$@" ;;
   digest) cmd_digest "$@" ;;
   list) cmd_list "$@" ;;

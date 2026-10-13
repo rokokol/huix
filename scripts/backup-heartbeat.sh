@@ -9,11 +9,14 @@ usage() {
   cat <<'EOF'
 backup-heartbeat.sh — fail when a node behind this server went quiet
 
-  backup-heartbeat.sh check [-m FILE] DATA HTPASSWD MAX_AGE MIN_FREE
-  backup-heartbeat.sh push HTPASSWD MAX_SILENCE < PAGE
+  backup-heartbeat.sh check [-m FILE] [-p FILE] DATA HTPASSWD MAX_AGE MIN_FREE
+  backup-heartbeat.sh push [-p FILE] HTPASSWD MAX_SILENCE < PAGE
 
   -m FILE   also write the newest snapshot time of each repository, and the free space,
             to FILE as Prometheus text metrics (a missing repository is time 0)
+  -p FILE   write each problem to FILE as a cause, one a line: a key, a tab, a subject.
+            The run then passes with problems found, and FILE carries them; an empty FILE
+            means none
 
 DATA is the rest-server data directory. Every user in the HTPASSWD file is one expected
 repository at DATA/<user>/, so a user that never pushed is reported as well. The user named
@@ -27,13 +30,13 @@ a note that names the nested path
 push reads a Pushgateway metrics page on stdin. Every user in HTPASSWD is one expected node,
 which pushes with its own name as the instance label. A node fails when its newest
 push_time_seconds, over every job, is older than MAX_SILENCE (1h), or when it never pushed.
-A node also fails while the node_problems it pushes, the number of its own unresolved
-problems summed over its jobs, is above zero
+A node that pushes on time also fails for each problem it reports of itself: a series
+node_problem{key="…",summary="…"} with a value above zero, one a problem
 
 Every problem is reported, one line each, and a summary line comes last
 Nothing here reaches the network
-Exit 0 when every repository is fresh and the space is above the floor, 1 when one is not or
-DATA cannot be read, 2 on a usage error or an HTPASSWD with no user in it
+Exit 0 when nothing is wrong or -p took the problems, 1 when something is wrong, 2 on a
+usage error or an HTPASSWD with no user in it
 EOF
 }
 
@@ -46,6 +49,11 @@ die() { # the request itself is wrong
   printf 'backup-heartbeat.sh: %s\n' "$1" >&2
   exit 2
 }
+
+# The list that -p writes, and the host that names the subjects in it
+causes_file=""
+causes=""
+host=$(uname -n)
 
 # parse_age TEXT — sets $seconds from 36h, 90m, 2d or 600s
 parse_age() {
@@ -88,6 +96,11 @@ cmd_check() {
         metrics=$2
         shift 2
         ;;
+      -p)
+        (($# >= 2)) || die "-p needs a file"
+        causes_file=$2
+        shift 2
+        ;;
       -*) die "no such flag: $1" ;;
       *) break ;;
     esac
@@ -108,7 +121,7 @@ cmd_check() {
     case "$user" in
       '' | .* | *[![:alnum:]._-]*)
         printf 'backup-heartbeat.sh: %s: not a usable repository name\n' "$user" >&2
-        problems+=("bad name")
+        problem bad-name "bad name" "the restic server has a user that is no usable repository name"
         continue
         ;;
     esac
@@ -129,11 +142,11 @@ cmd_check() {
       else
         printf 'backup-heartbeat.sh: %s: no snapshot at all\n' "$user" >&2
       fi
-      problems+=("$user missing")
+      problem "$user-missing" "$user missing" "the backup of $user has no snapshot"
     elif ((now - newest > max_age)); then
       printf 'backup-heartbeat.sh: %s: newest snapshot is %d h old\n' \
         "$user" $(((now - newest) / 3600)) >&2
-      problems+=("$user stale")
+      problem "$user-stale" "$user stale" "the backup of $user is older than $3"
     fi
   done
 
@@ -144,11 +157,11 @@ cmd_check() {
     if ((free < min_free)); then
       human "$free"
       printf 'backup-heartbeat.sh: only %s free on %s\n' "$human" "$data" >&2
-      problems+=("low space")
+      problem low-space "low space" "only $human free for the backups"
     fi
   else
     printf 'backup-heartbeat.sh: cannot read the free space of %s\n' "$data" >&2
-    problems+=("no data directory")
+    problem no-data "no data directory" "the backup directory cannot be read"
   fi
 
   if [ -n "$metrics" ]; then
@@ -162,6 +175,17 @@ cmd_check() {
 }
 
 cmd_push() {
+  while (($#)); do
+    case "$1" in
+      -p)
+        (($# >= 2)) || die "-p needs a file"
+        causes_file=$2
+        shift 2
+        ;;
+      -*) die "no such flag: $1" ;;
+      *) break ;;
+    esac
+  done
   (($# == 2)) || die "push takes HTPASSWD MAX_SILENCE"
   local htpasswd=$1 seconds
   parse_age "$2"
@@ -169,37 +193,49 @@ cmd_push() {
   local users=() user
   read_users "$htpasswd"
 
-  # The newest push_time_seconds of each instance, over every job it pushed under. A label
-  # value is the text between the quotes after instance=, wherever the label stands
-  # The same for node_problems, the number of problems a node reports of itself, summed over
-  # its jobs: a node whose own alerts go out through the mail node is heard here too
-  local pushes
-  pushes=$(awk '
-    match($0, /instance="[^"]*"/) {
-      name = substr($0, RSTART + 10, RLENGTH - 11)
-      if (/^push_time_seconds\{/) {
-        t = int($NF + 0)
-        if (t > newest[name]) newest[name] = t
-      } else if (/^node_problems\{/) {
-        reported[name] += int($NF + 0)
-      }
+  # The newest push_time_seconds of each instance, over every job it pushed under, as
+  # "time <instance> <seconds>", and each node_problem series, one a problem the node reports
+  # of itself, as "problem <instance> <key> <summary>". A label value is the text between the
+  # quotes after its name, wherever the label stands, and a summary may hold an escaped quote
+  local page
+  page=$(awk '
+    function label(name,    v) {
+      if (!match($0, name "=\"([^\"\\\\]|\\\\.)*\"")) return ""
+      v = substr($0, RSTART + length(name) + 2, RLENGTH - length(name) - 3)
+      gsub(/\\"/, "\"", v)
+      gsub(/\\\\/, "\\", v)
+      return v
     }
-    END { for (name in newest) print name, newest[name], reported[name] + 0 }
+    /^push_time_seconds\{/ {
+      name = label("instance")
+      t = int($NF + 0)
+      if (name != "" && t > newest[name]) newest[name] = t
+    }
+    /^node_problem\{/ && $NF + 0 > 0 {
+      print "problem", label("instance"), label("key"), label("summary")
+    }
+    END { for (name in newest) print "time", name, newest[name] }
   ')
 
-  local now problems=() pushed reported
+  local now problems=() pushed key summary
   now=$(date +%s)
   for user in "${users[@]}"; do
-    read -r pushed reported <<<"$(awk -v u="$user" '$1 == u { print $2, $3 }' <<<"$pushes")"
+    pushed=$(awk -v u="$user" '$1 == "time" && $2 == u { print $3 }' <<<"$page")
     if [ -z "$pushed" ]; then
       printf 'backup-heartbeat.sh: %s: never pushed\n' "$user" >&2
-      problems+=("$user never pushed")
+      problem "$user-never" "$user never pushed" "$user has never pushed to the station"
     elif ((now - pushed > max_silence)); then
       printf 'backup-heartbeat.sh: %s: silent for %d min\n' "$user" $(((now - pushed) / 60)) >&2
-      problems+=("$user silent")
-    elif ((reported > 0)); then
-      printf 'backup-heartbeat.sh: %s: reports %d problem(s) of its own\n' "$user" "$reported" >&2
-      problems+=("$user reports $reported problem(s)")
+      problem "$user-silent" "$user silent" "$user has not pushed for over $2"
+    else
+      # What a node that pushes on time reports of itself; a silent node's last word is stale
+      while read -r _ _ key summary; do
+        case "$key" in
+          '' | .* | *[!A-Za-z0-9._-]*) key=unnamed ;;
+        esac
+        printf 'backup-heartbeat.sh: %s: %s\n' "$user" "$summary" >&2
+        problem "$user-$key" "$user: $summary" "$user: $summary"
+      done < <(awk -v u="$user" '$1 == "problem" && $2 == u' <<<"$page")
     fi
   done
 
@@ -220,13 +256,32 @@ read_users() {
   ((${#users[@]})) || die "$1 names no user, so there is nothing to check"
 }
 
-# summarise WHAT — fails with every problem in $problems on one line, or returns when none
+# problem KEY SHORT SUBJECT — one problem: SHORT for the summary line, KEY and SUBJECT for the
+# list of causes that -p writes
+problem() {
+  problems+=("$2")
+  causes+="$1"$'\t'"[$host] $3"$'\n'
+}
+
+# summarise WHAT — writes the list of causes when -p asked for one, then puts every problem on
+# the last line. Without -p a problem fails the run; with it the list carries them, and the run
+# passes
 summarise() {
+  if [ -n "$causes_file" ]; then
+    local tmp=$causes_file.tmp.$$
+    mkdir -p -- "$(dirname -- "$causes_file")"
+    printf '%s' "$causes" >"$tmp"
+    mv -f -- "$tmp" "$causes_file"
+  fi
   ((${#problems[@]})) || return 0
   local summary="" p
   for p in "${problems[@]}"; do
     summary="${summary:+$summary, }$p"
   done
+  if [ -n "$causes_file" ]; then
+    printf 'backup-heartbeat.sh: %d problem(s) in %s: %s\n' "${#problems[@]}" "$1" "$summary" >&2
+    exit 0
+  fi
   fail "${#problems[@]} problem(s) in $1: $summary"
 }
 

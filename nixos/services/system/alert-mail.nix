@@ -150,95 +150,153 @@ in
       default = "09:00";
       description = "Time of day of the mail that lists every problem still open";
     };
-  };
 
-  config = lib.mkIf cfg.enable {
-    sops.secrets."telegram-bot-token" = lib.mkIf cfg.telegram.enable { };
-    sops.secrets."telegram-owner-chat-id" = lib.mkIf cfg.telegram.enable { };
-
-    # Anyone on the host may read what is open and what changed; only root writes it
-    environment.systemPackages = [ alert ];
-    systemd.tmpfiles.rules = [ "d ${stateDir} 0755 root root -" ];
-
-    sops.secrets."alert-mail-msmtprc" = { };
-    sops.secrets."alert-mail-aliases" = { };
-
-    # The secret is the account part of a msmtp configuration, in any shape the relay needs.
-    # The defaults here are the lines that depend on this module, such as the aliases path.
-    # msmtp has no network timeout by default, so a dead relay holds sendmail for minutes
-    sops.templates."alert-mail-msmtprc" = {
-      path = "/etc/msmtprc";
-      content = ''
-        defaults
-        aliases ${config.sops.secrets."alert-mail-aliases".path}
-        syslog LOG_MAIL
-        timeout 30
-
-        ${config.sops.placeholder."alert-mail-msmtprc"}
+    sources = lib.mkOption {
+      type = lib.types.attrsOf lib.types.path;
+      default = { };
+      example = {
+        backup = "/run/backup-heartbeat/causes";
+      };
+      description = ''
+        Files of causes, by source name, each written by a check: one cause a line, a key, a
+        tab and a subject. Each cause is a problem of its own under <source>:<key>, opened
+        when the file lists it and closed when it no longer does
       '';
     };
-
-    # programs.msmtp supplies the sendmail wrapper. It renders /etc/msmtprc into the store, and
-    # msmtp reads no other system path, so the sops template takes that path instead
-    programs.msmtp.enable = true;
-    environment.etc."msmtprc".enable = false;
-
-    # OnFailure=alert-mail@%n.service in a unit opens its problem, which is sent once. A failure
-    # while the problem is open only updates it, and alert-reconcile closes it once the unit
-    # recovers. While an alert waits for the relay, a new failure of the same unit joins it
-    systemd.services."alert-mail@" = {
-      description = "Raise an alert that %i failed";
-
-      # A flapping unit raises at most three times an hour, and further starts fail. The
-      # retries run inside one start, so they do not count against this limit
-      startLimitIntervalSec = 3600;
-      startLimitBurst = 3;
-
-      serviceConfig = {
-        Type = "oneshot";
-        ExecStart = "${lib.getExe composeAlert} %i";
-        # The script stops retrying on its own; the timeout only catches a sendmail that hangs
-        # past that point
-        TimeoutStartSec = retrySeconds + 300;
-      };
-    };
-
-    # Closes the problem of each unit that recovered, and keeps the reboot problem current
-    systemd.services.alert-reconcile = {
-      description = "Close the alerts whose cause is gone";
-      serviceConfig = {
-        Type = "oneshot";
-        ExecStart = "${lib.getExe alert} reconcile";
-        TimeoutStartSec = retrySeconds + 300;
-      };
-    };
-
-    systemd.timers.alert-reconcile = {
-      wantedBy = [ "timers.target" ];
-      timerConfig.OnCalendar = "*:0/5";
-    };
-
-    # The second level: a mail with every problem still open, and nothing when all is well
-    systemd.services.alert-digest = {
-      description = "Mail the alerts still open";
-      after = [ "alert-reconcile.service" ];
-      serviceConfig = {
-        Type = "oneshot";
-        ExecStartPre = "${lib.getExe alert} reconcile";
-        ExecStart = "${lib.getExe alert} digest";
-        TimeoutStartSec = retrySeconds + 300;
-      };
-    };
-
-    systemd.timers.alert-digest = {
-      wantedBy = [ "timers.target" ];
-      timerConfig = {
-        OnCalendar = cfg.digestTime;
-        # A digest missed while the host was off comes at the next boot
-        Persistent = true;
-      };
-    };
-
-    services.smartd.notifications.mail.mailer = lib.getExe smartdMailer;
   };
+
+  config = lib.mkIf cfg.enable (
+    lib.mkMerge [
+      {
+        sops.secrets."telegram-bot-token" = lib.mkIf cfg.telegram.enable { };
+        sops.secrets."telegram-owner-chat-id" = lib.mkIf cfg.telegram.enable { };
+
+        # Anyone on the host may read what is open and what changed; only root writes it
+        environment.systemPackages = [ alert ];
+        systemd.tmpfiles.rules = [ "d ${stateDir} 0755 root root -" ];
+
+        sops.secrets."alert-mail-msmtprc" = { };
+        sops.secrets."alert-mail-aliases" = { };
+
+        # The secret is the account part of a msmtp configuration, in any shape the relay needs.
+        # The defaults here are the lines that depend on this module, such as the aliases path.
+        # msmtp has no network timeout by default, so a dead relay holds sendmail for minutes
+        sops.templates."alert-mail-msmtprc" = {
+          path = "/etc/msmtprc";
+          content = ''
+            defaults
+            aliases ${config.sops.secrets."alert-mail-aliases".path}
+            syslog LOG_MAIL
+            timeout 30
+
+            ${config.sops.placeholder."alert-mail-msmtprc"}
+          '';
+        };
+
+        # programs.msmtp supplies the sendmail wrapper. It renders /etc/msmtprc into the store, and
+        # msmtp reads no other system path, so the sops template takes that path instead
+        programs.msmtp.enable = true;
+        environment.etc."msmtprc".enable = false;
+
+        # OnFailure=alert-mail@%n.service in a unit opens its problem, which is sent once. A failure
+        # while the problem is open only updates it, and alert-reconcile closes it once the unit
+        # recovers. While an alert waits for the relay, a new failure of the same unit joins it
+        systemd.services."alert-mail@" = {
+          description = "Raise an alert that %i failed";
+
+          # A flapping unit raises at most three times an hour, and further starts fail. The
+          # retries run inside one start, so they do not count against this limit
+          startLimitIntervalSec = 3600;
+          startLimitBurst = 3;
+
+          serviceConfig = {
+            Type = "oneshot";
+            ExecStart = "${lib.getExe composeAlert} %i";
+            # The script stops retrying on its own; the timeout only catches a sendmail that hangs
+            # past that point
+            TimeoutStartSec = retrySeconds + 300;
+          };
+        };
+
+        # Closes the problem of each unit that recovered, keeps the reboot problem current, and reads
+        # every file of causes again, in case a change slipped past its path unit
+        systemd.services.alert-reconcile = {
+          description = "Close the alerts whose cause is gone";
+          script = ''
+            ${lib.getExe alert} reconcile
+          ''
+          + lib.concatStrings (
+            lib.mapAttrsToList (name: file: ''
+              if [ -e ${lib.escapeShellArg file} ]; then
+                ${lib.getExe alert} sync ${name} ${lib.escapeShellArg file}
+              fi
+            '') cfg.sources
+          );
+          serviceConfig = {
+            Type = "oneshot";
+            TimeoutStartSec = retrySeconds + 300;
+          };
+        };
+
+        systemd.timers.alert-reconcile = {
+          wantedBy = [ "timers.target" ];
+          timerConfig.OnCalendar = "*:0/5";
+        };
+
+        # The second level: a mail with every problem still open, and nothing when all is well
+        systemd.services.alert-digest = {
+          description = "Mail the alerts still open";
+          after = [ "alert-reconcile.service" ];
+          serviceConfig = {
+            Type = "oneshot";
+            ExecStartPre = "${lib.getExe alert} reconcile";
+            ExecStart = "${lib.getExe alert} digest";
+            TimeoutStartSec = retrySeconds + 300;
+          };
+        };
+
+        systemd.timers.alert-digest = {
+          wantedBy = [ "timers.target" ];
+          timerConfig = {
+            OnCalendar = cfg.digestTime;
+            # A digest missed while the host was off comes at the next boot
+            Persistent = true;
+          };
+        };
+
+        services.smartd.notifications.mail.mailer = lib.getExe smartdMailer;
+      }
+
+      # A check that rewrites its file of causes has them opened and closed at once
+      {
+        systemd.paths = lib.mapAttrs' (
+          name: file:
+          lib.nameValuePair "alert-sync-${name}" {
+            wantedBy = [ "multi-user.target" ];
+            pathConfig.PathChanged = file;
+          }
+        ) cfg.sources;
+
+        systemd.services = lib.mapAttrs' (
+          name: file:
+          lib.nameValuePair "alert-sync-${name}" {
+            description = "Raise and close the alerts that ${name} lists";
+            # The path unit does not start a sync that is still running, so a change made during
+            # one would wait for the reconcile; the sync runs again until the file holds still
+            script = ''
+              while :; do
+                seen=$(stat -c '%i %y' ${lib.escapeShellArg file})
+                ${lib.getExe alert} sync ${name} ${lib.escapeShellArg file}
+                [ "$(stat -c '%i %y' ${lib.escapeShellArg file})" != "$seen" ] || break
+              done
+            '';
+            serviceConfig = {
+              Type = "oneshot";
+              TimeoutStartSec = retrySeconds + 300;
+            };
+          }
+        ) cfg.sources;
+      }
+    ]
+  );
 }

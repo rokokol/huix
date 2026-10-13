@@ -300,6 +300,15 @@ pkgs.testers.runNixOSTest {
 
         rokokol.alert-mail.telegram.api = "http://192.168.0.1:${toString telegramPort}";
 
+        # A unit that fails each time it runs and raises an alert as every watched unit does
+        systemd.services.alert-probe = {
+          unitConfig.OnFailure = "alert-mail@%n.service";
+          serviceConfig = {
+            Type = "oneshot";
+            ExecStart = "${pkgs.coreutils}/bin/false";
+          };
+        };
+
         # The fixtures hold a Syncthing key, as the real secrets will
         rokokol.syncthing.keyFromSops = true;
 
@@ -1042,41 +1051,55 @@ pkgs.testers.runNixOSTest {
     with subtest("the LAN broadcast address is bound to the wired link before any TUN rule"):
         station.succeed("ip route get 192.168.0.255 | grep -q 'broadcast 192.168.0.255 dev lan table local'")
 
-    with subtest("a failed heartbeat mails root through the relay"):
-        # An hourly run may have failed already, and a problem still open is not sent again, so
-        # the subtests below start from a closed one and hold the timer
-        station.succeed("systemctl stop backup-heartbeat.timer")
-        station.succeed("systemctl reset-failed backup-heartbeat.service")
-        station.succeed("systemctl start alert-reconcile.service")
-        station.fail("systemctl start backup-heartbeat.service")
+    with subtest("a failed unit mails root through the relay and tells Telegram, once"):
+        # alert-probe fails each time it runs and raises an alert like every watched unit
+        station.fail("systemctl start alert-probe.service")
         router.wait_until_succeeds(
-            "curl -s http://127.0.0.1:8025/api/v1/messages | grep -qF '[nixos-station] backup-heartbeat.service failed'",
+            "curl -s http://127.0.0.1:8025/api/v1/messages | grep -qF '[nixos-station] alert-probe.service failed'",
             timeout=timedelta(minutes=1),
         )
         assert "failed (attempt" not in mails(), "a mail sent at the first try names an attempt"
         router.wait_until_succeeds(
-            "grep -F 'backup-heartbeat.service failed' /var/lib/fake-telegram/requests"
+            "grep -F 'alert-probe.service failed' /var/lib/fake-telegram/requests"
             " | grep -F \"chat_id='${agent.ownerChatId}'\" | grep -qF '/bot123456789:test-token/sendMessage'",
             timeout=timedelta(minutes=1),
         )
         # grep reads the whole list: with -q it would close the pipe early and fail the writer
-        station.succeed("su - rokokol -c 'alert list' | grep '^unit:backup-heartbeat.service'")
+        station.succeed("su - rokokol -c 'alert list' | grep '^unit:alert-probe.service'")
         # The problem stays open until the unit recovers, and then closes once
-        station.succeed("systemctl reset-failed backup-heartbeat.service")
+        station.succeed("systemctl reset-failed alert-probe.service")
         station.succeed("systemctl start alert-reconcile.service")
         router.wait_until_succeeds(
-            "curl -s http://127.0.0.1:8025/api/v1/messages | grep -qF 'backup-heartbeat.service failed (resolved)'",
+            "curl -s http://127.0.0.1:8025/api/v1/messages | grep -qF 'alert-probe.service failed (resolved)'",
             timeout=timedelta(minutes=1),
         )
-        assert "unit:backup-heartbeat.service" not in station.succeed("alert list"), "the problem stayed open"
+        assert "unit:alert-probe.service" not in station.succeed("alert list"), "the problem stayed open"
+
+    with subtest("each backup problem is an alert of its own, sent once"):
+        # The VM's one node never pushed, and its backup volume is small: two causes
+        station.succeed("systemctl stop backup-heartbeat.timer")
+        router.succeed("curl -sf -X DELETE http://127.0.0.1:8025/api/v1/messages")
+        station.succeed("systemctl start backup-heartbeat.service")
+        for subject in ["the backup of pc has no snapshot", "free for the backups"]:
+            router.wait_until_succeeds(
+                f"curl -s http://127.0.0.1:8025/api/v1/messages | grep -qF {shlex.quote(subject)}",
+                timeout=timedelta(minutes=1),
+            )
+        station.succeed("alert list | grep '^backup:pc-missing'")
+        station.succeed("alert list | grep '^backup:low-space'")
+        # A second run finds the same causes and sends nothing
+        station.succeed("systemctl start backup-heartbeat.service")
+        station.succeed("systemctl start alert-reconcile.service")
+        sent = json.loads(mails())["messages"]
+        assert len(sent) == 2, f"the second run sent mail again: {[m['Subject'] for m in sent]}"
 
     with subtest("an alert waits for a relay that is down and arrives once it is up"):
-        alert = "alert-mail@backup-heartbeat.service.service"
+        alert = "alert-mail@alert-probe.service.service"
         # The mail of the subtest above would match the search below on its own
         router.succeed("curl -sf -X DELETE http://127.0.0.1:8025/api/v1/messages")
-        assert "backup-heartbeat" not in mails(), "the mailbox kept the earlier alert"
+        assert "alert-probe" not in mails(), "the mailbox kept the earlier alert"
         router.succeed("systemctl stop mailpit-trap.service")
-        station.fail("systemctl start backup-heartbeat.service")
+        station.fail("systemctl start alert-probe.service")
         station.wait_until_succeeds(f"journalctl -u {alert} | grep -qF 'next try in'", timeout=timedelta(minutes=1))
         state = station.succeed(f"systemctl show -P ActiveState {alert}").strip()
         assert state == "activating", f"{alert} gave up while the relay was down: {state}"
@@ -1085,19 +1108,22 @@ pkgs.testers.runNixOSTest {
         # The subject says which try got through and how late the alert is
         router.wait_until_succeeds(
             "curl -s http://127.0.0.1:8025/api/v1/messages"
-            " | grep -qE '\\[nixos-station\\] backup-heartbeat.service failed \\(attempt [2-9], [0-9]+ min late\\)'",
+            " | grep -qE '\\[nixos-station\\] alert-probe.service failed \\(attempt [2-9], [0-9]+ min late\\)'",
             timeout=timedelta(minutes=3),
         )
         station.wait_until_succeeds(f"test $(systemctl show -P ActiveState {alert}) = inactive", timeout=timedelta(minutes=1))
         result = station.succeed(f"systemctl show -P Result {alert}").strip()
         assert result == "success", f"{alert} ended with {result}"
-        station.succeed("systemctl reset-failed backup-heartbeat.service")
+        station.succeed("systemctl reset-failed alert-probe.service")
 
     with subtest("the digest lists the open problems, quiet ones too, and says nothing when none is"):
-        # The timers would open or close problems in the middle of the subtest; with them held and
-        # every failed unit reset, the reconcile closes whatever the subtests above left open
+        # The timers would open or close problems in the middle of the subtest; with them held,
+        # every failed unit reset and every list of causes emptied, the reconcile closes
+        # whatever the subtests above left open
         station.succeed("systemctl stop alert-reconcile.timer node-push-watch.timer")
         station.succeed("systemctl reset-failed")
+        for causes in ${lib.escapeShellArg (lib.concatStringsSep " " (lib.attrValues station.config.rokokol.alert-mail.sources))}.split():
+            station.succeed(f"if [ -e {causes} ]; then : >{causes}; fi")
         station.succeed("systemctl start alert-reconcile.service")
         left = station.succeed("alert list")
         assert left == "", f"problems stayed open with every unit reset:\n{left}"
@@ -1161,17 +1187,18 @@ pkgs.testers.runNixOSTest {
         gateway = "http://100.64.0.1:${toString station.config.rokokol.pushgateway.port}"
         watch = "node-push-watch.service"
 
-        def push(path, auth="-u pc:test", method="POST"):
+        def push(path, auth="-u pc:test", method="POST", body="probe_value 1"):
             return station.succeed(
-                f"echo 'probe_value 1' | curl -s -o /dev/null -w '%{{http_code}}' --interface 100.64.0.1"
+                f"printf '%s\\n' {shlex.quote(body)} | curl -s -o /dev/null -w '%{{http_code}}' --interface 100.64.0.1"
                 f" -X {method} {auth} --data-binary @- {gateway}{path}"
             ).strip()
 
+        # The watch lists its causes for the alert registry, which opens and closes each one
         station.succeed(f"systemctl show -P OnFailure {watch} | grep -qx 'alert-mail@{watch}.service'")
         station.wait_for_unit("pushgateway.service")
         result = run_to_end(watch)
-        assert result != "success", "a node that never pushed passed the watch"
-        station.succeed(f"journalctl -u {watch} | grep -qF 'pc: never pushed'")
+        assert result == "success", f"{watch} failed with only a silent node to report: {result}"
+        station.wait_until_succeeds("alert list | grep '^node:pc-never'", timeout=timedelta(minutes=1))
 
         assert (code := push("/metrics/job/node/instance/pc")) == "200", f"the node's own push got {code}"
         refused = {
@@ -1190,11 +1217,27 @@ pkgs.testers.runNixOSTest {
 
         result = run_to_end(watch)
         assert result == "success", f"{watch} ended with {result} after the node pushed"
+        station.wait_until_succeeds("! alert list | grep '^node:pc-never'", timeout=timedelta(minutes=1))
         station.wait_until_succeeds(
             "curl -sf --get --data-urlencode 'query=push_time_seconds{job=\"node\",instance=\"pc\"}' ${prometheus}/api/v1/query"
             " | grep -q '\"instance\":\"pc\"'",
             timeout=timedelta(minutes=2),
         )
+
+        # A problem the node reports of itself is an alert of the station's, with the node's
+        # own words, and it closes once the node stops reporting it
+        router.succeed("curl -sf -X DELETE http://127.0.0.1:8025/api/v1/messages")
+        problem = 'node_problem{key="probe",summary="a probe problem"} 1'
+        assert (code := push("/metrics/job/node/instance/pc", body=problem)) == "200", f"the problem's push got {code}"
+        assert run_to_end(watch) == "success"
+        station.wait_until_succeeds("alert list | grep '^node:pc-probe'", timeout=timedelta(minutes=1))
+        router.wait_until_succeeds(
+            "curl -s http://127.0.0.1:8025/api/v1/messages | grep -qF '[nixos-station] pc: a probe problem'",
+            timeout=timedelta(minutes=1),
+        )
+        assert (code := push("/metrics/job/node/instance/pc", method="PUT")) == "200", f"the clean push got {code}"
+        assert run_to_end(watch) == "success"
+        station.wait_until_succeeds("! alert list | grep '^node:pc-probe'", timeout=timedelta(minutes=1))
 
     with subtest("the backup volume is btrfs, mounted with the host's options"):
         station.succeed("findmnt -no FSTYPE /srv/backup | grep -qx btrfs")

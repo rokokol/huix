@@ -41,6 +41,17 @@ in
       default = "1h";
       description = "Time since the last push of a node past which the node is silent";
     };
+
+    causesFile = lib.mkOption {
+      type = lib.types.nullOr (lib.types.strMatching "/run/node-push-watch/[^/]+");
+      default = null;
+      example = "/run/node-push-watch/causes";
+      description = ''
+        File for the silent nodes and the problems the nodes report, one cause a line, for an
+        alert registry to read. When set, a problem no longer fails the check's unit. It lies
+        in the unit's runtime directory, which outlives each run
+      '';
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -115,11 +126,14 @@ in
         set -o pipefail
         curl --fail --silent --show-error --max-time 30 http://${backend}/metrics \
           | ${lib.getExe pkgs.bash} ${script} push \
+            ${lib.optionalString (cfg.causesFile != null) "-p ${cfg.causesFile}"} \
             ${config.services.restic.server.htpasswd-file} ${cfg.maxSilence}
       '';
       serviceConfig = {
         Type = "oneshot";
         DynamicUser = true;
+        RuntimeDirectory = "node-push-watch";
+        RuntimeDirectoryPreserve = true;
         # The restic group reads the htpasswd, as the backup heartbeat does
         SupplementaryGroups = [ "restic" ];
 

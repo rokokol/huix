@@ -54,7 +54,15 @@ in
   rokokol.alert-mail = {
     telegram.enable = true;
     inherit (config.rokokol.claude-agent) notify;
+    # Each repository, each node and each problem a node reports is an alert of its own, so a
+    # second silent node is sent even while the first is still open
+    sources = {
+      backup = config.rokokol.backup-heartbeat.causesFile;
+      node = config.rokokol.pushgateway.causesFile;
+    };
   };
+  rokokol.backup-heartbeat.causesFile = "/run/backup-heartbeat/causes";
+  rokokol.pushgateway.causesFile = "/run/node-push-watch/causes";
 
   # The agent reads the open problems, the metrics and the journal of every unit through the
   # skill in health-plugin. The journal of the whole host reaches the model's context that way,

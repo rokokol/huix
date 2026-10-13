@@ -7,8 +7,8 @@
 }:
 
 # An hourly check that every node behind the restic server pushed recently and that the
-# backup filesystem keeps its free space. A problem fails the unit and nothing more: the host
-# decides what the failure sets off, through OnFailure on this service
+# backup filesystem keeps its free space. A problem fails the unit, or, with causesFile, goes
+# to that file; the host decides what either sets off
 let
   cfg = config.rokokol.backup-heartbeat;
   server = config.services.restic.server;
@@ -17,6 +17,16 @@ let
     path = "${inputs.self}/scripts/backup-heartbeat.sh";
   };
   user = "backup-heartbeat";
+
+  # The check writes beside each file before it renames it over the old one
+  writable = lib.unique (
+    map dirOf (
+      lib.filter (file: file != null) [
+        cfg.metricsFile
+        cfg.causesFile
+      ]
+    )
+  );
 in
 {
   options.rokokol.backup-heartbeat = {
@@ -44,6 +54,17 @@ in
         this check runs as, and links the file into the textfile directory of node_exporter
       '';
     };
+
+    causesFile = lib.mkOption {
+      type = lib.types.nullOr lib.types.path;
+      default = null;
+      example = "/run/backup-heartbeat/causes";
+      description = ''
+        File for the problems as causes, one a line, for an alert registry to read. When set,
+        a problem no longer fails the unit: the file carries it, and only a fault of the check
+        itself fails it
+      '';
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -65,10 +86,11 @@ in
 
     # The textfile directory is root's, and the check writes beside its file before it renames
     # it over the old one, so the file lives in a directory of its own and is linked
-    systemd.tmpfiles.rules = lib.optionals (cfg.metricsFile != null) [
-      "d ${dirOf cfg.metricsFile} 0755 ${user} ${user} -"
-      "L+ ${config.rokokol.node-exporter.textfileDir}/backup.prom - - - - ${cfg.metricsFile}"
-    ];
+    systemd.tmpfiles.rules =
+      map (dir: "d ${dir} 0755 ${user} ${user} -") writable
+      ++ lib.optional (
+        cfg.metricsFile != null
+      ) "L+ ${config.rokokol.node-exporter.textfileDir}/backup.prom - - - - ${cfg.metricsFile}";
 
     # No mount dependency and no mount condition: without the filesystem, the check runs and
     # its output names the missing data. A condition would skip the check in silence
@@ -93,6 +115,10 @@ in
             "-m"
             cfg.metricsFile
           ]
+          ++ lib.optionals (cfg.causesFile != null) [
+            "-p"
+            cfg.causesFile
+          ]
           ++ [
             server.dataDir
             server.htpasswd-file
@@ -112,7 +138,7 @@ in
         ProtectKernelModules = true;
         ProtectKernelTunables = true;
         ProtectSystem = "strict";
-        ReadWritePaths = lib.optional (cfg.metricsFile != null) (dirOf cfg.metricsFile);
+        ReadWritePaths = writable;
         RestrictAddressFamilies = "none";
         SystemCallArchitectures = "native";
         SystemCallFilter = "@system-service";

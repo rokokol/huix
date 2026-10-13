@@ -364,6 +364,12 @@ is "the fresh repository is not reported" "" "$(grep -v '^backup-heartbeat.sh: e
 
 beat htpasswd-gamma
 is "a repository that never pushed fails" 1 "$?"
+bash "$heartbeat" check -p "$work/backup.causes" "$backup" "$work/htpasswd-all" 36h 10G >/dev/null 2>&1
+is "a check that lists its causes passes" 0 "$?"
+is "each stale or missing repository is a cause" "beta-stale|gamma-missing" \
+  "$(cut -f1 "$work/backup.causes" | sort | paste -sd'|' -)"
+STUB_DF_AVAIL=1048576 bash "$heartbeat" check -p "$work/backup.causes" "$backup" "$work/htpasswd-alpha" 36h 10G >/dev/null 2>&1
+is "low space is a cause of its own" "low-space" "$(cut -f1 "$work/backup.causes")"
 is "the missing repository is named in the last line" yes "$(grep -q gamma <<<"$(last_line)" && echo yes)"
 
 beat htpasswd-all
@@ -442,17 +448,36 @@ is "the metrics reader is not an expected node" 0 "$?"
 push htpasswd-alpha /dev/null
 is "an empty page fails every node" 1 "$?"
 
-# A node that pushes on time but reports problems of its own
+# A node that pushes on time but reports problems of its own, one series a cause; the label
+# order and an escaped quote in the summary are as Pushgateway may write them
 cp "$work/pushgateway.prom" "$work/pushgateway-problems.prom"
-printf 'node_problems{instance="alpha",job="node"} 2\n' >>"$work/pushgateway-problems.prom"
+cat >>"$work/pushgateway-problems.prom" <<'EOF'
+node_problem{instance="alpha",job="mail",key="postfix",summary="postfix.service failed"} 1
+node_problem{job="vpn",summary="disk is \"91%\" full",key="disk-full",instance="alpha"} 1
+EOF
 push htpasswd-alpha "$work/pushgateway-problems.prom"
 is "a node that reports problems fails" 1 "$?"
-is "the node with problems is named with their number" yes \
-  "$(grep -q 'alpha.*2 problem' <<<"$beat_out" && echo yes)"
-printf 'node_problems{instance="alpha",job="mail"} 0\n' >"$work/pushgateway-zero.prom"
-cat "$work/pushgateway.prom" >>"$work/pushgateway-zero.prom"
-push htpasswd-alpha "$work/pushgateway-zero.prom"
-is "a node that reports no problem passes" 0 "$?"
+is "each problem of the node is named" yes \
+  "$(grep -q 'postfix.service failed' <<<"$beat_out" && grep -q 'disk is "91%" full' <<<"$beat_out" && echo yes)"
+
+# With -p the causes go to a file, one a line, and the check passes so that its unit stays up
+pushp() {
+  beat_out=$(bash "$heartbeat" push -p "$work/push.causes" "$work/$1" 1h <"$2" 2>&1)
+}
+pushp htpasswd-alpha "$work/pushgateway-problems.prom"
+is "a push check that lists its causes passes" 0 "$?"
+is "each cause is a key and a subject" \
+  "alpha-disk-full|alpha-postfix" \
+  "$(cut -f1 "$work/push.causes" | sort | paste -sd'|' -)"
+is "a node's cause keeps the node's own words" yes \
+  "$(grep -q "$(printf 'alpha-postfix\t.*alpha.*postfix.service failed')" "$work/push.causes" && echo yes)"
+pushp htpasswd-gamma "$work/pushgateway.prom"
+is "a node that never pushed is a cause" yes \
+  "$(grep -q "$(printf '^gamma-never\t')" "$work/push.causes" && echo yes)"
+pushp htpasswd-beta "$work/pushgateway.prom"
+is "a silent node is a cause" yes "$(grep -q "$(printf '^beta-silent\t')" "$work/push.causes" && echo yes)"
+pushp htpasswd-alpha "$work/pushgateway.prom"
+is "a node with nothing to report leaves the list empty" "" "$(cat "$work/push.causes")"
 
 bash "$heartbeat" push "$work/htpasswd-alpha" 1x <"$work/pushgateway.prom" >/dev/null 2>&1
 is "a silence limit without a unit it knows is a usage error" 2 "$?"
@@ -618,6 +643,34 @@ is "a missing Telegram secret does not fail the alert" 0 "$alert_status"
 not_logged "a missing Telegram secret sends nothing to Telegram" '^curl '
 logged "a missing Telegram secret still lets the mail go" '^mail ' 'z\.service failed'
 bash "$alert" clear unit:z.service >/dev/null 2>&1
+
+# sync opens a problem for each cause a check lists and closes each one it no longer lists
+printf 'pc-silent\tpc is silent\nmail-missing\tmail has no snapshot\n' >"$work/causes"
+reset_log
+bash "$alert" sync beat "$work/causes" >/dev/null 2>&1
+is "a sync of two causes succeeds" 0 "$?"
+is "each listed cause is its own problem" "beat:mail-missing beat:pc-silent" "$(listed)"
+logged "each new cause is sent on its own" '^mail ' 'Subject: pc is silent'
+logged "the other new cause is sent too" '^mail ' 'Subject: mail has no snapshot'
+reset_log
+printf 'pc-silent\tpc is silent\nvpn-silent\tvpn is silent\n' >"$work/causes"
+bash "$alert" sync beat "$work/causes" >/dev/null 2>&1
+is "a sync keeps a cause still listed and opens a new one" "beat:pc-silent beat:vpn-silent" "$(listed)"
+logged "the new cause is sent while the old one stays open" '^mail ' 'Subject: vpn is silent'
+not_logged "a cause listed again is not sent again" 'Subject: pc is silent$'
+is "a cause listed again leaves no line in the journal" 1 \
+  "$(grep -c "$(printf '\tbeat:pc-silent\t')" "$ALERT_STATE/journal")"
+logged "a cause no longer listed is closed" '^mail ' 'Subject: mail has no snapshot \(resolved\)'
+raise unit:other.service "other failed"
+: >"$work/causes"
+bash "$alert" sync beat "$work/causes" >/dev/null 2>&1
+is "an empty list closes every cause of its source and nothing else" "unit:other.service" "$(listed)"
+bash "$alert" clear unit:other.service >/dev/null 2>&1
+printf 'bad/cause\tx\n' >"$work/causes"
+bash "$alert" sync beat "$work/causes" >/dev/null 2>&1
+is "a cause that is not a key is a failure" 1 "$?"
+bash "$alert" sync beat "$work/no-such-causes" >/dev/null 2>&1
+is "a missing list is a failure, not an all clear" 1 "$?"
 
 raise "bad/key" "bad"
 is "a key that is not a file name is a usage error" 2 "$alert_status"
