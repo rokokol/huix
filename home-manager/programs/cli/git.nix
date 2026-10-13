@@ -43,6 +43,18 @@
     ];
   };
 
+  # Every diff git pages goes through delta, side by side. Its built-in theme asks the terminal
+  # whether it is light or dark, so it follows the theme toggle; ddlc-themes has no delta theme
+  programs.delta = {
+    enable = true;
+    enableGitIntegration = true;
+    options = {
+      side-by-side = true;
+      line-numbers = true;
+      navigate = true;
+    };
+  };
+
   programs.gh = {
     enable = true;
     extensions = with pkgs; [ gh-dash ];
