@@ -153,7 +153,8 @@ in
     rokokol.syncthing.archive.editor = cfg.user;
 
     # In the user's profile and not only in the unit's PATH: a shell in the session reads the
-    # system's environment again, which drops what the unit adds. Bun runs the Telegram channel
+    # system's environment again, which drops what the unit adds. Bun runs the Telegram channel,
+    # and Claude Code reads repositories through git
     users.users.${cfg.user} = {
       isNormalUser = true;
       group = cfg.user;
@@ -161,6 +162,7 @@ in
       packages =
         (with pkgs; [
           bun
+          git
           tmux
         ])
         ++ cfg.packages;
