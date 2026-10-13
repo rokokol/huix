@@ -164,7 +164,7 @@ telegram() {
       curl --silent --show-error --fail-with-body --max-time 30 \
         --retry 5 --retry-all-errors --retry-max-time 600 -o "$answer" \
         --data-urlencode "chat_id=$chat" \
-        --data-urlencode "text=$(printf '%s\n\n%s' "$subject" "$body" | head -c 4000)" \
+        --data-urlencode "text=$(printf '%s%s' "$subject" "${body:+$'\n\n'$body}" | head -c 4000)" \
         "$ALERT_TELEGRAM_API/bot$token/sendMessage" ||
         printf 'alert.sh: Telegram did not take: %s (%s)\n' "$subject" "$(cat -- "$answer")" >&2
       rm -f -- "$answer"
@@ -267,7 +267,8 @@ cmd_sync() {
     [ "$subject" != "$line" ] || subject=$cause
     # A cause already open stays as it is, or each run of the check would add to the journal
     [ ! -d "$state/open/$source:$cause" ] || continue
-    printf '%s\n' "$subject" | raise "$source:$cause" "$subject"
+    # The subject is all a cause says, so the body stays empty rather than saying it twice
+    raise "$source:$cause" "$subject" </dev/null
   done <<<"$causes"
 
   for dir in "$state/open/$source":*; do

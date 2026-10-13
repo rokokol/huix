@@ -679,6 +679,8 @@ bash "$alert" sync beat "$work/causes" >/dev/null 2>&1
 is "a sync of two causes succeeds" 0 "$?"
 is "each listed cause is its own problem" "beat:mail-missing beat:pc-silent" "$(listed)"
 logged "each new cause is sent on its own" '^mail ' 'Subject: pc is silent'
+is "a cause says its subject once in Telegram" 1 \
+  "$(grep '^curl ' "$STUB_LOG" | grep 'pc is silent' | grep -o 'pc is silent' | wc -l)"
 logged "the other new cause is sent too" '^mail ' 'Subject: mail has no snapshot'
 reset_log
 printf 'pc-silent\tpc is silent\nvpn-silent\tvpn is silent\n' >"$work/causes"
