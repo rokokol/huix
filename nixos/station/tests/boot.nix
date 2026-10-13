@@ -294,6 +294,9 @@ pkgs.testers.runNixOSTest {
         # Prometheus finds the PC by its tailnet name, which here leads over the LAN
         networking.hosts."192.168.0.102" = [ "nixos-pc" ];
 
+        # The fixtures hold a Syncthing key, as the real secrets will
+        rokokol.syncthing.keyFromSops = true;
+
         # Claude Code cannot log in here. A shell in its place runs what notify types, so the
         # test reaches the session's view of the host through the path the owner's units use
         rokokol.claude-agent.command = lib.getExe pkgs.bashInteractive;
@@ -1031,6 +1034,16 @@ pkgs.testers.runNixOSTest {
             f" | grep -qE '{subject} \\(attempt [2-9], [0-9]+ min late\\)'",
             timeout=timedelta(minutes=3),
         )
+
+    with subtest("the station's Syncthing takes its key from sops, so its device ID outlives a reinstall"):
+        station.wait_for_unit("syncthing.service")
+        found = station.succeed(
+            "${station.config.services.syncthing.package}/bin/syncthing device-id"
+            " --home=${station.config.services.syncthing.configDir}"
+        ).strip()
+        with open("${fixtures}/syncthing-device-id") as listing:
+            wanted = listing.read().strip()
+        assert found == wanted, f"the station came up as {found}, not as {wanted} from its key"
 
     with subtest("the heartbeat's numbers reach Prometheus through the textfile directory"):
         # The heartbeat ran in the subtests above; its file lives apart and is linked in

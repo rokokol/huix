@@ -103,6 +103,14 @@ in
       description = "This host's device ID, as its Syncthing shows it; the other hosts trust it";
     };
 
+    # The device ID is a hash of the certificate, so a key and certificate kept outside the host
+    # survive its reinstall, and `deviceId` stays true. Off until both are in sops, or the
+    # activation fails on the missing keys
+    keyFromSops = lib.mkEnableOption ''
+      the device's key and certificate from the sops secrets syncthing-key-<host> and
+      syncthing-cert-<host>, in the host's default sops file
+    '';
+
     archive = {
       enable = lib.mkEnableOption "a receive-only copy of every folder, with the old versions of its files";
 
@@ -168,6 +176,20 @@ in
           SYNCTHING_PORT = port;
         };
       }
+
+      # nixpkgs copies both into the config directory as root before the start, so the secrets
+      # stay root's
+      (lib.mkIf cfg.keyFromSops {
+        sops.secrets = lib.genAttrs (map (part: "syncthing-${part}-${config.networking.hostName}") [
+          "key"
+          "cert"
+        ]) (_: { });
+
+        services.syncthing = {
+          key = config.sops.secrets."syncthing-key-${config.networking.hostName}".path;
+          cert = config.sops.secrets."syncthing-cert-${config.networking.hostName}".path;
+        };
+      })
 
       (lib.mkIf (!cfg.archive.enable) {
         services.syncthing = {

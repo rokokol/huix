@@ -14,11 +14,15 @@ pkgs.runCommand "station-boot-test-fixtures"
       age
       mkpasswd
       sops
+      syncthing
     ];
   }
   ''
     mkdir $out
     age-keygen -o $out/key.txt 2>/dev/null
+    # The station's Syncthing key, and the device ID it must come up with
+    HOME=$PWD syncthing generate --home=syncthing >/dev/null 2>&1
+    HOME=$PWD syncthing device-id --home=syncthing >$out/syncthing-device-id
     {
       printf 'rokokol-password-hash: %s\n' "$(mkpasswd -m sha-512 test)"
       printf 'pc-mac: %s\n' '${pcMac}'
@@ -33,6 +37,10 @@ pkgs.runCommand "station-boot-test-fixtures"
       printf 'grafana-secret-key: %s\n' 0123456789abcdef0123456789abcdef
       printf 'telegram-bot-token: %s\n' 123456789:test-token
       printf 'telegram-owner-chat-id: "%s"\n' '${telegramOwner}'
+      for part in key cert; do
+        printf 'syncthing-%s-nixos-station: |\n' "$part"
+        sed 's/^/  /' "syncthing/$part.pem"
+      done
     } >plain.yaml
     sops --encrypt --age "$(age-keygen -y $out/key.txt)" \
       --input-type yaml --output-type yaml plain.yaml >$out/station.yaml
