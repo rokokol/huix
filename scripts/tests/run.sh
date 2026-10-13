@@ -404,6 +404,48 @@ is "a missing data directory fails" 1 "$?"
 bash "$heartbeat" check "$backup" "$work/htpasswd-alpha" 36x 10G >/dev/null 2>&1
 is "an age without a unit it knows is a usage error" 2 "$?"
 
+# backup-heartbeat.sh push, over a Pushgateway page in the format Prometheus writes floats in.
+# alpha pushed ten minutes ago under one job and a day ago under another, beta two hours ago
+# with its labels in the other order, gamma never
+cat >"$work/pushgateway.prom" <<EOF
+# HELP push_time_seconds Last Unix time when changing this group in the Pushgateway succeeded.
+# TYPE push_time_seconds gauge
+push_time_seconds{instance="alpha",job="node"} $(awk -v t=$((now - 600)) 'BEGIN { printf "%.10e", t }')
+push_time_seconds{instance="alpha",job="mail"} $((now - 86400))
+push_time_seconds{job="node",instance="beta"} $((now - 7200)).5
+push_failure_time_seconds{instance="gamma",job="node"} $now
+EOF
+
+# push HTPASSWD [PAGE] — run the push check with a 1h limit, the output in $beat_out
+push() {
+  beat_out=$(bash "$heartbeat" push "$work/$1" 1h <"${2:-$work/pushgateway.prom}" 2>&1)
+}
+
+push htpasswd-alpha
+is "a node that pushed recently passes" 0 "$?"
+
+push htpasswd-beta
+is "a node silent past the limit fails" 1 "$?"
+is "the silent node is named in the last line" yes "$(grep -q beta <<<"$(last_line)" && echo yes)"
+is "a push with its labels in another order is still found" "" "$(grep 'beta' <<<"$beat_out" | grep -o never)"
+is "the node that pushed is not reported" "" "$(grep -v '^backup-heartbeat.sh: everything' <<<"$beat_out" | grep -o alpha)"
+
+push htpasswd-gamma
+is "a node that never pushed fails" 1 "$?"
+is "the node that never pushed is named in the last line" yes "$(grep -q gamma <<<"$(last_line)" && echo yes)"
+
+push htpasswd-metrics
+is "the metrics reader is not an expected node" 0 "$?"
+
+push htpasswd-alpha /dev/null
+is "an empty page fails every node" 1 "$?"
+
+bash "$heartbeat" push "$work/htpasswd-alpha" 1x <"$work/pushgateway.prom" >/dev/null 2>&1
+is "a silence limit without a unit it knows is a usage error" 2 "$?"
+
+bash "$heartbeat" push "$work/htpasswd-empty" 1h <"$work/pushgateway.prom" >/dev/null 2>&1
+is "a push check with no node is a usage error" 2 "$?"
+
 # wake-pc.sh, against a wakeonlan stub, with the MAC in a file as sops leaves it
 wake=$SCRIPTS/wake-pc.sh
 cat >"$work/bin/wakeonlan" <<'EOF'

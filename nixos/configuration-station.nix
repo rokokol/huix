@@ -33,6 +33,7 @@ in
     alert-mail.enable = true;
     prometheus.enable = true;
     grafana.enable = true;
+    pushgateway.enable = true;
     forgejo = {
       enable = true;
       # The PC runs the CI jobs, through rokokol.forgejo-runner

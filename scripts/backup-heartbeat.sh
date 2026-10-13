@@ -7,9 +7,10 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-backup-heartbeat.sh — fail when a restic repository on this server got no recent snapshot
+backup-heartbeat.sh — fail when a node behind this server went quiet
 
   backup-heartbeat.sh check [-m FILE] DATA HTPASSWD MAX_AGE MIN_FREE
+  backup-heartbeat.sh push HTPASSWD MAX_SILENCE < PAGE
 
   -m FILE   also write the newest snapshot time of each repository, and the free space,
             to FILE as Prometheus text metrics (a missing repository is time 0)
@@ -22,6 +23,10 @@ as a number with s, m, h or d (36h). MIN_FREE is the space the filesystem of DAT
 free, a number of bytes with K, M, G or T in powers of 1024 (10G). A repository one level
 deeper, at DATA/<user>/<name>/, is not the expected layout: it is reported as missing, with
 a note that names the nested path
+
+push reads a Pushgateway metrics page on stdin. Every user in HTPASSWD is one expected node,
+which pushes with its own name as the instance label. A node fails when its newest
+push_time_seconds, over every job, is older than MAX_SILENCE (1h), or when it never pushed
 
 Every problem is reported, one line each, and a summary line comes last
 Nothing here reaches the network
@@ -91,16 +96,8 @@ cmd_check() {
   local max_age=$seconds
   parse_size "$4"
   local min_free=$bytes
-  [ -r "$htpasswd" ] || die "cannot read $htpasswd"
-
-  # A user is the text before the first colon of a line; blank lines and comments are skipped.
-  # rest-server admits the user "metrics" to /metrics only, so that name never has a repository
-  local users=() user line
-  while IFS= read -r line || [ -n "$line" ]; do
-    case "$line" in '' | '#'* | metrics:*) continue ;; esac
-    users+=("${line%%:*}")
-  done <"$htpasswd"
-  ((${#users[@]})) || die "$htpasswd names no user, so there is nothing to check"
+  local users=() user
+  read_users "$htpasswd"
 
   local now problems=() series=() newest snapdir nested
   now=$(date +%s)
@@ -156,16 +153,70 @@ cmd_check() {
     write_metrics "$metrics" "$free" "${series[@]+"${series[@]}"}"
   fi
 
-  if ((${#problems[@]})); then
-    local summary="" p
-    for p in "${problems[@]}"; do
-      summary="${summary:+$summary, }$p"
-    done
-    fail "${#problems[@]} problem(s) in backups: $summary"
-  fi
+  summarise "backups"
   human "$free"
   printf 'backup-heartbeat.sh: everything holds: %d repositories fresh, %s free\n' \
     "${#users[@]}" "$human"
+}
+
+cmd_push() {
+  (($# == 2)) || die "push takes HTPASSWD MAX_SILENCE"
+  local htpasswd=$1 seconds
+  parse_age "$2"
+  local max_silence=$seconds
+  local users=() user
+  read_users "$htpasswd"
+
+  # The newest push_time_seconds of each instance, over every job it pushed under. A label
+  # value is the text between the quotes after instance=, wherever the label stands
+  local pushes
+  pushes=$(awk '
+    /^push_time_seconds\{/ && match($0, /instance="[^"]*"/) {
+      name = substr($0, RSTART + 10, RLENGTH - 11)
+      t = int($NF + 0)
+      if (t > newest[name]) newest[name] = t
+    }
+    END { for (name in newest) print name, newest[name] }
+  ')
+
+  local now problems=() pushed
+  now=$(date +%s)
+  for user in "${users[@]}"; do
+    pushed=$(awk -v u="$user" '$1 == u { print $2 }' <<<"$pushes")
+    if [ -z "$pushed" ]; then
+      printf 'backup-heartbeat.sh: %s: never pushed\n' "$user" >&2
+      problems+=("$user never pushed")
+    elif ((now - pushed > max_silence)); then
+      printf 'backup-heartbeat.sh: %s: silent for %d min\n' "$user" $(((now - pushed) / 60)) >&2
+      problems+=("$user silent")
+    fi
+  done
+
+  summarise "pushes"
+  printf 'backup-heartbeat.sh: everything holds: %d nodes pushed\n' "${#users[@]}"
+}
+
+# read_users HTPASSWD — sets $users to the expected nodes. A user is the text before the first
+# colon of a line; blank lines and comments are skipped. rest-server admits the user "metrics"
+# to /metrics only, so that name is never a node
+read_users() {
+  local line
+  [ -r "$1" ] || die "cannot read $1"
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in '' | '#'* | metrics:*) continue ;; esac
+    users+=("${line%%:*}")
+  done <"$1"
+  ((${#users[@]})) || die "$1 names no user, so there is nothing to check"
+}
+
+# summarise WHAT — fails with every problem in $problems on one line, or returns when none
+summarise() {
+  ((${#problems[@]})) || return 0
+  local summary="" p
+  for p in "${problems[@]}"; do
+    summary="${summary:+$summary, }$p"
+  done
+  fail "${#problems[@]} problem(s) in $1: $summary"
 }
 
 # write_metrics FILE FREE "USER TIME"... — written beside FILE and renamed over it, so a
@@ -194,6 +245,7 @@ cmd="${1:-}"
 (($# == 0)) || shift
 case "$cmd" in
   check) cmd_check "$@" ;;
+  push) cmd_push "$@" ;;
   -h | --help | help) usage ;;
   '')
     usage >&2

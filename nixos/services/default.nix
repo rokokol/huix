@@ -20,6 +20,7 @@
     ./system/nix-ld.nix
     ./system/node-exporter.nix
     ./system/prometheus.nix
+    ./system/pushgateway.nix
     ./system/restic-server.nix
     ./system/skvpn.nix
     ./system/smartd.nix

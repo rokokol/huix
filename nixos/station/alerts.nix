@@ -8,9 +8,10 @@
 # dump, the units that make the owner's account and register the runners, and the mirror run
 # fail with no one looking. So do Prometheus, whose failure is a hole in the history found only
 # later, and Grafana, and Syncthing with btrbk, whose archive and its snapshots keep what a
-# workstation deleted. The exporters and the zram timer are left out: an empty panel shows their
-# failure, and a timer that fails each half minute would flood the mailbox. A unit that fails
-# with the link down is left out, as the mail could not leave either
+# workstation deleted. The push watch is the only report of a node that went quiet, and the
+# Pushgateway is what the nodes push to. The exporters and the zram timer are left out: an empty
+# panel shows their failure, and a timer that fails each half minute would flood the mailbox. A
+# unit that fails with the link down is left out, as the mail could not leave either
 let
   onFailure =
     names:
@@ -29,7 +30,9 @@ in
     "forgejo-owner"
     "forgejo-runners"
     "grafana"
+    "node-push-watch"
     "prometheus"
+    "pushgateway"
     "restic-rest-server"
     "smartd"
     "syncthing"

@@ -901,6 +901,47 @@ pkgs.testers.runNixOSTest {
             timeout=timedelta(minutes=3),
         )
 
+    with subtest("the nodes push to the Pushgateway, each only under its own name"):
+        # The fixtures' htpasswd has the one node pc, with the password test. The tailnet
+        # address is the dummy link of the tailnet-web subtest
+        gateway = "http://100.64.0.1:${toString station.config.rokokol.pushgateway.port}"
+        watch = "node-push-watch.service"
+
+        def push(path, auth="-u pc:test", method="POST"):
+            return station.succeed(
+                f"echo 'probe_value 1' | curl -s -o /dev/null -w '%{{http_code}}' --interface 100.64.0.1"
+                f" -X {method} {auth} --data-binary @- {gateway}{path}"
+            ).strip()
+
+        station.succeed(f"systemctl show -P OnFailure {watch} | grep -qx 'alert-mail@{watch}.service'")
+        station.wait_for_unit("pushgateway.service")
+        result = run_to_end(watch)
+        assert result != "success", "a node that never pushed passed the watch"
+        station.succeed(f"journalctl -u {watch} | grep -qF 'pc: never pushed'")
+
+        assert (code := push("/metrics/job/node/instance/pc")) == "200", f"the node's own push got {code}"
+        refused = {
+            "another node's group": push("/metrics/job/node/instance/other"),
+            "a group with no instance": push("/metrics/job/node"),
+            "the whole gateway": push("/metrics", method="DELETE"),
+            "a read of the page": push("/metrics", method="GET"),
+        }
+        assert set(refused.values()) == {"403"}, f"nginx let through: {refused}"
+        # nginx compares the path with the login before it checks the password, so a request with
+        # no login is refused by the path, and one with the wrong password by the password
+        assert (code := push("/metrics/job/node/instance/pc", "")) == "403", f"no login got {code}"
+        assert (code := push("/metrics/job/node/instance/pc", "-u pc:wrong")) == "401", f"a wrong password got {code}"
+        page = station.succeed("curl -sf http://${station.config.services.prometheus.pushgateway.web.listen-address}/metrics")
+        assert 'instance="other"' not in page, "a refused push reached the gateway"
+
+        result = run_to_end(watch)
+        assert result == "success", f"{watch} ended with {result} after the node pushed"
+        station.wait_until_succeeds(
+            "curl -sf --get --data-urlencode 'query=push_time_seconds{job=\"node\",instance=\"pc\"}' ${prometheus}/api/v1/query"
+            " | grep -q '\"instance\":\"pc\"'",
+            timeout=timedelta(minutes=2),
+        )
+
     with subtest("the backup volume is btrfs, mounted with the host's options"):
         station.succeed("findmnt -no FSTYPE /srv/backup | grep -qx btrfs")
         station.succeed("findmnt -no OPTIONS /srv/backup | tr , '\\n' | grep -qx noatime")
