@@ -249,14 +249,17 @@ in
           unitConfig = mountGuard;
           # The disk layout makes each folder as root's, and nixpkgs makes the data directory only
           # for its own user. Not a tmpfiles rule, for the reason restic-server.nix gives
-          serviceConfig.ExecStartPre =
-            lib.mapAttrsToList (dir: mode: "+${own} ${mode} ${lib.escapeShellArg dir}")
-              (
-                lib.genAttrs (lib.attrValues archived) (_: "0750")
-                // {
-                  ${config.services.syncthing.dataDir} = "0700";
-                }
-              );
+          serviceConfig.ExecStartPre = [
+            # Root's, as the disk layout makes it: one left to a user who is gone shuts out
+            # everyone who reads the folders through it
+            "+${lib.getExe' pkgs.coreutils "install"} -d -m 0755 -o root -g root ${lib.escapeShellArg cfg.archive.dir}"
+          ]
+          ++ lib.mapAttrsToList (dir: mode: "+${own} ${mode} ${lib.escapeShellArg dir}") (
+            lib.genAttrs (lib.attrValues archived) (_: "0750")
+            // {
+              ${config.services.syncthing.dataDir} = "0700";
+            }
+          );
         };
         systemd.services.syncthing-init.unitConfig = mountGuard;
         systemd.services.btrbk-syncthing.unitConfig = mountGuard;

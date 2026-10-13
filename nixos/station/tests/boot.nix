@@ -546,11 +546,16 @@ pkgs.testers.runNixOSTest {
 
     # As on a host where the folders were another user's before the agent came
     with subtest("a folder another user left becomes Syncthing's whole when it starts"):
+        # The directory above the folders, too, as a user who no longer exists left it
+        parent = "${station.config.rokokol.syncthing.archive.dir}"
         station.succeed(f"systemctl stop syncthing.service && chown -R rokokol {on_station}")
+        station.succeed(f"chown 4242:4242 {parent} && chmod 0750 {parent}")
         station.succeed("systemctl start syncthing.service")
         station.wait_for_unit("syncthing.service")
         stray = station.succeed(f"find {on_station} ! -user ${syncthing.user}").strip()
         assert stray == "", f"Syncthing left these to another user: {stray}"
+        # The owner reads the folders through the group
+        station.succeed(f"runuser -u rokokol -- ls {on_station}")
 
     with subtest("the LAN cannot reach the archive's Syncthing, and the archive reaches the PC"):
         pc.wait_for_unit("syncthing-init.service")
