@@ -14,7 +14,7 @@ let
   ownerHome = "/home/${rokokolName}";
 in
 {
-  config = lib.mkIf agent.enable {
+  config = lib.mkIf (agent.enable && archive.enable) {
     rokokol.syncthing.archive.editor = agent.user;
 
     rokokol.claude-agent = {
