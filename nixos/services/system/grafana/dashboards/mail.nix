@@ -333,7 +333,7 @@ panels.dashboard {
         };
         "1" = {
           text = "required";
-          color = roles.series-3;
+          color = roles.kind-warning;
         };
       };
     })

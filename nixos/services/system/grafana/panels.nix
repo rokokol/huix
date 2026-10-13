@@ -145,7 +145,9 @@ rec {
       targets = [ (query "A" roles.series-1 expr legend).target ];
       fieldConfig = {
         defaults = {
-          color.mode = "thresholds";
+          # Under "thresholds" a state timeline paints every state the base colour and drops
+          # the colour of each mapping
+          color.mode = "fixed";
           mappings = [
             {
               type = "value";
@@ -176,6 +178,8 @@ rec {
       dangerBelow ? false,
       # The labels shown beside the value, by name; every other label is hidden
       labels,
+      # The heading of the value's column
+      valueName ? "Value",
     }:
     {
       type = "table";
@@ -201,7 +205,8 @@ rec {
       fieldConfig = {
         defaults = {
           thresholds = thresholdSteps thresholds dangerBelow;
-          custom.cellOptions.type = "color-text";
+          # Grafana's own minimum, 150px, leaves no room for the value in a narrow panel
+          custom.minWidth = 60;
         };
         overrides = [
           {
@@ -209,10 +214,20 @@ rec {
               id = "byName";
               options = "Value";
             };
+            # The value alone is coloured: a label is text, which no threshold reaches, so it
+            # would take the base colour
             properties = [
               {
                 id = "unit";
                 value = unit;
+              }
+              {
+                id = "custom.cellOptions";
+                value.type = "color-text";
+              }
+              {
+                id = "displayName";
+                value = valueName;
               }
             ];
           }

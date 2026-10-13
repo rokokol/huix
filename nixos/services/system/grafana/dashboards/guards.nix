@@ -54,6 +54,9 @@ panels.dashboard {
       w = 10;
       expr = "time() - alert_open_since_seconds";
       unit = "s";
+      valueName = "open for";
+      # Every open problem is one to look at, however young
+      thresholds = 0;
       labels = [
         "host"
         "key"
@@ -128,6 +131,7 @@ panels.dashboard {
       w = 6;
       expr = "smartctl_device_smart_status{${host}}";
       unit = "bool_yes_no";
+      valueName = "passed";
       thresholds = 1;
       dangerBelow = true;
       labels = [
