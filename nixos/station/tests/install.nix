@@ -331,8 +331,11 @@ pkgs.testers.runNixOSTest {
         assert len(layout) == 3, f"disko declares {len(layout)} partitions"
         station.succeed(f"test $(lsblk -nro TYPE {disk_id} | grep -c part) -eq 3")
 
-    with subtest("/srv/backup is mounted btrfs"):
+    with subtest("/srv/backup is mounted btrfs, with the subvolumes the archive needs, which btrbk snapshots"):
         station.succeed("findmnt -no FSTYPE /srv/backup | grep -qx btrfs")
+        for name in ${builtins.toJSON target.config.rokokol.syncthing.archive.subvolumes}:
+            station.succeed(f"${pkgs.btrfs-progs}/bin/btrfs subvolume show /srv/backup/{name}")
+        station.succeed("systemctl start btrbk-syncthing.service")
 
     with subtest("the age key is in place, and sops-nix decrypts with it"):
         station.succeed("test \"$(stat -c '%a %u %g' /var/lib/sops-nix/key.txt)\" = '600 0 0'")

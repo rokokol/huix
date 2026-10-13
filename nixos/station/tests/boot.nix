@@ -176,20 +176,42 @@ pkgs.testers.runNixOSTest {
   nodes.station = {
     imports = station._module.args.modules ++ [
       (import ./fixture-host.nix { inherit fixtures stationMac; })
-      (_: {
-        virtualisation = {
-          vlans = [ 1 ];
-          memorySize = 3072;
-          cores = 2;
-          emptyDiskImages = [ 2048 ];
-          # The VM mounts its own disks in place of disko's. The backup volume is the empty
-          # disk, with the file system and the options the host declares
-          fileSystems."/srv/backup" = {
-            device = "/dev/vdb";
-            inherit (backup) fsType options;
-            autoFormat = true;
+      (
+        { config, ... }:
+        {
+          virtualisation = {
+            vlans = [ 1 ];
+            memorySize = 3072;
+            cores = 2;
+            emptyDiskImages = [ 2048 ];
+            # The VM mounts its own disks in place of disko's. The backup volume is the empty
+            # disk, with the file system and the options the host declares
+            fileSystems."/srv/backup" = {
+              device = "/dev/vdb";
+              inherit (backup) fsType options;
+              autoFormat = true;
+            };
           };
-        };
+
+          # The subvolumes that disko makes on the backup volume, made on the empty disk before
+          # the units that use them
+          systemd.services.backup-subvolumes = {
+            requiredBy = [ "syncthing.service" ];
+            before = [
+              "syncthing.service"
+              "btrbk-syncthing.service"
+            ];
+            unitConfig.RequiresMountsFor = [ "/srv/backup" ];
+            serviceConfig.Type = "oneshot";
+            path = [ pkgs.btrfs-progs ];
+            script = lib.concatMapStrings (name: ''
+              mkdir -p "$(dirname /srv/backup/${name})"
+              btrfs subvolume create /srv/backup/${name}
+            '') (lib.attrNames config.disko.devices.disk.main.content.partitions.backup.content.subvolumes);
+          };
+        }
+      )
+      (_: {
 
         # sops-nix refuses a key in the store, so activation copies it to the host's path
         # before sops-nix reads it; the installer does the same with the real key

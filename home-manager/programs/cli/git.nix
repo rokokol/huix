@@ -19,6 +19,7 @@
       };
       core.editor = "nvim";
       core.quotepath = "false";
+      init.defaultBranch = "master";
       safe = {
         directory = myWikiDir;
       };

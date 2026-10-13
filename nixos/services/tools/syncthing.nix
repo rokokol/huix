@@ -71,36 +71,12 @@ let
     ConditionPathIsMountPoint = cfg.archive.mountPoint;
   };
 
-  # btrbk names a subvolume by its path inside the volume
+  # btrbk and the disk layout name a subvolume by its path inside the volume
   onVolume = lib.removePrefix "${cfg.archive.mountPoint}/";
 
-  inherit (config.services.syncthing) user group;
+  archived = lib.mapAttrs (name: _: "${cfg.archive.dir}/${name}") folders;
 
-  # Each folder is a subvolume, so that it has snapshots of its own. A folder that is a plain
-  # directory is left alone, and btrbk then fails on it, which mails root. Syncthing's account
-  # can read the snapshots and cannot change them
-  subvolumes = pkgs.writeShellScript "syncthing-archive-subvolumes" ''
-    set -eu
-    PATH=${
-      lib.makeBinPath (
-        with pkgs;
-        [
-          coreutils
-          btrfs-progs
-        ]
-      )
-    }
-    install -d -m 0750 -o ${user} -g ${group} ${lib.escapeShellArg cfg.archive.dir}
-    for folder in ${lib.escapeShellArgs (lib.attrNames folders)}; do
-      path=${lib.escapeShellArg cfg.archive.dir}/$folder
-      if [ ! -e "$path" ]; then
-        btrfs subvolume create "$path"
-        chown ${user}:${group} "$path"
-        chmod 0750 "$path"
-      fi
-    done
-    install -d -m 0750 -o root -g ${group} ${lib.escapeShellArg cfg.archive.snapshotDir}
-  '';
+  inherit (config.services.syncthing) user group;
 in
 {
   options.rokokol.syncthing = {
@@ -134,6 +110,16 @@ in
         type = lib.types.path;
         example = "/srv/backup/snapshots/syncthing";
         description = "Directory of the read-only snapshots of every folder, on the same filesystem";
+      };
+
+      # A running host never makes them: a folder added later comes up as a plain directory,
+      # and btrbk fails on it, which mails root
+      subvolumes = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        readOnly = true;
+        default = map onVolume (lib.attrValues archived ++ [ cfg.archive.snapshotDir ]);
+        defaultText = lib.literalMD "each folder under `dir`, and `snapshotDir`";
+        description = "Subvolumes of the archive, as paths inside `mountPoint`, for the disk layout to make";
       };
     };
   };
@@ -196,7 +182,7 @@ in
 
           settings.folders = lib.mapAttrs (name: folder: {
             inherit (folder) id devices;
-            path = "${cfg.archive.dir}/${name}";
+            path = archived.${name};
             type = "receiveonly";
             ignorePerms = true;
           }) folders;
@@ -214,8 +200,7 @@ in
             volume.${cfg.archive.mountPoint} = {
               snapshot_dir = onVolume cfg.archive.snapshotDir;
               subvolume = lib.mapAttrs' (
-                name: folder:
-                lib.nameValuePair (onVolume "${cfg.archive.dir}/${name}") { snapshot_preserve = folder.preserve; }
+                name: folder: lib.nameValuePair (onVolume archived.${name}) { snapshot_preserve = folder.preserve; }
               ) folders;
             };
           };
@@ -225,8 +210,12 @@ in
 
         systemd.services.syncthing = {
           unitConfig = mountGuard;
-          # Not a tmpfiles rule, for the reason restic-server.nix gives
-          serviceConfig.ExecStartPre = [ "+${subvolumes}" ];
+          # The disk layout makes each folder as root's. Not a tmpfiles rule, for the reason
+          # restic-server.nix gives
+          serviceConfig.ExecStartPre = map (
+            dir:
+            "+${lib.getExe' pkgs.coreutils "install"} -d -m 0750 -o ${user} -g ${group} ${lib.escapeShellArg dir}"
+          ) (lib.attrValues archived);
         };
         systemd.services.syncthing-init.unitConfig = mountGuard;
         systemd.services.btrbk-syncthing.unitConfig = mountGuard;

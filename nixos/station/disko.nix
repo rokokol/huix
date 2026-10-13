@@ -1,4 +1,9 @@
-{ inputs, ... }:
+{
+  config,
+  lib,
+  inputs,
+  ...
+}:
 
 # The whole disk, as the installer creates it and as the system mounts it. The btrfs options
 # are set here and not in rokokol.btrfs.mounts: both write fileSystems.<path>.options, and the
@@ -72,6 +77,8 @@
             type = "btrfs";
             extraArgs = [ "-f" ];
             mountpoint = "/srv/backup";
+            # Unmounted: only btrbk needs them to be subvolumes, to snapshot each one
+            subvolumes = lib.genAttrs config.rokokol.syncthing.archive.subvolumes (_: { });
             mountOptions = [
               "nofail"
               "noatime"
