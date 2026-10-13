@@ -26,7 +26,9 @@ a note that names the nested path
 
 push reads a Pushgateway metrics page on stdin. Every user in HTPASSWD is one expected node,
 which pushes with its own name as the instance label. A node fails when its newest
-push_time_seconds, over every job, is older than MAX_SILENCE (1h), or when it never pushed
+push_time_seconds, over every job, is older than MAX_SILENCE (1h), or when it never pushed.
+A node also fails while the node_problems it pushes, the number of its own unresolved
+problems summed over its jobs, is above zero
 
 Every problem is reported, one line each, and a summary line comes last
 Nothing here reaches the network
@@ -169,26 +171,35 @@ cmd_push() {
 
   # The newest push_time_seconds of each instance, over every job it pushed under. A label
   # value is the text between the quotes after instance=, wherever the label stands
+  # The same for node_problems, the number of problems a node reports of itself, summed over
+  # its jobs: a node whose own alerts go out through the mail node is heard here too
   local pushes
   pushes=$(awk '
-    /^push_time_seconds\{/ && match($0, /instance="[^"]*"/) {
+    match($0, /instance="[^"]*"/) {
       name = substr($0, RSTART + 10, RLENGTH - 11)
-      t = int($NF + 0)
-      if (t > newest[name]) newest[name] = t
+      if (/^push_time_seconds\{/) {
+        t = int($NF + 0)
+        if (t > newest[name]) newest[name] = t
+      } else if (/^node_problems\{/) {
+        reported[name] += int($NF + 0)
+      }
     }
-    END { for (name in newest) print name, newest[name] }
+    END { for (name in newest) print name, newest[name], reported[name] + 0 }
   ')
 
-  local now problems=() pushed
+  local now problems=() pushed reported
   now=$(date +%s)
   for user in "${users[@]}"; do
-    pushed=$(awk -v u="$user" '$1 == u { print $2 }' <<<"$pushes")
+    read -r pushed reported <<<"$(awk -v u="$user" '$1 == u { print $2, $3 }' <<<"$pushes")"
     if [ -z "$pushed" ]; then
       printf 'backup-heartbeat.sh: %s: never pushed\n' "$user" >&2
       problems+=("$user never pushed")
     elif ((now - pushed > max_silence)); then
       printf 'backup-heartbeat.sh: %s: silent for %d min\n' "$user" $(((now - pushed) / 60)) >&2
       problems+=("$user silent")
+    elif ((reported > 0)); then
+      printf 'backup-heartbeat.sh: %s: reports %d problem(s) of its own\n' "$user" "$reported" >&2
+      problems+=("$user reports $reported problem(s)")
     fi
   done
 

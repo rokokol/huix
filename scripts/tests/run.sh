@@ -442,6 +442,18 @@ is "the metrics reader is not an expected node" 0 "$?"
 push htpasswd-alpha /dev/null
 is "an empty page fails every node" 1 "$?"
 
+# A node that pushes on time but reports problems of its own
+cp "$work/pushgateway.prom" "$work/pushgateway-problems.prom"
+printf 'node_problems{instance="alpha",job="node"} 2\n' >>"$work/pushgateway-problems.prom"
+push htpasswd-alpha "$work/pushgateway-problems.prom"
+is "a node that reports problems fails" 1 "$?"
+is "the node with problems is named with their number" yes \
+  "$(grep -q 'alpha.*2 problem' <<<"$beat_out" && echo yes)"
+printf 'node_problems{instance="alpha",job="mail"} 0\n' >"$work/pushgateway-zero.prom"
+cat "$work/pushgateway.prom" >>"$work/pushgateway-zero.prom"
+push htpasswd-alpha "$work/pushgateway-zero.prom"
+is "a node that reports no problem passes" 0 "$?"
+
 bash "$heartbeat" push "$work/htpasswd-alpha" 1x <"$work/pushgateway.prom" >/dev/null 2>&1
 is "a silence limit without a unit it knows is a usage error" 2 "$?"
 
