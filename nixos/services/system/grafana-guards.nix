@@ -255,12 +255,38 @@ panels.dashboard {
         )
       ];
     })
+    (panel {
+      title = "Snapshots of each archived folder";
+      x = 0;
+      y = 45;
+      w = 12;
+      unit = "short";
+      min = 0;
+      shaded = true;
+      queries = [ (query "A" roles.series-1 "btrbk_snapshots{${host}}" "{{host}} {{folder}}") ];
+    })
+    # A folder gets a snapshot only when it changed, so an old newest snapshot of a quiet folder
+    # is no fault, and the panel has no threshold
+    (panel {
+      title = "Age of each folder's newest snapshot";
+      x = 12;
+      y = 45;
+      w = 12;
+      unit = "s";
+      min = 0;
+      shaded = true;
+      queries = [
+        (query "A" roles.series-1 "time() - btrbk_newest_snapshot_timestamp_seconds{${host}}"
+          "{{host}} {{folder}}"
+        )
+      ];
+    })
 
-    (row "Syncthing" null 45)
+    (row "Syncthing" null 53)
     (states {
       title = "Peers";
       x = 0;
-      y = 46;
+      y = 54;
       w = 12;
       expr = "clamp_max(${peers}, 1)";
       legend = "{{host}} {{name}}";
@@ -278,7 +304,7 @@ panels.dashboard {
     (panel {
       title = "What each folder still needs";
       x = 12;
-      y = 46;
+      y = 54;
       w = 12;
       unit = "bytes";
       min = 0;

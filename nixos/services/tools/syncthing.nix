@@ -78,6 +78,22 @@ let
 
   inherit (config.services.syncthing) user group;
 
+  btrbkMetrics = pkgs.writeShellApplication {
+    name = "btrbk-metrics";
+    runtimeInputs = with pkgs; [
+      coreutils
+      gawk
+    ];
+    text = ''
+      exec ${lib.getExe pkgs.bash} ${
+        builtins.path {
+          name = "btrbk-metrics";
+          path = "${inputs.self}/scripts/btrbk-metrics.sh";
+        }
+      } "$@"
+    '';
+  };
+
   # Makes a directory Syncthing's. One that another user left whole, as when the editor changes,
   # becomes Syncthing's whole, or Syncthing could not write a file in it
   own = pkgs.writeShellScript "syncthing-own" ''
@@ -284,7 +300,13 @@ in
           );
         };
         systemd.services.syncthing-init.unitConfig = mountGuard;
-        systemd.services.btrbk-syncthing.unitConfig = mountGuard;
+        systemd.services.btrbk-syncthing = {
+          unitConfig = mountGuard;
+          # The snapshots of each folder for the dashboard, after every run, a failed one too, so
+          # that an archive whose snapshots stopped shows their age growing. As root, since the
+          # textfile directory is root's
+          serviceConfig.ExecStopPost = "+${lib.getExe btrbkMetrics} write ${lib.escapeShellArg cfg.archive.snapshotDir} ${config.rokokol.node-exporter.textfileDir}/btrbk.prom";
+        };
       })
 
       # Each folder ignores what the workstations ignore, through the list they keep inside it.

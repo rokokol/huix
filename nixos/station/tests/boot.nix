@@ -795,6 +795,9 @@ pkgs.testers.runNixOSTest {
             "RAM that zram takes",
             "Peers",
             "What each folder still needs",
+            # The archive subtests above ran btrbk, which writes these after each run
+            "Snapshots of each archived folder",
+            "Age of each folder's newest snapshot",
         },
     }
     for uid, full in filled.items():

@@ -460,6 +460,24 @@ is "a silence limit without a unit it knows is a usage error" 2 "$?"
 bash "$heartbeat" push "$work/htpasswd-empty" 1h <"$work/pushgateway.prom" >/dev/null 2>&1
 is "a push check with no node is a usage error" 2 "$?"
 
+# btrbk-metrics.sh, over snapshot names as btrbk's long timestamp format writes them
+btrbk_metrics=$SCRIPTS/btrbk-metrics.sh
+snaps=$work/snapshots
+mkdir -p "$snaps/myWiki.20261013T1815" "$snaps/myWiki.20261013T1830" "$snaps/claude-shared.20261013T1800"
+mkdir -p "$snaps/.partial.20261013T1900"
+touch "$snaps/notes"
+TZ=UTC bash "$btrbk_metrics" write "$snaps" "$work/metrics/btrbk.prom" >/dev/null 2>&1
+is "the snapshot metrics are written" 0 "$?"
+is "each folder counts its own snapshots" "claude-shared 1|myWiki 2" \
+  "$(sed -nE 's/^btrbk_snapshots\{folder="([^"]+)"\} ([0-9]+)$/\1 \2/p' "$work/metrics/btrbk.prom" | sort | paste -sd'|' -)"
+is "the newest snapshot of a folder is its latest timestamp" "$(TZ=UTC date -d '2026-10-13 18:30' +%s)" \
+  "$(sed -nE 's/^btrbk_newest_snapshot_timestamp_seconds\{folder="myWiki"\} ([0-9]+)$/\1/p' "$work/metrics/btrbk.prom")"
+is "a name that is no snapshot is left out" "" "$(grep -E 'notes|partial' "$work/metrics/btrbk.prom")"
+TZ=UTC bash "$btrbk_metrics" write "$work/no-such-snapshots" "$work/metrics/btrbk.prom" >/dev/null 2>&1
+is "a missing snapshot directory is a failure" 1 "$?"
+bash "$btrbk_metrics" write "$snaps" >/dev/null 2>&1
+is "btrbk-metrics without a file is a usage error" 2 "$?"
+
 # alert.sh, with its state in a temporary directory. The mailer stub keeps each message, the
 # curl stub stands for the Telegram Bot API, and the notify stub for the agent
 alert=$SCRIPTS/alert.sh
