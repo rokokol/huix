@@ -216,7 +216,9 @@ in
         LoadCredential = "owner-chat-id:${config.sops.secrets."telegram-owner-chat-id".path}";
 
         # Of the archive's volume, the folders alone; of the homes, the session's own, also
-        # under the owner's name. Syncthing's key and API key stay out of sight as well
+        # under the owner's name. Syncthing's key and API key stay out of sight as well. Syncthing
+        # runs as the same user, so /proc/PID/root would show its files; the PrivateUsers of the
+        # nixpkgs unit is what shuts that path, and the boot test checks it
         ProtectSystem = "strict";
         ProtectHome = "tmpfs";
         PrivateTmp = true;
