@@ -880,6 +880,27 @@ pkgs.testers.runNixOSTest {
         assert result == "success", f"{alert} ended with {result}"
         station.succeed("systemctl reset-failed backup-heartbeat.service")
 
+    with subtest("a smartd alert raised while the relay is down arrives once it is up"):
+        # smartd is off in the VM, so its mailer is called the way smartd calls it
+        mailer = "${station.config.services.smartd.notifications.mail.mailer}"
+        subject = "smartd probe of a failing disk"
+        router.succeed("curl -sf -X DELETE http://127.0.0.1:8025/api/v1/messages")
+        router.succeed("systemctl stop mailpit-trap.service")
+        # The subtest above logged a retry of its own, so the journal is read from here on
+        since = station.succeed("date +%s").strip()
+        # smartd waits for its mailer, so the mailer hands the mail off and returns at once
+        station.succeed(f"printf 'To: root\\nSubject: {subject}\\n\\nprobe\\n' | timeout 10 {mailer} -i root")
+        station.wait_until_succeeds(
+            f"journalctl --since @{since} | grep -qF 'next try in'", timeout=timedelta(minutes=1)
+        )
+        router.succeed("systemctl start mailpit-trap.service")
+        router.wait_for_open_port(1025)
+        router.wait_until_succeeds(
+            "curl -s http://127.0.0.1:8025/api/v1/messages"
+            f" | grep -qE '{subject} \\(attempt [2-9], [0-9]+ min late\\)'",
+            timeout=timedelta(minutes=3),
+        )
+
     with subtest("the backup volume is btrfs, mounted with the host's options"):
         station.succeed("findmnt -no FSTYPE /srv/backup | grep -qx btrfs")
         station.succeed("findmnt -no OPTIONS /srv/backup | tr , '\\n' | grep -qx noatime")
