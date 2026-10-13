@@ -43,6 +43,7 @@ let
     inherit (station.config.users.users.${user}) home;
     inherit (station.config.rokokol.claude-agent) notify;
     stateDir = station.config.systemd.services.claude-agent.environment.TELEGRAM_STATE_DIR;
+    workDir = station.config.systemd.services.claude-agent.environment.HOME;
     ownerChatId = "1234567";
 
     # What the session can reach, typed into it as a command. Each line is a name and yes or no;
@@ -657,6 +658,15 @@ pkgs.testers.runNixOSTest {
         assert access["dmPolicy"] == "allowlist", f"the bot's direct messages are {access['dmPolicy']}"
         assert access["allowFrom"] == ["${agent.ownerChatId}"], f"the bot answers {access['allowFrom']}"
         station.succeed("test $(stat -c %U ${agent.stateDir}/access.json) = ${agent.user}")
+
+    # Claude Code keeps no answer given for a home directory, so a session there would ask again
+    with subtest("the session's directory is trusted from the start, so no session waits on the question"):
+        conf = "${agent.home}/.claude/.claude.json"
+        station.succeed(f"runuser -u ${agent.user} -- sh -c 'echo {{}} >{conf}'")
+        station.succeed(f"systemctl restart {agent_unit}")
+        station.wait_for_unit(agent_unit)
+        trusted = station.succeed(f"{jq} '.projects[\"${agent.workDir}\"].hasTrustDialogAccepted' {conf}").strip()
+        assert trusted == "true", f"the session's directory is trusted: {trusted}"
 
     with subtest("notify types its text into the session as it is"):
         # Quotes, a separator and a variable reach the session unchanged

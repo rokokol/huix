@@ -13,8 +13,9 @@ let
   cfg = config.rokokol.claude-agent;
   account = config.home-manager.users.${cfg.user}.programs.claude-account;
 
-  # The home as the session sees it
+  # The directory the session works in, and a path under the home as the session names it
   sessionHome = if cfg.homeAlias != null then cfg.homeAlias else cfg.home;
+  inSession = path: sessionHome + lib.removePrefix cfg.home path;
   socket = "/run/claude-agent/tmux";
   stateDir = "${cfg.home}/.local/state/claude-telegram";
   tmuxCmd = "${lib.getExe pkgs.tmux} -S ${socket}";
@@ -41,6 +42,15 @@ let
         ${lib.getExe account.package} add agent
       fi
       ${lib.getExe account.package} use agent
+    fi
+    # The directory the session works in is trusted, so no session waits on the question. Claude
+    # Code keeps no answer given for a home directory, so the question came back each time. The
+    # file is there from the first login on
+    conf=${account.claudeDir}/.claude.json
+    if [ -e "$conf" ]; then
+      ${lib.getExe pkgs.jq} --arg dir ${sessionHome} '.projects[$dir].hasTrustDialogAccepted = true' \
+        "$conf" >"$conf.tmp"
+      mv "$conf.tmp" "$conf"
     fi
     # The owner's direct messages only, so the bot never offers pairing to a stranger. Later
     # changes are the access skill's, and are kept
@@ -223,7 +233,8 @@ in
       ];
       environment = {
         HOME = sessionHome;
-        CLAUDE_CONFIG_DIR = account.claudeDir;
+        # What Claude Code writes into the shared state names the paths the session uses
+        CLAUDE_CONFIG_DIR = inSession account.claudeDir;
         TELEGRAM_STATE_DIR = stateDir;
       };
       unitConfig = {
