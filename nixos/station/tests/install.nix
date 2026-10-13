@@ -101,11 +101,11 @@ let
   layout = lib.mapAttrsToList (_: part: {
     inherit (part) label size;
     fstype = if part.content.type == "filesystem" then part.content.format else part.content.type;
-    mountpoints =
-      if part.content ? subvolumes then
-        lib.mapAttrsToList (_: sub: sub.mountpoint) part.content.subvolumes
-      else
-        [ part.content.mountpoint ];
+    # The volume itself and each subvolume that has a mountpoint
+    mountpoints = lib.filter (mountpoint: mountpoint != null) (
+      [ (part.content.mountpoint or null) ]
+      ++ lib.mapAttrsToList (_: sub: sub.mountpoint) (part.content.subvolumes or { })
+    );
   }) disk.content.partitions;
 in
 assert lib.assertMsg (
