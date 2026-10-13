@@ -13,6 +13,7 @@ alert.sh — keep the open problems of this host, and tell the owner when one op
   alert.sh raise [-q] KEY SUBJECT < BODY   open a problem, or update the one open under KEY
   alert.sh clear KEY                       close the problem open under KEY
   alert.sh sync SOURCE FILE                make the problems under SOURCE:… the causes in FILE
+  alert.sh deliver FILE                    send a message that waits in the outbox
   alert.sh reconcile                       close each unit problem whose unit recovered, and
                                            open or close the reboot problem
   alert.sh digest                          mail every open problem, when there is one
@@ -43,6 +44,10 @@ Environment:
                        while either cannot be read, only the mail goes
   ALERT_NOTIFY         the command that hands one line of text to the agent; empty means none
   ALERT_METRICS        a file for the open problems as Prometheus text; empty means none
+  ALERT_SPAWN          the command that starts "deliver FILE" apart, given FILE; empty means
+                       each message is sent in place. With it, a message waits in
+                       $ALERT_STATE/outbox until its delivery ends, and reconcile hands on one
+                       that a reboot left there
   ALERT_BOOTED, ALERT_CURRENT  the booted and current system (default /run/booted-system and
                        /run/current-system)
 Exit 0 done, 1 when the state cannot be written, 2 on a usage error
@@ -106,14 +111,33 @@ write_metrics() {
   mv -f -- "$tmp" "$ALERT_METRICS"
 }
 
-# send SUBJECT BODY — mail, Telegram and the agent. A channel that fails is reported and the
-# others still go. Telegram retries for ten minutes beside the mail, which may retry for a day,
-# so neither one waits for the other
+# send SUBJECT BODY [ASK] — with a spawner, the message goes to the outbox as a file and the
+# spawner starts its delivery apart, so a mail that waits a day for its relay holds up no other
+# alert; without one it is delivered here. ASK 1 asks the agent to look into the problem
 send() {
-  local subject=$1 body=$2
+  if [ -z "${ALERT_SPAWN:-}" ]; then
+    deliver_now "$1" "$2" "${3:-0}"
+    return
+  fi
+  local file
+  mkdir -p -- "$state/outbox"
+  file=$(mktemp "$state/outbox/XXXXXXXX")
+  printf '%s\n%s\n%s\n' "$1" "${3:-0}" "$2" >"$file"
+  $ALERT_SPAWN "$file" || printf 'alert.sh: the delivery did not start: %s\n' "$1" >&2
+}
+
+# deliver_now SUBJECT BODY ASK — Telegram, the agent and the mail. A channel that fails is
+# reported and the others still go. Telegram retries for ten minutes beside the mail, which may
+# retry for a day, so neither one waits for the other
+deliver_now() {
+  local subject=$1 body=$2 ask=$3 note
   telegram "$subject" "$body" &
   if [ -n "${ALERT_NOTIFY:-}" ]; then
-    "$ALERT_NOTIFY" "$subject" || printf 'alert.sh: the agent did not take: %s\n' "$subject" >&2
+    note=$subject
+    if [ "$ask" = 1 ]; then
+      note+=" — look into it with the station-health skill and tell the owner what you found"
+    fi
+    "$ALERT_NOTIFY" "$note" || printf 'alert.sh: the agent did not take: %s\n' "$subject" >&2
   fi
   {
     printf 'To: root\n'
@@ -191,7 +215,7 @@ raise() {
   body=$(cat)
   with_lock open_key "$q" "$1" "$2" "$body"
   if ((opened && !q)); then
-    send "$2" "$body"
+    send "$2" "$body" 1
   fi
 }
 
@@ -256,7 +280,14 @@ cmd_sync() {
 cmd_reconcile() {
   (($# == 0)) || die "reconcile takes nothing"
   setup
-  local dir key unit active result
+  local dir key unit active result file
+  # A message whose delivery a reboot cut short is handed on again
+  if [ -n "${ALERT_SPAWN:-}" ]; then
+    for file in "$state/outbox"/*; do
+      [ -f "$file" ] || continue
+      $ALERT_SPAWN "$file" || printf 'alert.sh: the delivery did not start: %s\n' "$file" >&2
+    done
+  fi
   for dir in "$state/open"/unit:*; do
     [ -d "$dir" ] || continue
     key=${dir##*/}
@@ -308,6 +339,24 @@ cmd_digest() {
   } | $ALERT_MAIL
 }
 
+# A delivery holds a lock on its file, so a message that a reconcile hands on again while it is
+# still on its way is not sent twice
+cmd_deliver() {
+  (($# == 1)) || die "deliver takes FILE"
+  setup
+  local file=$1 subject ask body
+  [ -r "$file" ] || fail "cannot read $file"
+  exec 8<"$file"
+  flock -n 8 || return 0
+  {
+    IFS= read -r subject
+    IFS= read -r ask
+    body=$(cat)
+  } <&8
+  deliver_now "$subject" "$body" "$ask"
+  rm -f -- "$file"
+}
+
 cmd_list() {
   (($# == 0)) || die "list takes nothing"
   [ -n "$state" ] || die "ALERT_STATE is not set"
@@ -325,6 +374,7 @@ case "$cmd" in
   raise) cmd_raise "$@" ;;
   clear) cmd_clear "$@" ;;
   sync) cmd_sync "$@" ;;
+  deliver) cmd_deliver "$@" ;;
   reconcile) cmd_reconcile "$@" ;;
   digest) cmd_digest "$@" ;;
   list) cmd_list "$@" ;;

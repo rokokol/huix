@@ -556,6 +556,7 @@ is "a new problem is raised" 0 "$alert_status"
 logged "a new problem is mailed" '^mail ' 'Subject: beat\.service failed'
 logged "a new problem goes to Telegram" '^curl ' 'telegram\.test/botbot-token/sendMessage' 'chat_id=42' 'beat\.service failed'
 logged "a new problem goes to the agent" '^notify ' 'beat\.service failed'
+logged "the agent is asked to look into a new problem" '^notify ' 'beat\.service failed' 'station-health'
 is "the problem is open" "unit:beat.service" "$(listed)"
 is "the open problem is in the metrics with the time it opened" yes \
   "$(grep -Eq '^alert_open_since_seconds\{key="unit:beat.service"\} [0-9]+$' "$ALERT_METRICS" && echo yes)"
@@ -643,6 +644,33 @@ is "a missing Telegram secret does not fail the alert" 0 "$alert_status"
 not_logged "a missing Telegram secret sends nothing to Telegram" '^curl '
 logged "a missing Telegram secret still lets the mail go" '^mail ' 'z\.service failed'
 bash "$alert" clear unit:z.service >/dev/null 2>&1
+
+# With a spawner each message waits in the outbox for a delivery of its own, so a mail that
+# waits for its relay holds up no other alert
+cat >"$work/bin/alert-spawn" <<'EOF'
+#!/usr/bin/env bash
+printf 'spawn %s\n' "$*" >>"$STUB_LOG"
+EOF
+sed -i "1s|.*|#!$BASH|" "$work/bin/alert-spawn"
+chmod +x "$work/bin/alert-spawn"
+reset_log
+ALERT_SPAWN=$work/bin/alert-spawn raise unit:s.service "s.service failed"
+logged "a spawner takes the message" '^spawn ' 'outbox'
+not_logged "a spawned message is not sent in place" '^(mail|curl|notify) '
+outbox=$(ls "$ALERT_STATE"/outbox/*)
+is "the outbox holds the subject on its first line" "s.service failed" "$(head -n 1 "$outbox")"
+reset_log
+STUB_ACTIVE_STATE=failed STUB_RESULT=exit-code ALERT_SPAWN=$work/bin/alert-spawn \
+  bash "$alert" reconcile >/dev/null 2>&1
+logged "a reconcile hands on a message left in the outbox" '^spawn ' "$outbox"
+reset_log
+flock "$outbox" bash "$alert" deliver "$outbox" >/dev/null 2>&1
+not_logged "a message another delivery holds is not sent twice" '^(mail|curl|notify) '
+bash "$alert" deliver "$outbox" >/dev/null 2>&1
+logged "a delivery sends the message" '^mail ' 'Subject: s\.service failed'
+logged "a delivery tells Telegram" '^curl ' 's\.service failed'
+is "a delivered message leaves the outbox" "" "$(ls "$ALERT_STATE"/outbox/)"
+bash "$alert" clear unit:s.service >/dev/null 2>&1
 
 # sync opens a problem for each cause a check lists and closes each one it no longer lists
 printf 'pc-silent\tpc is silent\nmail-missing\tmail has no snapshot\n' >"$work/causes"

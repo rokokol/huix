@@ -1093,16 +1093,28 @@ pkgs.testers.runNixOSTest {
         sent = json.loads(mails())["messages"]
         assert len(sent) == 2, f"the second run sent mail again: {[m['Subject'] for m in sent]}"
 
-    with subtest("an alert waits for a relay that is down and arrives once it is up"):
+    with subtest("a mail that waits for its relay holds up neither Telegram nor the next alert"):
         alert = "alert-mail@alert-probe.service.service"
         # The mail of the subtest above would match the search below on its own
         router.succeed("curl -sf -X DELETE http://127.0.0.1:8025/api/v1/messages")
         assert "alert-probe" not in mails(), "the mailbox kept the earlier alert"
+        router.succeed(": >/var/lib/fake-telegram/requests")
         router.succeed("systemctl stop mailpit-trap.service")
+        since = station.succeed("date +%s").strip()
         station.fail("systemctl start alert-probe.service")
-        station.wait_until_succeeds(f"journalctl -u {alert} | grep -qF 'next try in'", timeout=timedelta(minutes=1))
-        state = station.succeed(f"systemctl show -P ActiveState {alert}").strip()
-        assert state == "activating", f"{alert} gave up while the relay was down: {state}"
+        station.wait_until_succeeds(
+            f"journalctl --since @{since} | grep -qF 'next try in'", timeout=timedelta(minutes=1)
+        )
+        # The unit that raised the alert is done; the mail waits in a delivery of its own
+        station.wait_until_succeeds(f"test $(systemctl show -P ActiveState {alert}) = inactive", timeout=timedelta(minutes=1))
+        assert (result := station.succeed(f"systemctl show -P Result {alert}").strip()) == "success", f"{alert} ended with {result}"
+        station.succeed("test -n \"$(ls /var/lib/alerts/outbox)\"")
+        # Telegram has the first alert, and a second one, while the first mail still waits
+        station.succeed("echo 'second' | alert raise probe:second '[nixos-station] a second probe'")
+        for subject in ["alert-probe.service failed", "a second probe"]:
+            router.wait_until_succeeds(
+                f"grep -qF {shlex.quote(subject)} /var/lib/fake-telegram/requests", timeout=timedelta(minutes=1)
+            )
         router.succeed("systemctl start mailpit-trap.service")
         router.wait_for_open_port(1025)
         # The subject says which try got through and how late the alert is
@@ -1111,9 +1123,8 @@ pkgs.testers.runNixOSTest {
             " | grep -qE '\\[nixos-station\\] alert-probe.service failed \\(attempt [2-9], [0-9]+ min late\\)'",
             timeout=timedelta(minutes=3),
         )
-        station.wait_until_succeeds(f"test $(systemctl show -P ActiveState {alert}) = inactive", timeout=timedelta(minutes=1))
-        result = station.succeed(f"systemctl show -P Result {alert}").strip()
-        assert result == "success", f"{alert} ended with {result}"
+        station.wait_until_succeeds("test -z \"$(ls /var/lib/alerts/outbox)\"", timeout=timedelta(minutes=3))
+        station.succeed("alert clear probe:second")
         station.succeed("systemctl reset-failed alert-probe.service")
 
     with subtest("the digest lists the open problems, quiet ones too, and says nothing when none is"):

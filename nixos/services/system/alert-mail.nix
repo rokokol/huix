@@ -63,25 +63,38 @@ let
 
   # The registry of open problems, scripts/alert.sh, with its environment. The aliases file maps
   # root to the real address, so the address is not in the store
-  alert = pkgs.writeShellApplication {
-    name = "alert";
-    runtimeInputs = with pkgs; [
-      coreutils
-      curl
-      util-linux
-      config.systemd.package
-    ];
-    text = ''
-      export ALERT_STATE=${stateDir}
-      export ALERT_MAIL="${lib.getExe sendmailRetry} -i -t"
-      export ALERT_TELEGRAM_API=${lib.optionalString cfg.telegram.enable cfg.telegram.api}
-      export ALERT_TELEGRAM_TOKEN=${telegramSecret "telegram-bot-token"}
-      export ALERT_TELEGRAM_CHAT=${telegramSecret "telegram-owner-chat-id"}
-      export ALERT_NOTIFY=${lib.optionalString (cfg.notify != null) cfg.notify}
-      export ALERT_METRICS=${config.rokokol.node-exporter.textfileDir}/alerts.prom
-      exec ${lib.getExe pkgs.bash} ${alertScript} "$@"
-    '';
-  };
+  alertWith =
+    name: extra: command:
+    pkgs.writeShellApplication {
+      inherit name;
+      runtimeInputs = with pkgs; [
+        coreutils
+        curl
+        util-linux
+        config.systemd.package
+      ];
+      text = ''
+        export ALERT_STATE=${stateDir}
+        export ALERT_MAIL="${lib.getExe sendmailRetry} -i -t"
+        export ALERT_TELEGRAM_API=${lib.optionalString cfg.telegram.enable cfg.telegram.api}
+        export ALERT_TELEGRAM_TOKEN=${telegramSecret "telegram-bot-token"}
+        export ALERT_TELEGRAM_CHAT=${telegramSecret "telegram-owner-chat-id"}
+        export ALERT_NOTIFY=${lib.optionalString (cfg.notify != null) cfg.notify}
+        export ALERT_METRICS=${config.rokokol.node-exporter.textfileDir}/alerts.prom
+        ${extra}
+        exec ${lib.getExe pkgs.bash} ${alertScript} ${command}
+      '';
+    };
+
+  # Sends one message from the outbox, in a transient unit of its own
+  alertDeliver = alertWith "alert-deliver" "" ''deliver "$@"'';
+
+  # Each message leaves in a unit of its own, so a mail that waits a day for its relay holds up
+  # neither Telegram nor the next alert. The unit is lost on a reboot, and the reconcile hands
+  # the message on again
+  alert = alertWith "alert" ''
+    export ALERT_SPAWN="systemd-run --quiet --no-block --collect --description=Deliver_an_alert ${lib.getExe alertDeliver}"
+  '' ''"$@"'';
 
   alertScript = builtins.path {
     name = "alert";
