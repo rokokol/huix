@@ -698,6 +698,19 @@ pkgs.testers.runNixOSTest {
         station.wait_until_succeeds(f"grep -qx fresh {agent_home}/fresh", timeout=timedelta(seconds=30))
         assert station.succeed(f"systemctl show -P ActiveState {agent_unit}").strip() == "active"
 
+    with subtest("the archive ignores what the workstations ignore, once their list arrives"):
+        # Until then the folder runs: an include of a missing file would stop it
+        station.fail(f"test -e {on_station}/.stignore")
+        state = st(station, "GET", "db/status?folder=${syncthing.id}")
+        assert state["state"] != "error", f"the folder stopped: {state.get('error')}"
+        as_syncthing(pc, f"echo ignored.md >{on_pc}/.stignore-shared")
+        station.wait_until_succeeds(
+            f"grep -qx '#include .stignore-shared' {on_station}/.stignore", timeout=timedelta(minutes=2)
+        )
+        as_syncthing(station, f"echo local >{on_station}/ignored.md && echo local >{on_station}/sent.md")
+        pc.wait_until_succeeds(f"test -e {on_pc}/sent.md", timeout=timedelta(minutes=2))
+        pc.fail(f"test -e {on_pc}/ignored.md")
+
     with subtest("a site answers the tailnet ranges, and nginx refuses every other address"):
         station.wait_for_unit("nginx.service")
         station.wait_for_unit("tailnet-web-probe.service")

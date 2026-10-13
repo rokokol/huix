@@ -286,6 +286,38 @@ in
         systemd.services.syncthing-init.unitConfig = mountGuard;
         systemd.services.btrbk-syncthing.unitConfig = mountGuard;
       })
+
+      # Each folder ignores what the workstations ignore, through the list they keep inside it.
+      # The include waits for the list to arrive: Syncthing stops a folder whose include is missing
+      (lib.mkIf cfg.archive.enable {
+        systemd.paths = lib.mapAttrs' (
+          name: dir:
+          lib.nameValuePair "syncthing-ignores-${name}" {
+            wantedBy = [ "multi-user.target" ];
+            pathConfig.PathExists = "${dir}/.stignore-shared";
+          }
+        ) archived;
+
+        systemd.services = lib.mapAttrs' (
+          name: dir:
+          lib.nameValuePair "syncthing-ignores-${name}" {
+            unitConfig = mountGuard;
+            # Once it has run, the path stays and must not start it again
+            serviceConfig = {
+              Type = "oneshot";
+              RemainAfterExit = true;
+              User = user;
+              Group = group;
+            };
+            # A list the owner put there by hand is kept
+            script = ''
+              if [ ! -e ${lib.escapeShellArg dir}/.stignore ]; then
+                echo '#include .stignore-shared' >${lib.escapeShellArg dir}/.stignore
+              fi
+            '';
+          }
+        ) archived;
+      })
     ]
   );
 }
