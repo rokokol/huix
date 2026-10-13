@@ -26,6 +26,10 @@ let
 
   settings = pkgs.writeText "claude-agent-settings.json" (
     builtins.toJSON {
+      # Fewer of the subscription's tokens than the shared settings' model; this file outranks it
+      model = "sonnet";
+      # The home's links lead there, and Claude Code judges a file by the path it resolves to
+      permissions.additionalDirectories = lib.attrValues archive.folders;
       enabledPlugins = {
         # The owner keeps it on the workstations only
         "cc-plugin-you-should-know@builtin" = false;
