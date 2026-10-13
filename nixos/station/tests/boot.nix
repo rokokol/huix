@@ -1076,8 +1076,13 @@ pkgs.testers.runNixOSTest {
         assert "unit:alert-probe.service" not in station.succeed("alert list"), "the problem stayed open"
 
     with subtest("each backup problem is an alert of its own, sent once"):
-        # The VM's one node never pushed, and its backup volume is small: two causes
+        # The VM's one node never pushed, and its backup volume is small: two causes. An hourly
+        # run may have opened them already, so the list is emptied and its causes closed first
+        causes = "${station.config.rokokol.backup-heartbeat.causesFile}"
         station.succeed("systemctl stop backup-heartbeat.timer")
+        station.succeed(f"if [ -e {causes} ]; then : >{causes}; fi")
+        station.succeed("systemctl start alert-reconcile.service")
+        station.fail("alert list | grep '^backup:'")
         router.succeed("curl -sf -X DELETE http://127.0.0.1:8025/api/v1/messages")
         station.succeed("systemctl start backup-heartbeat.service")
         for subject in ["the backup of pc has no snapshot", "free for the backups"]:
