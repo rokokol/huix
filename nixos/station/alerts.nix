@@ -56,13 +56,16 @@ in
     inherit (config.rokokol.claude-agent) notify;
   };
 
-  # The agent reads the open problems and the metrics through the skill in health-plugin. It
-  # gets no journal group: the body of each problem carries the journal lines of its unit, and
-  # the whole system journal would reach the model's context
-  rokokol.claude-agent.plugins = [
-    (builtins.path {
-      name = "station-health-plugin";
-      path = "${inputs.self}/nixos/station/health-plugin";
-    })
-  ];
+  # The agent reads the open problems, the metrics and the journal of every unit through the
+  # skill in health-plugin. The journal of the whole host reaches the model's context that way,
+  # which the owner accepts
+  rokokol.claude-agent = {
+    extraGroups = [ "systemd-journal" ];
+    plugins = [
+      (builtins.path {
+        name = "station-health-plugin";
+        path = "${inputs.self}/nixos/station/health-plugin";
+      })
+    ];
+  };
 }

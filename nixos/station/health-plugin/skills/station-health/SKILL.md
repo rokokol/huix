@@ -13,7 +13,7 @@ Every source here is read-only for you. Never restart, reset or clear anything w
 
 - The body of a problem, with the unit's status and its last journal lines when it is a unit, is `/var/lib/alerts/open/<key>/body`
 - The history of every problem is `/var/lib/alerts/journal`: time, `OPEN`, `UPDATE` or `RESOLVED`, key, subject, separated by tabs. A problem that opens and closes again and again is the thing to report, even when nothing is open now
-- A key `unit:<name>` is a failed unit: read `systemctl status <name>` and the body. The reboot key is quiet: it means a new kernel waits for a reboot, which only the owner decides
+- A key `unit:<name>` is a failed unit: read `systemctl status <name>`, the body, and `journalctl -u <name> -n 200` when the body's lines are too few. The reboot key is quiet: it means a new kernel waits for a reboot, which only the owner decides
 
 ## Metrics
 
