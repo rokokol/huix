@@ -120,12 +120,18 @@ in
     };
 
     # The device ID is a hash of the certificate, so a key and certificate kept outside the host
-    # survive its reinstall, and `deviceId` stays true. Off until both are in sops, or the
-    # activation fails on the missing keys
-    keyFromSops = lib.mkEnableOption ''
-      the device's key and certificate from the sops secrets syncthing-key-<host> and
-      syncthing-cert-<host>, in the host's default sops file
-    '';
+    # survive its reinstall, and `deviceId` stays true. A host that names its ID keeps its key
+    # in sops for that reason; a new host turns this off until its key is there, or the
+    # activation fails on the missing secret
+    keyFromSops =
+      lib.mkEnableOption ''
+        the device's key and certificate from the sops secrets syncthing-key-<host> and
+        syncthing-cert-<host>, in the host's default sops file
+      ''
+      // {
+        default = cfg.deviceId != null;
+        defaultText = lib.literalExpression "config.rokokol.syncthing.deviceId != null";
+      };
 
     archive = {
       enable = lib.mkEnableOption "a receive-only copy of every folder, with the old versions of its files";

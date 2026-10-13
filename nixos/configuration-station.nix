@@ -19,7 +19,7 @@ in
       dataDir = "${backup}/restic";
     };
     syncthing = {
-      # Made by the station's Syncthing at its first start; a reinstall makes a new one
+      # Made by the station's Syncthing at its first start; its key in sops keeps it
       deviceId = "6CQJLFE-TE77FII-NTQQIOX-XKDOALI-WFDZU4D-SJLMJ62-MUMN5S4-KSPMJQV";
       archive = {
         enable = true;
