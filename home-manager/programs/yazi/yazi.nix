@@ -19,6 +19,7 @@
         mount
         piper
         sudo
+        time-travel
         toggle-pane
         ;
       # vim counts (5j, 3gg) and numbered lines as in nixvim: the hovered line shows its own

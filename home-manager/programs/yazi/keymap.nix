@@ -32,6 +32,7 @@ let
     a = "Archive";
     f = "Find";
     g = "Git";
+    h = "Snapshots";
     n = "Name";
     s = "Sort";
     t = "Terminals";
@@ -250,6 +251,12 @@ in
         (bind (leader "uP") "plugin toggle-pane min-parent" "Parent pane")
 
         (bind (leader "gg") "shell --block lazygit" "LazyGit")
+
+        # The same folder in a btrfs or ZFS snapshot. On btrfs the plugin lists the snapshots
+        # through sudo and asks for the password when sudo has none cached
+        (bind (leader "hh") "plugin time-travel prev" "Older snapshot")
+        (bind (leader "hl") "plugin time-travel next" "Newer snapshot")
+        (bind (leader "he") "plugin time-travel exit" "Back to the live folder")
 
         # compress.yazi asks for the archive's name and suggests one
         (bind (leader "az") (onSelection "plugin compress zip") "Pack into zip")
