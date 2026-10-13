@@ -7,6 +7,17 @@
 # directory, and that module enables itself only where the thing exists
 let
   dir = config.rokokol.node-exporter.textfileDir;
+
+  # The units whose failure raises an alert, so the dashboard shows their states beside the
+  # alerts. The host lists them once, in OnFailure; a template unit stands for its instances
+  watched = lib.attrNames (
+    lib.filterAttrs (
+      _: service: lib.hasInfix "alert-mail@" (toString (service.unitConfig.OnFailure or ""))
+    ) config.systemd.services
+  );
+  unitPattern = lib.concatMapStringsSep "|" (
+    name: if lib.hasSuffix "@" name then "${lib.escapeRegex name}.+" else lib.escapeRegex name
+  ) watched;
 in
 {
   options.rokokol.node-exporter.textfileDir = lib.mkOption {
@@ -21,7 +32,14 @@ in
   config = {
     services.prometheus.exporters.node = {
       enable = true;
-      extraFlags = [ "--collector.textfile.directory=${dir}" ];
+      enabledCollectors = lib.optional (watched != [ ]) "systemd";
+      extraFlags = [
+        "--collector.textfile.directory=${dir}"
+      ]
+      # A timer of the same name gives the time of the last run, as of a scrub
+      ++ lib.optional (
+        watched != [ ]
+      ) "--collector.systemd.unit-include=(${unitPattern})\\.(service|timer)";
     };
 
     systemd.tmpfiles.rules = [ "d ${dir} 0755 root root -" ];

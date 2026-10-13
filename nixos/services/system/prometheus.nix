@@ -49,7 +49,19 @@ in
       listenAddress = "127.0.0.1";
       retentionTime = cfg.retention;
       globalConfig.scrape_interval = "30s";
-      scrapeConfigs = lib.filter (job: job.static_configs != [ ]) (map job exporters);
+      scrapeConfigs =
+        lib.filter (job: job.static_configs != [ ]) (map job exporters)
+        # Syncthing of this host serves its own metrics on its GUI address, without a login
+        # on loopback: the peers it reaches and how far each folder is from the others
+        ++ lib.optional config.services.syncthing.enable {
+          job_name = "syncthing";
+          static_configs = [
+            {
+              targets = [ config.services.syncthing.guiAddress ];
+              labels.host = config.networking.hostName;
+            }
+          ];
+        };
     };
   };
 }

@@ -37,12 +37,11 @@ in
 
     metricsFile = lib.mkOption {
       type = lib.types.nullOr lib.types.path;
-      default = null;
-      example = "/var/lib/prometheus-node-exporter-text-files/backup.prom";
+      default = "/run/${user}/backup.prom";
       description = ''
-        File for the newest snapshot time of each repository as Prometheus text metrics,
-        read by a node_exporter textfile collector. A tmpfiles rule makes the directory
-        that holds it, owned by the user this check runs as
+        File for the newest snapshot time of each repository as Prometheus text metrics, or
+        null for none. A tmpfiles rule makes the directory that holds it, owned by the user
+        this check runs as, and links the file into the textfile directory of node_exporter
       '';
     };
   };
@@ -64,9 +63,12 @@ in
     };
     users.groups.${user} = { };
 
-    systemd.tmpfiles.rules = lib.optional (
-      cfg.metricsFile != null
-    ) "d ${dirOf cfg.metricsFile} 0755 ${user} ${user} -";
+    # The textfile directory is root's, and the check writes beside its file before it renames
+    # it over the old one, so the file lives in a directory of its own and is linked
+    systemd.tmpfiles.rules = lib.optionals (cfg.metricsFile != null) [
+      "d ${dirOf cfg.metricsFile} 0755 ${user} ${user} -"
+      "L+ ${config.rokokol.node-exporter.textfileDir}/backup.prom - - - - ${cfg.metricsFile}"
+    ];
 
     # No mount dependency and no mount condition: without the filesystem, the check runs and
     # its output names the missing data. A condition would skip the check in silence

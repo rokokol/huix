@@ -1,126 +1,19 @@
 {
-  lib,
   roles,
+  panels,
   criticalTemperature,
-  datasource,
 }:
 
-# The dashboard of the hosts, as Grafana's JSON model: a row of each host with its CPU, memory,
-# swap traffic, CPU temperature and disks, and a row of each host that has a GPU. Every colour is
-# a role of ddlc-themes, and the temperature turns to danger where waybar does. Grafana keeps one
-# colour per series whatever its theme, so the colours are the dark roles and the UI is dark too.
-# No series takes series-2: it is the red of danger, and a plain line in it reads as an alarm
+# The dashboard of the hosts: a row of each host with its CPU, memory, swap traffic, CPU
+# temperature and disks, and a row of each host that has a GPU. The temperature turns to danger
+# where waybar does
 let
-  ds = {
-    type = "prometheus";
-    uid = datasource;
-  };
-
-  fixed = color: {
-    mode = "fixed";
-    fixedColor = color;
-  };
-
-  # One series of a query; its colour stays fixed, so a host looks the same on every visit
-  query = refId: color: expr: legend: {
-    target = {
-      inherit refId expr;
-      datasource = ds;
-      legendFormat = legend;
-    };
-    override = {
-      matcher = {
-        id = "byFrameRefID";
-        options = refId;
-      };
-      properties = [
-        {
-          id = "color";
-          value = fixed color;
-        }
-      ];
-    };
-  };
-
-  panel =
-    {
-      title,
-      x,
-      y,
-      w,
-      unit,
-      queries,
-      min ? null,
-      max ? null,
-      # A query of several series takes shades of its colour instead of one fixed colour
-      shaded ? false,
-      thresholds ? null,
-    }:
-    {
-      type = "timeseries";
-      inherit title;
-      datasource = ds;
-      gridPos = {
-        inherit x y w;
-        h = 8;
-      };
-      targets = map (q: q.target) queries;
-      fieldConfig = {
-        defaults = {
-          inherit unit;
-          color =
-            if shaded then
-              {
-                mode = "shades";
-                fixedColor = roles.series-1;
-              }
-            else
-              fixed roles.series-1;
-          custom = {
-            lineWidth = 2;
-            fillOpacity = 10;
-            spanNulls = false;
-            thresholdsStyle.mode = if thresholds == null then "off" else "dashed";
-          };
-          thresholds = {
-            mode = "absolute";
-            steps = [
-              {
-                color = roles.ok;
-                value = null;
-              }
-            ]
-            ++ lib.optional (thresholds != null) {
-              color = roles.danger;
-              value = thresholds;
-            };
-          };
-        }
-        // lib.optionalAttrs (min != null) { inherit min; }
-        // lib.optionalAttrs (max != null) { inherit max; };
-        overrides = lib.optionals (!shaded) (map (q: q.override) queries);
-      };
-      options = {
-        legend = {
-          displayMode = "list";
-          placement = "bottom";
-        };
-        tooltip.mode = "multi";
-      };
-    };
-
-  row = title: repeat: y: {
-    type = "row";
-    inherit title repeat;
-    collapsed = false;
-    gridPos = {
-      inherit y;
-      x = 0;
-      w = 24;
-      h = 1;
-    };
-    panels = [ ];
-  };
+  inherit (panels)
+    query
+    panel
+    row
+    variable
+    ;
 
   on = selector: ''host="''$${selector}"'';
   host = on "host";
@@ -137,36 +30,10 @@ let
 
   # Disk file systems once each: btrfs mounts one volume at several points
   disks = metric: ''max by (host, device) (${metric}{${host}, fstype=~"btrfs|ext4|xfs|vfat"})'';
-
-  variable = name: job: {
-    inherit name;
-    type = "query";
-    datasource = ds;
-    query = {
-      query = "label_values(up{job=\"${job}\"}, host)";
-      refId = name;
-    };
-    definition = "label_values(up{job=\"${job}\"}, host)";
-    refresh = 2;
-    multi = true;
-    includeAll = true;
-    current = {
-      text = [ "All" ];
-      value = [ "$__all" ];
-    };
-    sort = 1;
-  };
 in
-{
+panels.dashboard {
   uid = "hosts";
   title = "Hosts";
-  editable = false;
-  schemaVersion = 39;
-  time = {
-    from = "now-24h";
-    to = "now";
-  };
-  refresh = "30s";
   templating.list = [
     (variable "host" "node")
     # The hosts with a GPU; their rows follow the hosts row, and the selector stays hidden

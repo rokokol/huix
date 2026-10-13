@@ -722,18 +722,29 @@ pkgs.testers.runNixOSTest {
             # A wrong password falls back to the anonymous viewer, which the admin pages refuse
             assert code in ("401", "403"), f"a wrong admin password got {code} at {url}"
 
-    with subtest("the hosts dashboard is there for a viewer, and each of its queries runs in Prometheus"):
-        with open("${grafana.dashboards}/hosts.json") as listing:
+    # The panels that must show a series here, by dashboard. A VM has no CPU sensor and no SMART,
+    # the PC here no GPU, no node pushes before the Pushgateway subtest, and the hourly
+    # heartbeat has not run yet, so those may be empty, but never with an error
+    filled = {
+        "hosts": {"CPU", "Memory", "Swap traffic", "Disks"},
+        "guards": {
+            "Watched units",
+            "RAM that zram takes",
+            "Peers",
+            "What each folder still needs",
+        },
+    }
+    for uid, full in filled.items():
+      with subtest(f"the {uid} dashboard is there for a viewer, and each of its queries runs in Prometheus"):
+        with open(f"${grafana.dashboards}/{uid}.json") as listing:
             dashboard = json.load(listing)
         code = station.succeed(
             "curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:${toString grafana.backendPort}/api/dashboards/uid/"
             + dashboard["uid"]
         )
         assert code == "200", f"a viewer got {code} for the dashboard"
-        # The station stands for every host and the PC for every GPU; a VM has no CPU sensor
-        # and the PC here no GPU, so those panels may come back empty, but never with an error
+        # The station stands for every host and the PC for every GPU
         values = {"$host": "nixos-station", "$gpu_host": "nixos-pc", "$__rate_interval": "2m"}
-        filled = {"CPU", "Memory", "Swap traffic", "Disks"}
         for panel in (p for p in dashboard["panels"] if p["type"] != "row"):
             for target in panel["targets"]:
                 expr = target["expr"]
@@ -745,7 +756,7 @@ pkgs.testers.runNixOSTest {
                     answer = station.succeed(f"curl -s --get --data-urlencode {shlex.quote('query=' + expr)} ${prometheus}/api/v1/query")
                     result = json.loads(answer)
                     assert result["status"] == "success", f"{panel['title']}: {expr} failed: {answer}"
-                    if panel["title"] not in filled or result["data"]["result"]:
+                    if panel["title"] not in full or result["data"]["result"]:
                         break
                     assert time.monotonic() < deadline, f"{panel['title']}: {expr} gave no series"
                     time.sleep(5)
@@ -1015,6 +1026,12 @@ pkgs.testers.runNixOSTest {
             f" | grep -qE '{subject} \\(attempt [2-9], [0-9]+ min late\\)'",
             timeout=timedelta(minutes=3),
         )
+
+    with subtest("the heartbeat's numbers reach Prometheus through the textfile directory"):
+        # The heartbeat ran in the subtests above; its file lives apart and is linked in
+        station.succeed("test -s ${station.config.rokokol.node-exporter.textfileDir}/backup.prom")
+        wait_for_series('count by (host) (backup_last_snapshot_timestamp_seconds)', {"nixos-station": 1.0})
+        wait_for_series('count by (host) (backup_free_bytes)', {"nixos-station": 1.0})
 
     with subtest("the nodes push to the Pushgateway, each only under its own name"):
         # The fixtures' htpasswd has the one node pc, with the password test. The tailnet

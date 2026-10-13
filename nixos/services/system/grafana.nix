@@ -24,10 +24,40 @@ let
   fromFile = name: "$__file{${config.sops.secrets.${name}.path}}";
   datasource = "prometheus";
 
-  dashboard = import ./grafana-dashboard.nix {
-    inherit lib criticalTemperature datasource;
-    roles = (lib.importJSON inputs.ddlc-themes.lib.roles).dark;
+  roles = (lib.importJSON inputs.ddlc-themes.lib.roles).dark;
+  panels = import ./grafana-panels.nix { inherit lib roles datasource; };
+
+  # An age such as 36h and a size such as 10G, as the watchers' options write them, in seconds
+  # and bytes, so the dashboard turns red where the watcher alerts
+  scaled =
+    units: text:
+    let
+      unit = lib.substring (lib.stringLength text - 1) 1 text;
+    in
+    if units ? ${unit} then lib.toInt (lib.removeSuffix unit text) * units.${unit} else lib.toInt text;
+  seconds = scaled {
+    s = 1;
+    m = 60;
+    h = 3600;
+    d = 86400;
   };
+  bytes = scaled {
+    K = 1024;
+    M = 1024 * 1024;
+    G = 1024 * 1024 * 1024;
+    T = 1024 * 1024 * 1024 * 1024;
+  };
+
+  dashboards = [
+    (import ./grafana-dashboard.nix { inherit roles panels criticalTemperature; })
+    (import ./grafana-guards.nix {
+      inherit lib roles panels;
+      maxBackupAge = seconds config.rokokol.backup-heartbeat.maxAge;
+      minBackupFree = bytes config.rokokol.backup-heartbeat.minFree;
+      maxPushSilence = seconds config.rokokol.pushgateway.maxSilence;
+      syncthingHosts = lib.optional config.services.syncthing.enable hostName;
+    })
+  ];
 in
 {
   options.rokokol.grafana.enable = lib.mkEnableOption "Grafana over the Prometheus of this host";
@@ -103,7 +133,13 @@ in
         dashboards.settings.providers = [
           {
             name = "huix";
-            options.path = pkgs.writeTextDir "${dashboard.uid}.json" (builtins.toJSON dashboard);
+            # Copies, not links: Grafana walks the directory and may pass a link by
+            options.path = pkgs.runCommand "grafana-dashboards" { } ''
+              mkdir $out
+              ${lib.concatMapStrings (dashboard: ''
+                cp ${pkgs.writeText "${dashboard.uid}.json" (builtins.toJSON dashboard)} $out/${dashboard.uid}.json
+              '') dashboards}
+            '';
           }
         ];
       };
