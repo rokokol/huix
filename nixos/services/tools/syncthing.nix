@@ -10,8 +10,8 @@
 
 # Syncthing between the hosts of this flake and the phone. Each host names its own device ID, and
 # every other host takes it from there; a host with no ID yet is left out. A workstation shares
-# each folder both ways. An archive host only receives it, and keeps what a peer deletes or
-# overwrites in snapshots, for the folder's `preserve`
+# each folder both ways. An archive host only receives it, unless a user there edits it, and
+# keeps what a peer deletes or overwrites in snapshots, for the folder's `preserve`
 let
   cfg = config.rokokol.syncthing;
   homeDir = "/home/${rokokolName}";
@@ -77,6 +77,18 @@ let
   archived = lib.mapAttrs (name: _: "${cfg.archive.dir}/${name}") folders;
 
   inherit (config.services.syncthing) user group;
+
+  # Makes a directory Syncthing's. One that another user left whole, as when the editor changes,
+  # becomes Syncthing's whole, or Syncthing could not write a file in it
+  own = pkgs.writeShellScript "syncthing-own" ''
+    set -eu
+    mode=$1
+    dir=$2
+    if [ -d "$dir" ] && [ "$(stat -c %U "$dir")" != ${user} ]; then
+      chown -R ${user}:${group} "$dir"
+    fi
+    install -d -m "$mode" -o ${user} -g ${group} "$dir"
+  '';
 in
 {
   options.rokokol.syncthing = {
@@ -110,6 +122,25 @@ in
         type = lib.types.path;
         example = "/srv/backup/snapshots/syncthing";
         description = "Directory of the read-only snapshots of every folder, on the same filesystem";
+      };
+
+      editor = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        example = "mya";
+        description = ''
+          A user who edits the folders on this host. Syncthing runs as that user, so the files
+          are theirs, and sends their changes to the peers. With null, Syncthing runs as its
+          own user and only receives
+        '';
+      };
+
+      folders = lib.mkOption {
+        type = lib.types.attrsOf lib.types.str;
+        readOnly = true;
+        default = lib.mapAttrs' (name: folder: lib.nameValuePair folder.path archived.${name}) folders;
+        defaultText = lib.literalMD "each folder's path on a workstation, to its directory under `dir`";
+        description = "Where the workstations keep each folder, and where this host keeps it";
       };
 
       # A running host never makes them: a folder added later comes up as a plain directory,
@@ -169,24 +200,30 @@ in
               "snapshotDir"
             ];
 
-        # The default user, not the owner: the archive needs no home. The owner reads the folders
+        # The editor or the default user, never the owner: whoever writes the folders must not
+        # be root through sudo, or the snapshots would be in reach. The owner reads the folders
         # and the snapshots through the group. The files take the default modes, not the peers'
         # own: a private mode there, as on Claude Code's transcripts, would shut the owner out
-        services.syncthing = {
-          # tailscale.nix trusts the tailnet interface, and the LAN stays shut out
-          openDefaultPorts = false;
+        services.syncthing =
+          lib.optionalAttrs (cfg.archive.editor != null) {
+            user = cfg.archive.editor;
+            group = cfg.archive.editor;
+          }
+          // {
+            # tailscale.nix trusts the tailnet interface, and the LAN stays shut out
+            openDefaultPorts = false;
 
-          # Nothing is set by hand here, so the configuration is the whole truth
-          overrideDevices = true;
-          overrideFolders = true;
+            # Nothing is set by hand here, so the configuration is the whole truth
+            overrideDevices = true;
+            overrideFolders = true;
 
-          settings.folders = lib.mapAttrs (name: folder: {
-            inherit (folder) id devices;
-            path = archived.${name};
-            type = "receiveonly";
-            ignorePerms = true;
-          }) folders;
-        };
+            settings.folders = lib.mapAttrs (name: folder: {
+              inherit (folder) id devices;
+              path = archived.${name};
+              type = if cfg.archive.editor != null then "sendreceive" else "receiveonly";
+              ignorePerms = true;
+            }) folders;
+          };
 
         # Snapshots and not Syncthing's versions: Syncthing keeps no version of a change made on
         # this host, and a snapshot keeps that change as well. A snapshot comes every 15 minutes
@@ -210,12 +247,16 @@ in
 
         systemd.services.syncthing = {
           unitConfig = mountGuard;
-          # The disk layout makes each folder as root's. Not a tmpfiles rule, for the reason
-          # restic-server.nix gives
-          serviceConfig.ExecStartPre = map (
-            dir:
-            "+${lib.getExe' pkgs.coreutils "install"} -d -m 0750 -o ${user} -g ${group} ${lib.escapeShellArg dir}"
-          ) (lib.attrValues archived);
+          # The disk layout makes each folder as root's, and nixpkgs makes the data directory only
+          # for its own user. Not a tmpfiles rule, for the reason restic-server.nix gives
+          serviceConfig.ExecStartPre =
+            lib.mapAttrsToList (dir: mode: "+${own} ${mode} ${lib.escapeShellArg dir}")
+              (
+                lib.genAttrs (lib.attrValues archived) (_: "0750")
+                // {
+                  ${config.services.syncthing.dataDir} = "0700";
+                }
+              );
         };
         systemd.services.syncthing-init.unitConfig = mountGuard;
         systemd.services.btrbk-syncthing.unitConfig = mountGuard;

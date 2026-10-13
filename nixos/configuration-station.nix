@@ -29,6 +29,9 @@ in
       };
     };
 
+    # Edits the archive's folders, so Syncthing runs as its user and sends the changes
+    claude-agent.enable = true;
+
     backup-heartbeat.enable = true;
     alert-mail.enable = true;
     prometheus.enable = true;

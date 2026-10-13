@@ -28,6 +28,7 @@
     ./system/tailnet-web.nix
     ./system/tailscale.nix
     ./system/zram.nix
+    ./tools/claude-agent.nix
     ./tools/forgejo-mirrors.nix
     ./tools/forgejo.nix
     ./tools/libre-translate.nix

@@ -40,8 +40,27 @@ let
   };
 in
 {
-  # The MAC is private, and only the user who runs the command reads it
-  sops.secrets."pc-mac".owner = rokokolName;
+  # The MAC is private, and only the users who run the command read it
+  users.groups.wake-pc = { };
+  sops.secrets."pc-mac" = {
+    group = "wake-pc";
+    mode = "0440";
+  };
 
-  users.users.${rokokolName}.packages = [ wakePc ];
+  users.users.${rokokolName} = {
+    packages = [ wakePc ];
+    extraGroups = [ "wake-pc" ];
+  };
+
+  # The Telegram agent wakes the PC when the owner asks, through the skill in wake-pc-plugin
+  rokokol.claude-agent = {
+    packages = [ wakePc ];
+    extraGroups = [ "wake-pc" ];
+    plugins = [
+      (builtins.path {
+        name = "wake-pc-plugin";
+        path = "${inputs.self}/nixos/station/wake-pc-plugin";
+      })
+    ];
+  };
 }

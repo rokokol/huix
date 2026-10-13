@@ -3,6 +3,8 @@
   pcMac,
   # Only the boot test reaches a GitHub
   githubToken ? "unused",
+  # The Telegram chat the agent's bot answers
+  telegramOwner ? "1",
 }:
 # Fixtures, never real secrets. A throwaway age key is made at build time, and the names of
 # secrets/station.yaml get dummy values, encrypted to that key only
@@ -29,6 +31,8 @@ pkgs.runCommand "station-boot-test-fixtures"
       printf 'forgejo-runner-nixos-pc: %s\n' 0123456789abcdef01234567
       printf 'grafana-admin-password: %s\n' test
       printf 'grafana-secret-key: %s\n' 0123456789abcdef0123456789abcdef
+      printf 'telegram-bot-token: %s\n' 123456789:test-token
+      printf 'telegram-owner-chat-id: "%s"\n' '${telegramOwner}'
     } >plain.yaml
     sops --encrypt --age "$(age-keygen -y $out/key.txt)" \
       --input-type yaml --output-type yaml plain.yaml >$out/station.yaml

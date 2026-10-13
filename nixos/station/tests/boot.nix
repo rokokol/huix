@@ -32,8 +32,47 @@ let
 
   syncthing = {
     inherit (station.config.services.syncthing.settings.folders.myWiki) id path;
+    inherit (station.config.services.syncthing) user;
     config = "${station.config.services.syncthing.configDir}/config.xml";
     inherit (station.config.rokokol.syncthing.archive) snapshotDir;
+    shared = station.config.services.syncthing.settings.folders.claude-shared.path;
+  };
+
+  agent = rec {
+    inherit (station.config.rokokol.claude-agent) user;
+    inherit (station.config.users.users.${user}) home;
+    inherit (station.config.rokokol.claude-agent) notify;
+    stateDir = station.config.systemd.services.claude-agent.environment.TELEGRAM_STATE_DIR;
+    ownerChatId = "1234567";
+
+    # What the session can reach, typed into it as a command. Each line is a name and yes or no;
+    # the report appears whole, once every check has run
+    probe = pkgs.writeShellScript "agent-probe" ''
+      report=$HOME/probe
+      exec 3>"$report.part"
+      can() {
+        name=$1
+        shift
+        if "$@" >/dev/null 2>&1; then echo "$name=yes" >&3; else echo "$name=no" >&3; fi
+      }
+      echo "user=$(id -un)" >&3
+      can write-vault sh -c 'echo agent >"$HOME/myWiki/agent.md"'
+      can write-shared sh -c 'echo agent >"$HOME/.local/share/claude-shared/agent.md"'
+      # Where a workstation writes it into the shared state
+      can owner-paths test -r /home/rokokol/.local/share/claude-shared/settings.json
+      can owner-home test -e /home/rokokol/.owner-only
+      can snapshots ls ${syncthing.snapshotDir}
+      can restic ls ${station.config.rokokol.restic-server.dataDir}
+      can syncthing-key cat ${syncthing.config}
+      # Syncthing runs as the same user, so its view of the files is the next way to its key
+      can syncthing-root ls "/proc/$1/root${station.config.services.syncthing.configDir}"
+      can bot-token test -n "''${TELEGRAM_BOT_TOKEN:-}"
+      can profile test -L "$CLAUDE_CONFIG_DIR" -a -e "$CLAUDE_CONFIG_DIR/settings.json"
+      can wake-pc command -v wake-pc
+      can pc-mac test -r ${station.config.sops.secrets.pc-mac.path}
+      exec 3>&-
+      mv "$report.part" "$report"
+    '';
   };
 
   # The driver numbers the nodes in name order, and each card's MAC carries that number
@@ -43,6 +82,7 @@ let
   fixtures = import ./fixtures.nix {
     inherit pkgs pcMac;
     githubToken = lib.head github.tokens;
+    telegramOwner = agent.ownerChatId;
   };
 
   # Two sites on one backend, one of them also open to the LAN, and the page the backend serves
@@ -202,7 +242,11 @@ pkgs.testers.runNixOSTest {
               "btrbk-syncthing.service"
             ];
             unitConfig.RequiresMountsFor = [ "/srv/backup" ];
-            serviceConfig.Type = "oneshot";
+            # Once per boot: a restart of Syncthing would run it again over the subvolumes
+            serviceConfig = {
+              Type = "oneshot";
+              RemainAfterExit = true;
+            };
             path = [ pkgs.btrfs-progs ];
             script = lib.concatMapStrings (name: ''
               mkdir -p "$(dirname /srv/backup/${name})"
@@ -249,6 +293,10 @@ pkgs.testers.runNixOSTest {
 
         # Prometheus finds the PC by its tailnet name, which here leads over the LAN
         networking.hosts."192.168.0.102" = [ "nixos-pc" ];
+
+        # Claude Code cannot log in here. A shell in its place runs what notify types, so the
+        # test reaches the session's view of the host through the path the owner's units use
+        rokokol.claude-agent.command = lib.getExe pkgs.bashInteractive;
       })
     ];
   };
@@ -448,8 +496,8 @@ pkgs.testers.runNixOSTest {
     with subtest("the LAN cannot reach an exporter"):
         pc.fail("curl -s --max-time 5 -o /dev/null http://192.168.0.104:${toString pcNodeExporter.port}/metrics")
 
-    # A call to the Syncthing of a node, as a command; both nodes run it as the default user, so
-    # the key is at the same path
+    # A call to the Syncthing of a node, as a command; both nodes keep its configuration in the
+    # default place, so the key is at the same path
     def st_curl(node, method, path, body=None):
         key = node.succeed("grep -oP '(?<=<apikey>)[^<]+' ${syncthing.config}").strip()
         data = f" -H 'Content-Type: application/json' -d {shlex.quote(json.dumps(body))}" if body is not None else ""
@@ -459,8 +507,10 @@ pkgs.testers.runNixOSTest {
         answer = node.succeed(st_curl(node, method, path, body))
         return json.loads(answer) if answer.strip() else None
 
+    # The PC runs Syncthing as its default user, the station as the agent's
     def as_syncthing(node, command):
-        node.succeed(f"runuser -u syncthing -- sh -c {shlex.quote(command)}")
+        user = "${syncthing.user}" if node is station else "syncthing"
+        node.succeed(f"runuser -u {user} -- sh -c {shlex.quote(command)}")
 
     def pair(node, device, address):
         st(node, "POST", "config/devices", {"deviceID": device, "addresses": [address]})
@@ -479,17 +529,28 @@ pkgs.testers.runNixOSTest {
         assert run_to_end("btrbk-syncthing.service") == "success", "btrbk failed"
         return station.succeed(f"ls -d {snapshots}/myWiki.* | sort").split()
 
-    with subtest("the archive keeps each folder in a subvolume of the backup volume, receive-only"):
+    with subtest("the archive keeps each folder in a subvolume of the backup volume, the agent's to edit"):
         station.wait_for_unit("syncthing-init.service")
         for unit in ["syncthing", "btrbk-syncthing"]:
             station.succeed(f"systemctl show -P OnFailure {unit}.service | grep -qx 'alert-mail@{unit}.service.service'")
         station.succeed("systemctl is-active btrbk-syncthing.timer")
         for folder in st(station, "GET", "config/folders"):
-            assert folder["type"] == "receiveonly", f"{folder['id']} is {folder['type']}"
+            # The agent's edits go out to the peers
+            assert folder["type"] == "sendreceive", f"{folder['id']} is {folder['type']}"
+            owner = station.succeed(f"stat -c %U {shlex.quote(folder['path'])}").strip()
+            assert owner == "${agent.user}", f"{folder['id']} belongs to {owner}"
             # The snapshots keep the history, so Syncthing keeps no versions of its own
             assert folder["versioning"]["type"] == "", f"{folder['id']} keeps {folder['versioning']['type']} versions"
             station.succeed(f"{btrfs} subvolume show {shlex.quote(folder['path'])}")
             station.succeed(f"findmnt -no TARGET -T {shlex.quote(folder['path'])} | grep -qx /srv/backup")
+
+    # As on a host where the folders were another user's before the agent came
+    with subtest("a folder another user left becomes Syncthing's whole when it starts"):
+        station.succeed(f"systemctl stop syncthing.service && chown -R rokokol {on_station}")
+        station.succeed("systemctl start syncthing.service")
+        station.wait_for_unit("syncthing.service")
+        stray = station.succeed(f"find {on_station} ! -user ${syncthing.user}").strip()
+        assert stray == "", f"Syncthing left these to another user: {stray}"
 
     with subtest("the LAN cannot reach the archive's Syncthing, and the archive reaches the PC"):
         pc.wait_for_unit("syncthing-init.service")
@@ -521,10 +582,10 @@ pkgs.testers.runNixOSTest {
         taken = snapshot()
         assert snapshot() == taken, "an unchanged folder got a new snapshot"
 
-    # The account a future agent on the station would share with Syncthing, and the owner
+    # The account the agent shares with Syncthing, and the owner
     with subtest("neither Syncthing's account nor the owner can change or delete a snapshot"):
         newest = snapshot()[-1]
-        for user in ["syncthing", "rokokol"]:
+        for user in ["${syncthing.user}", "rokokol"]:
             station.fail(f"runuser -u {user} -- {btrfs} subvolume delete {newest}")
             station.fail(f"runuser -u {user} -- rm -rf {newest}/notes")
             station.fail(f"runuser -u {user} -- mv {newest} {on_station}/moved")
@@ -534,14 +595,68 @@ pkgs.testers.runNixOSTest {
         station.fail(f"echo changed >{newest}/notes/kept.md")
         station.succeed(f"grep -qx new {newest}/notes/kept.md")
 
-    with subtest("a change made on the archive stays there"):
-        as_syncthing(station, f"echo local >{on_station}/local.md")
-        st(station, "POST", "db/scan?folder=${syncthing.id}")
+    agent_unit = "claude-agent.service"
+    agent_home = "${agent.home}"
+
+    # Typed into the session; with a shell there, a command
+    def type_in(text):
+        station.succeed(f"${agent.notify} {shlex.quote(text)}")
+
+    with subtest("the agent's session waits for the shared state, then starts, and mails root if it fails"):
+        station.succeed(f"systemctl show -P OnFailure {agent_unit} | grep -qx 'alert-mail@{agent_unit}.service'")
+        # Nothing has brought the shared state here yet, and a profile made now would seed an
+        # empty settings.json that could win over the workstations' own
+        station.succeed(f"systemctl show -P ConditionResult {agent_unit} | grep -qx no")
+        station.fail("test -e ${syncthing.shared}/settings.json")
+        as_syncthing(station, "echo '{}' >${syncthing.shared}/settings.json")
+        station.succeed(f"systemctl start {agent_unit}")
+        station.wait_for_unit(agent_unit)
+
+    with subtest("the bot answers the owner alone, from the start"):
+        access = json.loads(station.succeed("cat ${agent.stateDir}/access.json"))
+        assert access["dmPolicy"] == "allowlist", f"the bot's direct messages are {access['dmPolicy']}"
+        assert access["allowFrom"] == ["${agent.ownerChatId}"], f"the bot answers {access['allowFrom']}"
+        station.succeed("test $(stat -c %U ${agent.stateDir}/access.json) = ${agent.user}")
+
+    with subtest("notify types its text into the session as it is"):
+        # Quotes, a separator and a variable reach the session unchanged
+        type_in("echo 'semi;colon \"Enter\" $x' >~/typed")
+        station.wait_until_succeeds(f"test -s {agent_home}/typed", timeout=timedelta(seconds=30))
+        typed = station.succeed(f"cat {agent_home}/typed")
+        assert typed == "semi;colon \"Enter\" $x\n", f"the session got {typed!r}"
+        # A text that is a key name in whole, which tmux would press rather than type. Typed,
+        # it calls this function
+        type_in("Enter() { echo typed >~/key; }")
+        type_in("Enter")
+        station.wait_until_succeeds(f"grep -qx typed {agent_home}/key", timeout=timedelta(seconds=30))
+        station.fail("runuser -u rokokol -- ${agent.notify} text")
+
+    with subtest("the session edits the vault and the shared state, and sees no snapshot, no backup, no key of Syncthing and not the owner's home"):
+        station.succeed("install -m 0600 -o rokokol /dev/null /home/rokokol/.owner-only")
+        syncthing_pid = station.succeed("systemctl show -P MainPID syncthing.service").strip()
+        type_in(f"sh ${agent.probe} {syncthing_pid}")
+        station.wait_until_succeeds(f"test -e {agent_home}/probe", timeout=timedelta(seconds=30))
+        found = dict(line.split("=", 1) for line in station.succeed(f"cat {agent_home}/probe").split())
+        reachable = {"write-vault", "write-shared", "owner-paths", "bot-token", "profile", "wake-pc", "pc-mac"}
+        hidden = {"owner-home", "snapshots", "restic", "syncthing-key", "syncthing-root"}
+        expected = {"user": "${agent.user}"} | dict.fromkeys(reachable, "yes") | dict.fromkeys(hidden, "no")
+        assert found == expected, f"the session sees {found}, not {expected}"
+
+    with subtest("what the session writes reaches the PC, and a snapshot keeps it"):
+        pc.wait_until_succeeds(f"grep -qx agent {on_pc}/agent.md", timeout=timedelta(minutes=2))
+        newest = snapshot()[-1]
+        station.succeed(f"grep -qx agent {newest}/agent.md")
+
+    with subtest("ending tmux, as the new-session skill does, brings a new session"):
+        before = station.succeed(f"systemctl show -P MainPID {agent_unit}").strip()
+        type_in("tmux kill-server")
         station.wait_until_succeeds(
-            st_curl(station, "GET", "db/status?folder=${syncthing.id}") + f" | {jq} -e '.receiveOnlyChangedFiles == 1'",
+            f"pid=$(systemctl show -P MainPID {agent_unit}); [ \"$pid\" != 0 ] && [ \"$pid\" != {before} ]",
             timeout=timedelta(minutes=1),
         )
-        pc.succeed(f"test ! -e {on_pc}/local.md")
+        type_in("echo fresh >~/fresh")
+        station.wait_until_succeeds(f"grep -qx fresh {agent_home}/fresh", timeout=timedelta(seconds=30))
+        assert station.succeed(f"systemctl show -P ActiveState {agent_unit}").strip() == "active"
 
     with subtest("a site answers the tailnet ranges, and nginx refuses every other address"):
         station.wait_for_unit("nginx.service")

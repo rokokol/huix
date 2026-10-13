@@ -4,7 +4,8 @@
 # say so: the heartbeat is the only report of a missed backup or a missing backup volume, the
 # receiver and its socket are what the nodes push to, a scrub is the only report of a rotten
 # block (disko.nix names the two units' filesystems), smartd is the only watch on the disk, and
-# tailscaled with its flag-setting unit is the only shell into this host. Forgejo, its nightly
+# tailscaled with its flag-setting unit is the only shell into this host. The Telegram agent
+# fails only when its session keeps ending at once; then the bot is silent. Forgejo, its nightly
 # dump, the units that make the owner's account and register the runners, and the mirror run
 # fail with no one looking. So do Prometheus, whose failure is a hole in the history found only
 # later, and Grafana, and Syncthing with btrbk, whose archive and its snapshots keep what a
@@ -24,6 +25,7 @@ in
     "backup-heartbeat"
     "btrbk-syncthing"
     "btrfs-scrub@"
+    "claude-agent"
     "forgejo"
     "forgejo-dump"
     "forgejo-mirrors"
