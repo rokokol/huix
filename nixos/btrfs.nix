@@ -9,6 +9,15 @@
 # hardware-configuration.nix regenerates, so btrfs options cannot live there. btrfs takes
 # compress for the whole volume from the subvolume that mounts first, hence every point
 {
+  # Programs that browse snapshots follow it, so a host without any has no use for them
+  options.rokokol.snapshots.enable = lib.mkOption {
+    type = lib.types.bool;
+    readOnly = true;
+    default = config.services.btrbk.instances != { } || config.services.snapper.configs != { };
+    defaultText = lib.literalMD "whether btrbk or snapper takes snapshots on this host";
+    description = "Whether a tool takes filesystem snapshots on this host";
+  };
+
   options.rokokol.btrfs.mounts = lib.mkOption {
     type = lib.types.listOf lib.types.nonEmptyStr;
     default = [ ];

@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  osConfig,
   ruLayout,
   ...
 }:
@@ -14,6 +15,9 @@ let
   # The bindings that open kitty or Thunar or reach the Wayland clipboard sit where the rest
   # do, so a desktop gets the same keymap in the same order
   workstation = config.rokokol.workstation.enable;
+
+  # Snapshot browsing, only where the host takes snapshots
+  snapshots = osConfig.rokokol.snapshots.enable;
 
   # `leader "fg"` is <Space> f g: one character per key
   leader = keys: [ "<Space>" ] ++ lib.stringToCharacters keys;
@@ -28,18 +32,20 @@ let
     inherit desc;
   };
 
-  labels = lib.mapAttrsToList label {
-    a = "Archive";
-    f = "Find";
-    g = "Git";
-    h = "Snapshots";
-    n = "Name";
-    s = "Sort";
-    t = "Terminals";
-    u = "UI";
-    x = "Tools";
-    xs = "As root";
-  };
+  labels = lib.mapAttrsToList label (
+    {
+      a = "Archive";
+      f = "Find";
+      g = "Git";
+      n = "Name";
+      s = "Sort";
+      t = "Terminals";
+      u = "UI";
+      x = "Tools";
+      xs = "As root";
+    }
+    // lib.optionalAttrs snapshots { h = "Snapshots"; }
+  );
 
   # Each Russian character against the Latin key it sits on
   langmap = lib.listToAttrs (map (p: lib.nameValuePair p.ru p.en) ruLayout);
@@ -173,6 +179,7 @@ in
           setup = true;
         };
       }
+      // lib.optionalAttrs snapshots { inherit (pkgs.yaziPlugins) time-travel; }
       // lib.optionalAttrs workstation {
         # wl-clipboard-rs carries the --offer patch (see WORKAROUNDS.md)
         clipboard-sync = {
@@ -251,12 +258,15 @@ in
         (bind (leader "uP") "plugin toggle-pane min-parent" "Parent pane")
 
         (bind (leader "gg") "shell --block lazygit" "LazyGit")
-
-        # The same folder in a btrfs or ZFS snapshot. On btrfs the plugin lists the snapshots
-        # through sudo and asks for the password when sudo has none cached
+      ]
+      # The same folder in a btrfs or ZFS snapshot. On btrfs the plugin lists the snapshots
+      # through sudo and asks for the password when sudo has none cached
+      ++ lib.optionals snapshots [
         (bind (leader "hh") "plugin time-travel prev" "Older snapshot")
         (bind (leader "hl") "plugin time-travel next" "Newer snapshot")
         (bind (leader "he") "plugin time-travel exit" "Back to the live folder")
+      ]
+      ++ [
 
         # compress.yazi asks for the archive's name and suggests one
         (bind (leader "az") (onSelection "plugin compress zip") "Pack into zip")
