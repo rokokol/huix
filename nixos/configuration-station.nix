@@ -1,4 +1,4 @@
-_:
+{ pkgs, ... }:
 
 let
   backup = "/srv/backup";
@@ -30,7 +30,10 @@ in
     };
 
     # Edits the archive's folders, so Syncthing runs as its user and sends the changes
-    claude-agent.enable = true;
+    claude-agent = {
+      enable = true;
+      packages = with pkgs; [ ffmpeg ];
+    };
 
     backup-heartbeat.enable = true;
     alert-mail.enable = true;
