@@ -223,10 +223,11 @@ cmd_push() {
     pushed=$(awk -v u="$user" '$1 == "time" && $2 == u { print $3 }' <<<"$page")
     if [ -z "$pushed" ]; then
       printf 'backup-heartbeat.sh: %s: never pushed\n' "$user" >&2
-      problem "$user-never" "$user never pushed" "$user has never pushed to the station"
+      # Never and not lately are one fault to the owner: the station does not hear the node
+      problem "$user-silent" "$user never pushed" "$user does not push to the station"
     elif ((now - pushed > max_silence)); then
       printf 'backup-heartbeat.sh: %s: silent for %d min\n' "$user" $(((now - pushed) / 60)) >&2
-      problem "$user-silent" "$user silent" "$user has not pushed for over $2"
+      problem "$user-silent" "$user silent" "$user does not push to the station"
     else
       # What a node that pushes on time reports of itself; a silent node's last word is stale
       while read -r _ _ key summary; do

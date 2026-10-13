@@ -26,7 +26,8 @@ pkgs.runCommand "station-boot-test-fixtures"
     {
       printf 'rokokol-password-hash: %s\n' "$(mkpasswd -m sha-512 test)"
       printf 'pc-mac: %s\n' '${pcMac}'
-      printf 'restic-server-htpasswd: pc:%s\n' "$(mkpasswd -m bcrypt test)"
+      # Marked $2y$, as htpasswd -B writes it and the real file holds it; mkpasswd writes $2b$
+      printf 'restic-server-htpasswd: pc:%s\n' "$(mkpasswd -m bcrypt test | sed 's/^\$2b\$/$2y$/')"
       printf 'alert-mail-msmtprc: |\n'
       printf '  account default\n  host 192.168.0.1\n  port 1025\n'
       printf '  from station@test\n  auth off\n  tls off\n'

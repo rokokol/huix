@@ -1216,7 +1216,7 @@ pkgs.testers.runNixOSTest {
         station.wait_for_unit("pushgateway.service")
         result = run_to_end(watch)
         assert result == "success", f"{watch} failed with only a silent node to report: {result}"
-        station.wait_until_succeeds("alert list | grep '^node:pc-never'", timeout=timedelta(minutes=1))
+        station.wait_until_succeeds("alert list | grep '^node:pc-silent'", timeout=timedelta(minutes=1))
 
         assert (code := push("/metrics/job/node/instance/pc")) == "200", f"the node's own push got {code}"
         refused = {
@@ -1235,7 +1235,7 @@ pkgs.testers.runNixOSTest {
 
         result = run_to_end(watch)
         assert result == "success", f"{watch} ended with {result} after the node pushed"
-        station.wait_until_succeeds("! alert list | grep '^node:pc-never'", timeout=timedelta(minutes=1))
+        station.wait_until_succeeds("! alert list | grep '^node:pc-silent'", timeout=timedelta(minutes=1))
         station.wait_until_succeeds(
             "curl -sf --get --data-urlencode 'query=push_time_seconds{job=\"node\",instance=\"pc\"}' ${prometheus}/api/v1/query"
             " | grep -q '\"instance\":\"pc\"'",

@@ -472,8 +472,8 @@ is "each cause is a key and a subject" \
 is "a node's cause keeps the node's own words" yes \
   "$(grep -q "$(printf 'alpha-postfix\t.*alpha.*postfix.service failed')" "$work/push.causes" && echo yes)"
 pushp htpasswd-gamma "$work/pushgateway.prom"
-is "a node that never pushed is a cause" yes \
-  "$(grep -q "$(printf '^gamma-never\t')" "$work/push.causes" && echo yes)"
+is "a node that never pushed is the same cause as a silent one" yes \
+  "$(grep -q "$(printf '^gamma-silent\t')" "$work/push.causes" && echo yes)"
 pushp htpasswd-beta "$work/pushgateway.prom"
 is "a silent node is a cause" yes "$(grep -q "$(printf '^beta-silent\t')" "$work/push.causes" && echo yes)"
 pushp htpasswd-alpha "$work/pushgateway.prom"
