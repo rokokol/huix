@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# Run from a store copy by nixos/services/system/alert-mail.nix, as root, from alert-mail@ and the
-# reconcile and digest units. The open problems are one directory each under $ALERT_STATE/open,
-# so a raise from two units at once cannot merge them; a lock keeps the check and the write of
-# one key together. Delivery happens outside the lock, as a mail can wait a day for its relay
+# Run from a store copy by nixos/services/system/monitoring/alert-mail.nix, as root, from
+# alert-mail@, the sync, reconcile and digest units and each delivery. The open problems are one
+# directory each under $ALERT_STATE/open, so a raise from two units at once cannot merge them; a
+# lock keeps the check and the write of one key together. Delivery happens outside the lock, as
+# a mail can wait a day for its relay
 # Needs bash 3.2 and GNU coreutils: the host it runs on is NixOS
 set -euo pipefail
 

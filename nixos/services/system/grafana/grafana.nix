@@ -25,7 +25,7 @@ let
   datasource = "prometheus";
 
   roles = (lib.importJSON inputs.ddlc-themes.lib.roles).dark;
-  panels = import ./grafana-panels.nix { inherit lib roles datasource; };
+  panels = import ./panels.nix { inherit lib roles datasource; };
 
   # An age such as 36h and a size such as 10G, as the watchers' options write them, in seconds
   # and bytes, so the dashboard turns red where the watcher alerts
@@ -51,8 +51,8 @@ let
   maxBackupAge = seconds config.rokokol.backup-heartbeat.maxAge;
 
   dashboards = [
-    (import ./grafana-dashboard.nix { inherit roles panels criticalTemperature; })
-    (import ./grafana-guards.nix {
+    (import ./dashboards/hosts.nix { inherit roles panels criticalTemperature; })
+    (import ./dashboards/guards.nix {
       inherit
         lib
         roles
@@ -65,7 +65,7 @@ let
     })
     # The mail node owns these numbers and its report names a problem at each of them. They
     # are written here once, since that node's configuration is not part of this flake
-    (import ./grafana-mail.nix {
+    (import ./dashboards/mail.nix {
       inherit roles panels maxBackupAge;
       minCertificateLife = seconds "14d";
       maxDiskUsed = 0.85;
@@ -73,7 +73,7 @@ let
     })
     # The same for the VPN nodes: the disk and the sockets come from their list of open
     # problems, the connection tracking table from their self-check
-    (import ./grafana-vpn.nix {
+    (import ./dashboards/vpn.nix {
       inherit roles panels;
       maxDiskUsed = 0.85;
       maxConntrackUsed = 0.8;

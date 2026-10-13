@@ -27,7 +27,7 @@
   hardware.nvidia-container-toolkit.enable = true;
 
   # Load, memory, temperature and power of the GPU for the station's Prometheus, read through
-  # nvidia-smi of the driver above. It listens as nixos/services/system/node-exporter.nix does
+  # nvidia-smi of the driver above. It listens as nixos/services/system/monitoring/node-exporter.nix does
   services.prometheus.exporters.nvidia-gpu.enable = true;
 
   # nix-ld needs the userspace of exactly the driver installed on this host; the

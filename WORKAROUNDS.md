@@ -29,7 +29,7 @@ Zero -> keep the separate wrapper. Non-zero -> verify that the upstream `withNvi
 
 ## smartd keeps `notifications.wall.enable = true`
 
-**Where:** `nixos/services/system/smartd.nix`, shared by every host; it matters on the workstations, the hosts with `systembus-notify` on
+**Where:** `nixos/services/system/monitoring/smartd.nix`, shared by every host; it matters on the workstations, the hosts with `systembus-notify` on
 
 **Symptom it prevents:** with `systembus-notify` as the only notification channel, a failing disk sends no desktop alert. smartd writes the problem to the journal and nothing more
 

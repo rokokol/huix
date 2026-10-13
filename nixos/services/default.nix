@@ -12,18 +12,18 @@
     ./devices/sensors.nix
     ./devices/tablet.nix
     ./devices/vial.nix
-    ./system/alert-mail.nix
     ./system/appimage.nix
-    ./system/backup-heartbeat.nix
     ./system/cachix.nix
-    ./system/grafana.nix
+    ./system/grafana/grafana.nix
+    ./system/monitoring/alert-mail.nix
+    ./system/monitoring/backup-heartbeat.nix
+    ./system/monitoring/node-exporter.nix
+    ./system/monitoring/prometheus.nix
+    ./system/monitoring/pushgateway.nix
+    ./system/monitoring/smartd.nix
     ./system/nix-ld.nix
-    ./system/node-exporter.nix
-    ./system/prometheus.nix
-    ./system/pushgateway.nix
     ./system/restic-server.nix
     ./system/skvpn.nix
-    ./system/smartd.nix
     ./system/sops.nix
     ./system/tailnet-web.nix
     ./system/tailscale.nix

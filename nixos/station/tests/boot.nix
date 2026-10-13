@@ -402,7 +402,7 @@ pkgs.testers.runNixOSTest {
       (lanNode "192.168.0.102")
       inputs.sops-nix.nixosModules.sops
       ../../services/utils/forgejo-runner.nix
-      ../../services/system/node-exporter.nix
+      ../../services/system/monitoring/node-exporter.nix
     ];
     _module.args.inputs = inputs;
     # The tailnet trusts the exporter's port on the real PC; this one has only the LAN
