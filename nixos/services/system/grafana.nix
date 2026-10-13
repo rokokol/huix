@@ -48,14 +48,36 @@ let
     T = 1024 * 1024 * 1024 * 1024;
   };
 
+  maxBackupAge = seconds config.rokokol.backup-heartbeat.maxAge;
+
   dashboards = [
     (import ./grafana-dashboard.nix { inherit roles panels criticalTemperature; })
     (import ./grafana-guards.nix {
-      inherit lib roles panels;
-      maxBackupAge = seconds config.rokokol.backup-heartbeat.maxAge;
+      inherit
+        lib
+        roles
+        panels
+        maxBackupAge
+        ;
       minBackupFree = bytes config.rokokol.backup-heartbeat.minFree;
       maxPushSilence = seconds config.rokokol.pushgateway.maxSilence;
       syncthingHosts = lib.optional config.services.syncthing.enable hostName;
+    })
+    # The mail node owns these numbers and its report names a problem at each of them. They
+    # are written here once, since that node's configuration is not part of this flake
+    (import ./grafana-mail.nix {
+      inherit roles panels maxBackupAge;
+      minCertificateLife = seconds "14d";
+      maxDiskUsed = 0.85;
+      maxQuotaUsed = 0.9;
+    })
+    # The same for the VPN nodes: the disk and the sockets come from their list of open
+    # problems, the connection tracking table from their self-check
+    (import ./grafana-vpn.nix {
+      inherit roles panels;
+      maxDiskUsed = 0.85;
+      maxConntrackUsed = 0.8;
+      maxStuckSockets = 200;
     })
   ];
 in

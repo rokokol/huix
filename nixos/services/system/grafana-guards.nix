@@ -44,7 +44,7 @@ in
 panels.dashboard {
   uid = "guards";
   title = "Guards";
-  templating.list = [ (variable "host" "node") ];
+  templating.list = [ (variable "host" ''up{job="node"}'' "host") ];
   panels = [
     (row "Problems" null 0)
     (table {

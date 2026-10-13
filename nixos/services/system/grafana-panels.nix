@@ -240,24 +240,30 @@ rec {
     panels = [ ];
   };
 
-  variable = name: job: {
-    inherit name;
-    type = "query";
-    datasource = ds;
-    query = {
-      query = "label_values(up{job=\"${job}\"}, host)";
-      refId = name;
+  # A selector of every value that a label takes in a series
+  variable =
+    name: series: label:
+    let
+      values = "label_values(${series}, ${label})";
+    in
+    {
+      inherit name;
+      type = "query";
+      datasource = ds;
+      query = {
+        query = values;
+        refId = name;
+      };
+      definition = values;
+      refresh = 2;
+      multi = true;
+      includeAll = true;
+      current = {
+        text = [ "All" ];
+        value = [ "$__all" ];
+      };
+      sort = 1;
     };
-    definition = "label_values(up{job=\"${job}\"}, host)";
-    refresh = 2;
-    multi = true;
-    includeAll = true;
-    current = {
-      text = [ "All" ];
-      value = [ "$__all" ];
-    };
-    sort = 1;
-  };
 
   # The settings every dashboard here shares
   dashboard =

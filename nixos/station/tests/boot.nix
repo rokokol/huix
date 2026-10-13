@@ -808,6 +808,8 @@ pkgs.testers.runNixOSTest {
             "Snapshots of each archived folder",
             "Age of each folder's newest snapshot",
         },
+        "mail": set(),
+        "vpn": set(),
     }
     for uid, full in filled.items():
       with subtest(f"the {uid} dashboard is there for a viewer, and each of its queries runs in Prometheus"):
@@ -818,8 +820,8 @@ pkgs.testers.runNixOSTest {
             + dashboard["uid"]
         )
         assert code == "200", f"a viewer got {code} for the dashboard"
-        # The station stands for every host and the PC for every GPU
-        values = {"$host": "nixos-station", "$gpu_host": "nixos-pc", "$__rate_interval": "2m"}
+        # The station stands for every host, the PC for every GPU and the PC's login for every node
+        values = {"$host": "nixos-station", "$gpu_host": "nixos-pc", "$instance": "pc", "$__rate_interval": "2m"}
         for panel in (p for p in dashboard["panels"] if p["type"] != "row"):
             for target in panel["targets"]:
                 expr = target["expr"]

@@ -18,7 +18,7 @@ Every source here is read-only for you. Never restart, reset or clear anything w
 
 ## Metrics
 
-Prometheus answers on `http://127.0.0.1:9090`. Ask it with `curl -s --get --data-urlencode 'query=<PromQL>' http://127.0.0.1:9090/api/v1/query`, and read `.data.result`. Grafana draws the same data for the owner at `http://nixos-station:3200`, dashboards Hosts and Guards
+Prometheus answers on `http://127.0.0.1:9090`. Ask it with `curl -s --get --data-urlencode 'query=<PromQL>' http://127.0.0.1:9090/api/v1/query`, and read `.data.result`. Grafana draws the same data for the owner at `http://nixos-station:3200`, dashboards Hosts, Guards, Mail and VPN
 
 | Question | PromQL |
 | --- | --- |

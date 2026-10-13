@@ -35,9 +35,9 @@ panels.dashboard {
   uid = "hosts";
   title = "Hosts";
   templating.list = [
-    (variable "host" "node")
+    (variable "host" ''up{job="node"}'' "host")
     # The hosts with a GPU; their rows follow the hosts row, and the selector stays hidden
-    ((variable "gpu_host" "nvidia-gpu") // { hide = 2; })
+    ((variable "gpu_host" ''up{job="nvidia-gpu"}'' "host") // { hide = 2; })
   ];
   panels = [
     (row "$host" "host" 0)
