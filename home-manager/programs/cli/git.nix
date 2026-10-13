@@ -52,6 +52,10 @@
       side-by-side = true;
       line-numbers = true;
       navigate = true;
+      # The long prompt shows how far into the diff the screen is, as nvim's ruler does. less
+      # learns the length of piped text only once it has read it all: +Gg reads to the end and
+      # comes back to the top, so the percentage is there from the first screen
+      pager = "less -RFM +Gg";
     };
   };
 
