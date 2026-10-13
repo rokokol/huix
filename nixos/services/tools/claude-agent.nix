@@ -20,6 +20,10 @@ let
   stateDir = "${cfg.home}/.local/state/claude-telegram";
   tmuxCmd = "${lib.getExe pkgs.tmux} -S ${socket}";
 
+  # How a reply has to look in Telegram. In the system prompt once a session, rather than in
+  # a hook that would repeat it in every turn and on every host
+  prompt = ./claude-agent-prompt.md;
+
   settings = pkgs.writeText "claude-agent-settings.json" (
     builtins.toJSON {
       # Fewer of the subscription's tokens than the shared settings' model; this file outranks it
@@ -140,6 +144,8 @@ in
           "auto"
           "--settings"
           "${settings}"
+          "--append-system-prompt-file"
+          "${prompt}"
         ]
         ++ lib.concatMap (plugin: [
           "--plugin-dir"
