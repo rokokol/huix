@@ -72,6 +72,7 @@ in
         ]
         ++ lib.optional workstation texliveFull
         ++ [
+          tmux
           tree
           unzip
           usbutils
