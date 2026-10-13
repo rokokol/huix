@@ -3,25 +3,20 @@
   lib,
   pkgs,
   inputs,
-  rokokolName,
   ...
 }:
 
-# Claude Code on the archive host, reachable through a Telegram bot. It runs in tmux as a user of
-# its own, so the owner can attach to it and other units can type into it. Syncthing runs as the
-# same user, so the session edits the archive's folders and its edits reach every peer. The
-# snapshots stay root's and out of its sight
+# Claude Code reachable through a Telegram bot. It runs in tmux as a user of its own, so the
+# owner can attach to it and other units can type into it. The host says which directories the
+# session works in and which paths it must not see
 let
   cfg = config.rokokol.claude-agent;
-  inherit (config.rokokol.syncthing) archive;
   account = config.home-manager.users.${cfg.user}.programs.claude-account;
 
-  home = "/home/${cfg.user}";
-  # The shared state holds absolute paths under the owner's home, as the workstations write
-  # them. The session sees its own home under that name too, so those paths resolve
-  ownerHome = "/home/${rokokolName}";
+  # The home as the session sees it
+  sessionHome = if cfg.homeAlias != null then cfg.homeAlias else cfg.home;
   socket = "/run/claude-agent/tmux";
-  stateDir = "${home}/.local/state/claude-telegram";
+  stateDir = "${cfg.home}/.local/state/claude-telegram";
   tmuxCmd = "${lib.getExe pkgs.tmux} -S ${socket}";
 
   settings = pkgs.writeText "claude-agent-settings.json" (
@@ -29,7 +24,7 @@ let
       # Fewer of the subscription's tokens than the shared settings' model; this file outranks it
       model = "sonnet";
       # The home's links lead there, and Claude Code judges a file by the path it resolves to
-      permissions.additionalDirectories = lib.attrValues archive.folders;
+      permissions.additionalDirectories = lib.attrValues cfg.directories;
       enabledPlugins = {
         # The owner keeps it on the workstations only
         "cc-plugin-you-should-know@builtin" = false;
@@ -77,12 +72,51 @@ let
 in
 {
   options.rokokol.claude-agent = {
-    enable = lib.mkEnableOption "Claude Code reachable through a Telegram bot, editing the archive";
+    enable = lib.mkEnableOption "Claude Code reachable through a Telegram bot";
 
     user = lib.mkOption {
       type = lib.types.str;
       default = "mya";
-      description = "The user of the session, and of Syncthing with it";
+      description = "The user of the session";
+    };
+
+    home = lib.mkOption {
+      type = lib.types.str;
+      default = "/home/${cfg.user}";
+      defaultText = lib.literalExpression ''"/home/''${user}"'';
+      description = "The home of the session's user";
+    };
+
+    homeAlias = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      example = "/home/alice";
+      description = ''
+        A second path the session sees its home under, and works in. It hides whatever is
+        there on the host. It lets shared state that holds absolute paths from another host
+        resolve here
+      '';
+    };
+
+    directories = lib.mkOption {
+      type = lib.types.attrsOf lib.types.str;
+      default = { };
+      example = {
+        notes = "/srv/notes";
+      };
+      description = ''
+        Directories outside the home that the session edits, by the path of their link inside
+        the home. Each is open in the sandbox, and Claude Code takes it as its own
+      '';
+    };
+
+    hiddenPaths = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ ];
+      description = ''
+        Paths the session sees empty, each under a read-only tmpfs. A directory in
+        `directories` stays open even under one of them
+      '';
     };
 
     command = lib.mkOption {
@@ -140,13 +174,6 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    assertions = [
-      {
-        assertion = archive.enable;
-        message = "rokokol.claude-agent needs rokokol.syncthing.archive, whose folders it edits";
-      }
-    ];
-
     rokokol.claude-agent.plugins = [
       (builtins.path {
         name = "claude-agent-plugin";
@@ -154,13 +181,12 @@ in
       })
     ];
 
-    rokokol.syncthing.archive.editor = cfg.user;
-
     # In the user's profile and not only in the unit's PATH: a shell in the session reads the
     # system's environment again, which drops what the unit adds. Bun runs the Telegram channel,
     # and Claude Code reads repositories through git
     users.users.${cfg.user} = {
       isNormalUser = true;
+      inherit (cfg) home;
       group = cfg.user;
       inherit (cfg) extraGroups;
       packages =
@@ -188,7 +214,6 @@ in
       after = [
         "network-online.target"
         "home-manager-${cfg.user}.service"
-        "syncthing.service"
       ];
       # The setuid wrappers, the user's commands and the system's, as in a login shell
       path = [
@@ -197,12 +222,12 @@ in
         "/run/current-system/sw"
       ];
       environment = {
-        HOME = ownerHome;
+        HOME = sessionHome;
         CLAUDE_CONFIG_DIR = account.claudeDir;
         TELEGRAM_STATE_DIR = stateDir;
       };
       unitConfig = {
-        RequiresMountsFor = lib.attrValues archive.folders;
+        RequiresMountsFor = lib.attrValues cfg.directories;
         # Before the shared state arrives, making a profile would put an empty settings.json
         # there, which could win over the workstations' own
         ConditionPathExists = "${account.sharedDir}/settings.json";
@@ -213,7 +238,7 @@ in
         # tmux leaves a server behind. It ends with the command, and then systemd starts anew
         Type = "forking";
         ExecStartPre = setup;
-        ExecStart = "${tmuxCmd} new-session -d -s claude -c ${ownerHome} ${lib.escapeShellArg cfg.command}";
+        ExecStart = "${tmuxCmd} new-session -d -s claude -c ${sessionHome} ${lib.escapeShellArg cfg.command}";
         Restart = "always";
         RestartSec = 5;
         RuntimeDirectory = "claude-agent";
@@ -221,20 +246,16 @@ in
         EnvironmentFile = config.sops.templates."claude-agent.env".path;
         LoadCredential = "owner-chat-id:${config.sops.secrets."telegram-owner-chat-id".path}";
 
-        # Of the archive's volume, the folders alone; of the homes, the session's own, also
-        # under the owner's name. Syncthing's key and API key stay out of sight as well. Syncthing
-        # runs as the same user, so /proc/PID/root would show its files; the PrivateUsers of the
-        # nixpkgs unit is what shuts that path, and the boot test checks it
+        # Of the homes, the session's own alone, also under its alias
         ProtectSystem = "strict";
         ProtectHome = "tmpfs";
         PrivateTmp = true;
-        TemporaryFileSystem = "${archive.mountPoint}:ro";
+        TemporaryFileSystem = map (path: "${path}:ro") cfg.hiddenPaths;
         BindPaths = [
-          home
-          "${home}:${ownerHome}"
+          cfg.home
         ]
-        ++ lib.attrValues archive.folders;
-        InaccessiblePaths = [ config.services.syncthing.dataDir ];
+        ++ lib.optional (cfg.homeAlias != null) "${cfg.home}:${cfg.homeAlias}"
+        ++ lib.attrValues cfg.directories;
       };
     };
   };

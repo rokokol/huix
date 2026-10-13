@@ -2,27 +2,26 @@
   config,
   lib,
   osConfig,
-  rokokolName,
   ...
 }:
 
-# The home of the Claude Code agent on the archive host, which nixos/services/tools/claude-agent.nix
-# runs. It shares the workstations' Claude Code state through the archive's copy of it
+# The home of the Claude Code agent that nixos/services/tools/claude-agent.nix runs. It shares
+# the workstations' Claude Code state through the copy of it the host keeps
+let
+  agent = osConfig.rokokol.claude-agent;
+in
 {
   home.stateVersion = osConfig.system.stateVersion;
 
-  # Each archived folder where a workstation keeps it, so the paths in the shared state resolve
-  home.file = lib.mapAttrs' (
-    path: dir:
-    lib.nameValuePair (lib.removePrefix "/home/${rokokolName}/" path) {
-      source = config.lib.file.mkOutOfStoreSymlink dir;
-    }
-  ) osConfig.rokokol.syncthing.archive.folders;
+  # Each directory the session edits, linked where the host says
+  home.file = lib.mapAttrs (_: dir: {
+    source = config.lib.file.mkOutOfStoreSymlink dir;
+  }) agent.directories;
 
   programs.claude-account = {
     enable = true;
-    # Spelled out, as the session runs with HOME set to the owner's home and the defaults would
-    # follow it
+    # Spelled out, as the session may run with HOME set to an alias of the home, and the defaults
+    # would follow it
     claudeDir = "${config.home.homeDirectory}/.claude";
     profilesDir = "${config.xdg.dataHome}/claude-profiles";
     sharedDir = "${config.xdg.dataHome}/claude-shared";
