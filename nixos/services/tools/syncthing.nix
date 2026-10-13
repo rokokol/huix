@@ -11,7 +11,7 @@
 # Syncthing between the hosts of this flake and the phone. Each host names its own device ID, and
 # every other host takes it from there; a host with no ID yet is left out. A workstation shares
 # each folder both ways. An archive host only receives it, and keeps what a peer deletes or
-# overwrites for the folder's keepDays
+# overwrites in snapshots, for the folder's `preserve`
 let
   cfg = config.rokokol.syncthing;
   homeDir = "/home/${rokokolName}";
@@ -46,28 +46,61 @@ let
     lib.mapAttrs
       (_: folder: folder // { devices = lib.attrNames peers ++ lib.optional folder.phone "phone"; })
       {
+        # `preserve` is how long the archive keeps the folder's snapshots, as btrbk's
+        # snapshot_preserve: one a day for 30 days, then one a week for 13 weeks
         myWiki = {
           id = "3heyc-wgheb";
           path = myWikiDir;
           phone = true;
-          keepDays = 90;
+          preserve = "30d 13w";
         };
 
         # Claude Code shared state (chats, memory, plugins), no account cookies. Its transcripts
-        # grow all day, and each version is a whole file, so the archive keeps them for less
+        # grow all day, so the archive keeps them for less
         claude-shared = {
           id = "claude-shared";
           path = "${homeDir}/.local/share/claude-shared";
           phone = false;
-          keepDays = 30;
+          preserve = "30d";
         };
       };
 
-  # Both units carry them, as restic-server.nix explains for its own
+  # Every unit carries them, as restic-server.nix explains for its own
   mountGuard = {
     RequiresMountsFor = [ cfg.archive.dir ];
     ConditionPathIsMountPoint = cfg.archive.mountPoint;
   };
+
+  # btrbk names a subvolume by its path inside the volume
+  onVolume = lib.removePrefix "${cfg.archive.mountPoint}/";
+
+  inherit (config.services.syncthing) user group;
+
+  # Each folder is a subvolume, so that it has snapshots of its own. A folder that is a plain
+  # directory is left alone, and btrbk then fails on it, which mails root. Syncthing's account
+  # can read the snapshots and cannot change them
+  subvolumes = pkgs.writeShellScript "syncthing-archive-subvolumes" ''
+    set -eu
+    PATH=${
+      lib.makeBinPath (
+        with pkgs;
+        [
+          coreutils
+          btrfs-progs
+        ]
+      )
+    }
+    install -d -m 0750 -o ${user} -g ${group} ${lib.escapeShellArg cfg.archive.dir}
+    for folder in ${lib.escapeShellArgs (lib.attrNames folders)}; do
+      path=${lib.escapeShellArg cfg.archive.dir}/$folder
+      if [ ! -e "$path" ]; then
+        btrfs subvolume create "$path"
+        chown ${user}:${group} "$path"
+        chmod 0750 "$path"
+      fi
+    done
+    install -d -m 0750 -o root -g ${group} ${lib.escapeShellArg cfg.archive.snapshotDir}
+  '';
 in
 {
   options.rokokol.syncthing = {
@@ -95,6 +128,12 @@ in
         type = lib.types.path;
         example = "/srv/backup";
         description = "Mountpoint of the archive's filesystem; Syncthing does not start without it";
+      };
+
+      snapshotDir = lib.mkOption {
+        type = lib.types.path;
+        example = "/srv/backup/snapshots/syncthing";
+        description = "Directory of the read-only snapshots of every folder, on the same filesystem";
       };
     };
   };
@@ -133,16 +172,20 @@ in
       })
 
       (lib.mkIf cfg.archive.enable {
-        assertions = [
-          {
-            assertion = lib.hasPrefix "${cfg.archive.mountPoint}/" cfg.archive.dir;
-            message = "rokokol.syncthing.archive.dir must be on rokokol.syncthing.archive.mountPoint";
-          }
-        ];
+        assertions =
+          map
+            (option: {
+              assertion = lib.hasPrefix "${cfg.archive.mountPoint}/" cfg.archive.${option};
+              message = "rokokol.syncthing.archive.${option} must be on rokokol.syncthing.archive.mountPoint";
+            })
+            [
+              "dir"
+              "snapshotDir"
+            ];
 
-        # The default user, not the owner: the archive needs no home. The owner reads the old
-        # versions through the group. The files take the default modes, not the peers' own: a
-        # private mode there, as on Claude Code's transcripts, would shut the owner out here
+        # The default user, not the owner: the archive needs no home. The owner reads the folders
+        # and the snapshots through the group. The files take the default modes, not the peers'
+        # own: a private mode there, as on Claude Code's transcripts, would shut the owner out
         services.syncthing = {
           # tailscale.nix trusts the tailnet interface, and the LAN stays shut out
           openDefaultPorts = false;
@@ -156,23 +199,37 @@ in
             path = "${cfg.archive.dir}/${name}";
             type = "receiveonly";
             ignorePerms = true;
-            versioning = {
-              type = "staggered";
-              params.maxAge = toString (folder.keepDays * 24 * 60 * 60);
-            };
           }) folders;
         };
 
-        users.users.${rokokolName}.extraGroups = [ config.services.syncthing.group ];
+        # Snapshots and not Syncthing's versions: Syncthing keeps no version of a change made on
+        # this host, and a snapshot keeps that change as well. A snapshot comes every 15 minutes
+        # if its folder changed, and each one is kept for a day before `preserve` thins them out
+        services.btrbk.instances.syncthing = {
+          onCalendar = "*:0/15";
+          settings = {
+            timestamp_format = "long";
+            snapshot_create = "onchange";
+            snapshot_preserve_min = "1d";
+            volume.${cfg.archive.mountPoint} = {
+              snapshot_dir = onVolume cfg.archive.snapshotDir;
+              subvolume = lib.mapAttrs' (
+                name: folder:
+                lib.nameValuePair (onVolume "${cfg.archive.dir}/${name}") { snapshot_preserve = folder.preserve; }
+              ) folders;
+            };
+          };
+        };
+
+        users.users.${rokokolName}.extraGroups = [ group ];
 
         systemd.services.syncthing = {
           unitConfig = mountGuard;
           # Not a tmpfiles rule, for the reason restic-server.nix gives
-          serviceConfig.ExecStartPre = [
-            "+${lib.getExe' pkgs.coreutils "install"} -d -m 0750 -o ${config.services.syncthing.user} -g ${config.services.syncthing.group} ${lib.escapeShellArg cfg.archive.dir}"
-          ];
+          serviceConfig.ExecStartPre = [ "+${subvolumes}" ];
         };
         systemd.services.syncthing-init.unitConfig = mountGuard;
+        systemd.services.btrbk-syncthing.unitConfig = mountGuard;
       })
     ]
   );

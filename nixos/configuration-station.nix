@@ -25,6 +25,7 @@ in
         enable = true;
         mountPoint = backup;
         dir = "${backup}/syncthing";
+        snapshotDir = "${backup}/snapshots/syncthing";
       };
     };
 

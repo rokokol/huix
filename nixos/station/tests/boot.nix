@@ -33,6 +33,7 @@ let
   syncthing = {
     inherit (station.config.services.syncthing.settings.folders.myWiki) id path;
     config = "${station.config.services.syncthing.configDir}/config.xml";
+    inherit (station.config.rokokol.syncthing.archive) snapshotDir;
   };
 
   # The driver numbers the nodes in name order, and each card's MAC carries that number
@@ -333,6 +334,7 @@ pkgs.testers.runNixOSTest {
     from datetime import timedelta
 
     jq = "${lib.getExe pkgs.jq}"
+    btrfs = "${pkgs.btrfs-progs}/bin/btrfs"
     map_logical ="${pkgs.btrfs-progs}/bin/btrfs-map-logical"
     filefrag = "${pkgs.e2fsprogs}/bin/filefrag"
     scrub = "btrfs-scrub@srv-backup.service"
@@ -446,13 +448,25 @@ pkgs.testers.runNixOSTest {
 
     on_pc = "/var/lib/syncthing/myWiki"
     on_station = "${syncthing.path}"
+    snapshots = "${syncthing.snapshotDir}"
 
-    with subtest("the archive keeps each folder on the backup volume, receive-only and with old versions"):
+    # btrbk sees a change once btrfs commits it, which it does every 30 seconds; the timer's next
+    # run takes a change it missed, and the test commits at once
+    def snapshot():
+        station.succeed(f"{btrfs} filesystem sync /srv/backup")
+        assert run_to_end("btrbk-syncthing.service") == "success", "btrbk failed"
+        return station.succeed(f"ls -d {snapshots}/myWiki.* | sort").split()
+
+    with subtest("the archive keeps each folder in a subvolume of the backup volume, receive-only"):
         station.wait_for_unit("syncthing-init.service")
-        station.succeed("systemctl show -P OnFailure syncthing.service | grep -qx 'alert-mail@syncthing.service.service'")
+        for unit in ["syncthing", "btrbk-syncthing"]:
+            station.succeed(f"systemctl show -P OnFailure {unit}.service | grep -qx 'alert-mail@{unit}.service.service'")
+        station.succeed("systemctl is-active btrbk-syncthing.timer")
         for folder in st(station, "GET", "config/folders"):
             assert folder["type"] == "receiveonly", f"{folder['id']} is {folder['type']}"
-            assert folder["versioning"]["type"] == "staggered", f"{folder['id']} keeps no versions"
+            # The snapshots keep the history, so Syncthing keeps no versions of its own
+            assert folder["versioning"]["type"] == "", f"{folder['id']} keeps {folder['versioning']['type']} versions"
+            station.succeed(f"{btrfs} subvolume show {shlex.quote(folder['path'])}")
             station.succeed(f"findmnt -no TARGET -T {shlex.quote(folder['path'])} | grep -qx /srv/backup")
 
     with subtest("the LAN cannot reach the archive's Syncthing, and the archive reaches the PC"):
@@ -467,20 +481,36 @@ pkgs.testers.runNixOSTest {
             timeout=timedelta(minutes=2),
         )
 
-    # Two files, since the first hour of staggered versioning keeps one version in 30 seconds.
     # Private modes, as Claude Code gives its transcripts
-    with subtest("what the PC overwrites or deletes stays on the archive, readable by the owner"):
+    with subtest("what the PC overwrites or deletes stays in a snapshot, readable by the owner"):
         as_syncthing(pc, f"umask 077 && mkdir -p {on_pc}/notes && echo old >{on_pc}/notes/kept.md && echo gone >{on_pc}/notes/gone.md")
         for name, text in [("kept", "old"), ("gone", "gone")]:
             station.wait_until_succeeds(f"grep -qx {text} {on_station}/notes/{name}.md", timeout=timedelta(minutes=2))
+        before = snapshot()[-1]
         as_syncthing(pc, f"echo new >{on_pc}/notes/kept.md && rm {on_pc}/notes/gone.md")
         station.wait_until_succeeds(f"grep -qx new {on_station}/notes/kept.md", timeout=timedelta(minutes=2))
         station.wait_until_succeeds(f"! test -e {on_station}/notes/gone.md", timeout=timedelta(minutes=2))
         for name, text in [("kept", "old"), ("gone", "gone")]:
-            version = station.succeed(f"runuser -u rokokol -- sh -c 'cat {on_station}/.stversions/notes/{name}~*.md'")
-            assert version == f"{text}\n", f"the archive kept {version!r} of {name}.md"
-        # The versions stay where they were made
-        pc.succeed(f"test ! -e {on_pc}/.stversions")
+            version = station.succeed(f"runuser -u rokokol -- cat {before}/notes/{name}.md")
+            assert version == f"{text}\n", f"the snapshot kept {version!r} of {name}.md"
+        station.succeed(f"test ! -e {on_station}/.stversions")
+
+    with subtest("a snapshot is made only when its folder changed"):
+        taken = snapshot()
+        assert snapshot() == taken, "an unchanged folder got a new snapshot"
+
+    # The account a future agent on the station would share with Syncthing, and the owner
+    with subtest("neither Syncthing's account nor the owner can change or delete a snapshot"):
+        newest = snapshot()[-1]
+        for user in ["syncthing", "rokokol"]:
+            station.fail(f"runuser -u {user} -- {btrfs} subvolume delete {newest}")
+            station.fail(f"runuser -u {user} -- rm -rf {newest}/notes")
+            station.fail(f"runuser -u {user} -- mv {newest} {on_station}/moved")
+            # An older name in place would have btrbk itself delete the snapshot as expired
+            station.fail(f"runuser -u {user} -- mv {newest} {snapshots}/myWiki.20000101T0000")
+            station.fail(f"runuser -u {user} -- touch {snapshots}/myWiki.20000101T0000")
+        station.fail(f"echo changed >{newest}/notes/kept.md")
+        station.succeed(f"grep -qx new {newest}/notes/kept.md")
 
     with subtest("a change made on the archive stays there"):
         as_syncthing(station, f"echo local >{on_station}/local.md")
