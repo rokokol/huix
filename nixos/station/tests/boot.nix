@@ -71,6 +71,8 @@ let
       can profile test -L "$CLAUDE_CONFIG_DIR" -a -e "$CLAUDE_CONFIG_DIR/settings.json"
       can wake-pc command -v wake-pc
       can pc-mac test -r ${station.config.sops.secrets.pc-mac.path}
+      # A setuid program such as sudo could raise the session's privileges
+      can new-privileges grep -q '^NoNewPrivs:[[:space:]]*0$' /proc/self/status
       exec 3>&-
       mv "$report.part" "$report"
     '';
@@ -697,7 +699,7 @@ pkgs.testers.runNixOSTest {
         station.wait_until_succeeds(f"test -e {agent_home}/probe", timeout=timedelta(seconds=30))
         found = dict(line.split("=", 1) for line in station.succeed(f"cat {agent_home}/probe").split())
         reachable = {"write-vault", "write-shared", "owner-paths", "bot-token", "profile", "wake-pc", "pc-mac"}
-        hidden = {"owner-home", "snapshots", "restic", "syncthing-key", "syncthing-root"}
+        hidden = {"owner-home", "snapshots", "restic", "syncthing-key", "syncthing-root", "new-privileges"}
         expected = {"user": "${agent.user}"} | dict.fromkeys(reachable, "yes") | dict.fromkeys(hidden, "no")
         assert found == expected, f"the session sees {found}, not {expected}"
 

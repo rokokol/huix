@@ -28,8 +28,13 @@ let
     builtins.toJSON {
       # Fewer of the subscription's tokens than the shared settings' model; this file outranks it
       model = "sonnet";
-      # The home's links lead there, and Claude Code judges a file by the path it resolves to
-      permissions.additionalDirectories = lib.attrValues cfg.directories;
+      permissions = {
+        # The home's links lead there, and Claude Code judges a file by the path it resolves to
+        additionalDirectories = lib.attrValues cfg.directories;
+        # The sandbox decides what the session can read; a question about it would wait for an
+        # answer in Telegram
+        allow = [ "Read(//**)" ];
+      };
       enabledPlugins = {
         # The owner keeps it on the workstations only
         "cc-plugin-you-should-know@builtin" = false;
@@ -231,9 +236,9 @@ in
         "network-online.target"
         "home-manager-${cfg.user}.service"
       ];
-      # The setuid wrappers, the user's commands and the system's, as in a login shell
+      # The user's commands and the system's, as in a login shell. The setuid wrappers are left
+      # out, since nothing in the session may raise its privileges
       path = [
-        "/run/wrappers"
         "/etc/profiles/per-user/${cfg.user}"
         "/run/current-system/sw"
       ];
@@ -273,6 +278,9 @@ in
         ]
         ++ lib.optional (cfg.homeAlias != null) "${cfg.home}:${cfg.homeAlias}"
         ++ lib.attrValues cfg.directories;
+        # No setuid program raises the session's privileges. A sudo it tries ends at once, and
+        # mails root nothing about the timestamp it cannot write under the read-only /run
+        NoNewPrivileges = true;
       };
     };
   };
