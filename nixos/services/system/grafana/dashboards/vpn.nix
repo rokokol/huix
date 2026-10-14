@@ -7,10 +7,11 @@
 }:
 
 # The dashboard of the VPN nodes, from what they push to the Pushgateway: their health, then the
-# attacks on them and the traffic through them. A node pushes at least every quarter hour, so a
-# rate is taken over an hour, which always holds several pushes
+# attacks on them and the traffic through them. A node samples every ten minutes, so a rate of
+# its own numbers is taken over an hour, which always holds several samples
 let
   inherit (panels)
+    bars
     query
     panel
     row
@@ -19,6 +20,14 @@ let
     ;
 
   node = ''job="vpn", instance=~"$instance"'';
+
+  # The master pushes the panel's traffic every minute and the station scrapes every half minute,
+  # so three minutes is the shortest window that always holds two different values. The master
+  # reports for the whole fleet, so an inbound is chosen by its node label, not by the instance
+  nowWindow = "3m";
+  inbounds =
+    labels:
+    ''sum by (node, inbound) (rate(vpn_inbound_traffic_bytes_total{job="vpn", ${labels}}[${nowWindow}]))'';
 
   # The clients with the most traffic, because a panel of every client is unreadable
   topClients = 10;
@@ -29,7 +38,10 @@ in
 panels.dashboard {
   uid = "vpn";
   title = "VPN";
-  templating.list = [ (variable "instance" ''push_time_seconds{job="vpn"}'' "instance") ];
+  templating.list = [
+    (variable "instance" ''push_time_seconds{job="vpn"}'' "instance")
+    (variable "vpn_node" "vpn_inbound_traffic_bytes_total" "node")
+  ];
   panels = [
     (row "Health" null 0)
     (panel {
@@ -157,7 +169,7 @@ panels.dashboard {
       };
     })
 
-    (row "Attacks and traffic" null 33)
+    (row "Attacks" null 33)
     (panel {
       title = "fail2ban failed attempts per hour";
       x = 0;
@@ -198,26 +210,62 @@ panels.dashboard {
         (query "A" roles.series-1 "rate(vpn_ufw_drops_total{${node}}[1h])" "{{instance}}")
       ];
     })
-    (panel {
-      title = "Traffic by inbound";
+  ]
+  ++ panels.attackers "vpn" node 42
+  ++ [
+    (row "Traffic now" null 50)
+    (bars {
+      title = "Inbounds now, down";
       x = 0;
-      y = 42;
+      y = 51;
+      w = 12;
+      expr = inbounds ''direction="down"'';
+      legend = "{{node}} {{inbound}}";
+      unit = "Bps";
+    })
+    (bars {
+      title = "Inbounds now, up";
+      x = 12;
+      y = 51;
+      w = 12;
+      expr = inbounds ''direction="up"'';
+      legend = "{{node}} {{inbound}}";
+      unit = "Bps";
+    })
+
+    # One row a node, whichever node of the fleet the master's panel says an inbound runs on
+    (row "Inbounds of $vpn_node" "vpn_node" 59)
+    (panel {
+      title = "Down, by inbound";
+      x = 0;
+      y = 60;
       w = 12;
       unit = "Bps";
       min = 0;
       shaded = true;
       queries = [
-        (query "A" roles.series-1
-          (traffic "vpn_inbound_traffic_bytes_total{${node}}" "instance, inbound, direction")
-          "{{instance}} {{inbound}} {{direction}}"
-        )
+        (query "A" roles.series-1 (inbounds ''node=~"$vpn_node", direction="down"'') "{{inbound}}")
       ];
     })
     (panel {
-      title = "Traffic of the ${toString topClients} busiest clients";
+      title = "Up, by inbound";
       x = 12;
-      y = 42;
+      y = 60;
       w = 12;
+      unit = "Bps";
+      min = 0;
+      shaded = true;
+      queries = [
+        (query "A" roles.series-1 (inbounds ''node=~"$vpn_node", direction="up"'') "{{inbound}}")
+      ];
+    })
+
+    (row "Clients" null 68)
+    (panel {
+      title = "Traffic of the ${toString topClients} busiest clients";
+      x = 0;
+      y = 69;
+      w = 24;
       unit = "Bps";
       min = 0;
       shaded = true;

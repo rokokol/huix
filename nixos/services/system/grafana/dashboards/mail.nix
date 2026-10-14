@@ -232,7 +232,7 @@ panels.dashboard {
       title = "The station, as the node sees it";
       x = 8;
       y = 42;
-      w = 8;
+      w = 16;
       expr = "mail_station_up{${node}}";
       legend = "{{instance}}";
       mappings = {
@@ -245,22 +245,6 @@ panels.dashboard {
           color = roles.ok;
         };
       };
-    })
-    (panel {
-      title = "Time since the station answered";
-      x = 16;
-      y = 42;
-      w = 8;
-      unit = "s";
-      min = 0;
-      queries = [
-        (query "A" roles.series-1 "time() - mail_station_last_answer_timestamp_seconds{${node}}"
-          "{{instance}} answer"
-        )
-        (query "B" roles.series-3 "time() - mail_station_last_check_timestamp_seconds{${node}}"
-          "{{instance}} question"
-        )
-      ];
     })
     (panel {
       title = "Collector lag";
@@ -337,5 +321,8 @@ panels.dashboard {
         };
       };
     })
-  ];
+
+    (row "Who knocks" null 66)
+  ]
+  ++ panels.attackers "mail" node 67;
 }

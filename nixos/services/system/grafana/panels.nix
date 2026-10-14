@@ -180,6 +180,10 @@ rec {
       labels,
       # The heading of the value's column
       valueName ? "Value",
+      # true for the largest value first, false for the smallest, null for the labels' order
+      sortDesc ? null,
+      # false for a value that is a fact rather than good or bad
+      coloured ? true,
     }:
     {
       type = "table";
@@ -222,14 +226,14 @@ rec {
                 value = unit;
               }
               {
-                id = "custom.cellOptions";
-                value.type = "color-text";
-              }
-              {
                 id = "displayName";
                 value = valueName;
               }
-            ];
+            ]
+            ++ lib.optional coloured {
+              id = "custom.cellOptions";
+              value.type = "color-text";
+            };
           }
         ];
       };
@@ -239,8 +243,119 @@ rec {
           options.includeByName = lib.genAttrs (labels ++ [ "Value" ]) (_: true);
         }
       ];
-      options.showHeader = true;
+      options = {
+        showHeader = true;
+      }
+      // lib.optionalAttrs (sortDesc != null) {
+        sortBy = [
+          {
+            displayName = valueName;
+            desc = sortDesc;
+          }
+        ];
+      };
     };
+
+  # The current value of each series as a bar, the largest first
+  bars =
+    {
+      title,
+      x,
+      y,
+      w,
+      h ? 8,
+      expr,
+      legend,
+      unit,
+    }:
+    {
+      type = "bargauge";
+      inherit title;
+      datasource = ds;
+      gridPos = {
+        inherit
+          x
+          y
+          w
+          h
+          ;
+      };
+      targets = [ ((query "A" roles.series-1 expr legend).target // { instant = true; }) ];
+      fieldConfig = {
+        defaults = {
+          inherit unit;
+          min = 0;
+          color = fixed roles.series-1;
+        };
+        overrides = [ ];
+      };
+      # The series turned into rows so that they can be sorted: a bar gauge keeps the order its
+      # frames arrive in, which is the labels' order
+      transformations = [
+        {
+          id = "reduce";
+          options = {
+            reducers = [ "lastNotNull" ];
+            mode = "seriesToRows";
+          };
+        }
+        {
+          id = "sortBy";
+          options.sort = [
+            {
+              field = "Last *";
+              desc = true;
+            }
+          ];
+        }
+      ];
+      options = {
+        orientation = "horizontal";
+        displayMode = "basic";
+        showUnfilled = true;
+        reduceOptions = {
+          values = true;
+          calcs = [ ];
+          fields = "/^Last/";
+        };
+      };
+    };
+
+  # Who knocks on a node: the addresses that tried most in the last day and the latest bans, as
+  # each kind of node pushes them under its own prefix
+  attackers = prefix: selector: y: [
+    (table {
+      title = "Addresses that tried most in a day";
+      x = 0;
+      inherit y;
+      w = 12;
+      expr = "${prefix}_fail2ban_top_attempts{${selector}}";
+      unit = "short";
+      labels = [
+        "instance"
+        "ip"
+      ];
+      valueName = "attempts";
+      sortDesc = true;
+      coloured = false;
+    })
+    (table {
+      title = "Latest bans";
+      x = 12;
+      inherit y;
+      w = 12;
+      expr = "time() - ${prefix}_fail2ban_recent_ban_timestamp_seconds{${selector}}";
+      unit = "s";
+      labels = [
+        "instance"
+        "jail"
+        "ip"
+      ];
+      valueName = "ago";
+      sortDesc = false;
+      coloured = false;
+    })
+  ];
 
   row = title: repeat: y: {
     type = "row";
