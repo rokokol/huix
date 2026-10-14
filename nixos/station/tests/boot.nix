@@ -405,8 +405,12 @@ pkgs.testers.runNixOSTest {
       inputs.sops-nix.nixosModules.sops
       ../../services/utils/forgejo-runner.nix
       ../../services/system/monitoring/node-exporter.nix
+      ../../services/tools/claude-agent.nix
+      inputs.home-manager.nixosModules.home-manager
     ];
     _module.args.inputs = inputs;
+    # The station's agent logs in to the workstations as this user
+    rokokol.claude-agent.guest.enable = true;
     # The tailnet trusts the exporter's port on the real PC; this one has only the LAN
     networking.firewall.allowedTCPPorts = [ pcNodeExporter.port ];
     environment.systemPackages = with pkgs; [ tcpdump ];
@@ -1296,6 +1300,24 @@ pkgs.testers.runNixOSTest {
             timeout=timedelta(minutes=1),
         )
         station.succeed(f"systemctl reset-failed {scrub}")
+
+    with subtest("the agent's user on the PC reaches no service of the PC but its resolver"):
+        guest = "${agent.user}"
+        tcp = lambda address, port: f"bash -c 'exec 3<>/dev/tcp/{address}/{port}'"
+        pc.succeed("systemd-run --unit=loopback-service ${lib.getExe pkgs.python3} -m http.server --bind :: 8765")
+        pc.succeed(
+            "systemd-run --unit=loopback-resolver ${lib.getExe pkgs.python3} -c "
+            "'import socket, time; server = socket.create_server((\"127.0.0.53\", 53)); time.sleep(1e9)'"
+        )
+        pc.wait_for_open_port(8765)
+        pc.wait_for_open_port(53, "127.0.0.53")
+        assert pc.succeed(f"id -nG {guest}").split() == [guest], "the agent's user has groups beyond its own"
+        # Another unprivileged user, so the refusal is the guest's own and not the service's
+        for address in ["127.0.0.1", "192.168.0.102", "[::1]"]:
+            pc.succeed(f"runuser -u nobody -- {tcp(address.strip('[]'), 8765)}")
+            pc.fail(f"runuser -u {guest} -- timeout 5 {tcp(address.strip('[]'), 8765)}")
+        pc.succeed(f"runuser -u {guest} -- timeout 5 {tcp('127.0.0.53', 53)}")
+        pc.succeed(f"runuser -l {guest} -c 'command -v gh'")
 
     with subtest("no unit is failed"):
         station.succeed("test -z \"$(systemctl list-units --failed --no-legend --all)\"")

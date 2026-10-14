@@ -32,6 +32,8 @@
 
     searxng.enable = false;
     telegram-agent.enable = true;
+    # The station's agent logs in here over SSH
+    claude-agent.guest.enable = true;
 
     printer.enable = true;
     tablet.enable = true;

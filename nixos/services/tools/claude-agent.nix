@@ -70,6 +70,14 @@ let
     fi
   '';
 
+  # Clears the guest's rules, before they are made again and when the firewall stops
+  guestChain = "claude-agent-guest";
+  unguard = ''
+    ip46tables -D OUTPUT -o lo -m owner --uid-owner ${cfg.user} -j ${guestChain} 2>/dev/null || true
+    ip46tables -F ${guestChain} 2>/dev/null || true
+    ip46tables -X ${guestChain} 2>/dev/null || true
+  '';
+
   notify = pkgs.writeShellApplication {
     name = "claude-agent-notify";
     runtimeInputs = with pkgs; [ util-linux ];
@@ -92,6 +100,12 @@ in
 {
   options.rokokol.claude-agent = {
     enable = lib.mkEnableOption "Claude Code reachable through a Telegram bot";
+
+    guest.enable = lib.mkEnableOption ''
+      the session's user without the session, for the agent on another host to log in to over
+      SSH. It reaches no service on this host's loopback but the resolver, since such a
+      service trusts every local user
+    '';
 
     user = lib.mkOption {
       type = lib.types.str;
@@ -194,94 +208,123 @@ in
     };
   };
 
-  config = lib.mkIf cfg.enable {
-    rokokol.claude-agent.plugins = [
-      (builtins.path {
-        name = "claude-agent-plugin";
-        path = "${inputs.self}/nixos/services/tools/claude-agent-plugin";
-      })
-    ];
+  config = lib.mkMerge [
+    (lib.mkIf (cfg.enable || cfg.guest.enable) {
+      # In the user's profile and not only in the unit's PATH: a shell in the session reads the
+      # system's environment again, which drops what the unit adds. These are what the shared
+      # skills call: Claude Code reads repositories through git, GitHub through gh
+      users.users.${cfg.user} = {
+        isNormalUser = true;
+        inherit (cfg) home;
+        group = cfg.user;
+        inherit (cfg) extraGroups;
+        packages =
+          (with pkgs; [
+            curl
+            exiftool
+            gh
+            git
+            jq
+            python3
+          ])
+          ++ cfg.packages;
+      };
+      users.groups.${cfg.user} = { };
+    })
 
-    # In the user's profile and not only in the unit's PATH: a shell in the session reads the
-    # system's environment again, which drops what the unit adds. Bun runs the Telegram channel,
-    # and Claude Code reads repositories through git
-    users.users.${cfg.user} = {
-      isNormalUser = true;
-      inherit (cfg) home;
-      group = cfg.user;
-      inherit (cfg) extraGroups;
-      packages =
-        (with pkgs; [
-          bun
-          git
-          tmux
-        ])
-        ++ cfg.packages;
-    };
-    users.groups.${cfg.user} = { };
+    (lib.mkIf cfg.guest.enable {
+      # A service on loopback takes every local user for the owner
+      networking.firewall.extraCommands = ''
+        ${unguard}
+        ip46tables -N ${guestChain}
+        iptables -A ${guestChain} -d 127.0.0.53,127.0.0.54 -p udp --dport 53 -j RETURN
+        iptables -A ${guestChain} -d 127.0.0.53,127.0.0.54 -p tcp --dport 53 -j RETURN
+        ip46tables -A ${guestChain} -j REJECT
+        ip46tables -I OUTPUT -o lo -m owner --uid-owner ${cfg.user} -j ${guestChain}
+      '';
+      networking.firewall.extraStopCommands = unguard;
 
-    home-manager.users.${cfg.user} = import ../../../home-manager/home-claude-agent.nix;
+      # It has no password, so the login screen would offer a user nobody can log in as
+      services.displayManager.sddm.settings.Users.HideUsers = cfg.user;
+    })
 
-    sops.secrets."telegram-bot-token" = { };
-    sops.secrets."telegram-owner-chat-id" = { };
-    sops.templates."claude-agent.env".content = ''
-      TELEGRAM_BOT_TOKEN=${config.sops.placeholder."telegram-bot-token"}
-    '';
-
-    systemd.services.claude-agent = {
-      description = "Claude Code reachable through Telegram";
-      wantedBy = [ "multi-user.target" ];
-      wants = [ "network-online.target" ];
-      after = [
-        "network-online.target"
-        "home-manager-${cfg.user}.service"
+    (lib.mkIf cfg.enable {
+      rokokol.claude-agent.plugins = [
+        (builtins.path {
+          name = "claude-agent-plugin";
+          path = "${inputs.self}/nixos/services/tools/claude-agent-plugin";
+        })
       ];
-      # The user's commands and the system's, as in a login shell. The setuid wrappers are left
-      # out, since nothing in the session may raise its privileges
-      path = [
-        "/etc/profiles/per-user/${cfg.user}"
-        "/run/current-system/sw"
-      ];
-      environment = {
-        HOME = sessionHome;
-        # What Claude Code writes into the shared state names the paths the session uses
-        CLAUDE_CONFIG_DIR = inSession account.claudeDir;
-        TELEGRAM_STATE_DIR = stateDir;
-      };
-      unitConfig = {
-        RequiresMountsFor = lib.attrValues cfg.directories;
-        # Before the shared state arrives, making a profile would put an empty settings.json
-        # there, which could win over the workstations' own
-        ConditionPathExists = "${account.sharedDir}/settings.json";
-      };
-      serviceConfig = {
-        User = cfg.user;
-        Group = cfg.user;
-        # tmux leaves a server behind. It ends with the command, and then systemd starts anew
-        Type = "forking";
-        ExecStartPre = setup;
-        ExecStart = "${tmuxCmd} new-session -d -s claude -c ${sessionHome} ${lib.escapeShellArg cfg.command}";
-        Restart = "always";
-        RestartSec = 5;
-        RuntimeDirectory = "claude-agent";
-        RuntimeDirectoryMode = "0700";
-        EnvironmentFile = config.sops.templates."claude-agent.env".path;
-        LoadCredential = "owner-chat-id:${config.sops.secrets."telegram-owner-chat-id".path}";
 
-        # Of the homes, the session's own alone, also under its alias
-        ProtectSystem = "strict";
-        ProtectHome = "tmpfs";
-        PrivateTmp = true;
-        TemporaryFileSystem = map (path: "${path}:ro") cfg.hiddenPaths;
-        BindPaths = [
-          cfg.home
-        ]
-        ++ lib.optional (cfg.homeAlias != null) "${cfg.home}:${cfg.homeAlias}"
-        ++ lib.attrValues cfg.directories;
-        # No setuid program raises the session's privileges. A sudo it tries ends at once, and
-        # mails root nothing about the timestamp it cannot write under the read-only /run
-        NoNewPrivileges = true;
+      # Bun runs the Telegram channel, and the owner attaches to the session through tmux
+      users.users.${cfg.user}.packages = with pkgs; [
+        bun
+        tmux
+      ];
+
+      home-manager.users.${cfg.user} = import ../../../home-manager/home-claude-agent.nix;
+
+      sops.secrets."telegram-bot-token" = { };
+      sops.secrets."telegram-owner-chat-id" = { };
+      sops.templates."claude-agent.env".content = ''
+        TELEGRAM_BOT_TOKEN=${config.sops.placeholder."telegram-bot-token"}
+      '';
+
+      systemd.services.claude-agent = {
+        description = "Claude Code reachable through Telegram";
+        wantedBy = [ "multi-user.target" ];
+        wants = [ "network-online.target" ];
+        after = [
+          "network-online.target"
+          "home-manager-${cfg.user}.service"
+        ];
+        # The user's commands and the system's, as in a login shell. The setuid wrappers are left
+        # out, since nothing in the session may raise its privileges
+        path = [
+          "/etc/profiles/per-user/${cfg.user}"
+          "/run/current-system/sw"
+        ];
+        environment = {
+          HOME = sessionHome;
+          # What Claude Code writes into the shared state names the paths the session uses
+          CLAUDE_CONFIG_DIR = inSession account.claudeDir;
+          TELEGRAM_STATE_DIR = stateDir;
+        };
+        unitConfig = {
+          RequiresMountsFor = lib.attrValues cfg.directories;
+          # Before the shared state arrives, making a profile would put an empty settings.json
+          # there, which could win over the workstations' own
+          ConditionPathExists = "${account.sharedDir}/settings.json";
+        };
+        serviceConfig = {
+          User = cfg.user;
+          Group = cfg.user;
+          # tmux leaves a server behind. It ends with the command, and then systemd starts anew
+          Type = "forking";
+          ExecStartPre = setup;
+          ExecStart = "${tmuxCmd} new-session -d -s claude -c ${sessionHome} ${lib.escapeShellArg cfg.command}";
+          Restart = "always";
+          RestartSec = 5;
+          RuntimeDirectory = "claude-agent";
+          RuntimeDirectoryMode = "0700";
+          EnvironmentFile = config.sops.templates."claude-agent.env".path;
+          LoadCredential = "owner-chat-id:${config.sops.secrets."telegram-owner-chat-id".path}";
+
+          # Of the homes, the session's own alone, also under its alias
+          ProtectSystem = "strict";
+          ProtectHome = "tmpfs";
+          PrivateTmp = true;
+          TemporaryFileSystem = map (path: "${path}:ro") cfg.hiddenPaths;
+          BindPaths = [
+            cfg.home
+          ]
+          ++ lib.optional (cfg.homeAlias != null) "${cfg.home}:${cfg.homeAlias}"
+          ++ lib.attrValues cfg.directories;
+          # No setuid program raises the session's privileges. A sudo it tries ends at once, and
+          # mails root nothing about the timestamp it cannot write under the read-only /run
+          NoNewPrivileges = true;
+        };
       };
-    };
-  };
+    })
+  ];
 }
