@@ -39,11 +39,11 @@ let
   };
 
   agent = rec {
-    inherit (station.config.rokokol.claude-agent) user;
+    inherit (station.config.rokokol.mya-agent) user;
     inherit (station.config.users.users.${user}) home;
-    inherit (station.config.rokokol.claude-agent) notify;
-    stateDir = station.config.systemd.services.claude-agent.environment.TELEGRAM_STATE_DIR;
-    workDir = station.config.systemd.services.claude-agent.environment.HOME;
+    inherit (station.config.rokokol.mya-agent) notify;
+    stateDir = station.config.systemd.services.mya-agent.environment.TELEGRAM_STATE_DIR;
+    workDir = station.config.systemd.services.mya-agent.environment.HOME;
     ownerChatId = "1234567";
 
     # What the session can reach, typed into it as a command. Each line is a name and yes or no;
@@ -322,10 +322,10 @@ pkgs.testers.runNixOSTest {
 
         # Claude Code cannot log in here. A shell in its place runs what notify types, so the
         # test reaches the session's view of the host through the path the owner's units use
-        rokokol.claude-agent.command = lib.getExe pkgs.bashInteractive;
+        rokokol.mya-agent.command = lib.getExe pkgs.bashInteractive;
         # The VM has no internet, so the agent clones a repository from the store. git trusts
         # it, though root owns it
-        rokokol.claude-agent.repositories = lib.mkForce { huix = "${agentRepo}"; };
+        rokokol.mya-agent.repositories = lib.mkForce { huix = "${agentRepo}"; };
         programs.git = {
           enable = true;
           config.safe.directory = "${agentRepo}/.git";
@@ -418,12 +418,12 @@ pkgs.testers.runNixOSTest {
       inputs.sops-nix.nixosModules.sops
       ../../services/utils/forgejo-runner.nix
       ../../services/system/monitoring/node-exporter.nix
-      ../../services/ai/claude-agent
+      ../../services/ai/mya-agent
       inputs.home-manager.nixosModules.home-manager
     ];
     _module.args.inputs = inputs;
     # The station's agent logs in to the workstations as this user
-    rokokol.claude-agent.guest = {
+    rokokol.mya-agent.guest = {
       enable = true;
       loopbackPorts.probe = 8766;
       owner = "owner";
@@ -683,7 +683,7 @@ pkgs.testers.runNixOSTest {
         station.fail(f"echo changed >{newest}/notes/kept.md")
         station.succeed(f"grep -qx new {newest}/notes/kept.md")
 
-    agent_unit = "claude-agent.service"
+    agent_unit = "mya-agent.service"
     agent_home = "${agent.home}"
 
     # Typed into the session; with a shell there, a command
@@ -717,7 +717,7 @@ pkgs.testers.runNixOSTest {
 
     with subtest("the agent's repositories are cloned, and the owner fetches from them"):
         clone = f"{agent_home}/huix"
-        station.wait_until_succeeds("systemctl show -P Result claude-agent-clone.service | grep -qx success")
+        station.wait_until_succeeds("systemctl show -P Result mya-agent-clone.service | grep -qx success")
         station.succeed(f"test $(stat -c %U {clone}) = ${agent.user}")
         station.succeed(f"grep -qxF CLAUDE.local.md {clone}/.git/info/exclude")
         # The group passes through the home to the clone, and lists nothing in the home

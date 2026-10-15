@@ -10,13 +10,13 @@
 # owner can attach to it and other units can type into it. The host says which directories the
 # session works in and which paths it must not see
 let
-  cfg = config.rokokol.claude-agent;
+  cfg = config.rokokol.mya-agent;
   account = config.home-manager.users.${cfg.user}.programs.claude-account;
 
   # The directory the session works in, and a path under the home as the session names it
   sessionHome = if cfg.homeAlias != null then cfg.homeAlias else cfg.home;
   inSession = path: sessionHome + lib.removePrefix cfg.home path;
-  socket = "/run/claude-agent/tmux";
+  socket = "/run/mya-agent/tmux";
   stateDir = "${cfg.home}/.local/state/claude-telegram";
   tmuxCmd = "${lib.getExe pkgs.tmux} -S ${socket}";
 
@@ -24,7 +24,7 @@ let
   # a hook that would repeat it in every turn and on every host
   prompt = ./prompt.md;
 
-  settings = pkgs.writeText "claude-agent-settings.json" (
+  settings = pkgs.writeText "mya-agent-settings.json" (
     builtins.toJSON {
       # Fewer of the subscription's tokens than the shared settings' model; this file outranks it
       model = "sonnet";
@@ -43,7 +43,7 @@ let
     }
   );
 
-  setup = pkgs.writeShellScript "claude-agent-setup" ''
+  setup = pkgs.writeShellScript "mya-agent-setup" ''
     set -eu
     # A profile the first time only; which one is active later is the owner's choice
     if [ ! -L ${account.claudeDir} ]; then
@@ -71,7 +71,7 @@ let
   '';
 
   # Clears the guest's rules, before they are made again and when the firewall stops
-  guestChain = "claude-agent-guest";
+  guestChain = "mya-agent-guest";
   unguard = ''
     ip46tables -D OUTPUT -o lo -m owner --uid-owner ${cfg.user} -j ${guestChain} 2>/dev/null || true
     ip46tables -F ${guestChain} 2>/dev/null || true
@@ -79,11 +79,11 @@ let
   '';
 
   notify = pkgs.writeShellApplication {
-    name = "claude-agent-notify";
+    name = "mya-agent-notify";
     runtimeInputs = with pkgs; [ util-linux ];
     text = ''
       if [ $# -eq 0 ]; then
-        echo "usage: claude-agent-notify TEXT..." >&2
+        echo "usage: mya-agent-notify TEXT..." >&2
         exit 2
       fi
       # A line break would send the text in parts, as an Enter does
@@ -98,7 +98,7 @@ let
   };
 in
 {
-  options.rokokol.claude-agent = {
+  options.rokokol.mya-agent = {
     enable = lib.mkEnableOption "Claude Code reachable through a Telegram bot";
 
     guest.enable = lib.mkEnableOption ''
@@ -256,7 +256,7 @@ in
       type = lib.types.nullOr lib.types.path;
       readOnly = true;
       default = if cfg.enable then lib.getExe notify else null;
-      defaultText = lib.literalMD "`claude-agent-notify`, or null when the agent is off";
+      defaultText = lib.literalMD "`mya-agent-notify`, or null when the agent is off";
       description = ''
         A command that types its arguments into the session as one line and submits them, as
         the owner would. Only root can run it
@@ -310,7 +310,7 @@ in
       assertions = [
         {
           assertion = cfg.guest.shares == { } || cfg.guest.owner != null;
-          message = "rokokol.claude-agent.guest.shares needs guest.owner";
+          message = "rokokol.mya-agent.guest.shares needs guest.owner";
         }
       ];
 
@@ -339,10 +339,10 @@ in
     })
 
     (lib.mkIf cfg.enable {
-      rokokol.claude-agent.plugins = [
+      rokokol.mya-agent.plugins = [
         (builtins.path {
-          name = "claude-agent-plugin";
-          path = "${inputs.self}/nixos/services/ai/claude-agent/plugins/session";
+          name = "mya-agent-plugin";
+          path = "${inputs.self}/nixos/services/ai/mya-agent/plugins/session";
         })
       ];
 
@@ -356,10 +356,10 @@ in
         homeMode = "710";
       };
 
-      systemd.services.claude-agent-clone = lib.mkIf (cfg.repositories != { }) {
+      systemd.services.mya-agent-clone = lib.mkIf (cfg.repositories != { }) {
         description = "Clone the repositories the Telegram agent works in";
-        wantedBy = [ "claude-agent.service" ];
-        before = [ "claude-agent.service" ];
+        wantedBy = [ "mya-agent.service" ];
+        before = [ "mya-agent.service" ];
         wants = [ "network-online.target" ];
         after = [ "network-online.target" ];
         path = [ pkgs.git ];
@@ -386,19 +386,19 @@ in
         );
       };
 
-      home-manager.users.${cfg.user} = import "${inputs.self}/home-manager/home-claude-agent.nix";
+      home-manager.users.${cfg.user} = import "${inputs.self}/home-manager/home-mya-agent.nix";
 
       sops.secrets."telegram-bot-token" = { };
       sops.secrets."telegram-owner-chat-id" = { };
       # A fine-grained token that reads the owner's repositories and writes nothing, so no text
       # the session reads can make it act on GitHub as the owner
       sops.secrets."github-token" = { };
-      sops.templates."claude-agent.env".content = ''
+      sops.templates."mya-agent.env".content = ''
         TELEGRAM_BOT_TOKEN=${config.sops.placeholder."telegram-bot-token"}
         GH_TOKEN=${config.sops.placeholder."github-token"}
       '';
 
-      systemd.services.claude-agent = {
+      systemd.services.mya-agent = {
         description = "Claude Code reachable through Telegram";
         wantedBy = [ "multi-user.target" ];
         wants = [ "network-online.target" ];
@@ -433,9 +433,9 @@ in
           ExecStart = "${tmuxCmd} new-session -d -s claude -c ${sessionHome} ${lib.escapeShellArg cfg.command}";
           Restart = "always";
           RestartSec = 5;
-          RuntimeDirectory = "claude-agent";
+          RuntimeDirectory = "mya-agent";
           RuntimeDirectoryMode = "0700";
-          EnvironmentFile = config.sops.templates."claude-agent.env".path;
+          EnvironmentFile = config.sops.templates."mya-agent.env".path;
           LoadCredential = "owner-chat-id:${config.sops.secrets."telegram-owner-chat-id".path}";
 
           # Of the homes, the session's own alone, also under its alias

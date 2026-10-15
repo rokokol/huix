@@ -5,10 +5,10 @@
   ...
 }:
 
-# The home of the Claude Code agent that nixos/services/ai/claude-agent runs. It shares
+# The home of the Claude Code agent that nixos/services/ai/mya-agent runs. It shares
 # the workstations' Claude Code state through the copy of it the host keeps
 let
-  agent = osConfig.rokokol.claude-agent;
+  agent = osConfig.rokokol.mya-agent;
 in
 {
   home.stateVersion = osConfig.system.stateVersion;

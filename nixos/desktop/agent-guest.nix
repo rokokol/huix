@@ -15,7 +15,7 @@ let
   };
 in
 {
-  config.rokokol.claude-agent.guest = lib.mkIf config.rokokol.workstation.enable {
+  config.rokokol.mya-agent.guest = lib.mkIf config.rokokol.workstation.enable {
     enable = true;
     owner = rokokolName;
     shares =

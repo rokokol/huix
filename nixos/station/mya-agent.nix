@@ -9,7 +9,7 @@
 # the agent makes stays writable to Syncthing, and the agent's edits reach every peer. The rest
 # of the backup volume, the snapshots among them, and Syncthing's keys stay out of its sight
 let
-  agent = config.rokokol.claude-agent;
+  agent = config.rokokol.mya-agent;
   inherit (config.rokokol.syncthing) archive;
   ownerHome = "/home/${rokokolName}";
 in
@@ -17,7 +17,7 @@ in
   config = lib.mkIf (agent.enable && archive.enable) {
     rokokol.syncthing.archive.editor = agent.user;
 
-    rokokol.claude-agent = {
+    rokokol.mya-agent = {
       # The shared Claude Code state holds absolute paths under the owner's home, as the
       # workstations write them
       homeAlias = ownerHome;
@@ -38,6 +38,6 @@ in
       ];
     };
 
-    systemd.services.claude-agent.after = [ "syncthing.service" ];
+    systemd.services.mya-agent.after = [ "syncthing.service" ];
   };
 }

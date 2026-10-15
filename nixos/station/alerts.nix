@@ -30,7 +30,7 @@ in
     "backup-heartbeat"
     "btrbk-syncthing"
     "btrfs-scrub@"
-    "claude-agent"
+    "mya-agent"
     "forgejo"
     "forgejo-dump"
     "forgejo-mirrors"
@@ -53,7 +53,7 @@ in
   # node still arrives. The agent gets each alert too, to act on it at once
   rokokol.alert-mail = {
     telegram.enable = true;
-    inherit (config.rokokol.claude-agent) notify;
+    inherit (config.rokokol.mya-agent) notify;
     # Each repository, each node and each problem a node reports is an alert of its own, so a
     # second silent node is sent even while the first is still open
     sources = {
@@ -67,12 +67,12 @@ in
   # The agent reads the open problems, the metrics and the journal of every unit through its
   # station-health plugin. The journal of the whole host reaches the model's context that way,
   # which the owner accepts
-  rokokol.claude-agent = {
+  rokokol.mya-agent = {
     extraGroups = [ "systemd-journal" ];
     plugins = [
       (builtins.path {
         name = "station-health-plugin";
-        path = "${inputs.self}/nixos/services/ai/claude-agent/plugins/station-health";
+        path = "${inputs.self}/nixos/services/ai/mya-agent/plugins/station-health";
       })
     ];
   };

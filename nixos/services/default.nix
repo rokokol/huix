@@ -2,7 +2,7 @@
 
 {
   imports = [
-    ./ai/claude-agent
+    ./ai/mya-agent
     ./ai/ollama.nix
     ./desktop/amnezia-vpn.nix
     ./desktop/file-manager.nix

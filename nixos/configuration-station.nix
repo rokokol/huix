@@ -30,7 +30,7 @@ in
     };
 
     # Edits the archive's folders, so Syncthing runs as its user and sends the changes
-    claude-agent = {
+    mya-agent = {
       enable = true;
       packages = with pkgs; [ ffmpeg ];
     };

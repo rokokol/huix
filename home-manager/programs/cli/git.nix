@@ -11,7 +11,7 @@
 }:
 
 let
-  agent = osConfig.rokokol.claude-agent;
+  agent = osConfig.rokokol.mya-agent;
 in
 {
   programs.git = {
