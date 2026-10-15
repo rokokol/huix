@@ -262,7 +262,7 @@ in
         tmux
       ];
 
-      home-manager.users.${cfg.user} = import ../../../home-manager/home-claude-agent.nix;
+      home-manager.users.${cfg.user} = import "${inputs.self}/home-manager/home-claude-agent.nix";
 
       sops.secrets."telegram-bot-token" = { };
       sops.secrets."telegram-owner-chat-id" = { };
