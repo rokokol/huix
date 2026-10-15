@@ -199,15 +199,15 @@ panels.dashboard {
       ];
     })
     (panel {
-      title = "Packets the firewall dropped";
+      title = "Packets the firewall dropped per hour";
       x = 16;
       y = 34;
       w = 8;
-      unit = "pps";
+      unit = "short";
       min = 0;
       shaded = true;
       queries = [
-        (query "A" roles.series-1 "rate(vpn_ufw_drops_total{${node}}[1h])" "{{instance}}")
+        (query "A" roles.series-1 (hourly "vpn_ufw_drops_total{${node}}" "instance") "{{instance}}")
       ];
     })
   ]

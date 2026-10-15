@@ -321,11 +321,11 @@ rec {
       };
     };
 
-  # Who knocks on a node: the addresses that tried most in the last day and the latest bans, as
-  # each kind of node pushes them under its own prefix
+  # Who knocks on a node: the addresses a jail found most in the last day and the latest bans, as
+  # each kind of node pushes them under its own prefix. The jail says what a row is
   attackers = prefix: selector: y: [
     (table {
-      title = "Addresses that tried most in a day";
+      title = "Addresses found most in a day";
       x = 0;
       inherit y;
       w = 12;
@@ -333,9 +333,10 @@ rec {
       unit = "short";
       labels = [
         "instance"
+        "jail"
         "ip"
       ];
-      valueName = "attempts";
+      valueName = "findings";
       sortDesc = true;
       coloured = false;
     })
