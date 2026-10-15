@@ -22,7 +22,7 @@ let
 
   # How a reply has to look in Telegram. In the system prompt once a session, rather than in
   # a hook that would repeat it in every turn and on every host
-  prompt = ./claude-agent-prompt.md;
+  prompt = ./prompt.md;
 
   settings = pkgs.writeText "claude-agent-settings.json" (
     builtins.toJSON {
@@ -265,7 +265,7 @@ in
       rokokol.claude-agent.plugins = [
         (builtins.path {
           name = "claude-agent-plugin";
-          path = "${inputs.self}/nixos/services/tools/claude-agent-plugin";
+          path = "${inputs.self}/nixos/services/ai/claude-agent/plugin";
         })
       ];
 

@@ -405,7 +405,7 @@ pkgs.testers.runNixOSTest {
       inputs.sops-nix.nixosModules.sops
       ../../services/utils/forgejo-runner.nix
       ../../services/system/monitoring/node-exporter.nix
-      ../../services/tools/claude-agent.nix
+      ../../services/ai/claude-agent
       inputs.home-manager.nixosModules.home-manager
     ];
     _module.args.inputs = inputs;

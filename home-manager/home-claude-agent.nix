@@ -5,7 +5,7 @@
   ...
 }:
 
-# The home of the Claude Code agent that nixos/services/tools/claude-agent.nix runs. It shares
+# The home of the Claude Code agent that nixos/services/ai/claude-agent runs. It shares
 # the workstations' Claude Code state through the copy of it the host keeps
 let
   agent = osConfig.rokokol.claude-agent;
