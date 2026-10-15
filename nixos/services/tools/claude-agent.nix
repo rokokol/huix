@@ -103,9 +103,19 @@ in
 
     guest.enable = lib.mkEnableOption ''
       the session's user without the session, for the agent on another host to log in to over
-      SSH. It reaches no service on this host's loopback but the resolver, since such a
+      SSH. It reaches no service on this host's loopback but the resolver and `loopbackPorts`, since such a
       service trusts every local user
     '';
+
+    guest.loopbackPorts = lib.mkOption {
+      type = lib.types.attrsOf lib.types.port;
+      default = { };
+      example = lib.literalExpression "{ ollama = config.environment.sessionVariables.OLLAMA_PORT; }";
+      description = ''
+        TCP ports on this host's loopback that the session's user still reaches, by the name of
+        what listens there
+      '';
+    };
 
     user = lib.mkOption {
       type = lib.types.str;
@@ -239,6 +249,9 @@ in
         ip46tables -N ${guestChain}
         iptables -A ${guestChain} -d 127.0.0.53,127.0.0.54 -p udp --dport 53 -j RETURN
         iptables -A ${guestChain} -d 127.0.0.53,127.0.0.54 -p tcp --dport 53 -j RETURN
+        ${lib.concatMapStrings (port: ''
+          ip46tables -A ${guestChain} -p tcp --dport ${toString port} -j RETURN
+        '') (lib.attrValues cfg.guest.loopbackPorts)}
         ip46tables -A ${guestChain} -j REJECT
         ip46tables -I OUTPUT -o lo -m owner --uid-owner ${cfg.user} -j ${guestChain}
       '';

@@ -7,6 +7,8 @@
 }:
 
 let
+  port = 631;
+
   # the filter prefixes its own resource directory to this name, see WORKAROUNDS.md
   epson-l120 = pkgs.epson_201310w.overrideAttrs (old: {
     postFixup = old.postFixup + ''
@@ -22,10 +24,15 @@ in
     programs.system-config-printer.enable = true;
     services.printing = {
       enable = true;
+      listenAddresses = [ "localhost:${toString port}" ];
       drivers = [
         pkgs.gutenprint
         epson-l120
       ];
+    };
+
+    environment.sessionVariables = {
+      CUPS_PORT = port;
     };
 
     users.users.${rokokolName} = {
