@@ -52,14 +52,14 @@ in
     extraGroups = [ "wake-pc" ];
   };
 
-  # The Telegram agent wakes the PC when the owner asks, through the skill in wake-pc-plugin
+  # The Telegram agent wakes the PC when the owner asks, through the agent's wake-pc plugin
   rokokol.claude-agent = {
     packages = [ wakePc ];
     extraGroups = [ "wake-pc" ];
     plugins = [
       (builtins.path {
         name = "wake-pc-plugin";
-        path = "${inputs.self}/nixos/station/wake-pc-plugin";
+        path = "${inputs.self}/nixos/services/ai/claude-agent/plugins/wake-pc";
       })
     ];
   };

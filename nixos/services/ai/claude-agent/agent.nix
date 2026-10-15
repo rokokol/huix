@@ -236,6 +236,7 @@ in
             git
             jq
             python3
+            trash-cli
           ])
           ++ cfg.packages;
       };
@@ -265,7 +266,7 @@ in
       rokokol.claude-agent.plugins = [
         (builtins.path {
           name = "claude-agent-plugin";
-          path = "${inputs.self}/nixos/services/ai/claude-agent/plugin";
+          path = "${inputs.self}/nixos/services/ai/claude-agent/plugins/session";
         })
       ];
 
@@ -279,8 +280,12 @@ in
 
       sops.secrets."telegram-bot-token" = { };
       sops.secrets."telegram-owner-chat-id" = { };
+      # A fine-grained token that reads the owner's repositories and writes nothing, so no text
+      # the session reads can make it act on GitHub as the owner
+      sops.secrets."github-token" = { };
       sops.templates."claude-agent.env".content = ''
         TELEGRAM_BOT_TOKEN=${config.sops.placeholder."telegram-bot-token"}
+        GH_TOKEN=${config.sops.placeholder."github-token"}
       '';
 
       systemd.services.claude-agent = {

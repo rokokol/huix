@@ -701,6 +701,17 @@ pkgs.testers.runNixOSTest {
         station.wait_until_succeeds(f"grep -qx typed {agent_home}/key", timeout=timedelta(seconds=30))
         station.fail("runuser -u rokokol -- ${agent.notify} text")
 
+    with subtest("the morning timer asks the session for the letter"):
+        station.succeed("systemctl list-timers --no-legend morning-letter.timer | grep -q morning-letter")
+        # Typed into the shell in the session's place, the request's first word calls this
+        type_in("It() { echo \"$*\" >~/morning; }")
+        station.succeed("systemctl start morning-letter.service")
+        station.wait_until_succeeds(f"grep -q 'morning skill' {agent_home}/morning", timeout=timedelta(seconds=30))
+
+    with subtest("gh in the session reads GitHub with the owner's read-only token"):
+        type_in("echo \"$GH_TOKEN\" >~/gh-token")
+        station.wait_until_succeeds(f"grep -qx github_pat_test {agent_home}/gh-token", timeout=timedelta(seconds=30))
+
     with subtest("the session edits the vault and the shared state, and sees no snapshot, no backup, no key of Syncthing and not the owner's home"):
         station.succeed("install -m 0600 -o rokokol /dev/null /home/rokokol/.owner-only")
         syncthing_pid = station.succeed("systemctl show -P MainPID syncthing.service").strip()

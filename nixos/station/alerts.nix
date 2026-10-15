@@ -64,15 +64,15 @@ in
   rokokol.backup-heartbeat.causesFile = "/run/backup-heartbeat/causes";
   rokokol.pushgateway.causesFile = "/run/node-push-watch/causes";
 
-  # The agent reads the open problems, the metrics and the journal of every unit through the
-  # skill in health-plugin. The journal of the whole host reaches the model's context that way,
+  # The agent reads the open problems, the metrics and the journal of every unit through its
+  # station-health plugin. The journal of the whole host reaches the model's context that way,
   # which the owner accepts
   rokokol.claude-agent = {
     extraGroups = [ "systemd-journal" ];
     plugins = [
       (builtins.path {
         name = "station-health-plugin";
-        path = "${inputs.self}/nixos/station/health-plugin";
+        path = "${inputs.self}/nixos/services/ai/claude-agent/plugins/station-health";
       })
     ];
   };

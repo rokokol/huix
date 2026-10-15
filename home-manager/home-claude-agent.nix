@@ -18,6 +18,17 @@ in
     source = config.lib.file.mkOutOfStoreSymlink dir;
   }) agent.directories;
 
+  # The agent logs in to the workstations as its guest user. No one answers a prompt in its
+  # session, and a workstation's host key changes only when it is installed again
+  programs.ssh = {
+    enable = true;
+    enableDefaultConfig = false;
+    settings."nixos-pc nixos-laptop" = {
+      BatchMode = "yes";
+      StrictHostKeyChecking = "accept-new";
+    };
+  };
+
   programs.claude-account = {
     enable = true;
     # Spelled out, as the session may run with HOME set to an alias of the home, and the defaults
