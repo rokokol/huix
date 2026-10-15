@@ -1143,6 +1143,12 @@ pkgs.testers.runNixOSTest {
         station.succeed(f"if [ -e {causes} ]; then : >{causes}; fi")
         station.succeed("systemctl start alert-reconcile.service")
         station.fail("alert list | grep '^backup:'")
+        # The closes mail in deliveries of their own, and one that lands after the mailbox is
+        # emptied would count against the second run below. A message leaves the outbox when
+        # its delivery ends
+        station.wait_until_succeeds(
+            "test -z \"$(ls -A /var/lib/alerts/outbox 2>/dev/null)\"", timeout=timedelta(minutes=1)
+        )
         router.succeed("curl -sf -X DELETE http://127.0.0.1:8025/api/v1/messages")
         station.succeed("systemctl start backup-heartbeat.service")
         for subject in ["the backup of pc has no snapshot", "free for the backups"]:
