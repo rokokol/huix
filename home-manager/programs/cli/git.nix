@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  osConfig,
   huixDir,
   myWikiDir,
   rokokolEmail,
@@ -9,6 +10,9 @@
   ...
 }:
 
+let
+  agent = osConfig.rokokol.claude-agent;
+in
 {
   programs.git = {
     enable = true;
@@ -20,9 +24,13 @@
       core.editor = "nvim";
       core.quotepath = "false";
       init.defaultBranch = "master";
-      safe = {
-        directory = myWikiDir;
-      };
+      # The station's agent owns its clones, and the owner fetches its commits from them
+      safe.directory = [
+        myWikiDir
+      ]
+      ++ lib.optionals agent.enable (
+        map (dir: "${agent.home}/${dir}") (lib.attrNames agent.repositories)
+      );
 
       # A token for a forge other than GitHub, such as the station's Forgejo, goes into the
       # GNOME keyring of the desktop. gh keeps GitHub to itself: its URL entries reset this list

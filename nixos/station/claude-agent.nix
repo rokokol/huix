@@ -22,6 +22,9 @@ in
       # workstations write them
       homeAlias = ownerHome;
 
+      # The owner fetches the agent's commits from here over SSH
+      repositories.huix = "https://github.com/rokokol/huix";
+
       # Each folder where a workstation keeps it, so the paths in the shared state resolve
       directories = lib.mapAttrs' (
         path: dir: lib.nameValuePair (lib.removePrefix "${ownerHome}/" path) dir

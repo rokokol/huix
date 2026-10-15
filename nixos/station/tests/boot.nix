@@ -203,6 +203,12 @@ let
       }
     ];
   };
+
+  # A repository the agent clones in place of one on GitHub
+  agentRepo = pkgs.runCommand "agent-repo" { nativeBuildInputs = with pkgs; [ git ]; } ''
+    git init -q -b master $out
+    git -C $out -c user.name=test -c user.email=test@test commit -q --allow-empty -m first
+  '';
 in
 pkgs.testers.runNixOSTest {
   name = "station-boot";
@@ -317,6 +323,13 @@ pkgs.testers.runNixOSTest {
         # Claude Code cannot log in here. A shell in its place runs what notify types, so the
         # test reaches the session's view of the host through the path the owner's units use
         rokokol.claude-agent.command = lib.getExe pkgs.bashInteractive;
+        # The VM has no internet, so the agent clones a repository from the store. git trusts
+        # it, though root owns it
+        rokokol.claude-agent.repositories = lib.mkForce { huix = "${agentRepo}"; };
+        programs.git = {
+          enable = true;
+          config.safe.directory = "${agentRepo}/.git";
+        };
       })
     ];
   };
@@ -413,6 +426,20 @@ pkgs.testers.runNixOSTest {
     rokokol.claude-agent.guest = {
       enable = true;
       loopbackPorts.probe = 8766;
+      owner = "owner";
+      shares = {
+        Projects.path = "/home/owner/Projects";
+        Downloads = {
+          path = "/home/owner/Downloads";
+          writable = true;
+        };
+      };
+    };
+    users.users.owner.isNormalUser = true;
+    # Before the mounts, as the owner's real directories are: tmpfiles runs after them
+    system.activationScripts.ownerShares = {
+      deps = [ "users" ];
+      text = "install -d -o owner -g users /home/owner/Projects /home/owner/Downloads";
     };
     # The guest prints through the scheduler's socket, which the firewall never sees
     services.printing.enable = true;
@@ -687,6 +714,15 @@ pkgs.testers.runNixOSTest {
         station.wait_for_unit(agent_unit)
         trusted = station.succeed(f"{jq} '.projects[\"${agent.workDir}\"].hasTrustDialogAccepted' {conf}").strip()
         assert trusted == "true", f"the session's directory is trusted: {trusted}"
+
+    with subtest("the agent's repositories are cloned, and the owner fetches from them"):
+        clone = f"{agent_home}/huix"
+        station.wait_until_succeeds("systemctl show -P Result claude-agent-clone.service | grep -qx success")
+        station.succeed(f"test $(stat -c %U {clone}) = ${agent.user}")
+        station.succeed(f"grep -qxF CLAUDE.local.md {clone}/.git/info/exclude")
+        # The group passes through the home to the clone, and lists nothing in the home
+        station.succeed(f"runuser -u rokokol -- git -C {clone} log -1 --format=%s | grep -qx first")
+        station.fail(f"runuser -u rokokol -- ls {agent_home}")
 
     with subtest("notify types its text into the session as it is"):
         # Quotes, a separator and a variable reach the session unchanged
@@ -1339,6 +1375,22 @@ pkgs.testers.runNixOSTest {
         pc.wait_for_unit("cups.socket")
         pc.succeed(f"runuser -u {guest} -- lpstat -r | grep -qx 'scheduler is running'")
         pc.succeed(f"runuser -l {guest} -c 'command -v gh'")
+
+    with subtest("the agent's user on the PC sees the owner's shares and nothing else of the owner's home"):
+        guest = "${agent.user}"
+        guest_home = f"/home/{guest}"
+        as_guest = lambda command: f"runuser -u {guest} -- sh -c {shlex.quote(command)}"
+        for share in ["Projects", "Downloads"]:
+            pc.wait_for_unit(pc.succeed(f"systemd-escape --path --suffix=mount {guest_home}/{share}").strip())
+        pc.succeed("runuser -u owner -- sh -c 'umask 077; echo kept >~/Projects/private.env; mkdir ~/.ssh; echo key >~/.ssh/id'")
+        # Every file of a share looks like the guest's own, a private one too
+        pc.succeed(as_guest(f"grep -qx kept {guest_home}/Projects/private.env"))
+        pc.fail(as_guest(f"touch {guest_home}/Projects/new"))
+        pc.succeed(as_guest(f"echo made >{guest_home}/Downloads/made"))
+        owner = pc.succeed("stat -c %U /home/owner/Downloads/made").strip()
+        assert owner == "owner", f"a file the guest made belongs to {owner} on disk"
+        pc.fail(as_guest("ls /home/owner"))
+        pc.fail(as_guest("cat /home/owner/.ssh/id"))
 
     with subtest("no unit is failed"):
         station.succeed("test -z \"$(systemctl list-units --failed --no-legend --all)\"")

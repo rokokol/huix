@@ -103,9 +103,42 @@ in
 
     guest.enable = lib.mkEnableOption ''
       the session's user without the session, for the agent on another host to log in to over
-      SSH. It reaches no service on this host's loopback but the resolver and `loopbackPorts`, since such a
-      service trusts every local user
+      SSH. It reaches no service on this host's loopback but the resolver and `loopbackPorts`,
+      since such a service trusts every local user, and of the owner's files only `shares`
     '';
+
+    guest.owner = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      description = "The user whose directories `shares` show to the session's user";
+    };
+
+    guest.shares = lib.mkOption {
+      type = lib.types.attrsOf (
+        lib.types.submodule {
+          options = {
+            path = lib.mkOption {
+              type = lib.types.str;
+              description = "The owner's directory";
+            };
+            writable = lib.mkEnableOption "writing to it";
+          };
+        }
+      );
+      default = { };
+      example = {
+        Projects.path = "/home/alice/Projects";
+        Downloads = {
+          path = "/home/alice/Downloads";
+          writable = true;
+        };
+      };
+      description = ''
+        The owner's directories the session's user sees, by the path under its home. Each is a
+        view of the directory, where every file looks like the session user's own and a file it
+        makes is the owner's on disk. The rest of the owner's home stays out of reach
+      '';
+    };
 
     guest.loopbackPorts = lib.mkOption {
       type = lib.types.attrsOf lib.types.port;
@@ -194,6 +227,19 @@ in
       description = "Claude Code plugin directories that only this session loads";
     };
 
+    repositories = lib.mkOption {
+      type = lib.types.attrsOf lib.types.str;
+      default = { };
+      example = {
+        dotfiles = "https://github.com/alice/dotfiles";
+      };
+      description = ''
+        Repositories the session works in, by their path under its home. Each is cloned when it
+        is missing and never pulled after, since the session keeps it current itself. Its group
+        reads it, so the owner can fetch from it
+      '';
+    };
+
     packages = lib.mkOption {
       type = lib.types.listOf lib.types.package;
       default = [ ];
@@ -260,6 +306,36 @@ in
 
       # It has no password, so the login screen would offer a user nobody can log in as
       services.displayManager.sddm.settings.Users.HideUsers = cfg.user;
+
+      assertions = [
+        {
+          assertion = cfg.guest.shares == { } || cfg.guest.owner != null;
+          message = "rokokol.claude-agent.guest.shares needs guest.owner";
+        }
+      ];
+
+      # A bind mount would keep the owner's modes, and the owner's home would have to open to
+      # the guest; bindfs maps the owner to the guest and back
+      system.fsPackages = lib.optional (cfg.guest.shares != { }) pkgs.bindfs;
+      # Mount units and not fileSystems, which a test VM replaces with its own
+      systemd.mounts = lib.mapAttrsToList (
+        name: share:
+        let
+          inherit (cfg.guest) owner;
+          group = config.users.users.${owner}.group;
+        in
+        {
+          what = share.path;
+          where = "${cfg.home}/${name}";
+          type = "fuse.bindfs";
+          options = lib.concatStringsSep "," (
+            [ "map=${owner}/${cfg.user}:@${group}/@${cfg.user}" ] ++ lib.optional (!share.writable) "ro"
+          );
+          # Wanted and not required, so a share that cannot mount stops no boot
+          wantedBy = [ "multi-user.target" ];
+          unitConfig.RequiresMountsFor = [ share.path ];
+        }
+      ) cfg.guest.shares;
     })
 
     (lib.mkIf cfg.enable {
@@ -271,10 +347,44 @@ in
       ];
 
       # Bun runs the Telegram channel, and the owner attaches to the session through tmux
-      users.users.${cfg.user}.packages = with pkgs; [
-        bun
-        tmux
-      ];
+      users.users.${cfg.user} = {
+        packages = with pkgs; [
+          bun
+          tmux
+        ];
+        # The group passes through to the repositories, and to nothing else the home holds
+        homeMode = "710";
+      };
+
+      systemd.services.claude-agent-clone = lib.mkIf (cfg.repositories != { }) {
+        description = "Clone the repositories the Telegram agent works in";
+        wantedBy = [ "claude-agent.service" ];
+        before = [ "claude-agent.service" ];
+        wants = [ "network-online.target" ];
+        after = [ "network-online.target" ];
+        path = [ pkgs.git ];
+        serviceConfig = {
+          Type = "oneshot";
+          User = cfg.user;
+          Group = cfg.user;
+        };
+        script = lib.concatStrings (
+          lib.mapAttrsToList (
+            dir: url:
+            let
+              repo = lib.escapeShellArg "${cfg.home}/${dir}";
+            in
+            ''
+              if [ ! -e ${repo}/.git ]; then
+                git clone ${lib.escapeShellArg url} ${repo}
+              fi
+              # The session's own notes on the repository stay out of its history
+              grep -qxF CLAUDE.local.md ${repo}/.git/info/exclude ||
+                echo CLAUDE.local.md >>${repo}/.git/info/exclude
+            ''
+          ) cfg.repositories
+        );
+      };
 
       home-manager.users.${cfg.user} = import "${inputs.self}/home-manager/home-claude-agent.nix";
 
