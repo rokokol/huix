@@ -26,5 +26,8 @@
 
     # DNS-over-TLS through the proxy goes to Quad9 rather than the module's default
     dns.remoteServer = "9.9.9.9";
+
+    # `skvpn top`, the live speed through the tunnel
+    monitor.enable = true;
   };
 }
