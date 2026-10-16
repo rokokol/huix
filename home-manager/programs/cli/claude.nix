@@ -2,7 +2,6 @@
   config,
   lib,
   pkgs,
-  osConfig,
   ...
 }:
 
@@ -13,19 +12,14 @@ let
   sharedDir = "${config.xdg.dataHome}/claude-shared";
 in
 {
-  # desktop/sync.nix reads SKILLS_DIR, so it needs this module on as well. The defaults read the
-  # host, as a home without the desktop's modules, like the agent's, has no workstation option
+  # desktop/sync.nix reads SKILLS_DIR, so it needs this module on as well
   options.rokokol.claude = {
     enable = lib.mkEnableOption "Claude Code and its shared profile" // {
-      default = osConfig.rokokol.workstation.enable;
-      defaultText = lib.literalExpression "osConfig.rokokol.workstation.enable";
+      default = config.rokokol.workstation.enable;
     };
-    desktop.enable =
-      lib.mkEnableOption "OpenCode beside Claude Code, the DDLC themes and the `c` alias"
-      // {
-        default = osConfig.rokokol.workstation.enable;
-        defaultText = lib.literalExpression "osConfig.rokokol.workstation.enable";
-      };
+    desktop.enable = lib.mkEnableOption "OpenCode, the DDLC themes and the `c` alias" // {
+      default = config.rokokol.workstation.enable;
+    };
   };
 
   config = lib.mkIf cfg.enable (

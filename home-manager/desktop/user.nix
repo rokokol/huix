@@ -20,15 +20,8 @@ in
     ./packages/packages.nix
     ./sync.nix
     ./theme/default.nix
+    ./workstation.nix
   ];
-
-  # The user half of the system's umbrella, read across the boundary at this one place: every
-  # desktop module of the home defaults its own flag to this option, not to the system's
-  options.rokokol.workstation.enable =
-    lib.mkEnableOption "the desktop session and the GUI programs"
-    // {
-      default = osConfig.rokokol.workstation.enable;
-    };
 
   # The one list of bookmarks: Thunar's side pane reads it through GTK, and yazi binds each key
   # after `g`
