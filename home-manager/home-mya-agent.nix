@@ -11,6 +11,8 @@ let
   agent = osConfig.rokokol.mya-agent;
 in
 {
+  imports = [ ./programs/cli/claude.nix ];
+
   home.stateVersion = osConfig.system.stateVersion;
 
   # Each directory the session edits, linked where the host says
@@ -29,13 +31,13 @@ in
     };
   };
 
+  rokokol.claude.enable = true;
+
   programs.claude-account = {
-    enable = true;
     # Spelled out, as the session may run with HOME set to an alias of the home, and the defaults
     # would follow it
     claudeDir = "${config.home.homeDirectory}/.claude";
     profilesDir = "${config.xdg.dataHome}/claude-profiles";
-    sharedDir = "${config.xdg.dataHome}/claude-shared";
     # No OpenCode runs here
     opencode.share = false;
   };
