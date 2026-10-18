@@ -20,12 +20,14 @@ in
     source = config.lib.file.mkOutOfStoreSymlink dir;
   }) agent.directories;
 
-  # The agent logs in to the workstations as its guest user. No one answers a prompt in its
-  # session, and a workstation's host key changes only when it is installed again
+  # The agent logs in to the workstations as its guest user and to the nodes as their observer. No
+  # one answers a prompt in its session, and a host key changes only when the host is installed
+  # again. Every host rather than a list: the nodes are the ones that push to the station, and a
+  # second list of them would drift
   programs.ssh = {
     enable = true;
     enableDefaultConfig = false;
-    settings."nixos-pc nixos-laptop" = {
+    settings."*" = {
       BatchMode = "yes";
       StrictHostKeyChecking = "accept-new";
     };
