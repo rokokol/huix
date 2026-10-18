@@ -37,6 +37,9 @@ in
           fragments
           freecad
           geary
+          # ReVa is a Ghidra extension that is itself the MCP server; agents reach it over
+          # http://127.0.0.1:8080/mcp/message while Ghidra runs, so no bridge is packaged beside it
+          (ghidra.withExtensions (p: [ p.reva ]))
           gnome-disk-utility
           obs-studio
           # Electron finds the secret store by the desktop name, and it knows no Hyprland, so it
@@ -150,9 +153,6 @@ in
           nodejs
 
           # Reverse engineering
-          # ReVa is a Ghidra extension that is itself the MCP server; agents reach it over
-          # http://127.0.0.1:8080/mcp/message while Ghidra runs, so no bridge is packaged beside it
-          (ghidra.withExtensions (p: [ p.reva ]))
           detect-it-easy
 
           # --- Desktop apps ---
