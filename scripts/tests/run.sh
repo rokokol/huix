@@ -724,26 +724,71 @@ printf 'not a mac\n' >"$work/bad-mac"
 export WAKE_PC_BROADCAST=192.168.0.255
 
 reset_log
-WAKE_PC_MAC_FILE=$work/pc-mac bash "$wake" >/dev/null 2>&1
-is "wake-pc sends the packet" 0 "$?"
+WAKE_PC_MAC_FILE=$work/pc-mac bash "$wake" send >/dev/null 2>&1
+is "wake-pc send sends the packet" 0 "$?"
 logged "the packet goes to the LAN broadcast, for the MAC in the file" \
   '^wakeonlan' '-i 192\.168\.0\.255' 'AA:BB:CC:DD:EE:0F'
 
 reset_log
-WAKE_PC_MAC_FILE=$work/bad-mac bash "$wake" >/dev/null 2>&1
+WAKE_PC_MAC_FILE=$work/bad-mac bash "$wake" send >/dev/null 2>&1
 is "a file that holds no MAC is a failure" 1 "$?"
 not_logged "no packet goes out for a bad MAC" '^wakeonlan'
 
-WAKE_PC_MAC_FILE=$work/missing bash "$wake" >/dev/null 2>&1
+WAKE_PC_MAC_FILE=$work/missing bash "$wake" send >/dev/null 2>&1
 is "an unreadable MAC file is a failure" 1 "$?"
 
 WAKE_PC_MAC_FILE=$work/pc-mac bash "$wake" now >/dev/null 2>&1
-is "wake-pc takes no argument" 2 "$?"
+is "an unknown subcommand is a usage error" 2 "$?"
 
-WAKE_PC_MAC_FILE='' bash "$wake" >/dev/null 2>&1
+WAKE_PC_MAC_FILE='' bash "$wake" send >/dev/null 2>&1
 is "without the host's settings it is a usage error" 2 "$?"
 
 is "help answers without the host's settings" 0 "$(env -u WAKE_PC_BROADCAST bash "$wake" help >/dev/null 2>&1; echo $?)"
+
+# Waking waits on the tailnet. tailscale answers a ping from the STUB_PC_UP_AT-th call on, and
+# never when that is 0; sleep only records the wait it was asked for
+cat >"$work/bin/tailscale" <<'EOF'
+#!/usr/bin/env bash
+calls=$(($(cat "$STUB_PC_CALLS" 2>/dev/null || echo 0) + 1))
+echo "$calls" >"$STUB_PC_CALLS"
+printf 'tailscale %s\n' "$*" >>"$STUB_LOG"
+[ "$STUB_PC_UP_AT" -gt 0 ] && [ "$calls" -ge "$STUB_PC_UP_AT" ]
+EOF
+cat >"$work/bin/sleep" <<'EOF'
+#!/usr/bin/env bash
+printf 'sleep %s\n' "$*" >>"$STUB_LOG"
+EOF
+for stub in tailscale sleep; do
+  sed -i "1s|.*|#!$BASH|" "$work/bin/$stub"
+  chmod +x "$work/bin/$stub"
+done
+export WAKE_PC_MAC_FILE=$work/pc-mac WAKE_PC_HOST=nixos-pc STUB_PC_CALLS=$work/pc-calls
+wake_up_at() {
+  reset_log
+  rm -f "$STUB_PC_CALLS"
+  out=$(STUB_PC_UP_AT=$1 bash "$wake" 2>&1)
+}
+
+wake_up_at 1
+is "a PC that already answers is a success" 0 "$?"
+not_logged "no packet goes out to a PC that is on" '^wakeonlan'
+logged "the PC is asked for by its tailnet name" '^tailscale' 'ping' 'nixos-pc'
+
+wake_up_at 3
+is "a PC that answers after the packet is a success" 0 "$?"
+logged "a PC that is off gets the packet" '^wakeonlan' 'AA:BB:CC:DD:EE:0F'
+
+wake_up_at 0
+is "a PC that never answers is its own failure" 3 "$?"
+logged "the packet went out before the wait" '^wakeonlan'
+logged "the wait sleeps between pings" '^sleep [0-9]'
+
+WAKE_PC_WAIT=nope bash "$wake" >/dev/null 2>&1
+is "a wait that is not a number is a usage error" 2 "$?"
+WAKE_PC_HOST='' bash "$wake" >/dev/null 2>&1
+is "waking without the tailnet name is a usage error" 2 "$?"
+unset WAKE_PC_MAC_FILE WAKE_PC_HOST STUB_PC_CALLS
+rm "$work/bin/tailscale" "$work/bin/sleep"
 
 # make-station-iso.sh, with the real xorriso on a small image made here. Every run writes into
 # $iso_work, so a file the script leaves anywhere else in it is found by a listing

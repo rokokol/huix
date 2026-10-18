@@ -31,10 +31,14 @@ let
 
   wakePc = pkgs.writeShellApplication {
     name = "wake-pc";
-    runtimeInputs = with pkgs; [ wakeonlan ];
+    runtimeInputs = [
+      pkgs.wakeonlan
+      config.services.tailscale.package
+    ];
     runtimeEnv = {
       WAKE_PC_MAC_FILE = config.sops.secrets."pc-mac".path;
       WAKE_PC_BROADCAST = broadcast (lib.head config.systemd.network.networks."10-lan".address);
+      WAKE_PC_HOST = "nixos-pc";
     };
     text = ''exec ${lib.getExe pkgs.bash} ${script} "$@"'';
   };

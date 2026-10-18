@@ -1101,7 +1101,7 @@ pkgs.testers.runNixOSTest {
     with subtest("wake-pc reaches the PC as a broadcast on the LAN, past the TUN"):
         pc.succeed("tcpdump -i eth1 -n -c1 -w /tmp/wol.pcap 'udp port 9' >/tmp/tcpdump.log 2>&1 &")
         pc.wait_until_succeeds("grep -q 'listening on eth1' /tmp/tcpdump.log", timeout=timedelta(seconds=30))
-        station.succeed("su - rokokol -c wake-pc")
+        station.succeed("su - rokokol -c 'wake-pc send'")
         pc.wait_until_succeeds(
             "test -s /tmp/wol.pcap && tcpdump -n -r /tmp/wol.pcap | grep -q '192.168.0.104.* > 192.168.0.255.9'",
             timeout=timedelta(seconds=30),
