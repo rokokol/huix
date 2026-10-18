@@ -35,6 +35,8 @@ let
         # answer in Telegram
         allow = [ "Read(//**)" ];
       };
+      # The skill reaches the owner's own account, and this session speaks through its bot
+      skillOverrides.telegram = "off";
       enabledPlugins = {
         # The owner keeps it on the workstations only
         "cc-plugin-you-should-know@builtin" = false;
