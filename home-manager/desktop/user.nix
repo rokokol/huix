@@ -20,7 +20,6 @@ in
     ./packages/packages.nix
     ./sync.nix
     ./theme/default.nix
-    ./workstation.nix
   ];
 
   # The one list of bookmarks: Thunar's side pane reads it through GTK, and yazi binds each key

@@ -37,6 +37,8 @@ inputs.nixpkgs.lib.nixosSystem {
           inputs.claude-account.homeModules.default
           inputs.virtual-media-devices.homeModules.default
           inputs.papers-skill.homeModules.default
+          # Every home on the host, the desktop's and the station agent's alike
+          ../home-manager/workstation.nix
         ];
 
         extraSpecialArgs = commonArgs;
