@@ -4,6 +4,7 @@
     ./language-servers.nix
     ./nixvim/default.nix
     ./rofi.nix
+    ./super-productivity.nix
     ./term/default.nix
     ./thunar.nix
     ./virtual-mic.nix

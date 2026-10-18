@@ -34,6 +34,7 @@
     ./tools/libre-translate.nix
     ./tools/paper-search.nix
     ./tools/searxng.nix
+    ./tools/super-productivity.nix
     ./tools/syncthing.nix
     ./tools/telegram-agent.nix
     ./utils/docker.nix

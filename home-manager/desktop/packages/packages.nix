@@ -42,7 +42,6 @@ in
           # Electron finds the secret store by the desktop name, and it knows no Hyprland, so it
           # falls back to storing secrets in the clear. The flag points it at the GNOME keyring
           (obsidian.override { commandLineArgs = "--password-store=gnome-libsecret"; })
-          super-productivity
           tauon
         ]
         ++ [

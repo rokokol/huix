@@ -233,7 +233,8 @@ pkgs.testers.runNixOSTest {
         {
           virtualisation = {
             vlans = [ 1 ];
-            memorySize = 3072;
+            # The host's own memory, so the headless Super Productivity fits as it must there
+            memorySize = 3840;
             cores = 2;
             emptyDiskImages = [ 2048 ];
             # The VM mounts its own disks in place of disko's. The backup volume is the empty
@@ -1439,6 +1440,35 @@ pkgs.testers.runNixOSTest {
         # hypridle uses on the desktop; the owner leaves instead
         pc.send_chars("exit\n")
         pc.wait_until_succeeds(f"runuser -l {guest} -c mya-power-idle", timeout=timedelta(seconds=30))
+
+    with subtest("Super Productivity runs with no screen as the agent's user, whose session reads its token"):
+        sp = "super-productivity"
+        station.wait_for_unit(f"{sp}.service")
+        station.wait_until_succeeds(
+            "runuser -u ${agent.user} -- ${pkgs.xorg.xwininfo}/bin/xwininfo -display :99 -root -tree"
+            " | grep -q 'Super Productivity'",
+            timeout=timedelta(minutes=3),
+        )
+        print(station.succeed(f"systemctl show -p MemoryCurrent -p NRestarts {sp}.service"))
+        assert station.succeed(f"systemctl show -p NRestarts --value {sp}.service").strip() == "0", "the app restarted"
+
+        # The API is off until the first sync turns it on, so a token stands in for the app's
+        token = "A" * 40
+        station.succeed(f"runuser -u ${agent.user} -- sh -c 'echo {token} >${station.config.rokokol.super-productivity.tokenFile}'")
+        type_in('cat "$SP_TOKEN_FILE" >~/sp-token')
+        station.wait_until_succeeds(f"grep -qx {token} {agent_home}/sp-token", timeout=timedelta(seconds=30))
+
+        # The one-time setup: the owner reaches the VNC socket
+        station.succeed(f"systemctl start {sp}-vnc.service")
+        vnc = f"/run/{sp}-vnc/socket"
+        station.wait_for_file(vnc)
+        # The server greets and then waits for the client, so the timeout ends every read
+        rfb = lambda who: station.execute(
+            f"runuser -u {who} -- timeout 3 ${lib.getExe pkgs.socat} -u UNIX-CONNECT:{vnc} - 2>&1"
+        )[1]
+        greeting = rfb("rokokol")
+        assert greeting.startswith("RFB "), f"the owner got no VNC greeting: {greeting!r}"
+        station.succeed(f"systemctl stop {sp}-vnc.service")
 
     with subtest("no unit is failed"):
         station.succeed("test -z \"$(systemctl list-units --failed --no-legend --all)\"")

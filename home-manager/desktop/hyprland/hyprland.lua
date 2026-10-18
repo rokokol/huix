@@ -77,7 +77,6 @@ hl.on("hyprland.start", function()
   hl.exec_cmd("wl-paste --type text --watch cliphist store -max-items 500 store")
   hl.exec_cmd("wl-paste --type image --watch cliphist store -max-items 1000 store")
   hl.exec_cmd("dex -a")
-  hl.exec_cmd("super-productivity")
   -- fixes a broken software cursor: a round trip through software cursors
   hl.exec_cmd(
     "hyprctl eval 'hl.config({ cursor = { no_hardware_cursors = 1 } })' && "
