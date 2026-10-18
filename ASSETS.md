@@ -24,6 +24,10 @@ It is not my artwork and it is not the greeter cursor — that one is cut from t
 
 `nixos/fonts/doki.otf`, `doki-patched.ttf`, `doki-nerd-font-mono-regular.otf` — Doki, a font by 538Fonts from 2015, and variants of it patched here. It is free for personal use only and is not part of the game
 
+## Mya
+
+`assets/mya-logo.png`, the picture of Mya in the agent's README, is my own drawing
+
 ## Everything else
 
 The decorative images under `assets/` (`logo.jpg`, `im-king-of-the-world.jpg`, `sayori-v-korobke.jpg`, `shef-os-320-kg.jpg`, `say-sketch2.webp`, `laptop-wallpaper.png`) are pictures collected off the internet. Several are drawings whose authors I do not know, and I claim no ownership of any of them — they are here as decoration for the READMEs and as a wallpaper
