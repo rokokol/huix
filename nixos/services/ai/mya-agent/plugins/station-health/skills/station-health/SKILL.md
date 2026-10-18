@@ -1,6 +1,6 @@
 ---
 name: station-health
-description: Read what is broken or getting worse on the station, the owner's PC and laptop, and the mail and VPN nodes, and act on an alert. Use when an alert arrives, or when the owner asks how things are, in any words — "что сломалось", "как там сервер", "всё ли в порядке", "почему пришёл алерт", "живы ли ноды", "сколько места под бэкапы", "is anything broken", "how is the server"
+description: Read what is broken or getting worse on the station, the owner's PC and laptop, and the mail and VPN nodes, log in to a node to read its logs and state, and act on an alert. Use when an alert arrives, when the owner asks how things are, or when he asks to look at a node, in any words — "что сломалось", "как там сервер", "всё ли в порядке", "почему пришёл алерт", "живы ли ноды", "сколько места под бэкапы", "зайди на ноду", "посмотри логи на сервере", "что в очереди почты", "кого забанил fail2ban", "is anything broken", "how is the server", "check the logs on the node"
 ---
 
 # station-health
