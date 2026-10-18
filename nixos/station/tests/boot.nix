@@ -435,7 +435,11 @@ pkgs.testers.runNixOSTest {
         };
       };
     };
-    users.users.owner.isNormalUser = true;
+    users.users.owner = {
+      isNormalUser = true;
+      # The power subtest logs in on the console
+      password = "owner";
+    };
     # Before the mounts, as the owner's real directories are: tmpfiles runs after them
     system.activationScripts.ownerShares = {
       deps = [ "users" ];
@@ -1397,6 +1401,44 @@ pkgs.testers.runNixOSTest {
         assert owner == "owner", f"a file the guest made belongs to {owner} on disk"
         pc.fail(as_guest("ls /home/owner"))
         pc.fail(as_guest("cat /home/owner/.ssh/id"))
+
+    with subtest("the agent's user on the PC starts the power units and no other unit"):
+        guest = "${agent.user}"
+        # polkit answers for an action without running it, so a reboot is judged and not done.
+        # Only root may pass it the unit and the verb, so root asks about a process of the guest.
+        # pkcheck exits 0 when allowed, 1 when not and 2 when it would ask for a password
+        pc.succeed(f"systemd-run --unit=guest-subject -p User={guest} sleep 600")
+        subject = pc.succeed("systemctl show -P MainPID guest-subject.service").strip()
+        may = lambda unit, verb="start": pc.execute(
+            f"${pkgs.polkit.bin}/bin/pkcheck --action-id org.freedesktop.systemd1.manage-units "
+            f"--process {subject} --detail unit {unit} --detail verb {verb}"
+        )[0]
+        for action in ["suspend", "lock", "screen-off", "poweroff", "reboot"]:
+            assert may(f"mya-power-{action}.service") == 0, f"the guest may not start {action}"
+        for unit, verb in [("mya-power-reboot.service", "stop"), ("cups.service", "start"), ("sshd.service", "restart")]:
+            assert may(unit, verb) in (1, 2), f"polkit did not refuse the guest to {verb} {unit}"
+        pc.succeed("systemctl stop guest-subject.service")
+        # The one unit a test can run: it locks every session, and the PC has none
+        pc.succeed(f"runuser -u {guest} -- systemctl start mya-power-lock.service")
+        pc.fail(f"runuser -u {guest} -- systemctl restart cups.service")
+
+    with subtest("the PC sleeps, turns off or restarts only while the owner is away"):
+        guest = "${agent.user}"
+        pc.succeed(f"runuser -l {guest} -c mya-power-idle")
+        # A console login is a session of the owner's, in use until its terminal has no input
+        pc.wait_until_tty_matches("1", "login: ")
+        pc.send_chars("owner\n")
+        pc.wait_until_tty_matches("1", "Password: ")
+        pc.send_chars("owner\n")
+        pc.wait_until_succeeds("loginctl list-sessions | grep -q owner")
+        busy = pc.execute(f"runuser -l {guest} -c mya-power-idle")
+        assert busy[0] == 1 and "owner is active" in busy[1], busy
+        # The unit refuses on its own, so the PC stays up
+        pc.fail("systemctl start mya-power-reboot.service")
+        # logind marks a console idle only by its own clock and refuses SetIdleHint for it, which
+        # hypridle uses on the desktop; the owner leaves instead
+        pc.send_chars("exit\n")
+        pc.wait_until_succeeds(f"runuser -l {guest} -c mya-power-idle", timeout=timedelta(seconds=30))
 
     with subtest("no unit is failed"):
         station.succeed("test -z \"$(systemctl list-units --failed --no-legend --all)\"")
