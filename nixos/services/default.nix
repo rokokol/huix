@@ -29,10 +29,12 @@
     ./system/tailnet-web.nix
     ./system/tailscale.nix
     ./system/zram.nix
+    ./tools/dav-mcp.nix
     ./tools/forgejo-mirrors.nix
     ./tools/forgejo.nix
     ./tools/libre-translate.nix
     ./tools/paper-search.nix
+    ./tools/radicale.nix
     ./tools/searxng.nix
     ./tools/syncthing.nix
     ./tools/telegram-agent.nix

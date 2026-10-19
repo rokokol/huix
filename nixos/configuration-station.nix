@@ -19,6 +19,22 @@ in
       dataDir = "${backup}/restic";
       snapshotDir = "${backup}/snapshots/restic";
     };
+    radicale = {
+      enable = true;
+      mountPoint = backup;
+      dataDir = "${backup}/radicale";
+      snapshotDir = "${backup}/snapshots/radicale";
+      collections = {
+        schedule = {
+          components = [ "VEVENT" ];
+          displayName = "Schedule";
+        };
+        todo = {
+          components = [ "VTODO" ];
+          displayName = "Mya's TODO";
+        };
+      };
+    };
     syncthing = {
       # Made by the station's Syncthing at its first start; its key in sops keeps it
       deviceId = "6CQJLFE-TE77FII-NTQQIOX-XKDOALI-WFDZU4D-SJLMJ62-MUMN5S4-KSPMJQV";
