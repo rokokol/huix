@@ -20,9 +20,28 @@ let
   stateDir = "${cfg.home}/.local/state/claude-telegram";
   tmuxCmd = "${lib.getExe pkgs.tmux} -S ${socket}";
 
-  # How a reply has to look in Telegram. In the system prompt once a session, rather than in
-  # a hook that would repeat it in every turn and on every host
-  prompt = ./prompt.md;
+  # The hosts of this flake where the session has a guest user, read from each host's own
+  # configuration, so a host that turns its guest off drops out of the prompt
+  guestHosts = lib.filterAttrs (
+    _: host: host.config.rokokol.mya-agent.guest.enable
+  ) inputs.self.nixosConfigurations;
+  hostsSection = ''
+
+    # Hosts
+
+    You run on ${config.networking.hostName}. Log in to these hosts with `ssh <host>`, as the user named here. That user has no sudo
+
+    ${lib.concatStrings (
+      lib.mapAttrsToList (
+        name: host: "- `${name}`, as `${host.config.rokokol.mya-agent.user}`\n"
+      ) guestHosts
+    )}
+    The mail and VPN nodes are not in this list. They are the `instance` labels of `push_time_seconds`, and the station-health skill says how to log in to them
+  '';
+
+  # How a reply has to look in Telegram, and where the session can log in. In the system prompt
+  # once a session, rather than in a hook that would repeat it in every turn and on every host
+  prompt = pkgs.writeText "mya-agent-prompt.md" (builtins.readFile ./prompt.md + hostsSection);
 
   settings = pkgs.writeText "mya-agent-settings.json" (
     builtins.toJSON {
