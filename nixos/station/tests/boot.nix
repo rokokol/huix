@@ -34,6 +34,15 @@ let
     inherit (station.config.rokokol.restic-server) dataDir snapshotDir;
   };
 
+  radicale = {
+    inherit (station.config.rokokol.tailnet-web.sites.radicale) port;
+    inherit (station.config.rokokol.radicale) dataDir snapshotDir;
+    backend = lib.head station.config.services.radicale.settings.server.hosts;
+    # The servers of the agent's own Claude Code, as the VM builds them: the station's own file
+    # names its tailnet address, which the VM does not have
+    mcpConfig = "/etc/test/mya-mcp.json";
+  };
+
   syncthing = {
     inherit (station.config.services.syncthing.settings.folders.myWiki) id path;
     inherit (station.config.services.syncthing) user;
@@ -285,7 +294,7 @@ pkgs.testers.runNixOSTest {
             };
         }
       )
-      (_: {
+      ({ config, ... }: {
 
         # sops-nix refuses a key in the store, so activation copies it to the host's path
         # before sops-nix reads it; the installer does the same with the real key
@@ -323,6 +332,12 @@ pkgs.testers.runNixOSTest {
 
         # Prometheus finds the PC by its tailnet name, which here leads over the LAN
         networking.hosts."192.168.0.102" = [ "nixos-pc" ];
+
+        # The agent reaches Radicale by the station's tailnet name; here that is the dummy
+        # tailnet address of the tailnet-web subtest
+        rokokol.dav-mcp.url = lib.mkForce "http://100.64.0.1:${toString radicale.port}/";
+        environment.etc."test/mya-mcp.json".source =
+          config.home-manager.users.${agent.user}.rokokol.mcp.claudeConfig;
 
         rokokol.alert-mail.telegram.api = "http://192.168.0.1:${toString telegramPort}";
 
@@ -855,6 +870,82 @@ pkgs.testers.runNixOSTest {
         station.succeed("curl -sf --interface 100.64.0.1 http://100.64.0.1:${toString probe.lanPort}/")
         code = station.succeed("curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:${toString probe.lanPort}/")
         assert code == "403", f"nginx answered {code} to loopback on the LAN site"
+
+    calendars = "http://100.64.0.1:${toString radicale.port}"
+    dav = "curl -s --interface 100.64.0.1 -o /dev/null -w '%{http_code}'"
+    mkcalendar = (
+        "<c:mkcalendar xmlns:c='urn:ietf:params:xml:ns:caldav' xmlns:d='DAV:'><d:set><d:prop>"
+        "<c:supported-calendar-component-set><c:comp name='{}'/></c:supported-calendar-component-set>"
+        "</d:prop></d:set></c:mkcalendar>"
+    )
+    todos = (
+        "<c:calendar-query xmlns:c='urn:ietf:params:xml:ns:caldav' xmlns:d='DAV:'><d:prop><c:calendar-data/></d:prop>"
+        "<c:filter><c:comp-filter name='VCALENDAR'><c:comp-filter name='VTODO'/></c:comp-filter></c:filter></c:calendar-query>"
+    )
+
+    with subtest("Radicale listens on loopback alone, and its site asks every client for a login"):
+        station.wait_for_unit("radicale.service")
+        station.succeed("systemctl show -P OnFailure radicale.service | grep -qx 'alert-mail@radicale.service.service'")
+        listeners = station.succeed("ss -Hltn 'sport = :${lib.last (lib.splitString ":" radicale.backend)}' | awk '{ print $4 }'").split()
+        assert listeners == ["${radicale.backend}"], f"Radicale listens on {listeners}"
+        for login in ["", "-u rokokol:wrong", "-u mya:wrong"]:
+            code = station.succeed(f"{dav} {login} -X PROPFIND {calendars}/rokokol/")
+            assert code == "401", f"Radicale answered {code} to a PROPFIND with login {login!r}"
+        # The disk layout makes the subvolume as root's, and the service gives it to its own user
+        owner = station.succeed("stat -c %U ${radicale.dataDir}").strip()
+        assert owner == "radicale", f"the calendars belong to {owner}"
+
+    with subtest("the agent's home is the owner's, so a calendar either makes is the other's too"):
+        for name, kind in [("schedule", "VEVENT"), ("todo", "VTODO")]:
+            body = shlex.quote(mkcalendar.format(kind))
+            code = station.succeed(f"{dav} -u rokokol:test -X MKCALENDAR --data {body} {calendars}/rokokol/{name}/")
+            assert code == "201", f"the owner got {code} making {name}"
+        code = station.succeed(f"{dav} -u mya:test -X MKCALENDAR --data {shlex.quote(mkcalendar.format('VTODO'))} {calendars}/mya/made/")
+        assert code == "201", f"the agent got {code} making a calendar"
+        station.succeed("test -L ${radicale.dataDir}/collection-root/${agent.user}")
+        station.succeed("test -d ${radicale.dataDir}/collection-root/rokokol/made")
+
+    with subtest("the agent's dav-mcp lists the owner's calendars and adds a task the owner sees"):
+        # Started in the session, as Claude Code starts it there: with the variables of its entry
+        entry = json.loads(station.succeed(f"{jq} -c .mcpServers.dav ${radicale.mcpConfig}"))
+        variables = " ".join(f"{name}={shlex.quote(value)}" for name, value in entry["env"].items())
+        calls = [
+            {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2025-06-18", "capabilities": {}, "clientInfo": {"name": "test", "version": "0"}}},
+            {"jsonrpc": "2.0", "method": "notifications/initialized"},
+            {"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": "list_calendars", "arguments": {}}},
+            {"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "create_todo", "arguments": {"calendar_url": calendars + "/mya/todo/", "summary": "Task from the agent"}}},
+        ]
+        lines = " ".join(shlex.quote(json.dumps(call)) for call in calls)
+        type_in(f"printf '%s\\n' {lines} | env {variables} {entry['command']} >~/dav-reply 2>~/dav-log")
+        station.wait_until_succeeds(f"grep -q '\"id\":3' {agent_home}/dav-reply", timeout=timedelta(minutes=1))
+        replies = {r["id"]: r for r in map(json.loads, station.succeed(f"cat {agent_home}/dav-reply").split("\n")[:-1]) if "id" in r}
+        listed = replies[2]["result"]["content"][0]["text"]
+        for name in ["schedule", "todo", "made"]:
+            assert f"/mya/{name}/" in listed, f"dav-mcp lists no {name}: {listed}"
+        assert not replies[3]["result"].get("isError"), f"dav-mcp made no task: {replies[3]}"
+        report = station.succeed(
+            f"curl -sf --interface 100.64.0.1 -u rokokol:test -X REPORT -H 'Depth: 1' --data {shlex.quote(todos)} {calendars}/rokokol/todo/"
+        )
+        assert "Task from the agent" in report, f"the owner sees no task of the agent: {report}"
+
+    with subtest("a snapshot keeps an event that a client deleted"):
+        station.succeed("systemctl show -P OnFailure btrbk-radicale.service | grep -qx 'alert-mail@btrbk-radicale.service.service'")
+        event = "\r\n".join([
+            "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//test//EN",
+            "BEGIN:VEVENT", "UID:kept", "DTSTAMP:20261020T090000Z", "DTSTART:20261021T090000Z",
+            "DTEND:20261021T100000Z", "SUMMARY:Kept event", "END:VEVENT", "END:VCALENDAR", "",
+        ])
+        station.succeed(f"printf '%s' {shlex.quote(event)} >/tmp/kept.ics")
+        code = station.succeed(f"{dav} -u rokokol:test -T /tmp/kept.ics -H 'Content-Type: text/calendar' {calendars}/rokokol/schedule/kept.ics")
+        assert code == "201", f"the owner got {code} adding an event"
+        station.succeed(f"{btrfs} filesystem sync /srv/backup")
+        assert run_to_end("btrbk-radicale.service") == "success", "btrbk failed"
+        taken = station.succeed("ls -d ${radicale.snapshotDir}/radicale.* | sort").split()[-1]
+        code = station.succeed(f"{dav} -u mya:test -X DELETE {calendars}/mya/schedule/kept.ics")
+        assert code in ("200", "204"), f"the agent got {code} deleting the event"
+        station.fail("test -e ${radicale.dataDir}/collection-root/rokokol/schedule/kept.ics")
+        station.succeed(f"grep -q 'Kept event' {taken}/collection-root/rokokol/schedule/kept.ics")
+        station.succeed("rm /tmp/kept.ics")
 
     with subtest("Grafana shows Prometheus to anyone on the tailnet or the LAN, and only the admin may change it"):
         station.wait_for_unit("grafana.service")
