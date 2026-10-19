@@ -39,7 +39,7 @@ A laptop or PC that is off shows `up == 0`; that alone is not a fault. The thres
 When the metrics and the body of a problem do not explain it, log in to the node. The nodes are the `instance` labels of `push_time_seconds`, and each label is the node's tailnet name: `ssh <instance> '<command>'`. You log in as an observer, which reads the journal and `/var/log` and changes nothing
 
 - What runs and what failed: `systemctl --failed`, `systemctl status <unit>`, `journalctl -u <unit> -n 200`, `journalctl -p warning --since -1d`
-- As root, only what `sudo -n -l` lists on that node, with exactly the arguments it lists: the fail2ban, socket and firewall listings. Run them with `sudo -n`; any other command or argument is refused
+- As root, only what `sudo -n -l` lists on that node, with exactly the arguments it lists. Run them with `sudo -n`; any other command or argument is refused
 - On the mail node, the queue: `postqueue -p`
 
 The panel's database, the Xray config, the mailboxes and the secrets are closed to you. When something is refused, say so and stop: never look for another way in
