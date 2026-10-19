@@ -11,7 +11,10 @@ let
   agent = osConfig.rokokol.mya-agent;
 in
 {
-  imports = [ ./programs/cli/claude.nix ];
+  imports = [
+    ./programs/cli/claude.nix
+    ./programs/cli/dav-mcp.nix
+  ];
 
   home.stateVersion = osConfig.system.stateVersion;
 

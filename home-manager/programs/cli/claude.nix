@@ -12,8 +12,28 @@ let
   sharedDir = "${config.xdg.dataHome}/claude-shared";
 in
 {
+  imports = [ ./mcp.nix ];
+
   # desktop/sync.nix reads SKILLS_DIR, so it needs this module on as well
   options.rokokol.claude = {
+    package = lib.mkOption {
+      type = lib.types.package;
+      readOnly = true;
+      # The flag is variadic: written apart from its value, it takes the next word for a second
+      # file, so `claude --mcp-config FILE doctor` reads doctor as a file. With "=" it stops there
+      default = pkgs.symlinkJoin {
+        name = "claude-code-${lib.getVersion pkgs.claude-code}";
+        paths = with pkgs; [ claude-code ];
+        nativeBuildInputs = with pkgs; [ makeWrapper ];
+        postBuild = ''
+          wrapProgram $out/bin/claude --add-flags "--mcp-config=${config.rokokol.mcp.claudeConfig}"
+        '';
+        inherit (pkgs.claude-code) meta;
+      };
+      defaultText = lib.literalMD "Claude Code with the servers of `programs.mcp.servers`";
+      description = "Claude Code as every session of this user runs it";
+    };
+
     enable = lib.mkEnableOption "Claude Code and its shared profile" // {
       default = config.rokokol.workstation.enable;
     };
@@ -25,7 +45,7 @@ in
   config = lib.mkIf cfg.enable (
     lib.mkMerge [
       {
-        home.packages = with pkgs; [ claude-code ];
+        home.packages = [ cfg.package ];
 
         programs.claude-account = {
           enable = true;
@@ -41,6 +61,8 @@ in
       (lib.mkIf cfg.desktop.enable {
         home.shellAliases.c = "claude";
         programs.claude-account.opencode.enable = true;
+        # OpenCode merges this file over its own config
+        home.sessionVariables.OPENCODE_CONFIG = config.rokokol.mcp.opencodeConfig;
 
         # The DDLC Claude Code themes sit outside ~/.claude/themes, which lists every file in it
         # as a theme; toggle-theme.sh links the current one in as ddlc.json

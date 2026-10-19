@@ -221,7 +221,8 @@ in
       type = lib.types.str;
       default = lib.escapeShellArgs (
         [
-          (lib.getExe pkgs.claude-code)
+          # The user's own Claude Code, which carries the MCP servers of its home
+          (lib.getExe config.home-manager.users.${cfg.user}.rokokol.claude.package)
           "--channels"
           "plugin:telegram@claude-plugins-official"
           "--permission-mode"

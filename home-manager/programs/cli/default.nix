@@ -5,6 +5,7 @@
     ./antigravity.nix
     ./btop.nix
     ./claude.nix
+    ./dav-mcp.nix
     ./git.nix
     ./matplotlib.nix
     ./opencode.nix

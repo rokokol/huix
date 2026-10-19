@@ -113,6 +113,9 @@ in
         NIXOS_OZONE_WL = "1";
       };
 
+      # ReVa in the Ghidra of the list below; it answers only while Ghidra runs
+      programs.mcp.servers.ghidra.url = "http://localhost:8080/mcp/message";
+
       home.file.".config/matlab/nix.sh".text = ''
         INSTALL_DIR=$HOME/MATLAB2025a/
       '';
