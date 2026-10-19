@@ -155,9 +155,10 @@ in
         };
       };
       description = ''
-        The owner's directories the session's user sees, by the path under its home. Each is a
-        view of the directory, where every file looks like the session user's own and a file it
-        makes is the owner's on disk. The rest of the owner's home stays out of reach
+        The owner's directories the session's user sees, by the path under its home. A share it
+        only reads shows what any other user may read there, so a file only the owner may read
+        stays closed. In a writable share every file looks like the session user's own, and a
+        file it makes is the owner's on disk. The rest of the owner's home stays out of reach
       '';
     };
 
@@ -335,8 +336,10 @@ in
         }
       ];
 
-      # A bind mount would keep the owner's modes, and the owner's home would have to open to
-      # the guest; bindfs maps the owner to the guest and back
+      # A bind mount would need the owner's home open to the guest. bindfs needs no such opening.
+      # A writable share maps the owner to the guest and back, so the guest can write and its
+      # files stay the owner's. A read-only share maps nothing, so the owner's modes decide
+      # exactly as for any other user
       system.fsPackages = lib.optional (cfg.guest.shares != { }) pkgs.bindfs;
       # Mount units and not fileSystems, which a test VM replaces with its own
       systemd.mounts = lib.mapAttrsToList (
@@ -349,9 +352,7 @@ in
           what = share.path;
           where = "${cfg.home}/${name}";
           type = "fuse.bindfs";
-          options = lib.concatStringsSep "," (
-            [ "map=${owner}/${cfg.user}:@${group}/@${cfg.user}" ] ++ lib.optional (!share.writable) "ro"
-          );
+          options = if share.writable then "map=${owner}/${cfg.user}:@${group}/@${cfg.user}" else "ro";
           # Wanted and not required, so a share that cannot mount stops no boot
           wantedBy = [ "multi-user.target" ];
           unitConfig.RequiresMountsFor = [ share.path ];

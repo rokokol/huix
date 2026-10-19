@@ -1393,8 +1393,10 @@ pkgs.testers.runNixOSTest {
         for share in ["Projects", "Downloads"]:
             pc.wait_for_unit(pc.succeed(f"systemd-escape --path --suffix=mount {guest_home}/{share}").strip())
         pc.succeed("runuser -u owner -- sh -c 'umask 077; echo kept >~/Projects/private.env; mkdir ~/.ssh; echo key >~/.ssh/id'")
-        # Every file of a share looks like the guest's own, a private one too
-        pc.succeed(as_guest(f"grep -qx kept {guest_home}/Projects/private.env"))
+        pc.succeed("runuser -u owner -- sh -c 'umask 022; echo shown >~/Projects/public.txt'")
+        # A share the guest only reads shows it what any other user may read, and no more
+        pc.succeed(as_guest(f"grep -qx shown {guest_home}/Projects/public.txt"))
+        pc.fail(as_guest(f"cat {guest_home}/Projects/private.env"))
         pc.fail(as_guest(f"touch {guest_home}/Projects/new"))
         pc.succeed(as_guest(f"echo made >{guest_home}/Downloads/made"))
         owner = pc.succeed("stat -c %U /home/owner/Downloads/made").strip()
