@@ -3,15 +3,35 @@
   lib,
   pkgs,
   huixDir,
+  inputs,
   ...
 }:
 
 let
+  cfg = config.rokokol.sync;
   scriptsDir = "${huixDir}/scripts";
   # A user unit reads none of the session variables, so the sweep targets are passed in here.
   # Taken from the session rather than from commonArgs, so a hand call of sync.sh in a terminal
   # and the unit always sweep the same directories
-  inherit (config.home.sessionVariables) PROJECTS_DIR SKILLS_DIR;
+  inherit (config.home.sessionVariables) PROJECTS_DIR SKILLS_DIR SYNC_REMOTES;
+
+  # Every clone a Telegram agent of this flake keeps, as a remote named after the agent's user
+  # and reached by the name of its host
+  agentRemotes = lib.concatLists (
+    lib.mapAttrsToList (
+      hostName: host:
+      let
+        agent = host.config.rokokol.mya-agent;
+      in
+      lib.optionals agent.enable (
+        lib.mapAttrsToList (dir: origin: {
+          name = agent.user;
+          inherit origin;
+          url = "${hostName}:${agent.home}/${dir}";
+        }) agent.repositories
+      )
+    ) inputs.self.nixosConfigurations
+  );
   syncDeps = with pkgs; [
     git
     libnotify
@@ -22,13 +42,45 @@ let
   ];
 in
 {
-  options.rokokol.sync.enable =
-    lib.mkEnableOption "the fast-forward of huix, ~/Projects and the skills at login"
-    // {
+  options.rokokol.sync = {
+    enable = lib.mkEnableOption "the fast-forward of huix, ~/Projects and the skills at login" // {
       default = config.rokokol.workstation.enable;
     };
 
-  config = lib.mkIf config.rokokol.sync.enable {
+    remotes = lib.mkOption {
+      type = lib.types.listOf (
+        lib.types.submodule {
+          options = {
+            name = lib.mkOption {
+              type = lib.types.str;
+              description = "Name of the remote";
+            };
+            origin = lib.mkOption {
+              type = lib.types.str;
+              description = "Origin of the checkouts that get the remote, in any spelling of its URL";
+            };
+            url = lib.mkOption {
+              type = lib.types.str;
+              description = "URL of the remote";
+            };
+          };
+        }
+      );
+      default = agentRemotes;
+      defaultText = lib.literalMD "every clone of `rokokol.mya-agent.repositories` on each host";
+      description = ''
+        Remotes that sync.sh adds to every checkout of huix and ~/Projects with the given origin,
+        fetches and never merges, and removes once they leave this list
+      '';
+    };
+  };
+
+  config = lib.mkIf cfg.enable {
+    xdg.configFile."huix/sync-remotes".text = lib.concatMapStrings (
+      remote: "${remote.name} ${remote.origin} ${remote.url}\n"
+    ) cfg.remotes;
+    home.sessionVariables.SYNC_REMOTES = "${config.xdg.configHome}/huix/sync-remotes";
+
     systemd.user.services = {
       "sync" = {
         Unit = {
@@ -50,6 +102,7 @@ in
             "HUIX=${huixDir}"
             "PROJECTS_DIR=${PROJECTS_DIR}"
             "SKILLS_DIR=${SKILLS_DIR}"
+            "SYNC_REMOTES=${SYNC_REMOTES}"
           ];
         };
         # Runs when the graphical session starts (after boot / login)

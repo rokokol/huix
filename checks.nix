@@ -30,6 +30,8 @@ pkgs.lib.mapAttrs' (
     pkgs.runCommand "script-tests"
       {
         nativeBuildInputs = with pkgs; [
+          # sync.sh runs against real repositories made by the tests
+          git
           jq
           # flock, which alert.sh takes its lock with
           util-linux

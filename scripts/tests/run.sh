@@ -790,6 +790,87 @@ is "waking without the tailnet name is a usage error" 2 "$?"
 unset WAKE_PC_MAC_FILE WAKE_PC_HOST STUB_PC_CALLS
 rm "$work/bin/tailscale" "$work/bin/sleep"
 
+# sync.sh --pull-only and the remotes it keeps, with the real git over repositories made here.
+# GitHub stands in through insteadOf, so an origin spelled the way a clone from GitHub spells it
+# is fetched from a bare repository in $git_work. huix and Projects/tool are the owner's clones,
+# the station directory holds the agent's, and Projects/other has no agent clone
+sync_sh=$SCRIPTS/sync.sh
+git_work=$work/git
+export GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=$git_work/gitconfig
+export GIT_AUTHOR_NAME=test GIT_AUTHOR_EMAIL=test@example.org
+export GIT_COMMITTER_NAME=test GIT_COMMITTER_EMAIL=test@example.org
+mkdir -p "$git_work/Projects" "$git_work/station"
+git config --global init.defaultBranch master
+git config --global url."$git_work/".insteadOf git@github.com:owner/
+for name in huix tool other; do
+  git init -q --bare "$git_work/$name.git"
+  git clone -q "$git_work/$name.git" "$git_work/seed"
+  git -C "$git_work/seed" commit -q --allow-empty -m "first commit of $name"
+  git -C "$git_work/seed" push -q origin master
+  rm -rf "$git_work/seed"
+done
+git clone -q git@github.com:owner/huix.git "$git_work/huix"
+git clone -q git@github.com:owner/tool.git "$git_work/Projects/tool"
+git clone -q git@github.com:owner/other.git "$git_work/Projects/other"
+for name in huix tool; do
+  git clone -q "$git_work/$name.git" "$git_work/station/$name"
+  git -C "$git_work/station/$name" commit -q --allow-empty -m "the agent's change to $name"
+done
+
+# The list in the shape the Home Manager module writes it: the clone's own URL as the agent's
+# repositories option spells it, which is not how the owner's origin spells it
+cat >"$git_work/remotes" <<EOF
+mya https://github.com/owner/huix $git_work/station/huix
+mya https://github.com/owner/tool.git $git_work/station/tool
+EOF
+sync_run() {
+  reset_log
+  HUIX=$git_work/huix PROJECTS_DIR=$git_work/Projects SKILLS_DIR='' \
+    SYNC_REMOTES=$git_work/remotes bash "$sync_sh" --pull-only >/dev/null 2>&1
+  sync_status=$?
+}
+
+huix_head=$(git -C "$git_work/huix" rev-parse HEAD)
+sync_run
+is "sync with the agent's remotes succeeds" 0 "$sync_status"
+is "huix gets the agent's clone as a remote" "$git_work/station/huix" \
+  "$(git -C "$git_work/huix" config --get remote.mya.url)"
+is "a project from the list gets the agent's clone as a remote" "$git_work/station/tool" \
+  "$(git -C "$git_work/Projects/tool" config --get remote.mya.url)"
+is "a project the agent has no clone of gets no remote" "" \
+  "$(git -C "$git_work/Projects/other" config --get remote.mya.url)"
+is "the agent's commits are fetched" "the agent's change to huix" \
+  "$(git -C "$git_work/huix" log -1 --format=%s mya/master 2>/dev/null)"
+is "the agent's commits are never merged" "$huix_head" "$(git -C "$git_work/huix" rev-parse HEAD)"
+logged "the owner hears of the agent's new commits, by repository and count" \
+  '^notify-send' 'mya' 'huix 1'
+logged "each repository with new commits is named" '^notify-send' 'mya' 'tool 1'
+
+# Commits the owner already holds are not news, wherever they came from
+git -C "$git_work/huix" merge -q --ff-only mya/master
+sync_run
+not_logged "no word once the owner holds every commit of the agent" '^notify-send.*huix 1'
+
+git -C "$git_work/huix" remote set-url mya "$git_work/elsewhere"
+git -C "$git_work/huix" remote add fork "$git_work/huix.git"
+sync_run
+is "a remote moved by hand is put back where the list says" "$git_work/station/huix" \
+  "$(git -C "$git_work/huix" config --get remote.mya.url)"
+
+printf 'mya https://github.com/owner/huix %s\n' "$git_work/station/huix" >"$git_work/remotes"
+sync_run
+is "a remote dropped from the list is removed" "" \
+  "$(git -C "$git_work/Projects/tool" config --get remote.mya.url)"
+is "a remote the list never made is left alone" "$git_work/huix.git" \
+  "$(git -C "$git_work/huix" config --get remote.fork.url)"
+
+printf 'mya https://github.com/owner/huix %s\n' "$git_work/station/gone" >"$git_work/remotes"
+sync_run
+is "an agent's clone out of reach does not fail the sync" 0 "$sync_status"
+logged "an agent's clone out of reach is reported" '^notify-send' 'mya' 'huix'
+unset GIT_CONFIG_NOSYSTEM GIT_CONFIG_GLOBAL GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL
+unset GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL
+
 # make-station-iso.sh, with the real xorriso on a small image made here. Every run writes into
 # $iso_work, so a file the script leaves anywhere else in it is found by a listing
 make_iso=$SCRIPTS/make-station-iso.sh

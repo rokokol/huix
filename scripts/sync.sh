@@ -27,6 +27,11 @@ thing back if that would conflict. It never commits and never pushes, a reposito
 upstream is left alone, and one holding a .git/nosync file is skipped before it is even
 fetched. A name marked * in the summary was rebased rather than fast-forwarded
 
+Before that, each line "NAME ORIGIN URL" of the file SYNC_REMOTES names gives every checkout
+whose origin is ORIGIN, huix and the sweep's own, a remote NAME at URL. The remote is fetched,
+never merged, and its new commits are reported; it is removed once its line is gone. A remote
+not made from that file is never touched, and --no-projects limits this to huix
+
 The huix history is written by hand. The session/rebuild unit only fast-forwards, so it never
 rebases local commits and never touches a dirty tree — when it cannot fast-forward it just
 says so. Staging is -A, so a new file goes up without a separate git add
@@ -43,6 +48,102 @@ notify() {
   fi
 }
 
+# Append every git repository under DIR to the array named by the second argument, stopping
+# at the first directory that holds .git
+collect_repos() {
+  local current_dir=${1%/} child
+  local -n into=$2
+
+  [ -e "$current_dir/.git" ] && {
+    into+=("$current_dir")
+    return 0
+  }
+
+  for child in "$current_dir"/*/ "$current_dir"/.[!.]*/ "$current_dir"/..?*/; do
+    [ -d "$child" ] || continue
+    collect_repos "$child" "$2"
+  done
+}
+
+# Every repository under the PROJECTS_PATH entries
+project_repos() {
+  local path_entry
+  local -a path_entries
+  IFS=':' read -ra path_entries <<< "$PROJECTS_PATH"
+  for path_entry in "${path_entries[@]}"; do
+    [ -d "$path_entry" ] && collect_repos "$path_entry" "$1"
+  done
+  return 0
+}
+
+# A remote URL reduced to host and path, so that git@host:a/b.git and https://host/a/b match
+url_key() {
+  local url=${1%/}
+  url=${url%.git}
+  url=${url#*://}
+  url=${url#*@}
+  printf '%s\n' "${url/:/\/}"
+}
+
+# Each line of the SYNC_REMOTES file is "NAME ORIGIN URL": a repository whose origin is ORIGIN
+# gets the remote NAME at URL. The remote is fetched and never merged, since what arrives there
+# was written by someone else and is read before it is taken. A remote this made carries
+# remote.NAME.huixSync, so one that leaves the list is removed and no other remote is touched
+sync_remotes() {
+  local list=${SYNC_REMOTES:-}
+  [ -n "$list" ] || return 0
+
+  local -a candidates=("$HUIX_PATH") lines=()
+  [ "$PROJECTS" = yes ] && project_repos candidates
+  [ -r "$list" ] && mapfile -t lines <"$list"
+
+  local repo origin line name want url managed new
+  local -A news=() failed=()
+  for repo in "${candidates[@]}"; do
+    [ -e "$repo/.git" ] || continue
+    origin=$(git -C "$repo" config --get remote.origin.url) || continue
+    local -A wanted=()
+
+    for line in "${lines[@]}"; do
+      read -r name want url <<<"$line"
+      [ -n "${url:-}" ] && [ "$(url_key "$want")" = "$(url_key "$origin")" ] || continue
+      wanted[$name]=1
+      if git -C "$repo" config --get "remote.$name.url" >/dev/null; then
+        git -C "$repo" remote set-url "$name" "$url"
+      else
+        git -C "$repo" remote add "$name" "$url"
+      fi
+      git -C "$repo" config "remote.$name.huixSync" true
+
+      if ! timeout 30 git -C "$repo" fetch --quiet "$name" 2>/dev/null; then
+        failed[$name]+=" $(basename "$repo")"
+        continue
+      fi
+      # Only what the owner holds nowhere: the agent's clone also carries everything it pulled
+      new=$(git -C "$repo" rev-list --count --remotes="$name" \
+        --not --exclude="$name/*" --remotes --branches)
+      [ "$new" -gt 0 ] && news[$name]+=" $(basename "$repo") $new"
+    done
+
+    while read -r managed _; do
+      managed=${managed#remote.}
+      managed=${managed%.huixsync}
+      [ -n "$managed" ] && [ -z "${wanted[$managed]:-}" ] &&
+        git -C "$repo" remote remove "$managed"
+    done < <(git -C "$repo" config --get-regexp '^remote\..*\.huixsync$' || true)
+    unset wanted
+  done
+
+  for name in "${!news[@]}"; do
+    notify normal "New commits on $name (=^･ω･^=)" \
+      "${news[$name]# }"$'\n'"git log -p --remotes=$name --not --branches"
+  done
+  for name in "${!failed[@]}"; do
+    notify low "Fetch from $name failed (・_・;)" "${failed[$name]# }"
+  done
+  return 0
+}
+
 # Catch every repository under the PROJECTS_PATH entries up to its upstream. Fetching is the
 # slow half and the repositories are independent, so it runs in parallel; moving a branch is
 # local and serial
@@ -50,27 +151,12 @@ sweep_projects() {
   local repo behind ahead
   local updated=0 held=0 failed=0
   local names="" held_names="" failed_names=""
-  local -a repos=()
+  local -a found=() repos=()
 
-  collect_repos() {
-    local current_dir=$1 child
-
-    [ -e "$current_dir/.git" ] && {
-      git -C "$current_dir" rev-parse --symbolic-full-name '@{u}' >/dev/null 2>&1 || return 0
-      [ -e "$current_dir/.git/nosync" ] || repos+=("$current_dir")
-      return 0
-    }
-
-    for child in "$current_dir"/*/ "$current_dir"/.[!.]*/ "$current_dir"/..?*/; do
-      [ -d "$child" ] || continue
-      collect_repos "$child"
-    done
-  }
-
-  local path_entry
-  IFS=':' read -ra path_entries <<< "$PROJECTS_PATH"
-  for path_entry in "${path_entries[@]}"; do
-    [ -d "$path_entry" ] && collect_repos "$path_entry"
+  project_repos found
+  for repo in "${found[@]}"; do
+    git -C "$repo" rev-parse --symbolic-full-name '@{u}' >/dev/null 2>&1 || continue
+    [ -e "$repo/.git/nosync" ] || repos+=("$repo")
   done
 
   [ "${#repos[@]}" -gt 0 ] || return 0
@@ -79,7 +165,8 @@ sweep_projects() {
   # written to a temporary file and collected afterwards.
   local failed_file
   failed_file=$(mktemp)
-  trap 'rm -f "$failed_file"' RETURN
+  # The trap clears itself, or it fires again on the caller's return, where the local is gone
+  trap 'rm -f "$failed_file"; trap - RETURN' RETURN
 
   export failed_file
 
@@ -179,9 +266,13 @@ export GIT_SSH_COMMAND
 # On EXIT rather than at the end: huix leaves through five different exits, and a trap cannot
 # forget one of them. It also means a huix failure still lets the other repositories catch up.
 # The handler returns without exiting, so the script's own status survives it
-if [ "$PROJECTS" = yes ]; then
-  trap sweep_projects EXIT
-fi
+on_exit() {
+  sync_remotes
+  if [ "$PROJECTS" = yes ]; then
+    sweep_projects
+  fi
+}
+trap on_exit EXIT
 
 cd "$HUIX_PATH" || {
   notify critical "No dir $HUIX_PATH 💀"
