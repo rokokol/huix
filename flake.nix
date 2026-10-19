@@ -251,6 +251,7 @@
           overlays.yazi
           overlays.which-key
           overlays.wl-clipboard-rs
+          overlays.dav-mcp
           nix-matlab.overlay
         ];
       };
@@ -267,6 +268,7 @@
           overlays.yazi
           overlays.which-key
           overlays.wl-clipboard-rs
+          overlays.dav-mcp
         ];
       };
 
@@ -278,6 +280,7 @@
         overlays = [
           overlays.yazi
           overlays.which-key
+          overlays.dav-mcp
         ];
       };
 
