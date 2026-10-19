@@ -9,10 +9,12 @@
 # A CalDAV server for the owner's calendars, reached through its tailnet-web site. Radicale binds
 # to loopback, and every request needs a login from the htpasswd file. The calendars are plain
 # files on the backup filesystem, with snapshots every 15 minutes, so an event that a client
-# deleted can be restored. A calendar belongs to `owner`, and each user in `sharedWith` finds it
-# in their own home through a symlink: a CalDAV client lists only the calendars of its own home
+# deleted can be restored. The calendars themselves are data: a client makes them, and nothing
+# here names one. Each login in `sharedWith` has the owner's home as its own, through a symlink,
+# because a CalDAV client lists only the calendars of its own home
 let
   cfg = config.rokokol.radicale;
+  radicale = config.services.radicale;
   port = 5232;
   backendPort = 5233;
   root = "${cfg.dataDir}/collection-root";
@@ -23,53 +25,22 @@ let
     ConditionPathIsMountPoint = cfg.mountPoint;
   };
 
-  # Radicale reads the type and the name of a collection from this file
-  props =
-    name: collection:
-    pkgs.writeText "radicale-${name}.props" (
-      builtins.toJSON {
-        tag = "VCALENDAR";
-        "C:supported-calendar-component-set" = lib.concatStringsSep "," collection.components;
-        "D:displayname" = collection.displayName;
-      }
-    );
-
-  setup = pkgs.writeShellScript "radicale-data" ''
+  # The disk layout makes dataDir as root's and has no option for an owner. A missing dataDir
+  # fails here instead of turning into a plain directory that btrbk cannot snapshot
+  prepare = pkgs.writeShellScript "radicale-prepare" ''
     set -eu
-    PATH=${
-      lib.makeBinPath (
-        with pkgs;
-        [
-          btrfs-progs
-          coreutils
-        ]
-      )
-    }
-    for dir in ${lib.escapeShellArg cfg.dataDir} ${lib.escapeShellArg cfg.snapshotDir}; do
-      [ -e "$dir" ] || { mkdir -p "''${dir%/*}" && btrfs subvolume create "$dir"; }
-    done
-    for dir in ${cfg.dataDir} ${root} ${root}/${cfg.owner}; do
-      install -d -m 0750 -o radicale -g radicale "$dir"
-    done
-    ${lib.concatStrings (
-      lib.mapAttrsToList (name: collection: ''
-        install -d -m 0750 -o radicale -g radicale ${root}/${cfg.owner}/${name}
-        # Only when missing: a client may rename the calendar, and that name is its own
-        [ -e ${root}/${cfg.owner}/${name}/.Radicale.props ] ||
-          install -m 0640 -o radicale -g radicale ${props name collection} \
-            ${root}/${cfg.owner}/${name}/.Radicale.props
-        ${lib.concatMapStrings (user: ''
-          install -d -m 0750 -o radicale -g radicale ${root}/${user}
-          link=${root}/${user}/${name}
-          if [ -e "$link" ] && [ ! -L "$link" ]; then
-            echo "$link is a collection of its own, so ${user} would not see ${cfg.owner}'s" >&2
-            exit 1
-          fi
-          ln -sfn ../${cfg.owner}/${name} "$link"
-          chown -h radicale:radicale "$link"
-        '') cfg.sharedWith}
-      '') cfg.collections
-    )}
+    PATH=${pkgs.coreutils}/bin
+    chown ${radicale.user}:${radicale.group} ${cfg.dataDir}
+    chmod 0750 ${cfg.dataDir}
+    install -d -m 0750 -o ${radicale.user} -g ${radicale.group} ${root}
+    ${lib.concatMapStrings (login: ''
+      if [ -e ${root}/${login} ] && [ ! -L ${root}/${login} ]; then
+        echo "${root}/${login} is a home of its own, so ${login} would not see ${cfg.owner}'s calendars" >&2
+        exit 1
+      fi
+      ln -sfn ${cfg.owner} ${root}/${login}
+      chown -h ${radicale.user}:${radicale.group} ${root}/${login}
+    '') cfg.sharedWith}
   '';
 in
 {
@@ -79,7 +50,7 @@ in
     dataDir = lib.mkOption {
       type = lib.types.path;
       example = "/srv/backup/radicale";
-      description = "Directory of the calendars, on the filesystem mounted at `mountPoint`";
+      description = "Subvolume of the calendars, on the filesystem mounted at `mountPoint`";
     };
 
     mountPoint = lib.mkOption {
@@ -91,7 +62,7 @@ in
     snapshotDir = lib.mkOption {
       type = lib.types.path;
       example = "/srv/backup/snapshots/radicale";
-      description = "Directory of the read-only snapshots of `dataDir`, on the same filesystem";
+      description = "Subvolume of the read-only snapshots of `dataDir`, on the same filesystem";
     };
 
     preserve = lib.mkOption {
@@ -113,34 +84,7 @@ in
       type = lib.types.listOf lib.types.str;
       default = [ ];
       example = [ "mya" ];
-      description = "Logins that read and write every calendar of `owner`, each from their own home";
-    };
-
-    collections = lib.mkOption {
-      default = { };
-      description = "Calendars of `owner`, by the last segment of their URL";
-      type = lib.types.attrsOf (
-        lib.types.submodule {
-          options = {
-            components = lib.mkOption {
-              type = lib.types.nonEmptyListOf (
-                lib.types.enum [
-                  "VEVENT"
-                  "VTODO"
-                  "VJOURNAL"
-                ]
-              );
-              example = [ "VTODO" ];
-              description = "Kinds of item that the calendar holds";
-            };
-
-            displayName = lib.mkOption {
-              type = lib.types.str;
-              description = "Name that clients show for the calendar until one renames it";
-            };
-          };
-        }
-      );
+      description = "Logins that read, write and make calendars in the home of `owner`";
     };
 
     url = lib.mkOption {
@@ -180,8 +124,8 @@ in
     ];
 
     sops.secrets."radicale-htpasswd" = {
-      owner = "radicale";
-      group = "radicale";
+      owner = radicale.user;
+      inherit (radicale) group;
       mode = "0440";
       restartUnits = [ "radicale.service" ];
     };
@@ -197,8 +141,8 @@ in
         };
         storage.filesystem_folder = cfg.dataDir;
       };
-      # Each login reads the root and writes in its own home. A shared calendar is a symlink in
-      # that home, so no rule names another login's calendars
+      # Each login reads the root and works in its own home. A shared home is a symlink, so no
+      # rule names another login's calendars
       rights = {
         root = {
           user = ".+";
@@ -223,21 +167,11 @@ in
       backend = "http://127.0.0.1:${toString backendPort}";
     };
 
-    # Not a tmpfiles rule and not in the service, for the reasons restic-server.nix gives. A
-    # subvolume, so btrbk can take snapshots of it
-    systemd.services.radicale-data = {
-      description = "Calendars of Radicale on the backup filesystem";
-      requiredBy = [ "radicale.service" ];
-      before = [ "radicale.service" ];
+    systemd.services.radicale = {
       unitConfig = mountGuard;
-      serviceConfig = {
-        Type = "oneshot";
-        RemainAfterExit = true;
-        ExecStart = setup;
-      };
+      # "+": root's, outside the sandbox, which runs the server as its own user
+      serviceConfig.ExecStartPre = [ "+${prepare}" ];
     };
-
-    systemd.services.radicale.unitConfig = mountGuard;
 
     # Every 15 minutes when a calendar changed, and each one is kept for a day before `preserve`
     # thins them out. Syncthing's archive in syncthing.nix does the same
@@ -254,9 +188,6 @@ in
       };
     };
 
-    # The snapshot directory is made by radicale-data
-    systemd.services.btrbk-radicale.wants = [ "radicale-data.service" ];
-    systemd.services.btrbk-radicale.after = [ "radicale-data.service" ];
     systemd.services.btrbk-radicale.unitConfig = {
       RequiresMountsFor = [
         cfg.dataDir

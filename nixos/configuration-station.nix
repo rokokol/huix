@@ -24,16 +24,6 @@ in
       mountPoint = backup;
       dataDir = "${backup}/radicale";
       snapshotDir = "${backup}/snapshots/radicale";
-      collections = {
-        schedule = {
-          components = [ "VEVENT" ];
-          displayName = "Schedule";
-        };
-        todo = {
-          components = [ "VTODO" ];
-          displayName = "Mya's TODO";
-        };
-      };
     };
     syncthing = {
       # Made by the station's Syncthing at its first start; its key in sops keeps it

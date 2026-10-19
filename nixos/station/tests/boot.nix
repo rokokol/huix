@@ -251,26 +251,38 @@ pkgs.testers.runNixOSTest {
 
           # The subvolumes that disko makes on the backup volume, made on the empty disk before
           # the units that use them
-          systemd.services.backup-subvolumes = {
-            requiredBy = [ "syncthing.service" ];
-            before = [
-              "syncthing.service"
-              "btrbk-syncthing.service"
-              "btrbk-restic.service"
-            ];
-            unitConfig.RequiresMountsFor = [ "/srv/backup" ];
-            # Once per boot: a restart of Syncthing would run it again over the subvolumes
-            serviceConfig = {
-              Type = "oneshot";
-              RemainAfterExit = true;
+          systemd.services.backup-subvolumes =
+            let
+              users = [
+                "syncthing.service"
+                "restic-rest-server.socket"
+                "radicale.service"
+              ];
+            in
+            {
+              requiredBy = users;
+              before = users ++ [
+                "btrbk-syncthing.service"
+                "btrbk-restic.service"
+                "btrbk-radicale.service"
+              ];
+              unitConfig = {
+                RequiresMountsFor = [ "/srv/backup" ];
+                # A service comes after basic.target, and so after every socket; this one comes
+                # before the restic server's socket
+                DefaultDependencies = false;
+              };
+              # Once per boot: a restart of Syncthing would run it again over the subvolumes
+              serviceConfig = {
+                Type = "oneshot";
+                RemainAfterExit = true;
+              };
+              path = [ pkgs.btrfs-progs ];
+              script = lib.concatMapStrings (name: ''
+                mkdir -p "$(dirname /srv/backup/${name})"
+                btrfs subvolume create /srv/backup/${name}
+              '') (lib.attrNames config.disko.devices.disk.main.content.partitions.backup.content.subvolumes);
             };
-            path = [ pkgs.btrfs-progs ];
-            # The restic server's socket may have made its own first, as it does on a new disk
-            script = lib.concatMapStrings (name: ''
-              mkdir -p "$(dirname /srv/backup/${name})"
-              [ -e /srv/backup/${name} ] || btrfs subvolume create /srv/backup/${name}
-            '') (lib.attrNames config.disko.devices.disk.main.content.partitions.backup.content.subvolumes);
-          };
         }
       )
       (_: {

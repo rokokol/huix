@@ -120,17 +120,16 @@ in
 
     systemd.sockets.${unit} = {
       unitConfig = mountGuard;
-      # Not a tmpfiles rule: tmpfiles runs at boot with or without the filesystem. This runs
-      # only after the conditions above hold. Not on the service: its sandbox binds dataDir
-      # for every command it starts, a "+" one too, and fails while dataDir is missing. The
-      # service requires the socket, so the socket always starts first. A subvolume, so btrbk
-      # can take snapshots of it
+      # The disk layout makes dataDir as root's and has no option for an owner. A missing dataDir
+      # fails here instead of turning into a plain directory that btrbk cannot snapshot. Not a
+      # tmpfiles rule: tmpfiles runs at boot with or without the filesystem. Not on the service: its sandbox binds dataDir for every command it starts, a "+" one too. The
+      # service requires the socket, so the socket always starts first
       socketConfig.ExecStartPre = toString (
         pkgs.writeShellScript "restic-data-dir" ''
           set -eu
-          dir=${lib.escapeShellArg cfg.dataDir}
-          [ -e "$dir" ] || ${lib.getExe' pkgs.btrfs-progs "btrfs"} subvolume create "$dir"
-          ${lib.getExe' pkgs.coreutils "install"} -d -m 0750 -o restic -g restic "$dir"
+          PATH=${pkgs.coreutils}/bin
+          chown restic:restic ${lib.escapeShellArg cfg.dataDir}
+          chmod 0750 ${lib.escapeShellArg cfg.dataDir}
         ''
       );
     };
