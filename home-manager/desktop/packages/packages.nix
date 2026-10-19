@@ -66,9 +66,11 @@ in
           lazygit
         ]
         ++ lib.optional workstation libreoffice-stable
-        # nft reads the tables skvpn's sing-box and its hold make; nothing else installs it
-        ++ lib.optional workstation nftables
-        ++ [ pup ]
+        ++ [
+          # nft reads the tables skvpn's sing-box and its hold make; nothing else installs it
+          nftables
+          pup
+        ]
         ++ lib.optional workstation python3Packages.huggingface-hub
         ++ [
           ripgrep
