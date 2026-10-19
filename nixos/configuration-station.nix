@@ -17,6 +17,7 @@ in
       enable = true;
       mountPoint = backup;
       dataDir = "${backup}/restic";
+      snapshotDir = "${backup}/snapshots/restic";
     };
     syncthing = {
       # Made by the station's Syncthing at its first start; its key in sops keeps it

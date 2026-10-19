@@ -28,6 +28,7 @@ in
 {
   systemd.services = onFailure [
     "backup-heartbeat"
+    "btrbk-restic"
     "btrbk-syncthing"
     "btrfs-scrub@"
     "mya-agent"

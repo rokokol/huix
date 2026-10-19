@@ -6,12 +6,15 @@
 }:
 
 # The receiving end of restic backups that nodes push over the tailnet. Each node has one
-# htpasswd user, confined to its repository at /<user>/, append-only and never pruned. The
-# repository key never reaches this host. The data lives on its own filesystem, and nothing
-# runs or is created while that filesystem is not mounted
+# htpasswd user, confined to its repository at /<user>/. The repository key never reaches this
+# host, so only the node can forget and prune its own snapshots. A node that deletes what it
+# should not cannot reach the read-only snapshots this host takes of every repository. The data
+# lives on its own filesystem, and nothing runs or is created while that filesystem is not mounted
 let
   cfg = config.rokokol.restic-server;
   unit = "restic-rest-server";
+  # btrbk and the disk layout name a subvolume by its path inside the volume
+  onVolume = lib.removePrefix "${cfg.mountPoint}/";
   # Both the socket and the service carry them. Without them on the service, a manual start
   # writes to the root filesystem. Without them on the socket, the port accepts a push and fails it
   mountGuard = {
@@ -21,7 +24,7 @@ let
 in
 {
   options.rokokol.restic-server = {
-    enable = lib.mkEnableOption "the append-only restic REST server";
+    enable = lib.mkEnableOption "the restic REST server, with daily snapshots of its repositories";
 
     dataDir = lib.mkOption {
       type = lib.types.path;
@@ -40,13 +43,43 @@ in
       default = 8000;
       description = "TCP port of the REST server, on every interface";
     };
+
+    snapshotDir = lib.mkOption {
+      type = lib.types.path;
+      example = "/srv/backup/snapshots/restic";
+      description = "Directory of the read-only snapshots of `dataDir`, on the same filesystem";
+    };
+
+    preserve = lib.mkOption {
+      type = lib.types.str;
+      default = "14d";
+      description = ''
+        How long the snapshots of `dataDir` are kept, as btrbk's snapshot_preserve. It is how
+        long a backup that a node deleted can still be restored
+      '';
+    };
+
+    subvolumes = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      readOnly = true;
+      default = map onVolume [
+        cfg.dataDir
+        cfg.snapshotDir
+      ];
+      defaultText = lib.literalMD "`dataDir` and `snapshotDir`";
+      description = "Subvolumes of the backup filesystem, as paths inside `mountPoint`, for the disk layout to make";
+    };
   };
 
   config = lib.mkIf cfg.enable {
     assertions = [
       {
-        assertion = cfg.dataDir == cfg.mountPoint || lib.hasPrefix "${cfg.mountPoint}/" cfg.dataDir;
-        message = "rokokol.restic-server.dataDir must be on rokokol.restic-server.mountPoint";
+        # btrbk snapshots a subvolume, and the volume's top is not one it can name
+        assertion = lib.all (dir: lib.hasPrefix "${cfg.mountPoint}/" dir) [
+          cfg.dataDir
+          cfg.snapshotDir
+        ];
+        message = "rokokol.restic-server.dataDir and snapshotDir must be under rokokol.restic-server.mountPoint";
       }
     ];
 
@@ -65,7 +98,8 @@ in
       enable = true;
       inherit (cfg) dataDir;
       listenAddress = toString cfg.port;
-      appendOnly = true;
+      # A node prunes its own repository; the snapshots below keep what it deletes
+      appendOnly = false;
       htpasswd-file = config.sops.secrets."restic-server-htpasswd".path;
       prometheus = true;
       # The flag of privateRepos comes through here, because the option also adds a tmpfiles
@@ -89,10 +123,41 @@ in
       # Not a tmpfiles rule: tmpfiles runs at boot with or without the filesystem. This runs
       # only after the conditions above hold. Not on the service: its sandbox binds dataDir
       # for every command it starts, a "+" one too, and fails while dataDir is missing. The
-      # service requires the socket, so the socket always starts first
-      socketConfig.ExecStartPre = "${lib.getExe' pkgs.coreutils "install"} -d -m 0750 -o restic -g restic ${lib.escapeShellArg cfg.dataDir}";
+      # service requires the socket, so the socket always starts first. A subvolume, so btrbk
+      # can take snapshots of it
+      socketConfig.ExecStartPre = toString (
+        pkgs.writeShellScript "restic-data-dir" ''
+          set -eu
+          dir=${lib.escapeShellArg cfg.dataDir}
+          [ -e "$dir" ] || ${lib.getExe' pkgs.btrfs-progs "btrfs"} subvolume create "$dir"
+          ${lib.getExe' pkgs.coreutils "install"} -d -m 0750 -o restic -g restic "$dir"
+        ''
+      );
     };
 
     systemd.services.${unit}.unitConfig = mountGuard;
+
+    # Once a day, kept for `preserve`. A node that deletes its repository loses at most what it
+    # pushed since the last snapshot, and the node still holds that itself
+    services.btrbk.instances.restic = {
+      onCalendar = "daily";
+      settings = {
+        timestamp_format = "long";
+        snapshot_create = "onchange";
+        snapshot_preserve_min = "1d";
+        volume.${cfg.mountPoint} = {
+          snapshot_dir = onVolume cfg.snapshotDir;
+          subvolume.${onVolume cfg.dataDir}.snapshot_preserve = cfg.preserve;
+        };
+      };
+    };
+
+    systemd.services.btrbk-restic.unitConfig = {
+      RequiresMountsFor = [
+        cfg.dataDir
+        cfg.snapshotDir
+      ];
+      ConditionPathIsMountPoint = cfg.mountPoint;
+    };
   };
 }

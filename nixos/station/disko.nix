@@ -78,7 +78,9 @@
             extraArgs = [ "-f" ];
             mountpoint = "/srv/backup";
             # Unmounted: only btrbk needs them to be subvolumes, to snapshot each one
-            subvolumes = lib.genAttrs config.rokokol.syncthing.archive.subvolumes (_: { });
+            subvolumes = lib.genAttrs (
+              config.rokokol.syncthing.archive.subvolumes ++ config.rokokol.restic-server.subvolumes
+            ) (_: { });
             mountOptions = [
               "nofail"
               "noatime"

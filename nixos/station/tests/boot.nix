@@ -30,6 +30,10 @@ let
       (lib.head station.config.services.grafana.provision.dashboards.settings.providers).options.path;
   };
 
+  restic = {
+    inherit (station.config.rokokol.restic-server) dataDir snapshotDir;
+  };
+
   syncthing = {
     inherit (station.config.services.syncthing.settings.folders.myWiki) id path;
     inherit (station.config.services.syncthing) user;
@@ -252,6 +256,7 @@ pkgs.testers.runNixOSTest {
             before = [
               "syncthing.service"
               "btrbk-syncthing.service"
+              "btrbk-restic.service"
             ];
             unitConfig.RequiresMountsFor = [ "/srv/backup" ];
             # Once per boot: a restart of Syncthing would run it again over the subvolumes
@@ -260,9 +265,10 @@ pkgs.testers.runNixOSTest {
               RemainAfterExit = true;
             };
             path = [ pkgs.btrfs-progs ];
+            # The restic server's socket may have made its own first, as it does on a new disk
             script = lib.concatMapStrings (name: ''
               mkdir -p "$(dirname /srv/backup/${name})"
-              btrfs subvolume create /srv/backup/${name}
+              [ -e /srv/backup/${name} ] || btrfs subvolume create /srv/backup/${name}
             '') (lib.attrNames config.disko.devices.disk.main.content.partitions.backup.content.subvolumes);
           };
         }
@@ -544,6 +550,25 @@ pkgs.testers.runNixOSTest {
         station.wait_for_unit("restic-rest-server.socket")
         station.succeed("curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/ | grep -q 401")
         pc.fail("curl -s --max-time 5 http://192.168.0.104:8000/")
+
+    # The node's client runs on the station, as the LAN cannot reach the server and the VMs have
+    # no tailnet. The repository goes at the end, so the heartbeat subtests see no backup of pc
+    with subtest("a node forgets its own backups, and the station keeps them a while in a snapshot"):
+        restic = "RESTIC_REPOSITORY=rest:http://pc:test@127.0.0.1:8000/pc/ RESTIC_PASSWORD=node ${lib.getExe pkgs.restic}"
+        station.succeed(f"echo kept >/tmp/node-file && {restic} init && {restic} backup /tmp/node-file")
+        station.succeed("systemctl show -P OnFailure btrbk-restic.service | grep -qx 'alert-mail@btrbk-restic.service.service'")
+        station.succeed(f"{btrfs} filesystem sync /srv/backup")
+        assert run_to_end("btrbk-restic.service") == "success", "btrbk failed"
+        taken = station.succeed("ls -d ${restic.snapshotDir}/restic.* | sort").split()[-1]
+        station.succeed(f"{restic} forget latest --prune")
+        station.succeed("test -z \"$(ls ${restic.dataDir}/pc/snapshots)\"")
+        # The snapshot is a whole repository: restic reads it without the server
+        station.succeed(f"RESTIC_PASSWORD=node ${lib.getExe pkgs.restic} -r {taken}/pc --no-lock restore latest --target /tmp/restored")
+        station.succeed("grep -qx kept /tmp/restored/tmp/node-file")
+        for user in ["restic", "rokokol"]:
+            station.fail(f"runuser -u {user} -- {btrfs} subvolume delete {taken}")
+            station.fail(f"runuser -u {user} -- rm -rf {taken}/pc")
+        station.succeed("rm -rf ${restic.dataDir}/pc /tmp/node-file /tmp/restored")
 
     # The value of each series of a query, by the host it came from
     def promql(query):
