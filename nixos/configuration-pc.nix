@@ -28,6 +28,9 @@
     users = [ rokokolName ];
   };
 
+  # skvpn's own Tor: SOCKS for the browser, .onion through the TUN, and `skvpn up tor`
+  services.skvpn.tor.enable = true;
+
   rokokol = {
     workstation.enable = true;
 
