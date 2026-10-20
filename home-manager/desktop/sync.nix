@@ -12,8 +12,14 @@ let
   scriptsDir = "${huixDir}/scripts";
   # A user unit reads none of the session variables, so the sweep targets are passed in here.
   # Taken from the session rather than from commonArgs, so a hand call of sync.sh in a terminal
-  # and the unit always sweep the same directories
+  # and the unit always sweep the same directories. The alias passes them too: a terminal
+  # inherits the session of the last login, which lacks a variable added since
   inherit (config.home.sessionVariables) PROJECTS_DIR SKILLS_DIR SYNC_REMOTES;
+  syncEnv = {
+    HUIX = huixDir;
+    inherit PROJECTS_DIR SKILLS_DIR SYNC_REMOTES;
+  };
+  syncScript = "${scriptsDir}/sync.sh";
 
   # Every clone a Telegram agent of this flake keeps, as a remote named after the agent's user
   # and reached by the name of its host
@@ -99,6 +105,13 @@ in
       + "\n"
     ) cfg.remotes;
     home.sessionVariables.SYNC_REMOTES = "${config.xdg.configHome}/huix/sync-remotes";
+    home.shellAliases.syssync = lib.concatStringsSep " " (
+      lib.mapAttrsToList (name: value: "${name}=${lib.escapeShellArg value}") syncEnv
+      ++ [
+        "bash"
+        (lib.escapeShellArg syncScript)
+      ]
+    );
 
     systemd.user.services = {
       "sync" = {
@@ -113,16 +126,13 @@ in
         };
         Service = {
           Type = "oneshot";
-          ExecStart = "${pkgs.bash}/bin/bash ${scriptsDir}/sync.sh --pull-only";
+          ExecStart = "${pkgs.bash}/bin/bash ${syncScript} --pull-only";
           TimeoutStartSec = "2min";
           # gcr's agent prompts on its own and remembers the passphrase, so no SSH_ASKPASS steering
           Environment = [
             "PATH=${lib.makeBinPath syncDeps}"
-            "HUIX=${huixDir}"
-            "PROJECTS_DIR=${PROJECTS_DIR}"
-            "SKILLS_DIR=${SKILLS_DIR}"
-            "SYNC_REMOTES=${SYNC_REMOTES}"
-          ];
+          ]
+          ++ lib.mapAttrsToList (name: value: "${name}=${value}") syncEnv;
         };
         # Runs when the graphical session starts (after boot / login)
         Install.WantedBy = [ "graphical-session.target" ];

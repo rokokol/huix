@@ -22,7 +22,6 @@ in
   }
   # A host without a desktop has no checkout of huix: it is deployed from one that has
   // lib.optionalAttrs workstation {
-    syssync = "bash \"${huixDir}/scripts/sync.sh\"";
     download-music = "yt-dlp -x --audio-format mp3 --audio-quality 0 --embed-metadata --embed-thumbnail -o '%(title)s.%(ext)s'";
     rebuild = "sudo nixos-rebuild switch --flake ${huixDir}";
     rebuilds = "sudo nixos-rebuild switch --flake ${huixDir} --option substituters \"https://mirror.yandex.ru/nixos\"";
