@@ -933,11 +933,11 @@
         "uv2nix": "uv2nix"
       },
       "locked": {
-        "lastModified": 1792443544,
-        "narHash": "sha256-x5XWf77pIWyPP9UwQI9AbxKqd1N2ELtPltLASfXa2Q0=",
+        "lastModified": 1792500975,
+        "narHash": "sha256-Q86pbqa8w5TrmPOW8yG/Xtdmv+q+ZHhVyt8NMh8MCBA=",
         "owner": "rokokol",
         "repo": "papers-skill",
-        "rev": "2b786b2c93c39adad83b6e05e8bb5c4200ceef2a",
+        "rev": "5fe7758fd97ae4c94b280130bb8f13ce5f896b68",
         "type": "github"
       },
       "original": {

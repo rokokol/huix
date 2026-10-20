@@ -346,7 +346,7 @@ pkgs.testers.runNixOSTest {
 
         # The servers of the agent's own Claude Code, as this host builds them
         environment.etc."test/mya-mcp.json".source =
-          config.home-manager.users.${agent.user}.rokokol.mcp.claudeConfig;
+          config.home-manager.users.${agent.user}.rokokol.agents.claudeConfig;
 
         rokokol.alert-mail.telegram.api = "http://192.168.0.1:${toString telegramPort}";
 

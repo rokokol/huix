@@ -25,11 +25,9 @@ in
       };
     };
 
-    rokokol.claude.plugins = [
-      (builtins.path {
-        name = "calendar-plugin";
-        path = ./calendar-plugin;
-      })
-    ];
+    rokokol.agents.skills.calendar = builtins.path {
+      name = "calendar-skill";
+      path = ./calendar-skill;
+    };
   };
 }

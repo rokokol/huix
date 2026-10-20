@@ -23,7 +23,7 @@ in
         Type = "simple";
         ExecStart = "${pkgs.opencode}/bin/opencode serve --hostname 127.0.0.1 --port ${toString port}";
         # A user unit inherits no session variable, and this one carries the MCP servers
-        Environment = [ "OPENCODE_CONFIG=${config.rokokol.mcp.opencodeConfig}" ];
+        Environment = [ "OPENCODE_CONFIG=${config.rokokol.agents.opencodeConfig}" ];
         Restart = "on-failure";
         RestartSec = "5s";
       };

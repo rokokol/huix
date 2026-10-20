@@ -12,7 +12,7 @@ let
   sharedDir = "${config.xdg.dataHome}/claude-shared";
 in
 {
-  imports = [ ./mcp.nix ];
+  imports = [ ./agents.nix ];
 
   # desktop/sync.nix reads SKILLS_DIR, so it needs this module on as well
   options.rokokol.claude = {
@@ -29,7 +29,7 @@ in
           wrapProgram $out/bin/claude --add-flags ${
             lib.escapeShellArg (
               lib.concatStringsSep " " (
-                [ "--mcp-config=${config.rokokol.mcp.claudeConfig}" ]
+                [ "--mcp-config=${config.rokokol.agents.claudeConfig}" ]
                 ++ map (plugin: "--plugin-dir ${plugin}") config.rokokol.claude.plugins
               )
             )
@@ -37,7 +37,7 @@ in
         '';
         inherit (pkgs.claude-code) meta;
       };
-      defaultText = lib.literalMD "Claude Code with the servers of `programs.mcp.servers` and the `plugins`";
+      defaultText = lib.literalMD "Claude Code with the MCP servers and the skills of `rokokol.agents`, and the `plugins`";
       description = "Claude Code as every session of this user runs it";
     };
 
@@ -75,7 +75,7 @@ in
         home.shellAliases.c = "claude";
         programs.claude-account.opencode.enable = true;
         # OpenCode merges this file over its own config
-        home.sessionVariables.OPENCODE_CONFIG = config.rokokol.mcp.opencodeConfig;
+        home.sessionVariables.OPENCODE_CONFIG = config.rokokol.agents.opencodeConfig;
 
         # The DDLC Claude Code themes sit outside ~/.claude/themes, which lists every file in it
         # as a theme; toggle-theme.sh links the current one in as ddlc.json
