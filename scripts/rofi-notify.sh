@@ -24,12 +24,14 @@ WRAP_WIDTH=60
 
 # Outside rofi it's a launcher: run rofi with this same script as the modi
 if [[ -z "${ROFI_RETV:-}" ]]; then
-  exec rofi -show notifications -modi "notifications:$0" -mesg "Notification center"
+  exec rofi -show notifications -modi "notifications:$0"
 fi
 
 # Main list. Notification rows carry the id in info, service rows carry a command
 print_top() {
   local menu id icon label
+  # The mode prints its message, since rofi shows no -mesg while a script mode is open
+  printf '\0message\x1f%s\n' "Notification center"
   menu=$("$NC" menu)
   [[ -n "$menu" ]] && printf '🧹 Clear history (ﾉ>ω<)ﾉ ･ﾟ✧\0info\x1fcmd:clear\n'
   if [[ "$("$NC" dnd status)" == "on" ]]; then

@@ -37,7 +37,7 @@ screen_off() {
 
 # Outside rofi it's a launcher: mode "power", the emoji label comes from the rofi config
 if [[ -z "${ROFI_RETV:-}" ]]; then
-  exec rofi -show power -modi "power:$0" -mesg "What are we doing? (⊃‿⊂)"
+  exec rofi -show power -modi "power:$0"
 fi
 
 # On selection rofi puts the action in ROFI_INFO. An empty ROFI_INFO is the first
@@ -50,6 +50,8 @@ reboot)    systemctl reboot ;;
 logout)    hyprctl dispatch 'hl.dsp.exit()' ;;
 poweroff)  systemctl poweroff ;;
 "")
+  # The mode prints its message, since rofi shows no -mesg while a script mode is open
+  printf '\0message\x1f%s\n' "What are we doing? (⊃‿⊂)"
   while IFS='|' read -r label action; do
     printf '%s\0info\x1f%s\n' "$label" "$action"
   done < <(list_options)
