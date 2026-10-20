@@ -47,6 +47,43 @@ pkgs.lib.mapAttrs' (
         touch "$out"
       '';
 
+  # xdg-open looks a default up under the canonical name file(1) gives, and never resolves an
+  # alias, so a mimeapps.list key that is only an alias leaves its files without a handler
+  mime-aliases =
+    let
+      keys = pkgs.lib.concatLists (
+        pkgs.lib.mapAttrsToList (
+          host: cfg:
+          let
+            mimeApps = cfg.config.home-manager.users.${rokokolName}.xdg.mimeApps;
+          in
+          pkgs.lib.optionals mimeApps.enable (
+            map (key: "${host} ${key}") (
+              pkgs.lib.concatMap builtins.attrNames [
+                mimeApps.defaultApplications
+                mimeApps.associations.added
+                mimeApps.associations.removed
+              ]
+            )
+          )
+        ) inputs.self.nixosConfigurations
+      );
+    in
+    pkgs.runCommand "mime-aliases"
+      {
+        keys = pkgs.writeText "mime-keys" (pkgs.lib.concatLines keys);
+        aliases = "${pkgs.shared-mime-info}/share/mime/aliases";
+      }
+      ''
+        found=$(awk 'NR == FNR { canonical[$1] = $2; next }
+          $2 in canonical { print $1 ": " $2 " is an alias of " canonical[$2] }' "$aliases" "$keys")
+        if [[ -n $found ]]; then
+          printf '%s\n' "$found" >&2
+          exit 1
+        fi
+        touch "$out"
+      '';
+
   # The pure half of yazi's own plugins, under plain Lua with yazi's globals stubbed
   yazi-plugin-tests =
     pkgs.runCommand "yazi-plugin-tests"

@@ -13,13 +13,16 @@ lib.mkIf (config.programs.nixvim.enable && config.rokokol.workstation.enable) {
 
   xdg.mimeApps = {
     enable = true;
+    # All of text/, and the text formats that shared-mime-info files under application/
     defaultApplications = lib.genAttrs [
       "application/json"
+      "application/sql"
+      "application/toml"
+      "application/x-desktop"
       "application/x-zerosize"
-      "text/markdown"
-      "text/plain"
-      "text/x-markdown"
-      "text/x-tex"
+      "application/xml"
+      "application/yaml"
+      "text/*"
     ] (_: "nvim-kitty.desktop");
   };
 }

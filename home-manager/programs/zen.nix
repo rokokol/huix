@@ -290,7 +290,6 @@ in
             "x-scheme-handler/chrome"
             "x-scheme-handler/http"
             "x-scheme-handler/https"
-            "x-scheme-handler/mailto"
             "x-scheme-handler/unknown"
           ]
       );

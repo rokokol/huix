@@ -23,7 +23,6 @@ let
     "application/x-bzip2"
     "application/x-bzip2-compressed-tar"
     "application/x-compressed-tar"
-    "application/x-rar"
     "application/x-tar"
     "application/x-xz"
     "application/x-xz-compressed-tar"

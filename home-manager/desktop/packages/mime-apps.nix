@@ -1,45 +1,65 @@
 { config, lib, ... }:
 
+# The handlers of the apps packages.nix installs. A key that ends in `*` takes every
+# type shared-mime-info knows under that prefix, and an exact key overrides it, so a type that
+# shared-mime-info renames is never left out. checks.nix refuses a key that is only an alias
+let
+  celluloid = "io.github.celluloid_player.Celluloid.desktop";
+  evince = "org.gnome.Evince.desktop";
+  fragments = "de.haeckerfelix.Fragments.desktop";
+in
 lib.mkIf config.rokokol.workstation.enable {
   xdg.mimeApps = {
     enable = true;
 
-    defaultApplications = {
-      "image/jpeg" = "swayimg.desktop";
-      "image/png" = "swayimg.desktop";
-      "image/gif" = "swayimg.desktop";
-      "image/x-canon-cr2" = "swayimg.desktop";
-      "image/x-raw" = "swayimg.desktop";
-      "image/x-dcraw" = "swayimg.desktop";
-      "image/tiff" = "swayimg.desktop";
-      "image/bmp" = "swayimg.desktop";
-      "image/webp" = "swayimg.desktop";
+    defaultApplications = lib.mkMerge [
+      {
+        "audio/*" = celluloid;
+        "video/*" = celluloid;
+        "image/*" = "swayimg.desktop";
 
-      "video/mp4" = "io.github.celluloid_player.Celluloid.desktop";
-      "video/x-matroska" = "io.github.celluloid_player.Celluloid.desktop";
-      "video/webm" = "io.github.celluloid_player.Celluloid.desktop";
-      "video/quicktime" = "io.github.celluloid_player.Celluloid.desktop";
-      "video/x-msvideo" = "io.github.celluloid_player.Celluloid.desktop";
-      "video/mpeg" = "io.github.celluloid_player.Celluloid.desktop";
-      "video/3gpp" = "io.github.celluloid_player.Celluloid.desktop";
+        "application/epub+zip" = evince;
+        "application/pdf" = evince;
+        "application/postscript" = evince;
+        "application/vnd.comicbook+zip" = evince;
+        "application/vnd.comicbook-rar" = evince;
+        "application/x-bzpdf" = evince;
+        "application/x-bzpostscript" = evince;
+        "application/x-cb7" = evince;
+        "application/x-cbt" = evince;
+        "application/x-ext-djvu" = evince;
+        "application/x-ext-pdf" = evince;
+        "application/x-gzpdf" = evince;
+        "application/x-gzpostscript" = evince;
+        "application/x-xzpdf" = evince;
+        "image/vnd.djvu" = evince;
+        "image/vnd.djvu+multipage" = evince;
 
-      "application/pdf" = "org.gnome.Evince.desktop";
-      "application/x-bzpdf" = "org.gnome.Evince.desktop";
-      "application/x-gzpdf" = "org.gnome.Evince.desktop";
-      "application/x-ext-pdf" = "org.gnome.Evince.desktop";
-      "application/postscript" = "org.gnome.Evince.desktop";
-      "application/x-bzpostscript" = "org.gnome.Evince.desktop";
-      "application/x-gzpostscript" = "org.gnome.Evince.desktop";
-      "image/vnd.djvu" = "org.gnome.Evince.desktop";
-      "application/x-ext-djvu" = "org.gnome.Evince.desktop";
-      "application/x-cbz" = "org.gnome.Evince.desktop";
-      "application/x-cbr" = "org.gnome.Evince.desktop";
-      "application/epub+zip" = "org.gnome.Evince.desktop";
+        "application/msword" = "writer.desktop";
+        "application/rtf" = "writer.desktop";
+        "application/vnd.ms-word*" = "writer.desktop";
+        "application/vnd.oasis.opendocument.text*" = "writer.desktop";
+        "application/vnd.openxmlformats-officedocument.wordprocessingml*" = "writer.desktop";
+        "application/vnd.ms-excel*" = "calc.desktop";
+        "application/vnd.oasis.opendocument.spreadsheet*" = "calc.desktop";
+        "application/vnd.openxmlformats-officedocument.spreadsheetml*" = "calc.desktop";
+        "application/vnd.ms-powerpoint*" = "impress.desktop";
+        "application/vnd.oasis.opendocument.presentation*" = "impress.desktop";
+        "application/vnd.openxmlformats-officedocument.presentationml*" = "impress.desktop";
+        "application/vnd.oasis.opendocument.graphics*" = "draw.desktop";
 
-      "x-scheme-handler/magnet" = "de.haeckerfelix.Fragments.desktop";
-      "application/x-bittorrent" = "de.haeckerfelix.Fragments.desktop";
+        "application/x-bittorrent" = fragments;
+        "x-scheme-handler/magnet" = fragments;
 
-      "application/octet-stream" = "selectdefaultapplication.desktop";
-    };
+        "x-scheme-handler/mailto" = "org.gnome.Geary.desktop";
+      }
+
+      # The layered formats swayimg cannot read, where their editors are installed
+      (lib.mkIf config.rokokol.packages.pc {
+        "image/openraster" = "org.kde.krita.desktop";
+        "image/vnd.adobe.photoshop" = "gimp.desktop";
+        "image/x-xcf" = "gimp.desktop";
+      })
+    ];
   };
 }
