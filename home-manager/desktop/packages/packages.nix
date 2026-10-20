@@ -37,9 +37,6 @@ in
           fragments
           freecad
           geary
-          # ReVa is a Ghidra extension that is itself the MCP server; agents reach it over
-          # http://127.0.0.1:8080/mcp/message while Ghidra runs, so no bridge is packaged beside it
-          (ghidra.withExtensions (p: [ p.reva ]))
           gnome-disk-utility
           obs-studio
           # Electron finds the secret store by the desktop name, and it knows no Hyprland, so it
@@ -117,9 +114,6 @@ in
         NIXOS_OZONE_WL = "1";
       };
 
-      # ReVa in the Ghidra of the list below; it answers only while Ghidra runs
-      programs.mcp.servers.ghidra.url = "http://localhost:8080/mcp/message";
-
       home.file.".config/matlab/nix.sh".text = ''
         INSTALL_DIR=$HOME/MATLAB2025a/
       '';
@@ -158,9 +152,6 @@ in
 
           # Web
           nodejs
-
-          # Reverse engineering
-          detect-it-easy
 
           # --- Desktop apps ---
           # Keep the NVIDIA-only wrapper separate, so the main build remains

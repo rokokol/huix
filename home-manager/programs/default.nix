@@ -1,6 +1,7 @@
 {
   imports = [
     ./cli/default.nix
+    ./ghidra.nix
     ./language-servers.nix
     ./nixvim/default.nix
     ./rofi.nix
