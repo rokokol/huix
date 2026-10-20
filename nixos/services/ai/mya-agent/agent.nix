@@ -61,6 +61,8 @@ let
       };
       # The skill reaches the owner's own account, and this session speaks through its bot
       skillOverrides.telegram = "off";
+      # It talks to a Super Productivity that runs on a workstation, which the station cannot reach
+      skillOverrides.super-productivity = "off";
       enabledPlugins = {
         # The owner keeps it on the workstations only
         "cc-plugin-you-should-know@builtin" = false;
@@ -274,6 +276,14 @@ in
       description = "Commands the session can run beside the system's, in its user's profile";
     };
 
+    pythonPackages = lib.mkOption {
+      type = lib.types.functionTo (lib.types.listOf lib.types.package);
+      default = _: [ ];
+      defaultText = lib.literalExpression "_: [ ]";
+      example = lib.literalExpression "ps: [ ps.matplotlib ]";
+      description = "Python libraries that the session's `python3` can import, chosen from its package set";
+    };
+
     extraGroups = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [ ];
@@ -326,7 +336,7 @@ in
             gh
             git
             jq
-            python3
+            (python3.withPackages cfg.pythonPackages)
             trash-cli
           ])
           ++ cfg.packages;

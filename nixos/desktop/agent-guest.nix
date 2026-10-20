@@ -15,15 +15,19 @@ let
   };
 in
 {
-  config.rokokol.mya-agent.guest = lib.mkIf config.rokokol.workstation.enable {
-    enable = true;
-    owner = rokokolName;
-    shares =
-      lib.genAttrs [ "Projects" ] (share false)
-      // lib.genAttrs [
-        "Documents"
-        "Downloads"
-        "Pocket"
-      ] (share true);
+  config.rokokol.mya-agent = lib.mkIf config.rokokol.workstation.enable {
+    # The agent runs the heavy plots here and sends the pictures to the station
+    pythonPackages = ps: [ ps.matplotlib ];
+    guest = {
+      enable = true;
+      owner = rokokolName;
+      shares =
+        lib.genAttrs [ "Projects" ] (share false)
+        // lib.genAttrs [
+          "Documents"
+          "Downloads"
+          "Pocket"
+        ] (share true);
+    };
   };
 }

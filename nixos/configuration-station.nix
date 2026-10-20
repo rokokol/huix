@@ -40,6 +40,7 @@ in
     mya-agent = {
       enable = true;
       packages = with pkgs; [ ffmpeg ];
+      pythonPackages = ps: [ ps.matplotlib ];
     };
 
     backup-heartbeat.enable = true;
