@@ -50,6 +50,7 @@ in
         ]
         ++ [
           # --- CLI ---
+          apacheHttpd
           curl
           dig
           exiftool
