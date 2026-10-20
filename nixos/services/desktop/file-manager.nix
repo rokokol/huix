@@ -36,7 +36,6 @@ in
       ntfs3g
       p7zip
       poppler
-      selectdefaultapplication
       thunar
       thunar-archive-plugin-xarchiver
       thunar-media-tags-plugin

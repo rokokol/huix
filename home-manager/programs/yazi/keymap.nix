@@ -3,6 +3,7 @@
   lib,
   pkgs,
   osConfig,
+  huixDir,
   ruLayout,
   ...
 }:
@@ -228,9 +229,13 @@ in
         (bind ":" "shell --block '${shellPrompt} %s'" "Run a shell command, with completion")
         (bind "e" "shell --block 'nvim %s'" "Open in nvim here")
       ]
-      ++ lib.optional workstation (
-        bind "E" "shell --orphan 'kitty --detach nvim %s'" "Open in nvim in a new window"
-      )
+      ++ lib.optionals workstation [
+        (bind "E" "shell --orphan 'kitty --detach nvim %s'" "Open in nvim in a new window")
+        # The stock Shift+Enter repeats `O`, the list of yazi's own openers; this one lists apps
+        (bind "<S-Enter>" "shell --orphan '${huixDir}/scripts/rofi-open-with.sh open %s'"
+          "Open with an app"
+        )
+      ]
       ++ [
         (bind (leader "c") "close" "Close tab")
         (bind (leader "nr") "rename --cursor=before_ext" "Rename, several at once in nvim")

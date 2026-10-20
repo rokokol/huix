@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  huixDir,
   ...
 }:
 
@@ -40,6 +41,9 @@
 
         display-notifications = "💌";
 
+        display-open-with = "🎯";
+        display-open-with-all = "📚";
+
         sorting-method = "fzf";
       };
     };
@@ -58,5 +62,18 @@
       rofimoji
       wl-clipboard
     ];
+
+    # The menu of scripts/rofi-open-with.sh, as the handler of the files whose type no app claims
+    xdg.desktopEntries.open-with = {
+      name = "Open with";
+      exec = "${huixDir}/scripts/rofi-open-with.sh open %F";
+      icon = "document-open";
+      noDisplay = true;
+    };
+
+    xdg.mimeApps = {
+      enable = true;
+      defaultApplications."application/octet-stream" = "open-with.desktop";
+    };
   };
 }

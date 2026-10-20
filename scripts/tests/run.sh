@@ -1152,6 +1152,114 @@ is "make-station-iso without an output is a usage error" 2 "$?"
 bash "$make_iso" >/dev/null 2>&1
 is "make-station-iso without a subcommand is a usage error" 2 "$?"
 
+# --- rofi-open-with.sh, against XDG data directories made here ---
+open_with=$SCRIPTS/rofi-open-with.sh
+ow=$work/open-with
+mkdir -p "$ow/home/applications" "$ow/sys/applications" "$ow/sys/mime"
+cat >"$work/bin/rofi" <<'EOF'
+#!/usr/bin/env bash
+printf 'rofi type=%s %s\n' "$OPEN_WITH_TYPE" "$*" >>"$STUB_LOG"
+EOF
+cat >"$work/bin/xdg-mime" <<'EOF'
+#!/usr/bin/env bash
+case "$2" in
+  filetype) printf '%s\n' "$STUB_MIME_TYPE" ;;
+  default) printf '%s\n' "${STUB_MIME_DEFAULT:-}" ;;
+esac
+EOF
+cat >"$work/bin/gtk-launch" <<'EOF'
+#!/usr/bin/env bash
+printf 'gtk-launch'; printf ' <%s>' "$@"; printf '\n'
+exit "${STUB_LAUNCH:-0}"
+EOF
+sed -i "1s|.*|#!$BASH|" "$work/bin/rofi" "$work/bin/xdg-mime" "$work/bin/gtk-launch"
+chmod +x "$work/bin/rofi" "$work/bin/xdg-mime" "$work/bin/gtk-launch"
+# gtk-launch logs through stdout, which the script discards, so it writes the log itself
+sed -i "s|^printf 'gtk-launch'|exec >>\"\$STUB_LOG\"; printf 'gtk-launch'|" "$work/bin/gtk-launch"
+
+printf 'video/x-matroska video/matroska\n' >"$ow/sys/mime/aliases"
+printf 'text/x-python text/plain\n' >"$ow/sys/mime/subclasses"
+
+# entry ID KEY=VALUE... — a desktop entry in the system directory
+entry() {
+  local id=$1
+  shift
+  {
+    printf '[Desktop Entry]\nType=Application\n'
+    printf '%s\n' "$@"
+    printf '[Desktop Action other]\nName=Not the app\nMimeType=video/mp4;\n'
+  } >"$ow/sys/applications/$id"
+}
+entry player.desktop 'Name=Player' 'Icon=player' 'Exec=player %U' 'MimeType=video/x-matroska;'
+entry viewer.desktop 'Name=Viewer' 'Exec=viewer %f' 'MimeType=image/png;'
+entry editor.desktop 'Name=Editor' 'Exec=editor %F' 'MimeType=text/plain;'
+entry hidden.desktop 'Name=Gone' 'Exec=gone %f' 'Hidden=true' 'MimeType=video/matroska;'
+entry console.desktop 'Name=Console' 'Exec=console %f' 'Terminal=true' 'MimeType=video/matroska;'
+entry wrapper.desktop 'Name=Wrapper' 'Exec=wrapper %F' 'NoDisplay=true'
+entry nofiles.desktop 'Name=No files' 'Exec=nofiles'
+entry self.desktop 'Name=Myself' "Exec=$open_with open %F" 'NoDisplay=true' 'MimeType=video/matroska;'
+entry shadowed.desktop 'Name=System copy' 'Exec=shadowed %f'
+printf '[Desktop Entry]\nType=Application\nName=User copy\nExec=shadowed %%f\n' \
+  >"$ow/home/applications/shadowed.desktop"
+
+# menu MODE TYPE [DEFAULT] — the ids rofi would show, in order, in $menu_ids, the names in
+# $menu_names
+menu() {
+  local rows
+  rows=$(XDG_DATA_HOME=$ow/home XDG_DATA_DIRS=$ow/sys OPEN_WITH_TYPE=$2 OPEN_WITH_DEFAULT=${3:-} \
+    OPEN_WITH_FILES=x bash "$open_with" list "$1" | tr '\0\037' '\t\t')
+  menu_names=$(cut -f1 <<<"$rows" | paste -sd'|' -)
+  menu_ids=$(awk -F '\t' '{ print $NF }' <<<"$rows" | paste -sd' ' -)
+}
+
+menu suggested video/matroska
+is "an app that declares an alias of the type is suggested" "player.desktop" "$menu_ids"
+menu suggested text/x-python
+is "an app that declares a parent of the type is suggested" "editor.desktop" "$menu_ids"
+menu suggested text/x-python wrapper.desktop
+is "the default comes first, even when it declares nothing" \
+  "wrapper.desktop editor.desktop" "$menu_ids"
+is "the default is marked" "Wrapper (default)|Editor" "$menu_names"
+menu all application/x-none
+is "all apps: visible, taking a file, never itself, a terminal one or a hidden one" \
+  "editor.desktop player.desktop shadowed.desktop viewer.desktop" "$menu_ids"
+is "a user entry shadows the system one of the same id" "Editor|Player|User copy|Viewer" "$menu_names"
+
+reset_log
+printf 'x\n' >"$ow/a file"
+printf 'y\n' >"$ow/b"
+XDG_DATA_DIRS=$ow/sys STUB_MIME_TYPE='video/matroska; charset=binary' \
+  bash "$open_with" open "$ow/a file" "$ow/b" >/dev/null 2>&1
+is "open shows rofi" 0 "$?"
+logged "rofi gets the type without its parameters" '^rofi type=video/matroska ' '-show open-with'
+logged "rofi gets both modes" 'open-with:[^,]* list suggested,open-with-all:[^ ]* list all'
+logged "the message names the file count" '2 files'
+
+reset_log
+printf 'z\n' >"$ow/<a&b>"
+XDG_DATA_DIRS=$ow/sys STUB_MIME_TYPE=text/plain bash "$open_with" open "$ow/<a&b>" >/dev/null 2>&1
+logged "a file name reaches the Pango message escaped" '&lt;a&amp;b&gt; '
+
+reset_log
+OPEN_WITH_TYPE=video/matroska OPEN_WITH_FILES=$ow/a\ file$'\n'$ow/b$'\n' ROFI_RETV=1 \
+  ROFI_INFO=player.desktop bash "$open_with" list suggested >/dev/null 2>&1
+logged "a chosen app gets every file" "^gtk-launch <player.desktop> <$ow/a file> <$ow/b>$"
+not_logged "a launch that works sends no notice" '^notify-send'
+
+reset_log
+STUB_LAUNCH=1 OPEN_WITH_TYPE=video/matroska OPEN_WITH_FILES=$ow/b ROFI_RETV=1 \
+  ROFI_INFO=player.desktop bash "$open_with" list suggested >/dev/null 2>&1
+logged "a failed launch is reported" '^notify-send .*player.desktop'
+
+bash "$open_with" open "$ow/missing" >/dev/null 2>&1
+is "open of a missing file is a failure" 1 "$?"
+bash "$open_with" open >/dev/null 2>&1
+is "open without a file is a usage error" 2 "$?"
+OPEN_WITH_TYPE=x bash "$open_with" list some >/dev/null 2>&1
+is "an unknown mode is a usage error" 2 "$?"
+bash "$open_with" list all >/dev/null 2>&1
+is "list outside rofi is a usage error" 2 "$?"
+
 if ((failures)); then
   printf 'run.sh: %d test(s) failed\n' "$failures" >&2
   exit 1
