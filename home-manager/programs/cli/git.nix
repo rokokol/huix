@@ -23,6 +23,8 @@ in
       };
       core.editor = "nvim";
       core.quotepath = "false";
+      # Sync loose objects, the index and refs to disk, so a host hang cannot leave them empty
+      core.fsync = "added,reference";
       init.defaultBranch = "master";
       # The station's agent owns its clones, and the owner fetches its commits from them
       safe.directory = [
