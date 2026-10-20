@@ -1156,9 +1156,18 @@ is "make-station-iso without a subcommand is a usage error" 2 "$?"
 open_with=$SCRIPTS/rofi-open-with.sh
 ow=$work/open-with
 mkdir -p "$ow/home/applications" "$ow/sys/applications" "$ow/sys/mime"
+# As rofi does, the stub fills the first mode of -modi and logs the message that mode shows
 cat >"$work/bin/rofi" <<'EOF'
 #!/usr/bin/env bash
 printf 'rofi type=%s %s\n' "$OPEN_WITH_TYPE" "$*" >>"$STUB_LOG"
+while (($#)); do
+  [ "$1" = -modi ] && modi=$2
+  shift
+done
+first=${modi%%,*}
+# shellcheck disable=SC2086 # a mode's command is split on spaces, as rofi splits it
+ROFI_RETV=0 "$BASH" ${first#*:} | tr '\0\037' '\t\t' | grep $'^\tmessage\t' |
+  sed 's/^/rofi shows /' >>"$STUB_LOG"
 EOF
 cat >"$work/bin/xdg-mime" <<'EOF'
 #!/usr/bin/env bash
@@ -1233,12 +1242,12 @@ XDG_DATA_DIRS=$ow/sys STUB_MIME_TYPE='video/matroska; charset=binary' \
 is "open shows rofi" 0 "$?"
 logged "rofi gets the type without its parameters" '^rofi type=video/matroska ' '-show open-with'
 logged "rofi gets both modes" 'open-with:[^,]* list suggested,open-with-all:[^ ]* list all'
-logged "the message names the file count" '2 files'
+logged "the menu shows the file count and the type" '^rofi shows' '2 files' 'video/matroska'
 
 reset_log
 printf 'z\n' >"$ow/<a&b>"
 XDG_DATA_DIRS=$ow/sys STUB_MIME_TYPE=text/plain bash "$open_with" open "$ow/<a&b>" >/dev/null 2>&1
-logged "a file name reaches the Pango message escaped" '&lt;a&amp;b&gt; '
+logged "a file name reaches the Pango message escaped" '^rofi shows.*&lt;a&amp;b&gt; '
 
 reset_log
 OPEN_WITH_TYPE=video/matroska OPEN_WITH_FILES=$ow/a\ file$'\n'$ow/b$'\n' ROFI_RETV=1 \

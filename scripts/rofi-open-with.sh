@@ -58,9 +58,11 @@ cmd_open() {
   # The message is Pango markup, so a file name reaches it escaped. Not ${s//</&lt;}: since
   # bash 5.2 an & in the replacement stands for the matched text
   subject=$(printf '%s' "$subject" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
+  # Each mode prints it, since rofi shows no -mesg while a script mode is open
+  export OPEN_WITH_MESSAGE="$subject — $type"
 
   exec rofi -show open-with -modi "open-with:$0 list suggested,open-with-all:$0 list all" \
-    -show-icons -no-custom -mesg "$subject — $type"
+    -show-icons -no-custom
 }
 
 # Every desktop entry as "id<TAB>path", the first of an id winning, in the order the XDG base
@@ -174,6 +176,9 @@ cmd_list() {
   # A failure inside a process substitution would only leave the menu empty
   local rows rank id name icon
   rows=$(apps "$mode")
+  if [[ -n "${OPEN_WITH_MESSAGE:-}" ]]; then
+    printf '\0message\x1f%s\n' "$OPEN_WITH_MESSAGE"
+  fi
   [[ -n "$rows" ]] || return 0
   while IFS=$'\t' read -r rank id name icon; do
     if ((rank == 0)); then
