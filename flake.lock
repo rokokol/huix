@@ -918,11 +918,11 @@
         "uv2nix": "uv2nix"
       },
       "locked": {
-        "lastModified": 1791207876,
-        "narHash": "sha256-HXQNEIMsxP9kdbOK93P0mDLevL79DqbiDG75I/nwijQ=",
+        "lastModified": 1792443544,
+        "narHash": "sha256-x5XWf77pIWyPP9UwQI9AbxKqd1N2ELtPltLASfXa2Q0=",
         "owner": "rokokol",
         "repo": "papers-skill",
-        "rev": "c0960762390bcf5309a8de797133bf6258d1d384",
+        "rev": "2b786b2c93c39adad83b6e05e8bb5c4200ceef2a",
         "type": "github"
       },
       "original": {
@@ -990,11 +990,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1788394333,
-        "narHash": "sha256-xYOP0Xym1eVGUaHFx+eJEaycFGoiCbst3fZf0xFHP78=",
+        "lastModified": 1791657700,
+        "narHash": "sha256-vcCAvhtA7hG+/gOge29hYHy7I/dLkIsr5nLx4sFEQic=",
         "owner": "pyproject-nix",
         "repo": "pyproject.nix",
-        "rev": "6a8a7881d75b6f98967e7b8069f4ead331384301",
+        "rev": "ddc400a6883b042646d0940e65971bb7f7e96107",
         "type": "github"
       },
       "original": {
@@ -1216,11 +1216,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1790341335,
-        "narHash": "sha256-wFnDm/o/4OebDlpGFyVXP8DLUx0/gR/jUFuGqmTwsQg=",
+        "lastModified": 1792151315,
+        "narHash": "sha256-PMtgvHuGijoIAtPtrBm7kJOI6fxzX4LYPAIK+QVGY+Y=",
         "owner": "pyproject-nix",
         "repo": "uv2nix",
-        "rev": "a24323e9e6ecbbf305c238845ff6c612d50467c0",
+        "rev": "7aba73a3d85454f1118f8cf9de97979b4d26bcac",
         "type": "github"
       },
       "original": {
