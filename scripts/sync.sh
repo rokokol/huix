@@ -24,10 +24,11 @@ The commit mode also takes an agent's work into huix. That holds for each line o
 SYNC_REMOTES file below with huix's origin and a fourth field UNIT. First UNIT starts over ssh
 on the host before the colon of URL: it commits whatever the agent left as "[USER] sync DATE"
 and rebases the agent's clone on GitHub. After huix's own commit, each commit of the clone that
-huix lacks is cherry-picked, and the owner hears what was taken under the remote's name. After
-the push UNIT starts again, and the clone drops its copies of what is now upstream. An agent
-out of reach is reported and passed over. A conflict is wound back, leaves the agent's commits
-in its clone and makes the exit status 1
+huix lacks is cherry-picked, and the owner hears what was taken under the remote's name. When
+something was taken, huix pulls once more, which drops a copy of an upstream commit the clone
+got after huix's first pull. After the push UNIT starts again, and the clone drops its copies
+of what is now upstream. An agent out of reach is reported and passed over. A conflict is
+wound back, leaves the agent's commits in its clone and makes the exit status 1
 
 Both modes end by catching every git repository under ~/Projects and under the shared Claude
 skills up to its upstream; PROJECTS_DIR and SKILLS_DIR name those two directories. The search
@@ -180,8 +181,9 @@ start_agents() {
   done
 }
 
-# Cherry-pick each commit of an agent's clone that neither HEAD nor the upstream holds. A commit
-# that turns out empty is dropped, as the same change already came another way
+# Cherry-pick each commit of an agent's clone that HEAD lacks, and set TOOK. A commit that turns
+# out empty is dropped, as the same change already came another way. The clone may hold an
+# upstream commit that came after huix pulled; the pull before the push drops its copy
 take_agents() {
   local line name url unit before
   local -a commits
@@ -192,11 +194,12 @@ take_agents() {
       notify low "Fetch from $name failed (・_・;)" "$(basename "$HUIX_PATH")"
       continue
     fi
-    mapfile -t commits < <(git rev-list --reverse --no-merges HEAD..FETCH_HEAD --not '@{u}')
+    mapfile -t commits < <(git rev-list --reverse --no-merges HEAD..FETCH_HEAD)
     [ "${#commits[@]}" -gt 0 ] || continue
 
     before=$(git rev-parse HEAD)
     if git cherry-pick --empty=drop "${commits[@]}" >/dev/null; then
+      TOOK=1
       notify low "Took $(git rev-list --count "$before..HEAD") commits from $name (=^･ω･^=)" \
         "$(git log --format=%s "$before..HEAD")"
     else
@@ -381,6 +384,7 @@ fi
 AGENTS=()
 declare -A AGENT_DOWN=()
 TAKE_STATUS=0
+TOOK=0
 [ "$TAKE" = yes ] && mapfile -t AGENTS < <(agent_lines)
 start_agents
 
@@ -409,6 +413,11 @@ else
 fi
 
 take_agents
+if [ "$TOOK" = 1 ] && ! timeout 90 git pull --quiet --rebase; then
+  git rebase --abort 2>/dev/null || true
+  notify critical "Sync Error (#｀ε´#ゞ" "git pull after taking the agents' commits failed"
+  exit 1
+fi
 
 if [ "$(git rev-list --count '@{u}..HEAD')" -eq 0 ]; then
   notify low "Nothing to push ( ˘ω˘ )"

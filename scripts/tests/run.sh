@@ -888,13 +888,22 @@ shift
 case "$*" in
   "systemctl start "*) exec "$BASH" "$STUB_AGENT_SYNC" "$STUB_AGENT_REPO" ;;
 esac
+# A script in STUB_RACE runs once, before the first fetch from the clone
+if [ -n "${STUB_RACE:-}" ] && [ -e "$STUB_RACE" ]; then
+  "$BASH" "$STUB_RACE" >/dev/null 2>&1
+  rm -f "$STUB_RACE"
+fi
 exec "$BASH" -c "$*"
 EOF
 sed -i "1s|.*|#!$BASH|" "$work/bin/ssh"
 chmod +x "$work/bin/ssh"
 
-git config --global --add url."$git_work/".insteadOf https://github.com/owner/
+# The agent's clone spells its origin without .git, so that spelling gets a directory of its own
+# where the name leads to the bare repository and never to the owner's clone
+git config --global --add url."$git_work/https/".insteadOf https://github.com/owner/
 git init -q --bare "$git_work/pair.git"
+mkdir -p "$git_work/https"
+ln -s "$git_work/pair.git" "$git_work/https/pair"
 git clone -q "$git_work/pair.git" "$git_work/seed"
 printf 'first\n' >"$git_work/seed/shared.txt"
 git -C "$git_work/seed" add shared.txt
@@ -995,6 +1004,29 @@ not_logged "--no-take starts no unit" '^ssh .*systemctl'
 is "--no-take takes nothing" "" "$(in_tree "$git_work/pair" HEAD away.txt)"
 take_run --pull-only
 not_logged "--pull-only starts no unit" '^ssh .*systemctl'
+rm "$agent_clone/away.txt"
+
+# After the owner's pull, someone else pushes, and the agent's session pulls that push itself:
+# the clone now holds an upstream commit the owner lacks
+git clone -q "$git_work/pair.git" "$git_work/third"
+cat >"$git_work/race.sh" <<EOF
+printf 'third\n' >"$git_work/third/third.txt"
+git -C "$git_work/third" add third.txt
+git -C "$git_work/third" commit -q -m "a third party's commit"
+git -C "$git_work/third" push -q origin master
+git -C "$agent_clone" pull -q --rebase
+EOF
+printf 'raced\n' >"$agent_clone/raced.txt"
+printf 'owner raced\n' >"$git_work/pair/raced-owner.txt"
+STUB_RACE=$git_work/race.sh take_run
+is "a push in the middle of the sync is no failure" 0 "$take_status"
+is "the agent's work in a raced sync is pushed" "raced" "$(in_tree "$git_work/pair.git" master raced.txt)"
+is "the owner's work in a raced sync is pushed" "owner raced" \
+  "$(in_tree "$git_work/pair.git" master raced-owner.txt)"
+is "the third party's commit is upstream once and not taken as the agent's" 1 \
+  "$(git -C "$git_work/pair.git" log --format=%s master | grep -cx "a third party's commit")"
+is "the raced agent's clone ends where the owner's does" "$(git -C "$git_work/pair" rev-parse HEAD)" \
+  "$(git -C "$agent_clone" rev-parse HEAD)"
 unset GIT_CONFIG_NOSYSTEM GIT_CONFIG_GLOBAL GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL
 unset GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL
 
