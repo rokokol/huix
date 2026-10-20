@@ -235,9 +235,9 @@ grep -c 'langmap' "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.yazi
 grep -c 'hidden' "$(nix build --no-link --print-out-paths .#nixosConfigurations.nixos-laptop.pkgs.yaziPlugins.git)/main.lua"
 ```
 
-`0` -> keep the wrapper. Anything else -> git.yazi switches its column itself; drop the wrapper, the `git-column` plugin and its name in `keymap.nix`, point `Space u g` at the plugin's own entry, then press it in a repository. The check looks for the name proposed in #4409; when that issue closes with another name for the option, rewrite the check to look for it
+`0` -> keep the wrapper. Anything else -> git.yazi switches its column itself; drop the wrapper, the `git-column` plugin and its name in `keymap.nix`, point `Space u g` at the plugin's own entry, then press it in a repository. The check looks for the name proposed in yazi-rs/plugins#248; when that issue closes with another name for the option, rewrite the check to look for it
 
-**Upstream:** [sxyazi/yazi#4409](https://github.com/sxyazi/yazi/issues/4409), the code is in yazi-rs/plugins
+**Upstream:** [yazi-rs/plugins#248](https://github.com/yazi-rs/plugins/issues/248), where git.yazi resides; the first report, [sxyazi/yazi#4409](https://github.com/sxyazi/yazi/issues/4409), was closed on 2026-10-08 as not Yazi itself
 
 ---
 

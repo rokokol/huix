@@ -185,6 +185,19 @@ in
       description = "The user of the session";
     };
 
+    git.name = lib.mkOption {
+      type = lib.types.str;
+      default = cfg.user;
+      defaultText = lib.literalExpression "config.rokokol.mya-agent.user";
+      description = "The name on every commit of the session and of `syncUnit`";
+    };
+
+    git.email = lib.mkOption {
+      type = lib.types.str;
+      example = "agent@example.org";
+      description = "The address on every commit of the session and of `syncUnit`";
+    };
+
     home = lib.mkOption {
       type = lib.types.str;
       default = "/home/${cfg.user}";
@@ -449,12 +462,13 @@ in
         ];
         wants = [ "network-online.target" ];
         path = [ pkgs.git ];
-        # The commits are the session's, whatever identity its own git config holds
+        # The session's own git config holds the same identity, from the same option; the
+        # variables also outrank a user.name that a clone sets for itself
         environment = {
-          GIT_AUTHOR_NAME = cfg.user;
-          GIT_AUTHOR_EMAIL = "${cfg.user}@${config.networking.hostName}";
-          GIT_COMMITTER_NAME = cfg.user;
-          GIT_COMMITTER_EMAIL = "${cfg.user}@${config.networking.hostName}";
+          GIT_AUTHOR_NAME = cfg.git.name;
+          GIT_AUTHOR_EMAIL = cfg.git.email;
+          GIT_COMMITTER_NAME = cfg.git.name;
+          GIT_COMMITTER_EMAIL = cfg.git.email;
         };
         serviceConfig = {
           Type = "oneshot";

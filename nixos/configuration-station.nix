@@ -39,6 +39,7 @@ in
     # Edits the archive's folders, so Syncthing runs as its user and sends the changes
     mya-agent = {
       enable = true;
+      git.email = "mya@rokokol.art";
       packages = with pkgs; [ ffmpeg ];
       pythonPackages = ps: [ ps.matplotlib ];
     };

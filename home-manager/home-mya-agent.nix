@@ -36,6 +36,16 @@ in
     };
   };
 
+  # The identity of every commit the session makes, in any repository of the user. The package
+  # is the one the user already has, and nothing here pushes: the session holds no write token
+  programs.git = {
+    enable = true;
+    package = null;
+    settings.user = {
+      inherit (agent.git) name email;
+    };
+  };
+
   rokokol.claude.enable = true;
 
   programs.claude-account = {
