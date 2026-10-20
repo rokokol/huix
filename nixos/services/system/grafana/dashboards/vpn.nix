@@ -261,23 +261,42 @@ panels.dashboard {
     })
 
     (row "Clients" null 68)
-    (panel {
-      title = "Traffic of the ${toString topClients} busiest clients";
-      x = 0;
-      y = 69;
-      w = 24;
-      unit = "Bps";
-      min = 0;
-      shaded = true;
-      queries = [
-        (query "A" roles.series-1
-          ''
-            ${traffic "vpn_client_traffic_bytes_total{${node}}" "instance, client, direction"}
-            and on (instance, client)
-            topk(${toString topClients}, ${traffic "vpn_client_traffic_bytes_total{${node}}" "instance, client"})''
-          "{{instance}} {{client}} {{direction}}"
-        )
+  ]
+  # Both panels show the same clients, the busiest by up and down together, so a client does not
+  # drop out of one panel while it stays in the other
+  ++
+    map
+      (
+        side:
+        panel {
+          title = "${side.title}, the ${toString topClients} busiest clients";
+          inherit (side) x;
+          y = 69;
+          w = 12;
+          unit = "Bps";
+          min = 0;
+          shaded = true;
+          queries = [
+            (query "A" roles.series-1
+              ''
+                ${traffic ''vpn_client_traffic_bytes_total{${node}, direction="${side.direction}"}'' "instance, client"}
+                and on (instance, client)
+                topk(${toString topClients}, ${traffic "vpn_client_traffic_bytes_total{${node}}" "instance, client"})''
+              "{{instance}} {{client}}"
+            )
+          ];
+        }
+      )
+      [
+        {
+          direction = "down";
+          title = "Down";
+          x = 0;
+        }
+        {
+          direction = "up";
+          title = "Up";
+          x = 12;
+        }
       ];
-    })
-  ];
 }
