@@ -3,6 +3,7 @@
   lib,
   pkgs,
   huixDir,
+  rokokolName,
   ...
 }:
 
@@ -25,6 +26,8 @@ in
     download-music = "yt-dlp -x --audio-format mp3 --audio-quality 0 --embed-metadata --embed-thumbnail -o '%(title)s.%(ext)s'";
     rebuild = "sudo nixos-rebuild switch --flake ${huixDir}";
     rebuilds = "sudo nixos-rebuild switch --flake ${huixDir} --option substituters \"https://mirror.yandex.ru/nixos\"";
+    # The station holds no checkout: it is built here and pushed to it over Tailscale SSH
+    rebuild-station = "nixos-rebuild switch --flake ${huixDir}#nixos-station --target-host ${rokokolName}@nixos-station --sudo --ask-sudo-password";
   };
 
   home.packages =
