@@ -161,6 +161,9 @@
       url = "github:FreesmTeam/FreesmLauncher";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # A NixOS module and nothing else: it has no inputs, so it needs no follows
+    nix-flatpak.url = "github:gmodena/nix-flatpak";
   };
 
   outputs =

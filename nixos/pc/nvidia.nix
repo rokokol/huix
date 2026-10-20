@@ -1,4 +1,9 @@
-{ config, rokokolName, ... }:
+{
+  config,
+  lib,
+  rokokolName,
+  ...
+}:
 
 {
   # OpenGL (hardware graphics)
@@ -33,6 +38,24 @@
   # nix-ld needs the userspace of exactly the driver installed on this host; the
   # shared list in nixos/services/system/nix-ld.nix stays GPU-agnostic
   programs.nix-ld.libraries = [ config.hardware.nvidia.package ];
+
+  # A Flatpak app loads the driver's userspace from a Flathub extension built for one driver
+  # version, and only the one that matches the kernel module works. With the version taken from
+  # the package above, a driver update installs its extension in the same switch, and nix-flatpak
+  # removes the old one. 1.4 is the branch of the extension point the freedesktop runtimes load
+  services.flatpak.packages = lib.mkIf config.services.flatpak.enable (
+    map
+      (
+        gl:
+        "org.freedesktop.Platform.${gl}.nvidia-${
+          lib.replaceStrings [ "." ] [ "-" ] config.hardware.nvidia.package.version
+        }/x86_64/1.4"
+      )
+      [
+        "GL"
+        "GL32"
+      ]
+  );
 
   users.users.${rokokolName} = {
     extraGroups = [

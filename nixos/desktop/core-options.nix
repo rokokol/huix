@@ -20,7 +20,6 @@
       enable = true;
       withUWSM = true;
     };
-    services.flatpak.enable = true;
 
     # The agent that answers these prompts is hyprpolkitagent, started from hyprland.lua
     security.polkit.enable = true;

@@ -17,6 +17,12 @@
   # The owner keeps this host without swap of any kind
   zramSwap.enable = false;
 
+  services.flatpak.packages = [
+    "com.google.Chrome"
+    "org.kde.kdenlive"
+    "ru.linux_gaming.PortProton"
+  ];
+
   services.virtual-media-devices.camera = {
     enable = true;
     users = [ rokokolName ];

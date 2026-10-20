@@ -803,6 +803,21 @@
         "type": "github"
       }
     },
+    "nix-flatpak": {
+      "locked": {
+        "lastModified": 1791644268,
+        "narHash": "sha256-f7Z4PmfnRxf7+37NN48ep+KsQauGtL5REE99pJtMNp8=",
+        "owner": "gmodena",
+        "repo": "nix-flatpak",
+        "rev": "02656785ab214fa1c9655f1beaaf0269eeeec2ca",
+        "type": "github"
+      },
+      "original": {
+        "owner": "gmodena",
+        "repo": "nix-flatpak",
+        "type": "github"
+      }
+    },
     "nix-matlab": {
       "inputs": {
         "flake-compat": "flake-compat_2",
@@ -1060,6 +1075,7 @@
         "hyprland-plugins": "hyprland-plugins",
         "hyprland-screen-shader": "hyprland-screen-shader",
         "nix-best-practices": "nix-best-practices",
+        "nix-flatpak": "nix-flatpak",
         "nix-matlab": "nix-matlab",
         "nixpkgs": "nixpkgs_2",
         "nixpkgs-stable": "nixpkgs-stable",

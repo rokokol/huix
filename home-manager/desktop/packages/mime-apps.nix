@@ -1,4 +1,9 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  osConfig,
+  ...
+}:
 
 # The handlers of the apps packages.nix installs. A key that ends in `*` takes every
 # type shared-mime-info knows under that prefix, and an exact key overrides it, so a type that
@@ -53,6 +58,19 @@ lib.mkIf config.rokokol.workstation.enable {
 
         "x-scheme-handler/mailto" = "org.gnome.Geary.desktop";
       }
+
+      # Windows programs, on a host whose Flatpak list holds PortProton
+      (lib.mkIf
+        (lib.elem "ru.linux_gaming.PortProton" (map (p: p.appId) osConfig.services.flatpak.packages))
+        (
+          lib.genAttrs [
+            "application/x-bat"
+            "application/x-ms-shortcut"
+            "application/x-msdownload"
+            "application/x-msi"
+          ] (_: "ru.linux_gaming.PortProton.desktop")
+        )
+      )
 
       # The layered formats swayimg cannot read, where their editors are installed
       (lib.mkIf config.rokokol.packages.pc {

@@ -6,6 +6,7 @@
     ./ai/ollama.nix
     ./desktop/amnezia-vpn.nix
     ./desktop/file-manager.nix
+    ./desktop/flatpak.nix
     ./desktop/gnome-keyring.nix
     ./desktop/sddm.nix
     ./desktop/ssh-agent.nix
