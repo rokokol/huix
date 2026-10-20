@@ -26,12 +26,25 @@ in
         paths = with pkgs; [ claude-code ];
         nativeBuildInputs = with pkgs; [ makeWrapper ];
         postBuild = ''
-          wrapProgram $out/bin/claude --add-flags "--mcp-config=${config.rokokol.mcp.claudeConfig}"
+          wrapProgram $out/bin/claude --add-flags ${
+            lib.escapeShellArg (
+              lib.concatStringsSep " " (
+                [ "--mcp-config=${config.rokokol.mcp.claudeConfig}" ]
+                ++ map (plugin: "--plugin-dir ${plugin}") config.rokokol.claude.plugins
+              )
+            )
+          }
         '';
         inherit (pkgs.claude-code) meta;
       };
-      defaultText = lib.literalMD "Claude Code with the servers of `programs.mcp.servers`";
+      defaultText = lib.literalMD "Claude Code with the servers of `programs.mcp.servers` and the `plugins`";
       description = "Claude Code as every session of this user runs it";
+    };
+
+    plugins = lib.mkOption {
+      type = lib.types.listOf lib.types.path;
+      default = [ ];
+      description = "Claude Code plugin directories that every session of this user loads";
     };
 
     enable = lib.mkEnableOption "Claude Code and its shared profile" // {

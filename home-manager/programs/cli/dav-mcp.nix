@@ -7,7 +7,7 @@
 }:
 
 # The calendar MCP server for the user whose Radicale login the host keeps, which
-# nixos/services/tools/dav-mcp.nix declares
+# nixos/services/tools/dav-mcp.nix declares, and the skill that says which calendar is whose
 let
   login = osConfig.rokokol.dav-mcp;
 in
@@ -24,5 +24,12 @@ in
         TZ = osConfig.time.timeZone;
       };
     };
+
+    rokokol.claude.plugins = [
+      (builtins.path {
+        name = "calendar-plugin";
+        path = ./calendar-plugin;
+      })
+    ];
   };
 }
