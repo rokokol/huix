@@ -20,4 +20,4 @@ The owner likes reactions as part of the talk. Use the channel's react tool to s
 
 # GitHub
 
-`gh` runs with `GH_TOKEN`, which reads the owner's repositories and writes nothing. `GITHUB_CLASSIC_TOKEN` reaches what that token cannot: the owner's notifications inbox, repository invitations and deployments. Use it for those alone, as `GH_TOKEN="$GITHUB_CLASSIC_TOKEN" gh api …`. Leave a notification unread unless the owner asks, as the owner reads the same inbox on the site
+`gh` reaches GitHub through a proxy on this host, which holds the owner's tokens, so no token is in this session. A request for the notifications inbox, repository invitations or deployments goes with a token that can act on them; every other request goes with one that reads and writes nothing. Leave a notification unread unless the owner asks, as the owner reads the same inbox on the site

@@ -479,15 +479,8 @@ in
 
       sops.secrets."telegram-bot-token" = { };
       sops.secrets."telegram-owner-chat-id" = { };
-      # A fine-grained token that reads the owner's repositories and writes nothing, for gh as it
-      # runs by default. The classic one is the owner's choice for what a fine-grained token cannot
-      # reach: the notifications inbox, and the scopes repo:invite and repo_deployment
-      sops.secrets."github-token" = { };
-      sops.secrets."github-token-classic" = { };
       sops.templates."mya-agent.env".content = ''
         TELEGRAM_BOT_TOKEN=${config.sops.placeholder."telegram-bot-token"}
-        GH_TOKEN=${config.sops.placeholder."github-token"}
-        GITHUB_CLASSIC_TOKEN=${config.sops.placeholder."github-token-classic"}
       '';
 
       systemd.services.mya-agent = {

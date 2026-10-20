@@ -111,6 +111,9 @@ let
     page = pkgs.writeTextDir "index.html" "tailnet-web probe\n";
   };
 
+  # Stands in for the GitHub API behind the agent's proxy
+  githubEcho.port = 8093;
+
   # GitHub on the router: an own public and private repository, the forks the station names,
   # and one fork it does not. The fixtures give the station the first token
   github = rec {
@@ -320,6 +323,15 @@ pkgs.testers.runNixOSTest {
           serviceConfig = {
             DynamicUser = true;
             ExecStart = "${lib.getExe pkgs.python3} -m http.server --bind 127.0.0.1 --directory ${probe.page} ${toString probe.backendPort}";
+          };
+        };
+
+        rokokol.mya-agent.github.api = "http://127.0.0.1:${toString githubEcho.port}";
+        systemd.services.github-echo = {
+          wantedBy = [ "multi-user.target" ];
+          serviceConfig = {
+            DynamicUser = true;
+            ExecStart = "${lib.getExe pkgs.python3} ${./github-echo.py} ${toString githubEcho.port}";
           };
         };
 
@@ -807,9 +819,21 @@ pkgs.testers.runNixOSTest {
         station.succeed("systemctl start morning-letter.service")
         station.wait_until_succeeds(f"grep -q 'morning skill' {agent_home}/morning", timeout=timedelta(seconds=30))
 
-    with subtest("gh in the session reads GitHub with the owner's read-only token, and has the classic one beside it"):
-        type_in("echo \"$GH_TOKEN $GITHUB_CLASSIC_TOKEN\" >~/gh-token")
-        station.wait_until_succeeds(f"grep -qx 'github_pat_test ghp_test' {agent_home}/gh-token", timeout=timedelta(seconds=30))
+    with subtest("gh in the session reaches GitHub through the proxy, which picks the token by path"):
+        station.wait_for_unit("github-echo.service")
+        station.wait_for_open_port(${toString githubEcho.port})
+        type_in("gh api /notifications >~/gh-classic; gh api /user >~/gh-read; env >~/gh-env")
+        station.wait_until_succeeds(f"test -s {agent_home}/gh-env", timeout=timedelta(seconds=30))
+        classic = json.loads(station.succeed(f"cat {agent_home}/gh-classic"))
+        read = json.loads(station.succeed(f"cat {agent_home}/gh-read"))
+        assert classic["authorization"] == "token ghp_test", f"the inbox went with {classic}"
+        assert read["authorization"] == "token github_pat_test", f"a read went with {read}"
+        # Neither token is in the session, in its variables or in a file it can read
+        station.fail(f"grep -q -e github_pat_test -e ghp_test {agent_home}/gh-env")
+        for secret in ["github-token", "github-token-classic"]:
+            station.fail(f"runuser -u ${agent.user} -- cat /run/secrets/{secret}")
+        # The socket's directory admits the agent's group alone, which the owner is in as well
+        station.fail("runuser -u nobody -- ${lib.getExe pkgs.curl} -sf --unix-socket ${station.config.rokokol.mya-agent.github.socket} http://api.github.com/user")
 
     with subtest("the session edits the vault and the shared state, and sees no snapshot, no backup, no key of Syncthing and not the owner's home"):
         station.succeed("install -m 0600 -o rokokol /dev/null /home/rokokol/.owner-only")

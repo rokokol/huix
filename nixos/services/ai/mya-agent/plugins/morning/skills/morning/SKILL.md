@@ -23,7 +23,7 @@ The forecast for today in the owner's city: `curl -s 'wttr.in/CITY?format=j1'`, 
 
 ## GitHub
 
-The owner's unread notifications, from `GH_TOKEN="$GITHUB_CLASSIC_TOKEN" gh api notifications`, grouped by repository: what happened and who is waiting for the owner. Leave them unread. Then the runs that failed since yesterday in the owner's repositories, `gh run list -R REPO --status failure --created ">=$(date -d yesterday +%F)"` for each that `gh repo list --source --no-archived` names
+The owner's unread notifications, from `gh api notifications`, grouped by repository: what happened and who is waiting for the owner. Leave them unread. Then the runs that failed since yesterday in the owner's repositories, `gh run list -R REPO --status failure --created ">=$(date -d yesterday +%F)"` for each that `gh repo list --source --no-archived` names
 
 ## News
 
