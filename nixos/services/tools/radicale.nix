@@ -18,6 +18,9 @@ let
   port = 5232;
   backendPort = 5233;
   root = "${cfg.dataDir}/collection-root";
+  logins = [ cfg.owner ] ++ cfg.sharedWith;
+  # nixos/services/tools/dav-mcp.nix gives the same secret to the login's own client
+  passwordOf = login: "radicale-password-${login}";
   # btrbk and the disk layout name a subvolume by its path inside the volume
   onVolume = lib.removePrefix "${cfg.mountPoint}/";
   mountGuard = {
@@ -123,11 +126,17 @@ in
       }
     ];
 
-    sops.secrets."radicale-htpasswd" = {
+    # One password per login, which its client reads too, so the file holds it in the clear. A
+    # hash would guard only this file, and the passwords lie decrypted beside it in any case
+    sops.secrets = lib.genAttrs (map passwordOf logins) (_: { });
+    sops.templates."radicale-htpasswd" = {
       owner = radicale.user;
       inherit (radicale) group;
       mode = "0440";
       restartUnits = [ "radicale.service" ];
+      content = lib.concatMapStrings (
+        login: "${login}:${config.sops.placeholder.${passwordOf login}}\n"
+      ) logins;
     };
 
     services.radicale = {
@@ -136,8 +145,8 @@ in
         server.hosts = [ "127.0.0.1:${toString backendPort}" ];
         auth = {
           type = "htpasswd";
-          htpasswd_filename = config.sops.secrets."radicale-htpasswd".path;
-          htpasswd_encryption = "bcrypt";
+          htpasswd_filename = config.sops.templates."radicale-htpasswd".path;
+          htpasswd_encryption = "plain";
         };
         storage.filesystem_folder = cfg.dataDir;
       };

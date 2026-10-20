@@ -28,10 +28,7 @@ pkgs.runCommand "station-boot-test-fixtures"
       printf 'pc-mac: %s\n' '${pcMac}'
       # Marked $2y$, as htpasswd -B writes it and the real file holds it; mkpasswd writes $2b$
       printf 'restic-server-htpasswd: pc:%s\n' "$(mkpasswd -m bcrypt test | sed 's/^\$2b\$/$2y$/')"
-      printf 'radicale-htpasswd: |\n'
-      for login in rokokol mya; do
-        printf '  %s:%s\n' "$login" "$(mkpasswd -m bcrypt test | sed 's/^\$2b\$/$2y$/')"
-      done
+      printf 'radicale-password-rokokol: %s\n' test
       printf 'radicale-password-mya: %s\n' test
       printf 'alert-mail-msmtprc: |\n'
       printf '  account default\n  host 192.168.0.1\n  port 1025\n'

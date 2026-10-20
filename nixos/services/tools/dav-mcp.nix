@@ -15,6 +15,8 @@ let
   servers = lib.filterAttrs (
     _: host: host.config.rokokol.radicale.enable
   ) inputs.self.nixosConfigurations;
+  server =
+    if config.rokokol.radicale.enable then config else (lib.head (lib.attrValues servers)).config;
 in
 {
   options.rokokol.dav-mcp = {
@@ -30,11 +32,7 @@ in
 
     url = lib.mkOption {
       type = lib.types.str;
-      default =
-        if config.rokokol.radicale.enable then
-          config.rokokol.radicale.url
-        else
-          (lib.head (lib.attrValues servers)).config.rokokol.radicale.url;
+      default = server.rokokol.radicale.url;
       defaultText = lib.literalMD "`rokokol.radicale.url` of the host of this flake that runs Radicale";
       description = "Root URL of the CalDAV server";
     };
@@ -56,6 +54,11 @@ in
       }
     ];
 
-    sops.secrets."radicale-password-${cfg.user}".owner = cfg.user;
+    # The password lives once, in the secrets of the host that runs Radicale. Its file is
+    # encrypted to the owner's key too, which the workstations decrypt with
+    sops.secrets."radicale-password-${cfg.user}" = {
+      owner = cfg.user;
+      sopsFile = server.sops.defaultSopsFile;
+    };
   };
 }
