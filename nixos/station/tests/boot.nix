@@ -38,8 +38,7 @@ let
     inherit (station.config.rokokol.tailnet-web.sites.radicale) port;
     inherit (station.config.rokokol.radicale) dataDir snapshotDir;
     backend = lib.head station.config.services.radicale.settings.server.hosts;
-    # The servers of the agent's own Claude Code, as the VM builds them: the station's own file
-    # names its tailnet address, which the VM does not have
+    # The servers of the agent's own Claude Code, as the VM itself builds them
     mcpConfig = "/etc/test/mya-mcp.json";
   };
 
@@ -333,9 +332,7 @@ pkgs.testers.runNixOSTest {
         # Prometheus finds the PC by its tailnet name, which here leads over the LAN
         networking.hosts."192.168.0.102" = [ "nixos-pc" ];
 
-        # The agent reaches Radicale by the station's tailnet name; here that is the dummy
-        # tailnet address of the tailnet-web subtest
-        rokokol.dav-mcp.url = lib.mkForce "http://100.64.0.1:${toString radicale.port}/";
+        # The servers of the agent's own Claude Code, as this host builds them
         environment.etc."test/mya-mcp.json".source =
           config.home-manager.users.${agent.user}.rokokol.mcp.claudeConfig;
 
@@ -923,7 +920,7 @@ pkgs.testers.runNixOSTest {
             {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2025-06-18", "capabilities": {}, "clientInfo": {"name": "test", "version": "0"}}},
             {"jsonrpc": "2.0", "method": "notifications/initialized"},
             {"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": "list_calendars", "arguments": {}}},
-            {"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "create_todo", "arguments": {"calendar_url": calendars + "/mya/todo/", "summary": "Task from the agent"}}},
+            {"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "create_todo", "arguments": {"calendar_url": entry["env"]["CALDAV_SERVER_URL"] + "mya/todo/", "summary": "Task from the agent"}}},
         ]
         lines = " ".join(shlex.quote(json.dumps(call)) for call in calls)
         type_in(f"printf '%s\\n' {lines} | env {variables} {entry['command']} >~/dav-reply 2>~/dav-log")

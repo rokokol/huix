@@ -32,8 +32,12 @@ in
 
     url = lib.mkOption {
       type = lib.types.str;
-      default = server.rokokol.radicale.url;
-      defaultText = lib.literalMD "`rokokol.radicale.url` of the host of this flake that runs Radicale";
+      default =
+        if config.rokokol.radicale.enable then
+          config.rokokol.radicale.localUrl
+        else
+          server.rokokol.radicale.url;
+      defaultText = lib.literalMD "`rokokol.radicale.localUrl` on the host that runs Radicale, and its `url` elsewhere";
       description = "Root URL of the CalDAV server";
     };
 

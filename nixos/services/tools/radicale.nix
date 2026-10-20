@@ -16,7 +16,7 @@ let
   cfg = config.rokokol.radicale;
   radicale = config.services.radicale;
   port = 5232;
-  backendPort = 5233;
+  backend = "127.0.0.1:5233";
   root = "${cfg.dataDir}/collection-root";
   logins = [ cfg.owner ] ++ cfg.sharedWith;
   # nixos/services/tools/dav-mcp.nix gives the same secret to the login's own client
@@ -98,6 +98,17 @@ in
       description = "Root URL of the server inside the tailnet, which a CalDAV client starts from";
     };
 
+    localUrl = lib.mkOption {
+      type = lib.types.str;
+      readOnly = true;
+      default = "http://${backend}/";
+      defaultText = lib.literalExpression ''"http://127.0.0.1:5233/"'';
+      description = ''
+        Root URL of the server for a client on this host. On the host itself its name resolves to
+        loopback, which the tailnet site refuses, so the client goes to Radicale directly
+      '';
+    };
+
     subvolumes = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       readOnly = true;
@@ -142,7 +153,7 @@ in
     services.radicale = {
       enable = true;
       settings = {
-        server.hosts = [ "127.0.0.1:${toString backendPort}" ];
+        server.hosts = [ backend ];
         auth = {
           type = "htpasswd";
           htpasswd_filename = config.sops.templates."radicale-htpasswd".path;
@@ -173,7 +184,7 @@ in
 
     rokokol.tailnet-web.sites.radicale = {
       inherit port;
-      backend = "http://127.0.0.1:${toString backendPort}";
+      backend = "http://${backend}";
     };
 
     systemd.services.radicale = {
