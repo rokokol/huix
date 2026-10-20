@@ -16,6 +16,7 @@
     ./devices/vial.nix
     ./system/appimage.nix
     ./system/cachix.nix
+    ./system/envfs.nix
     ./system/grafana/grafana.nix
     ./system/monitoring/alert-mail.nix
     ./system/monitoring/backup-heartbeat.nix
