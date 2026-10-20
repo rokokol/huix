@@ -868,6 +868,133 @@ printf 'mya https://github.com/owner/huix %s\n' "$git_work/station/gone" >"$git_
 sync_run
 is "an agent's clone out of reach does not fail the sync" 0 "$sync_status"
 logged "an agent's clone out of reach is reported" '^notify-send' 'mya' 'huix'
+
+# agent-sync.sh and the commit mode of sync.sh taking what an agent's clone holds. The clone is
+# reached as station:PATH through a stub ssh that runs the command here: git's upload-pack as it
+# is, and the start of the agent's sync unit as agent-sync.sh over that clone
+agent_sync=$SCRIPTS/agent-sync.sh
+cat >"$work/bin/ssh" <<'EOF'
+#!/usr/bin/env bash
+printf 'ssh %s\n' "$*" >>"$STUB_LOG"
+while (($#)); do
+  case $1 in
+    -o | -p) shift 2 ;;
+    -*) shift ;;
+    *) break ;;
+  esac
+done
+[ -z "${STUB_SSH_DOWN:-}" ] || exit 255
+shift
+case "$*" in
+  "systemctl start "*) exec "$BASH" "$STUB_AGENT_SYNC" "$STUB_AGENT_REPO" ;;
+esac
+exec "$BASH" -c "$*"
+EOF
+sed -i "1s|.*|#!$BASH|" "$work/bin/ssh"
+chmod +x "$work/bin/ssh"
+
+git config --global --add url."$git_work/".insteadOf https://github.com/owner/
+git init -q --bare "$git_work/pair.git"
+git clone -q "$git_work/pair.git" "$git_work/seed"
+printf 'first\n' >"$git_work/seed/shared.txt"
+git -C "$git_work/seed" add shared.txt
+git -C "$git_work/seed" commit -q -m "first commit of pair"
+git -C "$git_work/seed" push -q origin master
+rm -rf "$git_work/seed"
+git clone -q git@github.com:owner/pair.git "$git_work/pair"
+git clone -q https://github.com/owner/pair "$git_work/station/pair"
+agent_clone=$git_work/station/pair
+printf 'mya https://github.com/owner/pair station:%s mya-agent-sync.service\n' "$agent_clone" \
+  >"$git_work/take-remotes"
+
+# take_run [ARG]... — sync.sh over the owner's pair, the status in $take_status
+take_run() {
+  reset_log
+  HUIX=$git_work/pair PROJECTS_DIR=$git_work/no-projects SKILLS_DIR='' \
+    SYNC_REMOTES=$git_work/take-remotes GIT_SSH_COMMAND=$work/bin/ssh \
+    STUB_AGENT_SYNC=$agent_sync STUB_AGENT_REPO=$agent_clone \
+    bash "$sync_sh" "$@" >/dev/null 2>&1
+  take_status=$?
+}
+# in_tree REPO REV FILE — the content of FILE at REV, empty when it is not there
+in_tree() { git -C "$1" show "$2:$3" 2>/dev/null; }
+
+bash "$agent_sync" help >/dev/null 2>&1
+is "agent-sync help succeeds" 0 "$?"
+bash "$agent_sync" >/dev/null 2>&1
+is "agent-sync without a repository is a usage error" 2 "$?"
+
+printf 'agent\n' >"$agent_clone/agent.txt"
+bash "$agent_sync" "$agent_clone" >/dev/null 2>&1
+is "agent-sync over a changed clone succeeds" 0 "$?"
+is "agent-sync commits a new file" "agent" "$(in_tree "$agent_clone" HEAD agent.txt)"
+is "agent-sync leaves the clone clean" "" "$(git -C "$agent_clone" status --porcelain)"
+is "the commit's subject carries the agent's user, not the host" yes \
+  "$(git -C "$agent_clone" log -1 --format=%s | grep -Eq "^\[$(id -un)\] sync " && echo yes)"
+agent_head=$(git -C "$agent_clone" rev-parse HEAD)
+bash "$agent_sync" "$agent_clone" >/dev/null 2>&1
+is "agent-sync over a clean clone makes no commit" "$agent_head" \
+  "$(git -C "$agent_clone" rev-parse HEAD)"
+
+# The agent holds one commit and one change it never committed; the owner holds a change too
+printf 'agent again\n' >"$agent_clone/agent-2.txt"
+printf 'owner\n' >"$git_work/pair/owner.txt"
+take_run
+is "a sync that takes the agent's work succeeds" 0 "$take_status"
+logged "the sync starts the agent's unit on its host" '^ssh ' 'station' 'systemctl start mya-agent-sync\.service'
+is "the agent's commit is taken" "agent" "$(in_tree "$git_work/pair" HEAD agent.txt)"
+is "what the agent never committed is taken" "agent again" "$(in_tree "$git_work/pair" HEAD agent-2.txt)"
+is "the owner's change is kept" "owner" "$(in_tree "$git_work/pair" HEAD owner.txt)"
+is "everything is pushed" "$(git -C "$git_work/pair" rev-parse HEAD)" \
+  "$(git -C "$git_work/pair.git" rev-parse master)"
+is "the agent's clone ends where the owner's does" "$(git -C "$git_work/pair" rev-parse HEAD)" \
+  "$(git -C "$agent_clone" rev-parse HEAD)"
+is "the agent's clone ends clean" "" "$(git -C "$agent_clone" status --porcelain)"
+logged "the owner hears what was taken, under the remote's name" '^notify-send' 'mya' 'sync '
+not_logged "taken commits are no news afterwards" '^notify-send.*pair [0-9]'
+is "the unit is no part of the remote's URL" "station:$agent_clone" \
+  "$(git -C "$git_work/pair" config --get remote.mya.url)"
+
+take_run
+is "a sync with nothing on either side succeeds" 0 "$take_status"
+not_logged "nothing taken is not reported" '^notify-send.*mya.*sync '
+
+# Both sides change one line: the owner's work goes up, the agent's stays where it was
+printf 'agent side\n' >"$agent_clone/shared.txt"
+printf 'owner side\n' >"$git_work/pair/shared.txt"
+take_run
+is "a conflict with the agent's work fails the sync" 1 "$take_status"
+is "the owner's side is pushed all the same" "owner side" "$(in_tree "$git_work/pair.git" master shared.txt)"
+is "no cherry-pick is left half done" no \
+  "$(test -e "$git_work/pair/.git/CHERRY_PICK_HEAD" && echo yes || echo no)"
+is "the owner's tree is left clean" "" "$(git -C "$git_work/pair" status --porcelain)"
+is "the agent's clone keeps its side" "agent side" "$(in_tree "$agent_clone" HEAD shared.txt)"
+is "no rebase is left half done in the agent's clone" no \
+  "$(test -d "$agent_clone/.git/rebase-merge" && echo yes || echo no)"
+logged "the conflict is reported under the remote's name" '^notify-send' 'mya'
+git -C "$agent_clone" reset -q --hard origin/master
+
+# Both sides make the same change: nothing conflicts, and the agent's copy of it is dropped
+printf 'same\n' >"$agent_clone/same.txt"
+printf 'same\n' >"$git_work/pair/same.txt"
+take_run
+is "the same change on both sides is no conflict" 0 "$take_status"
+is "the same change on both sides ends in one place" "$(git -C "$git_work/pair" rev-parse HEAD)" \
+  "$(git -C "$agent_clone" rev-parse HEAD)"
+
+printf 'away\n' >"$agent_clone/away.txt"
+printf 'owner alone\n' >"$git_work/pair/alone.txt"
+STUB_SSH_DOWN=1 take_run
+is "an agent out of reach does not fail the sync" 0 "$take_status"
+is "the owner's work is pushed without the agent" "owner alone" \
+  "$(in_tree "$git_work/pair.git" master alone.txt)"
+logged "an agent out of reach is reported under the remote's name" '^notify-send' 'mya'
+
+take_run --no-take
+not_logged "--no-take starts no unit" '^ssh .*systemctl'
+is "--no-take takes nothing" "" "$(in_tree "$git_work/pair" HEAD away.txt)"
+take_run --pull-only
+not_logged "--pull-only starts no unit" '^ssh .*systemctl'
 unset GIT_CONFIG_NOSYSTEM GIT_CONFIG_GLOBAL GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL
 unset GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL
 

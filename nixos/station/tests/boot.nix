@@ -54,7 +54,7 @@ let
   agent = rec {
     inherit (station.config.rokokol.mya-agent) user;
     inherit (station.config.users.users.${user}) home;
-    inherit (station.config.rokokol.mya-agent) notify;
+    inherit (station.config.rokokol.mya-agent) notify syncUnit;
     stateDir = station.config.systemd.services.mya-agent.environment.TELEGRAM_STATE_DIR;
     workDir = station.config.systemd.services.mya-agent.environment.HOME;
     ownerChatId = "1234567";
@@ -779,6 +779,16 @@ pkgs.testers.runNixOSTest {
         # The group passes through the home to the clone, and lists nothing in the home
         station.succeed(f"runuser -u rokokol -- git -C {clone} log -1 --format=%s | grep -qx first")
         station.fail(f"runuser -u rokokol -- ls {agent_home}")
+
+    with subtest("the owner starts the agent's sync and no other verb, and the agent's work is committed as the agent's"):
+        clone = f"{agent_home}/huix"
+        station.succeed(f"runuser -u ${agent.user} -- sh -c 'echo work >{clone}/agent-work.txt'")
+        station.succeed("runuser -u rokokol -- systemctl start ${agent.syncUnit}")
+        subject = station.succeed(f"runuser -u rokokol -- git -C {clone} log -1 --format=%s").strip()
+        assert subject.startswith("[${agent.user}] sync "), f"the agent's commit reads {subject!r}"
+        station.succeed(f"runuser -u rokokol -- git -C {clone} show HEAD:agent-work.txt | grep -qx work")
+        station.fail("runuser -u rokokol -- systemctl restart ${agent.syncUnit}")
+        station.fail("runuser -u rokokol -- systemctl start mya-agent-clone.service")
 
     with subtest("notify types its text into the session as it is"):
         # Quotes, a separator and a variable reach the session unchanged

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Needs bash 4.0 for arrays with +=; runs only on this NixOS pair, never on macOS
+# Needs bash 4.3 for local -n; runs only on this NixOS pair, never on macOS
 # The "[host]" the subject ends up with is put there by scripts/git-hooks/prepare-commit-msg,
 # not by this script
 
@@ -14,10 +14,20 @@ Usage:
   sync.sh "message"      the same, with your own commit subject
   sync.sh --pull-only    fetch + merge --ff-only and nothing else (what sync.service runs)
   sync.sh --no-projects  skip the sweep below, huix only
+  sync.sh --no-take      leave the agents' clones alone, see below
   sync.sh --help         this help
 
 Exit 0 when huix is in sync, 1 when a git step failed, timed out or left a conflict. The
 sweep never decides the status: a repository it could not move is reported and passed over
+
+The commit mode also takes an agent's work into huix. That holds for each line of the
+SYNC_REMOTES file below with huix's origin and a fourth field UNIT. First UNIT starts over ssh
+on the host before the colon of URL: it commits whatever the agent left as "[USER] sync DATE"
+and rebases the agent's clone on GitHub. After huix's own commit, each commit of the clone that
+huix lacks is cherry-picked, and the owner hears what was taken under the remote's name. After
+the push UNIT starts again, and the clone drops its copies of what is now upstream. An agent
+out of reach is reported and passed over. A conflict is wound back, leaves the agent's commits
+in its clone and makes the exit status 1
 
 Both modes end by catching every git repository under ~/Projects and under the shared Claude
 skills up to its upstream; PROJECTS_DIR and SKILLS_DIR name those two directories. The search
@@ -27,10 +37,11 @@ thing back if that would conflict. It never commits and never pushes, a reposito
 upstream is left alone, and one holding a .git/nosync file is skipped before it is even
 fetched. A name marked * in the summary was rebased rather than fast-forwarded
 
-Before that, each line "NAME ORIGIN URL" of the file SYNC_REMOTES names gives every checkout
+Before that, each line "NAME ORIGIN URL [UNIT]" of the file SYNC_REMOTES gives every checkout
 whose origin is ORIGIN, huix and the sweep's own, a remote NAME at URL. The remote is fetched,
-never merged, and its new commits are reported; it is removed once its line is gone. A remote
-not made from that file is never touched, and --no-projects limits this to huix
+and its commits that no branch holds are reported; it is removed once its line is gone. Only
+the commit mode above merges, into huix and from a line with a UNIT. A remote not made from
+that file is never touched, and --no-projects limits this to huix
 
 The huix history is written by hand. The session/rebuild unit only fast-forwards, so it never
 rebases local commits and never touches a dirty tree — when it cannot fast-forward it just
@@ -86,8 +97,8 @@ url_key() {
 }
 
 # Each line of the SYNC_REMOTES file is "NAME ORIGIN URL": a repository whose origin is ORIGIN
-# gets the remote NAME at URL. The remote is fetched and never merged, since what arrives there
-# was written by someone else and is read before it is taken. A remote this made carries
+# gets the remote NAME at URL. The remote is only fetched here; take_agents is what merges, and
+# only into huix. A remote this made carries
 # remote.NAME.huixSync, so one that leaves the list is removed and no other remote is touched
 sync_remotes() {
   local list=${SYNC_REMOTES:-}
@@ -105,7 +116,7 @@ sync_remotes() {
     local -A wanted=()
 
     for line in "${lines[@]}"; do
-      read -r name want url <<<"$line"
+      read -r name want url _ <<<"$line"
       [ -n "${url:-}" ] && [ "$(url_key "$want")" = "$(url_key "$origin")" ] || continue
       wanted[$name]=1
       if git -C "$repo" config --get "remote.$name.url" >/dev/null; then
@@ -142,6 +153,59 @@ sync_remotes() {
     notify low "Fetch from $name failed (・_・;)" "${failed[$name]# }"
   done
   return 0
+}
+
+# The lines of the SYNC_REMOTES file for huix that name an agent's sync unit, as "NAME URL UNIT"
+agent_lines() {
+  local list=${SYNC_REMOTES:-} origin name want url unit
+  [ -n "$list" ] && [ -r "$list" ] || return 0
+  origin=$(git -C "$HUIX_PATH" config --get remote.origin.url) || return 0
+  while read -r name want url unit; do
+    [ -n "${unit:-}" ] && [ "$(url_key "$want")" = "$(url_key "$origin")" ] || continue
+    printf '%s %s %s\n' "$name" "$url" "$unit"
+  done <"$list"
+}
+
+# Start the sync unit of every agent on its host. An agent whose unit did not run is put in
+# AGENT_DOWN, and nothing is taken from it
+start_agents() {
+  local line name url unit
+  for line in "${AGENTS[@]}"; do
+    read -r name url unit <<<"$line"
+    [ -z "${AGENT_DOWN[$name]:-}" ] || continue
+    if ! timeout 120 ssh -n "${SSH_OPTS[@]}" "${url%%:*}" systemctl start "$unit"; then
+      AGENT_DOWN[$name]=1
+      notify normal "Sync of $name failed (・_・;)" "$unit on ${url%%:*}"
+    fi
+  done
+}
+
+# Cherry-pick each commit of an agent's clone that neither HEAD nor the upstream holds. A commit
+# that turns out empty is dropped, as the same change already came another way
+take_agents() {
+  local line name url unit before
+  local -a commits
+  for line in "${AGENTS[@]}"; do
+    read -r name url unit <<<"$line"
+    [ -z "${AGENT_DOWN[$name]:-}" ] || continue
+    if ! timeout 30 git fetch --quiet "$url" HEAD; then
+      notify low "Fetch from $name failed (・_・;)" "$(basename "$HUIX_PATH")"
+      continue
+    fi
+    mapfile -t commits < <(git rev-list --reverse --no-merges HEAD..FETCH_HEAD --not '@{u}')
+    [ "${#commits[@]}" -gt 0 ] || continue
+
+    before=$(git rev-parse HEAD)
+    if git cherry-pick --empty=drop "${commits[@]}" >/dev/null; then
+      notify low "Took $(git rev-list --count "$before..HEAD") commits from $name (=^･ω･^=)" \
+        "$(git log --format=%s "$before..HEAD")"
+    else
+      git cherry-pick --abort || true
+      TAKE_STATUS=1
+      notify critical "Conflict with $name (╯°□°）╯︵ ┻━┻" \
+        "Its commits stay in its clone"$'\n'"git log -p --remotes=$name --not --branches"
+    fi
+  done
 }
 
 # Catch every repository under the PROJECTS_PATH entries up to its upstream. Fetching is the
@@ -234,6 +298,7 @@ sweep_projects() {
 
 MODE=commit
 PROJECTS=yes
+TAKE=yes
 while :; do
   case "${1:-}" in
   -h | --help)
@@ -248,6 +313,10 @@ while :; do
     PROJECTS=no
     shift
     ;;
+  --no-take)
+    TAKE=no
+    shift
+    ;;
   *) break ;;
   esac
 done
@@ -259,7 +328,8 @@ export DBUS_SESSION_BUS_ADDRESS
 # inherits no session variable. The fallback is for a call from a shell that has neither
 HUIX_PATH="${HUIX:-$HOME/huix}"
 PROJECTS_PATH="${PROJECTS_DIR:-$HOME/Projects}${SKILLS_DIR:+:$SKILLS_DIR}"
-GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh -o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=2}"
+SSH_OPTS=(-o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=2)
+GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh ${SSH_OPTS[*]}}"
 
 export GIT_SSH_COMMAND
 
@@ -306,6 +376,14 @@ if [ "$MODE" = pull ]; then
   exit 0
 fi
 
+# The agents commit and rebase on GitHub before huix pulls, so every commit of theirs that the
+# upstream lacks is their own work
+AGENTS=()
+declare -A AGENT_DOWN=()
+TAKE_STATUS=0
+[ "$TAKE" = yes ] && mapfile -t AGENTS < <(agent_lines)
+start_agents
+
 if ! timeout 90 git pull --rebase --autostash; then
   notify critical "Sync Error (#｀ε´#ゞ" "git pull failed or timed out"
   exit 1
@@ -330,14 +408,17 @@ else
   git commit -m "${MESSAGE:-sync $(date -Iseconds)}"
 fi
 
+take_agents
+
 if [ "$(git rev-list --count '@{u}..HEAD')" -eq 0 ]; then
   notify low "Nothing to push ( ˘ω˘ )"
-  exit 0
-fi
-
-if ! timeout 90 git push; then
+elif ! timeout 90 git push; then
   notify critical "Push Error (*≧m≦*)"
   exit 1
+else
+  notify low "Pushed o(^▽^)o" "$(git log -1 --pretty=%B)"
 fi
 
-notify low "Pushed o(^▽^)o" "$(git log -1 --pretty=%B)"
+# Once more, so each clone catches up with the push and drops its copies of the taken commits
+start_agents
+exit "$TAKE_STATUS"

@@ -28,6 +28,7 @@ let
           name = agent.user;
           inherit origin;
           url = "${hostName}:${agent.home}/${dir}";
+          unit = agent.syncUnit;
         }) agent.repositories
       )
     ) inputs.self.nixosConfigurations
@@ -63,6 +64,14 @@ in
               type = lib.types.str;
               description = "URL of the remote";
             };
+            unit = lib.mkOption {
+              type = lib.types.nullOr lib.types.str;
+              default = null;
+              description = ''
+                A unit on the host before the colon of `url` that commits what the remote's clone
+                holds. With one, the commit mode of sync.sh takes the clone's commits into huix
+              '';
+            };
           };
         }
       );
@@ -70,14 +79,24 @@ in
       defaultText = lib.literalMD "every clone of `rokokol.mya-agent.repositories` on each host";
       description = ''
         Remotes that sync.sh adds to every checkout of huix and ~/Projects with the given origin,
-        fetches and never merges, and removes once they leave this list
+        and fetches. Only the commit mode merges, and only into huix from a remote with a `unit`.
+        sync.sh removes a remote once it leaves this list
       '';
     };
   };
 
   config = lib.mkIf cfg.enable {
     xdg.configFile."huix/sync-remotes".text = lib.concatMapStrings (
-      remote: "${remote.name} ${remote.origin} ${remote.url}\n"
+      remote:
+      lib.concatStringsSep " " (
+        [
+          remote.name
+          remote.origin
+          remote.url
+        ]
+        ++ lib.optional (remote.unit != null) remote.unit
+      )
+      + "\n"
     ) cfg.remotes;
     home.sessionVariables.SYNC_REMOTES = "${config.xdg.configHome}/huix/sync-remotes";
 

@@ -18,6 +18,11 @@ let
   inSession = path: sessionHome + lib.removePrefix cfg.home path;
   socket = "/run/mya-agent/tmux";
   stateDir = "${cfg.home}/.local/state/claude-telegram";
+  syncName = "mya-agent-sync";
+  agentSync = builtins.path {
+    name = "agent-sync";
+    path = "${inputs.self}/scripts/agent-sync.sh";
+  };
   tmuxCmd = "${lib.getExe pkgs.tmux} -S ${socket}";
 
   # The hosts of this flake where the session has a guest user, read from each host's own
@@ -258,8 +263,8 @@ in
       };
       description = ''
         Repositories the session works in, by their path under its home. Each is cloned when it
-        is missing and never pulled after, since the session keeps it current itself. Its group
-        reads it, so the owner can fetch from it
+        is missing, and pulled only by `syncUnit` or by the session itself. Its group reads it,
+        so the owner can fetch from it
       '';
     };
 
@@ -283,6 +288,23 @@ in
       description = ''
         A command that types its arguments into the session as one line and submits them, as
         the owner would. Only root can run it
+      '';
+    };
+
+    syncedBy = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      description = "The user who may start `syncUnit`, as sync.sh does over SSH";
+    };
+
+    syncUnit = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      readOnly = true;
+      default = if cfg.enable && cfg.repositories != { } then "${syncName}.service" else null;
+      defaultText = lib.literalMD "`mya-agent-sync.service`, or null without `repositories`";
+      description = ''
+        The unit that commits whatever the session left in its `repositories` under the name
+        of its user, then rebases each on its upstream. scripts/agent-sync.sh says how
       '';
     };
   };
@@ -407,6 +429,50 @@ in
             ''
           ) cfg.repositories
         );
+      };
+
+      systemd.services.${syncName} = lib.mkIf (cfg.repositories != { }) {
+        description = "Commit what the Telegram agent left in its repositories, and pull them";
+        after = [
+          "mya-agent-clone.service"
+          "network-online.target"
+        ];
+        wants = [ "network-online.target" ];
+        path = [ pkgs.git ];
+        # The commits are the session's, whatever identity its own git config holds
+        environment = {
+          GIT_AUTHOR_NAME = cfg.user;
+          GIT_AUTHOR_EMAIL = "${cfg.user}@${config.networking.hostName}";
+          GIT_COMMITTER_NAME = cfg.user;
+          GIT_COMMITTER_EMAIL = "${cfg.user}@${config.networking.hostName}";
+        };
+        serviceConfig = {
+          Type = "oneshot";
+          User = cfg.user;
+          Group = cfg.user;
+          ExecStart = lib.escapeShellArgs (
+            [
+              (lib.getExe pkgs.bash)
+              "${agentSync}"
+            ]
+            ++ map (dir: "${cfg.home}/${dir}") (lib.attrNames cfg.repositories)
+          );
+        };
+      };
+
+      security.polkit = lib.mkIf (cfg.syncedBy != null && cfg.syncUnit != null) {
+        enable = true;
+        extraConfig = ''
+          // The owner starts the agent's sync unit, and only starts it
+          polkit.addRule(function (action, subject) {
+            if (action.id == "org.freedesktop.systemd1.manage-units" &&
+                subject.user == "${cfg.syncedBy}" &&
+                action.lookup("verb") == "start" &&
+                action.lookup("unit") == "${cfg.syncUnit}") {
+              return polkit.Result.YES;
+            }
+          });
+        '';
       };
 
       home-manager.users.${cfg.user} = import "${inputs.self}/home-manager/home-mya-agent.nix";
