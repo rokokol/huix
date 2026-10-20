@@ -84,6 +84,69 @@ pkgs.lib.mapAttrs' (
         touch "$out"
       '';
 
+  # sync.sh reads a few variables from outside, and the unit and the syssync alias each pass
+  # them. Each host's unit and alias must pass exactly what the script reads, so a variable is
+  # neither missing in one of them nor passed for nothing. The login gives HOME
+  sync-env =
+    let
+      entries = pkgs.lib.concatLists (
+        pkgs.lib.mapAttrsToList (
+          host: cfg:
+          let
+            hm = cfg.config.home-manager.users.${rokokolName};
+            unitNames = map (entry: pkgs.lib.head (pkgs.lib.splitString "=" entry)) (
+              pkgs.lib.filter (
+                entry: !pkgs.lib.hasPrefix "PATH=" entry
+              ) hm.systemd.user.services.sync.Service.Environment
+            );
+          in
+          pkgs.lib.optionals hm.rokokol.sync.enable [
+            "${host} unit ${toString unitNames}"
+            "${host} alias ${hm.home.shellAliases.syssync}"
+          ]
+        ) inputs.self.nixosConfigurations
+      );
+    in
+    pkgs.runCommand "sync-env"
+      {
+        entries = pkgs.writeText "sync-env-entries" (pkgs.lib.concatLines entries);
+        script = builtins.path {
+          name = "sync-sh";
+          path = ./scripts/sync.sh;
+        };
+      }
+      ''
+        assigned() {
+          grep -Eq "(^|[^A-Za-z0-9_])(local|declare|export|mapfile)?( -[A-Za-z]+)* *$1(\[[^]]*\])?\+?=|(mapfile|declare|local)( -[A-Za-z]+)+ $1( |$)" "$script"
+        }
+        read_names=$(grep -oE '\$\{?[A-Z_][A-Z0-9_]*' "$script" | tr -d '$' | tr -d '{' | sort -u |
+          while read -r name; do
+            [ "$name" = HOME ] || assigned "$name" || printf '%s\n' "$name"
+          done)
+        if [ -z "$read_names" ]; then
+          echo "sync-env: found no variable sync.sh reads, so the search is broken" >&2
+          exit 1
+        fi
+        status=0
+        while read -r host kind rest; do
+          if [ "$kind" = alias ]; then
+            passed=$(for word in $rest; do
+              case $word in *=*) printf '%s\n' "''${word%%=*}" ;; *) break ;; esac
+            done | sort -u)
+          else
+            passed=$(printf '%s\n' $rest | sort -u)
+          fi
+          if [ "$passed" != "$read_names" ]; then
+            printf 'sync-env: the %s of %s passes\n%s\nbut sync.sh reads\n%s\n' \
+              "$kind" "$host" "$passed" "$read_names" >&2
+            status=1
+          fi
+        done <"$entries"
+        [ -s "$entries" ] || { echo "sync-env: no host has rokokol.sync on" >&2; exit 1; }
+        [ "$status" = 0 ] || exit 1
+        touch "$out"
+      '';
+
   # The pure half of yazi's own plugins, under plain Lua with yazi's globals stubbed
   yazi-plugin-tests =
     pkgs.runCommand "yazi-plugin-tests"
