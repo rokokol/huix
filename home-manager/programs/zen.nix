@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  osConfig,
   ...
 }:
 
@@ -98,6 +99,11 @@ in
     };
 
     russianTrustedCertificates = lib.mkEnableOption "Ministry of Digital Development CAs in Zen's NSS store";
+
+    # Off without skvpn's Tor, where the name would leak to the ordinary resolver instead
+    onion = lib.mkEnableOption ".onion names in Zen" // {
+      default = osConfig.services.skvpn.tor.enable or false;
+    };
   };
 
   config = lib.mkIf config.rokokol.zen.enable {
@@ -132,6 +138,10 @@ in
 
           # Preferred content languages
           "intl.accept_languages" = "en-US, en, ru-RU, ru";
+
+          # Resolve .onion through the system, whose skvpn DNS hands it to Tor; Firefox refuses
+          # the name by RFC 7686 otherwise
+          "network.dns.blockDotOnion" = !config.rokokol.zen.onion;
         };
 
         mods = [
