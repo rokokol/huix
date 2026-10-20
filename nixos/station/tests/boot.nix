@@ -807,9 +807,9 @@ pkgs.testers.runNixOSTest {
         station.succeed("systemctl start morning-letter.service")
         station.wait_until_succeeds(f"grep -q 'morning skill' {agent_home}/morning", timeout=timedelta(seconds=30))
 
-    with subtest("gh in the session reads GitHub with the owner's read-only token"):
-        type_in("echo \"$GH_TOKEN\" >~/gh-token")
-        station.wait_until_succeeds(f"grep -qx github_pat_test {agent_home}/gh-token", timeout=timedelta(seconds=30))
+    with subtest("gh in the session reads GitHub with the owner's read-only token, and has the classic one beside it"):
+        type_in("echo \"$GH_TOKEN $GITHUB_CLASSIC_TOKEN\" >~/gh-token")
+        station.wait_until_succeeds(f"grep -qx 'github_pat_test ghp_test' {agent_home}/gh-token", timeout=timedelta(seconds=30))
 
     with subtest("the session edits the vault and the shared state, and sees no snapshot, no backup, no key of Syncthing and not the owner's home"):
         station.succeed("install -m 0600 -o rokokol /dev/null /home/rokokol/.owner-only")

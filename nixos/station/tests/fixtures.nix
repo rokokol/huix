@@ -40,6 +40,7 @@ pkgs.runCommand "station-boot-test-fixtures"
       printf 'grafana-secret-key: %s\n' 0123456789abcdef0123456789abcdef
       printf 'telegram-bot-token: %s\n' 123456789:test-token
       printf 'github-token: %s\n' github_pat_test
+      printf 'github-token-classic: %s\n' ghp_test
       printf 'telegram-owner-chat-id: "%s"\n' '${telegramOwner}'
       for part in key cert; do
         printf 'syncthing-%s-nixos-station: |\n' "$part"
