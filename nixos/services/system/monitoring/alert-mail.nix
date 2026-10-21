@@ -231,8 +231,8 @@ in
           };
         };
 
-        # Closes the problem of each unit that recovered, keeps the reboot problem current, and reads
-        # every file of causes again, in case a change slipped past its path unit
+        # Closes the problem of each unit that recovered, keeps the reboot problem current, and
+        # reads every file of causes again, in case a change slipped past its path unit
         systemd.services.alert-reconcile = {
           description = "Close the alerts whose cause is gone";
           script = ''

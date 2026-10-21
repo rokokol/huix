@@ -122,8 +122,9 @@ in
       unitConfig = mountGuard;
       # The disk layout makes dataDir as root's and has no option for an owner. A missing dataDir
       # fails here instead of turning into a plain directory that btrbk cannot snapshot. Not a
-      # tmpfiles rule: tmpfiles runs at boot with or without the filesystem. Not on the service: its sandbox binds dataDir for every command it starts, a "+" one too. The
-      # service requires the socket, so the socket always starts first
+      # tmpfiles rule: tmpfiles runs at boot with or without the filesystem. Not on the service:
+      # its sandbox binds dataDir for every command it starts, a "+" one too. The service
+      # requires the socket, so the socket always starts first
       socketConfig.ExecStartPre = toString (
         pkgs.writeShellScript "restic-data-dir" ''
           set -eu

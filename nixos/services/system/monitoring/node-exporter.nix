@@ -36,7 +36,7 @@ in
       extraFlags = [
         "--collector.textfile.directory=${dir}"
       ]
-      # A timer of the same name gives the time of the last run, as of a scrub
+      # A timer of the same name gives the time of the last run, for example of a scrub
       ++ lib.optional (
         watched != [ ]
       ) "--collector.systemd.unit-include=(${unitPattern})\\.(service|timer)";

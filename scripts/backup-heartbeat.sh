@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Run from a store copy by nixos/services/system/monitoring/backup-heartbeat.nix and
-# pushgateway.nix, as users that can only read what they check. Each finding goes to stderr when it is found. The summary goes last,
-# so the last line of the unit's journal carries the whole verdict
+# pushgateway.nix, as users that can only read what they check. Each finding goes to stderr
+# when it is found. The summary goes last, so the last line of the unit's journal carries the
+# whole verdict
 # Needs bash 3.2 and GNU findutils for find -printf: the server it watches runs Linux
 set -euo pipefail
 
