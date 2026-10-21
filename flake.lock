@@ -1135,11 +1135,11 @@
         "sing-geosite": "sing-geosite"
       },
       "locked": {
-        "lastModified": 1792608205,
-        "narHash": "sha256-yT2Hsig4W+SYidRr44KQHcjvxNGZxwV7Tp17cpXpx08=",
+        "lastModified": 1792608727,
+        "narHash": "sha256-GK2DzQzPlcC2A+Z6zT5L6HR/qPl2nVpsm+pvkmnVQis=",
         "owner": "rokokol",
         "repo": "skvpn",
-        "rev": "466bc146513c97df1ffd8dbe81aac569ff9897f2",
+        "rev": "c70241b357417cf442948703f0f031b5eba66cba",
         "type": "github"
       },
       "original": {
