@@ -2,6 +2,11 @@
 
 {
   networking.hostName = "nixos-laptop";
+
+  # Docker and skvpn-restore order after network-online.target, and uwsm waits for graphical.target.
+  # A slow Wi-Fi start then holds the login for the full 60 s timeout. Both start without a network.
+  systemd.services.NetworkManager-wait-online.enable = false;
+
   users.users.${rokokolName}.description = rokokolName;
 
   programs.ssh.knownHosts.nixos-pc.publicKey =
