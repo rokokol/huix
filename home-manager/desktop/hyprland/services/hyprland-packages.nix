@@ -109,6 +109,20 @@
         m = flip,              ["ь"] = flip,
       }
       for key, fn in pairs(keymap) do swayimg.viewer.on_key(key, fn) end
+
+      -- The stock wheel bindings move the image against the wheel (up moves it up),
+      -- so the signs are reversed here to make the wheel scroll the view like a page
+      local function pan(dx, dy)
+        return function()
+          local pos = swayimg.viewer.get_position()
+          swayimg.viewer.set_abs_position(pos.x + dx, pos.y + dy)
+        end
+      end
+      local step = 10
+      swayimg.viewer.on_mouse("ScrollUp", pan(0, step))
+      swayimg.viewer.on_mouse("ScrollDown", pan(0, -step))
+      swayimg.viewer.on_mouse("ScrollLeft", pan(step, 0))
+      swayimg.viewer.on_mouse("ScrollRight", pan(-step, 0))
     '';
   };
 }
