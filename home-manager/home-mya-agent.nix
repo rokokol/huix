@@ -14,6 +14,8 @@ in
   imports = [
     ./programs/cli/claude.nix
     ./programs/cli/dav-mcp.nix
+    ./programs/cli/mail-skill.nix
+    ./programs/cli/telegram-skill.nix
   ];
 
   home.stateVersion = osConfig.system.stateVersion;
