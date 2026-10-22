@@ -137,6 +137,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    mail-skill = {
+      url = "github:rokokol/mail-skill";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";

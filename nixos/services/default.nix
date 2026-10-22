@@ -35,6 +35,7 @@
     ./tools/forgejo-mirrors.nix
     ./tools/forgejo.nix
     ./tools/libre-translate.nix
+    ./tools/mail-agent.nix
     ./tools/paper-search.nix
     ./tools/radicale.nix
     ./tools/searxng.nix

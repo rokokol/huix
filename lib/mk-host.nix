@@ -16,6 +16,7 @@ inputs.nixpkgs.lib.nixosSystem {
     inputs.virtual-media-devices.nixosModules.default
     inputs.skvpn.nixosModules.default
     inputs.telegram-skill.nixosModules.default
+    inputs.mail-skill.nixosModules.default
 
     {
       nixpkgs.hostPlatform = system;

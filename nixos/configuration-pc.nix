@@ -39,6 +39,7 @@
 
     searxng.enable = false;
     telegram-agent.enable = true;
+    mail-agent.enable = true;
 
     printer.enable = true;
     tablet.enable = true;

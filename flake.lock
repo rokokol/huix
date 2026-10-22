@@ -768,6 +768,26 @@
         "type": "github"
       }
     },
+    "mail-skill": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1792676695,
+        "narHash": "sha256-py6IEu+8Gvfwg589GzBwW91OHFITn/MfBVDZrJnTgHY=",
+        "owner": "rokokol",
+        "repo": "mail-skill",
+        "rev": "caa9d6c5c9af544890828f9a92e59e1bcb5aedca",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "mail-skill",
+        "type": "github"
+      }
+    },
     "nix-best-practices": {
       "inputs": {
         "nixpkgs": [
@@ -1074,6 +1094,7 @@
         "hyprland": "hyprland",
         "hyprland-plugins": "hyprland-plugins",
         "hyprland-screen-shader": "hyprland-screen-shader",
+        "mail-skill": "mail-skill",
         "nix-best-practices": "nix-best-practices",
         "nix-flatpak": "nix-flatpak",
         "nix-matlab": "nix-matlab",
