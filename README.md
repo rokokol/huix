@@ -15,6 +15,8 @@
 [![license](https://img.shields.io/badge/license-MIT-3DA639?style=flat)](LICENSE)
 [![eval](https://github.com/rokokol/huix/actions/workflows/eval.yml/badge.svg)](https://github.com/rokokol/huix/actions/workflows/eval.yml)
 
+<a href="https://github.com/rokokol/huix"><img src="https://count.owenewans.org/rokokol/huix?theme=rule34&notitle" alt="Звёзды, PR, issues и коммиты репозитория huix" width="400"/></a>
+
 </div>
 
 Короче, это мой NixOS для рабочего ПК, ноутбука и домашнего сервера: Hyprland, nixvim и куча приложений для повседневных дел. Часть программ я держу отдельно от конфига, а для всего остального стараюсь собрать удобную среду под себя
