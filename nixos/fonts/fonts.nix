@@ -2,9 +2,13 @@
   config,
   lib,
   pkgs,
+  inputs,
   ...
 }:
 
+let
+  myaNunito = inputs.ddlc-themes.lib.mya-nunito;
+in
 {
   options.rokokol.fonts.enable = lib.mkEnableOption "the desktop fonts" // {
     default = config.rokokol.workstation.enable;
@@ -41,6 +45,33 @@
       inter
       # The prose face of the DDLC themes, and the headings' face where Doki is missing
       nunito
+      # Nunito with the Greek and mathematics it lacks: the variable family "Mya Nunito" and the
+      # static weights as "Mya Nunito Static", which apps that read no variation axis need
+      (runCommand "mya-nunito-fonts"
+        {
+          meta = {
+            description = "Mya Nunito, Nunito merged with Noto Greek and mathematics, from ddlc-themes";
+            license = lib.licenses.ofl;
+            platforms = lib.platforms.all;
+          };
+        }
+        ''
+          mkdir -p $out/share/fonts/truetype
+          # The flake exports each file as a store path of its own, with a hash before the name
+          for font in ${
+            lib.escapeShellArgs (
+              [
+                myaNunito.ttf.regular
+                myaNunito.ttf.italic
+              ]
+              ++ lib.attrValues myaNunito.static
+            )
+          }; do
+            name=$(basename "$font")
+            cp "$font" "$out/share/fonts/truetype/''${name#*-}"
+          done
+        ''
+      )
       (google-fonts.override { fonts = [ "Spectral" ]; })
     ];
 
