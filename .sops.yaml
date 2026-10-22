@@ -14,6 +14,13 @@ creation_rules:
       - age:
           - *rokokol
           - *station
+  # The one desktop secret the station reads: its agent serves the same mailboxes, and a second
+  # copy of their file would drift
+  - path_regex: secrets/mail-agent\.yaml$
+    key_groups:
+      - age:
+          - *rokokol
+          - *station
   - path_regex: secrets/[^/]+\.yaml$
     key_groups:
       - age:

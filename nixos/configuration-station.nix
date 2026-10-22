@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 
 let
   backup = "/srv/backup";
@@ -42,6 +42,11 @@ in
       git.email = "mya@rokokol.art";
       packages = with pkgs; [ ffmpeg ];
       pythonPackages = ps: [ ps.matplotlib ];
+    };
+
+    mail-agent = {
+      enable = true;
+      socketUser = config.rokokol.mya-agent.user;
     };
 
     backup-heartbeat.enable = true;

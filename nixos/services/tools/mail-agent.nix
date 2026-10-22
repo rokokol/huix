@@ -10,10 +10,22 @@
 # come from, and who may talk to the socket. Read the module's own options before adding
 # a line here. The mailboxes are one private file, passwords and own addresses included,
 # because this repository is public and the addresses are not
+let
+  cfg = config.rokokol.mail-agent;
+in
 {
-  options.rokokol.mail-agent.enable = lib.mkEnableOption "the mail agent service";
+  options.rokokol.mail-agent = {
+    enable = lib.mkEnableOption "the mail agent service";
 
-  config = lib.mkIf config.rokokol.mail-agent.enable {
+    # The station gives mail to its agent rather than to the user, who works on the desktops
+    socketUser = lib.mkOption {
+      type = lib.types.str;
+      default = rokokolName;
+      description = "Who may talk to the socket, and so whose agents get the skill";
+    };
+  };
+
+  config = lib.mkIf cfg.enable {
     # The whole value is the mailbox file, so the key names nothing about the mailboxes
     sops.secrets."mail-agent" = {
       sopsFile = ../../../secrets/mail-agent.yaml;
@@ -23,7 +35,7 @@
     services.mail-agent = {
       enable = true;
       configFile = config.sops.secrets."mail-agent".path;
-      socketUser = rokokolName;
+      inherit (cfg) socketUser;
     };
   };
 }
