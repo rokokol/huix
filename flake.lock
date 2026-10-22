@@ -775,11 +775,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1792680177,
-        "narHash": "sha256-mdS8oEtjQ8JOF3Qvgbxk25SEX+D4GEhXMdFW0Dnulgo=",
+        "lastModified": 1792681470,
+        "narHash": "sha256-VLHfFfy+5NKZ+iS8z2Py6sy+AHR+bik8DL/+GiCiltw=",
         "owner": "rokokol",
         "repo": "mail-skill",
-        "rev": "08de9aca55758341d03b5a0b5bc4d1932b2ecca6",
+        "rev": "75ab848fba80646d8b487fbb08e9b73a54aac2a0",
         "type": "github"
       },
       "original": {
