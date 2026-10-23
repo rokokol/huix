@@ -77,7 +77,7 @@ in
 
     fonts.fontconfig.defaultFonts = {
       monospace = [ "DepartureMono Nerd Font Mono" ];
-      sansSerif = [ "Nunito" ];
+      sansSerif = [ "Mya Nunito" ];
       serif = [ "Spectral" ];
     };
   };
