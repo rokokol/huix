@@ -90,6 +90,18 @@
       flake = false;
     };
 
+    archive-mount-yazi = {
+      url = "github:rokokol/archive-mount.yazi";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
+    };
+
+    rename-case-yazi = {
+      url = "github:rokokol/rename-case.yazi";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
+    };
+
     # wl-copy with --offer, from the branch of its pull request (see WORKAROUNDS.md)
     wl-clipboard-rs = {
       url = "github:rokokol/wl-clipboard-rs/wl-copy-multi-types";

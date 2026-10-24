@@ -33,6 +33,29 @@
         "type": "github"
       }
     },
+    "archive-mount-yazi": {
+      "inputs": {
+        "home-manager": [
+          "home-manager"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1792870985,
+        "narHash": "sha256-A78TBLlCgksFHsY6R0sDMPvqmkV9Sy1r3lxE+uSQPoY=",
+        "owner": "rokokol",
+        "repo": "archive-mount.yazi",
+        "rev": "5845dbc0a4832ea0e0abce2f73f0ae6af55ed3ba",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "archive-mount.yazi",
+        "type": "github"
+      }
+    },
     "claude-account": {
       "inputs": {
         "nixpkgs": [
@@ -1018,6 +1041,29 @@
         "type": "github"
       }
     },
+    "rename-case-yazi": {
+      "inputs": {
+        "home-manager": [
+          "home-manager"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1792877338,
+        "narHash": "sha256-1RHwhwLlqOU+kzHrnvRINYJ9E+/t6gqIRqXpIUvHp3c=",
+        "owner": "rokokol",
+        "repo": "rename-case.yazi",
+        "rev": "e70c95767c81a60083686fa5d0cb002017c044f7",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "rename-case.yazi",
+        "type": "github"
+      }
+    },
     "rofi": {
       "flake": false,
       "locked": {
@@ -1059,6 +1105,7 @@
     },
     "root": {
       "inputs": {
+        "archive-mount-yazi": "archive-mount-yazi",
         "claude-account": "claude-account",
         "compress-yazi": "compress-yazi",
         "ddlc-hyprlock": "ddlc-hyprlock",
@@ -1081,6 +1128,7 @@
         "nixpkgs-stable": "nixpkgs-stable",
         "nixvim": "nixvim",
         "papers-skill": "papers-skill",
+        "rename-case-yazi": "rename-case-yazi",
         "rofi": "rofi",
         "rofi-wooordhunt": "rofi-wooordhunt",
         "skill-3x-ui-admin": "skill-3x-ui-admin",

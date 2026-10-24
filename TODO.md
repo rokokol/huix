@@ -18,11 +18,6 @@ The yazi project wants every issue, pull request and commit description written 
 | yazi-rs/plugins        | `git.yazi`: an option to show and hide its status column                                 | `plugins/git-column` and the wrapper around `Linemode.children_add` in `init.lua`, both of which go once the option exists | issue [yazi-rs/plugins#248](https://github.com/yazi-rs/plugins/issues/248) |
 | folke/which-key.nvim   | keys read through `'langmap'`                                                            | the `which-key-nvim` input, branch `langmap` of the which-key.nvim clone                                                   | sent as [#1068](https://github.com/folke/which-key.nvim/pull/1068); upstream has had no commit since 2025-10 |
 
-## Own repositories
-
-- `rename-case.yazi`: the `naming` plugin, with case tables generated from `UnicodeData.txt` and CI; transliteration stays Cyrillic (ICAO) for now, in a layout that takes other scripts later
-- `archive-mount.yazi`: the `archive-mount` plugin, an archive opened as a folder, read-only through `fuse-archive` or for editing through `archivemount`, unmounted when no tab looks into it. `fuse-archive.yazi` was tried first and rejected
-
 ## Forks
 
 - `nix-matlab` (`gitlab:doronbehar/nix-matlab`, the `nix-matlab` input): fork it and improve the repository; what to change is still open. GitHub cannot fork a GitLab project: a copy there is an import or a mirror, and a merge request back needs a fork on GitLab

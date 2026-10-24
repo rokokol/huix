@@ -14,6 +14,7 @@
 [![deviations](https://img.shields.io/badge/docs-deviations-555?style=flat)](DEVIATIONS.md)
 [![license](https://img.shields.io/badge/license-MIT-3DA639?style=flat)](LICENSE)
 [![eval](https://github.com/rokokol/huix/actions/workflows/eval.yml/badge.svg)](https://github.com/rokokol/huix/actions/workflows/eval.yml)
+[![deepwiki](https://img.shields.io/badge/docs-deepwiki-5B6BD6?style=flat&logo=readthedocs&logoColor=white)](https://deepwiki.com/rokokol/huix)
 
 <a href="https://github.com/rokokol/huix"><img src="https://count.owenewans.org/rokokol/huix?theme=original-new&notitle" alt="Звёзды, PR, issues и коммиты репозитория huix" width="400"/></a>
 
@@ -82,6 +83,8 @@ nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHW
 [![rofi-wooordhunt](https://img.shields.io/badge/rofi--wooordhunt-словарь-F4A100?style=for-the-badge)](https://github.com/rokokol/rofi-wooordhunt)
 [![virtual-media-devices](https://img.shields.io/badge/virtual--media--devices-камера_и_микрофон-2E9E9E?style=for-the-badge&logo=ffmpeg&logoColor=white)](https://github.com/rokokol/virtual-media-devices)
 [![skvpn](https://img.shields.io/badge/skvpn-VPN--клиент-2B5797?style=for-the-badge&logo=python&logoColor=white)](https://github.com/rokokol/skvpn)
+[![archive-mount](https://img.shields.io/badge/archive--mount-архивы_папкой-D1897E?style=for-the-badge)](https://github.com/rokokol/archive-mount.yazi)
+[![rename-case](https://img.shields.io/badge/rename--case-регистр_и_транслит-DD77BB?style=for-the-badge)](https://github.com/rokokol/rename-case.yazi)
 [![ddlc-palette](https://img.shields.io/badge/ddlc--palette-цвета-BB5599?style=for-the-badge)](https://github.com/rokokol/ddlc-palette)
 [![ddlc-sddm-theme](https://img.shields.io/badge/ddlc--sddm--theme-экран_логина-FF80C0?style=for-the-badge&logo=qt&logoColor=white)](https://github.com/rokokol/ddlc-sddm-theme)
 [![ddlc-hyprlock](https://img.shields.io/badge/ddlc--hyprlock-локскрин-58E1FF?style=for-the-badge)](https://github.com/rokokol/ddlc-hyprlock)

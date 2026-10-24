@@ -140,14 +140,9 @@ in
   programs.yazi = {
     extraPackages =
       with pkgs;
-      [
-        archivemount
-        fuse-archive
-      ]
-      ++ lib.optional workstation libnotify
       # rga reads media through ffmpeg, and the full ffmpeg brings SDL with its audio and
       # display stack. A host without a desktop takes the build without them
-      ++ [
+      [
         (if workstation then ripgrep-all else ripgrep-all.override { ffmpeg = ffmpeg-headless; })
       ];
 
@@ -156,7 +151,6 @@ in
         "find-line"
         "search-ignored"
         "git-column"
-        "naming"
         "nvim-diff"
         "recent"
         "tab-hovered"
@@ -168,11 +162,6 @@ in
           package = ownPlugin "info";
           setup = true;
           settings.compsize = lib.getExe pkgs.compsize;
-        };
-        # setup subscribes to cd, which unmounts the archives no tab looks into
-        archive-mount = {
-          package = ownPlugin "archive-mount";
-          setup = true;
         };
         # The which popup waits as long as nixvim's which-key does, and folds each leader group
         # under its name (see WORKAROUNDS.md)
@@ -246,12 +235,12 @@ in
       ++ [
         (bind (leader "c") "close" "Close tab")
         (bind (leader "nr") "rename --cursor=before_ext" "Rename, several at once in nvim")
-        (bind (leader "nc") (onSelection "plugin naming kebab") "kebab-case")
-        (bind (leader "ns") (onSelection "plugin naming snake") "snake_case")
-        (bind (leader "nC") (onSelection "plugin naming caps") "CAPS_CASE")
-        (bind (leader "np") (onSelection "plugin naming pascal") "PascalCase")
-        (bind (leader "nm") (onSelection "plugin naming camel") "camelCase")
-        (bind (leader "nt") (onSelection "plugin naming icao") "Transliterate Cyrillic (ICAO)")
+        (bind (leader "nc") (onSelection "plugin rename-case kebab") "kebab-case")
+        (bind (leader "ns") (onSelection "plugin rename-case snake") "snake_case")
+        (bind (leader "nC") (onSelection "plugin rename-case caps") "CAPS_CASE")
+        (bind (leader "np") (onSelection "plugin rename-case pascal") "PascalCase")
+        (bind (leader "nm") (onSelection "plugin rename-case camel") "camelCase")
+        (bind (leader "nt") (onSelection "plugin rename-case icao") "Transliterate Cyrillic (ICAO)")
 
         # The searches skip what a .gitignore names until Space f i lets them in; the switch sits
         # with them, as only a search reads it. rga reads plain text as rg does, and pdf and

@@ -38,6 +38,8 @@ inputs.nixpkgs.lib.nixosSystem {
           inputs.claude-account.homeModules.default
           inputs.virtual-media-devices.homeModules.default
           inputs.papers-skill.homeModules.default
+          inputs.archive-mount-yazi.homeModules.default
+          inputs.rename-case-yazi.homeModules.default
           # Every home on the host, the desktop's and the station agent's alike
           ../home-manager/workstation.nix
         ];

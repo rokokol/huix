@@ -2,6 +2,8 @@
 
 [![huix](https://img.shields.io/badge/huix-наверх-222222?style=for-the-badge&logo=nixos&logoColor=white)](../../../README.md)
 [![programs](https://img.shields.io/badge/programs-программы-7E57C2?style=for-the-badge)](../README.md)
+[![archive-mount](https://img.shields.io/badge/archive--mount-архивы_папкой-D1897E?style=for-the-badge)](https://github.com/rokokol/archive-mount.yazi)
+[![rename-case](https://img.shields.io/badge/rename--case-регистр_и_транслит-DD77BB?style=for-the-badge)](https://github.com/rokokol/rename-case.yazi)
 
 Yazi — мой основной файловый менеджер: открываю в нём папки и архивы, ищу файлы по имени или содержимому, смотрю документы и медиа
 
