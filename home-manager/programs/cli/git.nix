@@ -53,6 +53,11 @@ in
     ];
   };
 
+  programs.mergiraf = {
+    enable = true;
+    enableGitIntegration = true;
+  };
+
   # Every diff git pages goes through delta, side by side. Its built-in theme asks the terminal
   # whether it is light or dark, so it follows the theme toggle; ddlc-themes has no delta theme
   programs.delta = {
