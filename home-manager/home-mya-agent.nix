@@ -12,10 +12,10 @@ let
 in
 {
   imports = [
-    ./programs/cli/claude.nix
-    ./programs/cli/dav-mcp.nix
-    ./programs/cli/mail-skill.nix
-    ./programs/cli/telegram-skill.nix
+    ./programs/agents/claude.nix
+    ./programs/agents/dav-mcp.nix
+    ./programs/agents/mail-skill.nix
+    ./programs/agents/telegram-skill.nix
   ];
 
   home.stateVersion = osConfig.system.stateVersion;

@@ -1,5 +1,6 @@
 {
   imports = [
+    ./agents/default.nix
     ./cli/default.nix
     ./ghidra.nix
     ./language-servers.nix
