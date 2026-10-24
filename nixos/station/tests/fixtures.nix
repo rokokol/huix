@@ -49,4 +49,8 @@ pkgs.runCommand "station-boot-test-fixtures"
     } >plain.yaml
     sops --encrypt --age "$(age-keygen -y $out/key.txt)" \
       --input-type yaml --output-type yaml plain.yaml >$out/station.yaml
+    # No mailbox connects to a real server from a test VM
+    printf 'config: "{}"\n' >mail-agent.yaml
+    sops --encrypt --age "$(age-keygen -y $out/key.txt)" \
+      --input-type yaml --output-type yaml mail-agent.yaml >$out/mail-agent.yaml
   ''

@@ -8,6 +8,7 @@
   systemd.network.networks."10-lan".matchConfig.PermanentMACAddress = lib.mkForce stationMac;
 
   sops.defaultSopsFile = lib.mkForce "${fixtures}/station.yaml";
+  sops.secrets.mail-agent.sopsFile = lib.mkForce "${fixtures}/mail-agent.yaml";
   # Validation reads the file at evaluation, which would build the fixtures under
   # `nix flake check`. The host keeps it, and a VM decrypts every secret anyway
   sops.validateSopsFiles = false;

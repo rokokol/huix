@@ -562,6 +562,10 @@ pkgs.testers.runNixOSTest {
     station.wait_for_unit("multi-user.target")
     station.wait_for_unit("systemd-networkd-wait-online.service")
 
+    with subtest("the mailbox file decrypts with the VM key and contains no real accounts"):
+        assert json.loads(station.succeed("cat ${station.config.services.mail-agent.configFile}")) == {}
+        station.succeed("test \"$(stat -c '%a %U %G' ${station.config.services.mail-agent.configFile})\" = '400 root root'")
+
     with subtest("the wired link is named by its MAC, configured by it, and carries the static address"):
         station.succeed("networkctl status -n0 lan | grep -q 'Link File: /etc/systemd/network/10-lan.link'")
         station.succeed("networkctl status -n0 lan | grep -q 'Network File: /etc/systemd/network/10-lan.network'")
