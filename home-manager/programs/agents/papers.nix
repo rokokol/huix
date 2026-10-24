@@ -15,7 +15,8 @@
 {
   # The env file exists only where the system's rokokol.paper-search is on
   options.rokokol.papers.enable = lib.mkEnableOption "the papers skill's tools" // {
-    default = config.rokokol.workstation.enable;
+    default = osConfig.rokokol.paper-search.enable;
+    defaultText = lib.literalExpression "osConfig.rokokol.paper-search.enable";
   };
 
   config = lib.mkIf config.rokokol.papers.enable {

@@ -9,6 +9,11 @@
   rokokol = {
     packages.laptop = true;
 
+    # Reverse engineering happens on the PC alone
+    ghidra.enable = false;
+    # The panels' tokens live on the PC alone
+    skills.exclude = [ "3x-ui-admin" ];
+
     hyprland = {
       enable = true;
       primaryMonitor = "eDP-1";
