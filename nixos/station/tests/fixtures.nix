@@ -6,8 +6,7 @@
   # The Telegram chat the agent's bot answers
   telegramOwner ? "1",
 }:
-# Fixtures, never real secrets. A throwaway age key is made at build time, and the names of
-# secrets/station.yaml get dummy values, encrypted to that key only
+# Fixtures, never real secrets. Each secret file uses a throwaway age key made at build time
 pkgs.runCommand "station-boot-test-fixtures"
   {
     nativeBuildInputs = with pkgs; [
@@ -46,11 +45,12 @@ pkgs.runCommand "station-boot-test-fixtures"
         printf 'syncthing-%s-nixos-station: |\n' "$part"
         sed 's/^/  /' "syncthing/$part.pem"
       done
-    } >plain.yaml
-    sops --encrypt --age "$(age-keygen -y $out/key.txt)" \
-      --input-type yaml --output-type yaml plain.yaml >$out/station.yaml
+    } >station.yaml
     # No mailbox connects to a real server from a test VM
     printf 'config: "{}"\n' >mail-agent.yaml
-    sops --encrypt --age "$(age-keygen -y $out/key.txt)" \
-      --input-type yaml --output-type yaml mail-agent.yaml >$out/mail-agent.yaml
+    printf 'telegram-api-id: "12345"\ntelegram-api-hash: test\n' >telegram-agent.yaml
+    for name in station mail-agent telegram-agent; do
+      sops --encrypt --age "$(age-keygen -y $out/key.txt)" \
+        --input-type yaml --output-type yaml "$name.yaml" >"$out/$name.yaml"
+    done
   ''

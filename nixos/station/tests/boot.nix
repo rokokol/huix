@@ -350,6 +350,9 @@ pkgs.testers.runNixOSTest {
         environment.etc."test/mya-session-vars.json".text =
           builtins.toJSON
             config.home-manager.users.${agent.user}.home.sessionVariables;
+        environment.etc."test/mya-skills.json".text = builtins.toJSON (
+          lib.attrNames config.home-manager.users.${agent.user}.rokokol.agents.skills
+        );
 
         rokokol.alert-mail.telegram.api = "http://192.168.0.1:${toString telegramPort}";
 
@@ -568,6 +571,21 @@ pkgs.testers.runNixOSTest {
     with subtest("the mailbox file decrypts with the VM key and contains no real accounts"):
         assert json.loads(station.succeed("cat ${station.config.services.mail-agent.configFile}")) == {}
         station.succeed("test \"$(stat -c '%a %U %G' ${station.config.services.mail-agent.configFile})\" = '400 root root'")
+
+    with subtest("the secretary gets communication skills without workstation tools"):
+        skills = set(json.loads(station.succeed("cat /etc/test/mya-skills.json")))
+        assert {"calendar", "mail", "telegram", "contributing"} <= skills, skills
+        assert not skills & {"3x-ui-admin", "nix-best-practices", "obsidian-cli", "super-productivity", "tests"}, skills
+
+    with subtest("only the secretary may use the Telegram socket, not its credentials"):
+        station.wait_for_unit("tg-agent.socket")
+        socket = "${station.config.services.tg-agent.socketPath}"
+        assert station.succeed(f"stat -c '%U %a' {socket}").strip() == "${agent.user} 600"
+        station.succeed(f"runuser -u ${agent.user} -- test -w {socket}")
+        station.fail(f"runuser -u rokokol -- test -w {socket}")
+        for secret in ["telegram-api-id", "telegram-api-hash"]:
+            station.succeed(f"test -s /run/secrets/{secret}")
+            station.fail(f"runuser -u ${agent.user} -- cat /run/secrets/{secret}")
 
     with subtest("the wired link is named by its MAC, configured by it, and carries the static address"):
         station.succeed("networkctl status -n0 lan | grep -q 'Link File: /etc/systemd/network/10-lan.link'")

@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  inputs,
   rokokolName,
   ...
 }:
@@ -28,7 +29,10 @@ in
   config = lib.mkIf cfg.enable {
     # The whole value is the mailbox file, so the key names nothing about the mailboxes
     sops.secrets."mail-agent" = {
-      sopsFile = ../../../secrets/mail-agent.yaml;
+      sopsFile = builtins.path {
+        name = "mail-agent.yaml";
+        path = "${inputs.self}/secrets/mail-agent.yaml";
+      };
       key = "config";
     };
 

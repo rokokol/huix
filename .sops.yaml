@@ -14,9 +14,8 @@ creation_rules:
       - age:
           - *rokokol
           - *station
-  # The one desktop secret the station reads: its agent serves the same mailboxes, and a second
-  # copy of their file would drift
-  - path_regex: secrets/mail-agent\.yaml$
+  # Both hosts use the same mailboxes and Telegram application credentials
+  - path_regex: secrets/(mail-agent|telegram-agent)\.yaml$
     key_groups:
       - age:
           - *rokokol

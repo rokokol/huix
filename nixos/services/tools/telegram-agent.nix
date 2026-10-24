@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  inputs,
   rokokolName,
   ...
 }:
@@ -12,19 +13,30 @@
 # One account, one session per host that runs this, so it is gated rather than shared
 let
   cfg = config.rokokol.telegram-agent;
+  secretsFile = builtins.path {
+    name = "telegram-agent.yaml";
+    path = "${inputs.self}/secrets/telegram-agent.yaml";
+  };
 in
 {
-  options.rokokol.telegram-agent.enable = lib.mkEnableOption "the Telegram agent service";
+  options.rokokol.telegram-agent = {
+    enable = lib.mkEnableOption "the Telegram agent service";
+    socketUser = lib.mkOption {
+      type = lib.types.str;
+      default = rokokolName;
+      description = "The user who may access the Telegram socket and receives its skill";
+    };
+  };
 
   config = lib.mkIf cfg.enable {
-    sops.secrets."telegram-api-id" = { };
-    sops.secrets."telegram-api-hash" = { };
+    sops.secrets."telegram-api-id".sopsFile = secretsFile;
+    sops.secrets."telegram-api-hash".sopsFile = secretsFile;
 
     services.tg-agent = {
       enable = true;
       apiIdFile = config.sops.secrets."telegram-api-id".path;
       apiHashFile = config.sops.secrets."telegram-api-hash".path;
-      socketUser = rokokolName;
+      inherit (cfg) socketUser;
     };
   };
 }

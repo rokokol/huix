@@ -9,6 +9,8 @@
 
   sops.defaultSopsFile = lib.mkForce "${fixtures}/station.yaml";
   sops.secrets.mail-agent.sopsFile = lib.mkForce "${fixtures}/mail-agent.yaml";
+  sops.secrets.telegram-api-id.sopsFile = lib.mkForce "${fixtures}/telegram-agent.yaml";
+  sops.secrets.telegram-api-hash.sopsFile = lib.mkForce "${fixtures}/telegram-agent.yaml";
   # Validation reads the file at evaluation, which would build the fixtures under
   # `nix flake check`. The host keeps it, and a VM decrypts every secret anyway
   sops.validateSopsFiles = false;

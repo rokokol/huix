@@ -19,8 +19,12 @@ in
     ./programs/agents/telegram-skill.nix
   ];
 
-  # It talks to a Super Productivity that runs on a workstation, which the station cannot reach
-  rokokol.skills.exclude = [ "super-productivity" ];
+  rokokol.skills.include = [
+    "close-session"
+    "contributing"
+    "phone-alert"
+    "termux-api"
+  ];
 
   home.stateVersion = osConfig.system.stateVersion;
 
