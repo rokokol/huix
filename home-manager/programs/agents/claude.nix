@@ -14,7 +14,6 @@ in
 {
   imports = [ ./agents.nix ];
 
-  # desktop/sync.nix reads SKILLS_DIR, so it needs this module on as well
   options.rokokol.claude = {
     package = lib.mkOption {
       type = lib.types.package;
@@ -63,12 +62,9 @@ in
         programs.claude-account = {
           enable = true;
           # The module leaves this null and its script picks the same path on its own, where Nix
-          # cannot read it back. Naming it here is what lets SKILLS_DIR follow the directory
+          # cannot read it back. Naming it here is what lets skills.nix keep the skills' state there
           inherit sharedDir;
         };
-
-        # Each shared skill is a checkout of its own repository, so sync.sh sweeps this directory
-        home.sessionVariables.SKILLS_DIR = "${sharedDir}/skills";
       }
 
       (lib.mkIf cfg.desktop.enable {

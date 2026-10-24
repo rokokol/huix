@@ -14,10 +14,10 @@ let
   # Taken from the session rather than from commonArgs, so a hand call of sync.sh in a terminal
   # and the unit always sweep the same directories. The alias passes them too: a terminal
   # inherits the session of the last login, which lacks a variable added since
-  inherit (config.home.sessionVariables) PROJECTS_DIR SKILLS_DIR SYNC_REMOTES;
+  inherit (config.home.sessionVariables) PROJECTS_DIR SYNC_REMOTES;
   syncEnv = {
     HUIX = huixDir;
-    inherit PROJECTS_DIR SKILLS_DIR SYNC_REMOTES;
+    inherit PROJECTS_DIR SYNC_REMOTES;
   };
   syncScript = "${scriptsDir}/sync.sh";
 
@@ -50,7 +50,7 @@ let
 in
 {
   options.rokokol.sync = {
-    enable = lib.mkEnableOption "the fast-forward of huix, ~/Projects and the skills at login" // {
+    enable = lib.mkEnableOption "the fast-forward of huix and ~/Projects at login" // {
       default = config.rokokol.workstation.enable;
     };
 
@@ -116,7 +116,7 @@ in
     systemd.user.services = {
       "sync" = {
         Unit = {
-          Description = "Fast-forward huix, ~/Projects and the shared skills (sync.sh --pull-only)";
+          Description = "Fast-forward huix and ~/Projects (sync.sh --pull-only)";
           After = [
             "graphical-session.target"
             "gcr-ssh-agent.service"

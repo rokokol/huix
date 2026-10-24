@@ -30,8 +30,8 @@ got after huix's first pull. After the push UNIT starts again, and the clone dro
 of what is now upstream. An agent out of reach is reported and passed over. A conflict is
 wound back, leaves the agent's commits in its clone and makes the exit status 1
 
-Both modes end by catching every git repository under ~/Projects and under the shared Claude
-skills up to its upstream; PROJECTS_DIR and SKILLS_DIR name those two directories. The search
+Both modes end by catching every git repository under ~/Projects up to its upstream;
+PROJECTS_DIR names that directory. The search
 is recursive, but stops at the first directory containing .git. Without local commits it
 fast-forwards; with them it rebases them on top, autostashing a dirty tree, and winds the whole
 thing back if that would conflict. It never commits and never pushes, a repository with no
@@ -77,14 +77,9 @@ collect_repos() {
   done
 }
 
-# Every repository under the PROJECTS_PATH entries
+# Every repository under PROJECTS_PATH
 project_repos() {
-  local path_entry
-  local -a path_entries
-  IFS=':' read -ra path_entries <<< "$PROJECTS_PATH"
-  for path_entry in "${path_entries[@]}"; do
-    [ -d "$path_entry" ] && collect_repos "$path_entry" "$1"
-  done
+  [ -d "$PROJECTS_PATH" ] && collect_repos "$PROJECTS_PATH" "$1"
   return 0
 }
 
@@ -211,7 +206,7 @@ take_agents() {
   done
 }
 
-# Catch every repository under the PROJECTS_PATH entries up to its upstream. Fetching is the
+# Catch every repository under PROJECTS_PATH up to its upstream. Fetching is the
 # slow half and the repositories are independent, so it runs in parallel; moving a branch is
 # local and serial
 sweep_projects() {
@@ -327,10 +322,10 @@ MESSAGE="$*"
 
 DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"
 export DBUS_SESSION_BUS_ADDRESS
-# Home Manager sets all three for the session and repeats the last two in the unit, which
-# inherits no session variable. The fallback is for a call from a shell that has neither
+# Home Manager sets both for the session and repeats them in the unit, which inherits no
+# session variable. The fallback is for a call from a shell that has neither
 HUIX_PATH="${HUIX:-$HOME/huix}"
-PROJECTS_PATH="${PROJECTS_DIR:-$HOME/Projects}${SKILLS_DIR:+:$SKILLS_DIR}"
+PROJECTS_PATH="${PROJECTS_DIR:-$HOME/Projects}"
 SSH_OPTS=(-o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=2)
 GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh ${SSH_OPTS[*]}}"
 

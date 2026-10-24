@@ -825,7 +825,7 @@ mya https://github.com/owner/tool.git $git_work/station/tool
 EOF
 sync_run() {
   reset_log
-  HUIX=$git_work/huix PROJECTS_DIR=$git_work/Projects SKILLS_DIR='' \
+  HUIX=$git_work/huix PROJECTS_DIR=$git_work/Projects \
     SYNC_REMOTES=$git_work/remotes bash "$sync_sh" --pull-only >/dev/null 2>&1
   sync_status=$?
 }
@@ -919,7 +919,7 @@ printf 'mya https://github.com/owner/pair station:%s mya-agent-sync.service\n' "
 # take_run [ARG]... — sync.sh over the owner's pair, the status in $take_status
 take_run() {
   reset_log
-  HUIX=$git_work/pair PROJECTS_DIR=$git_work/no-projects SKILLS_DIR='' \
+  HUIX=$git_work/pair PROJECTS_DIR=$git_work/no-projects \
     SYNC_REMOTES=$git_work/take-remotes GIT_SSH_COMMAND=$work/bin/ssh \
     STUB_AGENT_SYNC=$agent_sync STUB_AGENT_REPO=$agent_clone \
     bash "$sync_sh" "$@" >/dev/null 2>&1
