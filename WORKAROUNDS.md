@@ -257,7 +257,7 @@ grep -c 'seq_from_lua' "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs
 
 `0` -> keep the patch. Anything else -> yazi converts tables itself; drop the patch and the overlay line, then press `Space`, wait for the popup and open a group. When the conversion lands under another name, rewrite the check to look for it
 
-**Upstream:** the design is in [sxyazi/yazi#3774](https://github.com/sxyazi/yazi/issues/3774), where the maintainer asked for a conversion from a Lua table to a chord; the code waits on branch `chord-from-lua`
+**Upstream:** [sxyazi/yazi#4442](https://github.com/sxyazi/yazi/pull/4442), open; the design comes from [sxyazi/yazi#3774](https://github.com/sxyazi/yazi/issues/3774)
 
 ---
 
@@ -278,7 +278,7 @@ nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.yaziPlugins.which-fold.ve
 
 An error -> keep the local copy. A version -> take the package in `keymap.nix` in place of `ownPlugin`, delete the directory, and check that the setup options did not change
 
-**Upstream:** which-delay goes to yazi-rs/plugins, as the maintainer suggested; which-fold follows once the core change above is released
+**Upstream:** which-delay is in open PR [yazi-rs/plugins#249](https://github.com/yazi-rs/plugins/pull/249); which-fold follows once the core change above is released
 
 ---
 
