@@ -223,11 +223,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1792706969,
-        "narHash": "sha256-jzyiEkJUY2k+k9EjXZmKd0u4QSdg9OGz2Czhw/CIwow=",
+        "lastModified": 1792876836,
+        "narHash": "sha256-dMWt4ni2SIslwHxqK3BTchKePutH2eJ18FT3XraKbfs=",
         "owner": "rokokol",
         "repo": "ddlc-themes",
-        "rev": "33aab817cb13087fc3192023238799a696e56b7f",
+        "rev": "9a6363053eb2db47dd93fcfd5722354b22678821",
         "type": "github"
       },
       "original": {
