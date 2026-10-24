@@ -347,6 +347,9 @@ pkgs.testers.runNixOSTest {
         # The servers of the agent's own Claude Code, as this host builds them
         environment.etc."test/mya-mcp.json".source =
           config.home-manager.users.${agent.user}.rokokol.agents.claudeConfig;
+        environment.etc."test/mya-session-vars.json".text =
+          builtins.toJSON
+            config.home-manager.users.${agent.user}.home.sessionVariables;
 
         rokokol.alert-mail.telegram.api = "http://192.168.0.1:${toString telegramPort}";
 
@@ -774,6 +777,16 @@ pkgs.testers.runNixOSTest {
         assert access["dmPolicy"] == "allowlist", f"the bot's direct messages are {access['dmPolicy']}"
         assert access["allowFrom"] == ["${agent.ownerChatId}"], f"the bot answers {access['allowFrom']}"
         station.succeed("test $(stat -c %U ${agent.stateDir}/access.json) = ${agent.user}")
+
+    with subtest("contributing in the agent's session finds its shared private state"):
+        variables = json.loads(station.succeed("cat /etc/test/mya-session-vars.json"))
+        expected = variables["CONTRIB_HOME"].replace(agent_home, "${agent.workDir}", 1)
+        type_in("${
+          station.config.home-manager.users.${agent.user}.rokokol.agents.skills.contributing
+        }/contrib.sh home >~/contrib-home")
+        station.wait_until_succeeds(f"test -s {agent_home}/contrib-home", timeout=timedelta(seconds=30))
+        actual = station.succeed(f"cat {agent_home}/contrib-home").strip()
+        assert actual == expected, f"contributing uses {actual}, not {expected} from Home Manager"
 
     # Claude Code keeps no answer given for a home directory, so a session there would ask again
     with subtest("the session's directory is trusted from the start, so no session waits on the question"):

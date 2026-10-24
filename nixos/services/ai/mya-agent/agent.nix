@@ -11,7 +11,8 @@
 # session works in and which paths it must not see
 let
   cfg = config.rokokol.mya-agent;
-  account = config.home-manager.users.${cfg.user}.programs.claude-account;
+  homeConfig = config.home-manager.users.${cfg.user};
+  account = homeConfig.programs.claude-account;
 
   # The directory the session works in, and a path under the home as the session names it
   sessionHome = if cfg.homeAlias != null then cfg.homeAlias else cfg.home;
@@ -517,12 +518,17 @@ in
           "/etc/profiles/per-user/${cfg.user}"
           "/run/current-system/sw"
         ];
-        environment = {
-          HOME = sessionHome;
-          # What Claude Code writes into the shared state names the paths the session uses
-          CLAUDE_CONFIG_DIR = inSession account.claudeDir;
-          TELEGRAM_STATE_DIR = stateDir;
-        };
+        # A system service does not read shell variables from Home Manager
+        environment =
+          lib.mapAttrs (
+            _: value: lib.replaceStrings [ cfg.home ] [ sessionHome ] (toString value)
+          ) homeConfig.home.sessionVariables
+          // {
+            HOME = sessionHome;
+            # What Claude Code writes into the shared state names the paths the session uses
+            CLAUDE_CONFIG_DIR = inSession account.claudeDir;
+            TELEGRAM_STATE_DIR = stateDir;
+          };
         unitConfig = {
           RequiresMountsFor = lib.attrValues cfg.directories;
           # Before the shared state arrives, making a profile would put an empty settings.json
