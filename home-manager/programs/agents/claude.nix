@@ -72,6 +72,8 @@ in
         programs.claude-account.opencode.enable = true;
         # OpenCode merges this file over its own config
         home.sessionVariables.OPENCODE_CONFIG = config.rokokol.agents.opencodeConfig;
+        # Its own language servers would otherwise be downloaded past Nix, next to the ones above
+        home.sessionVariables.OPENCODE_DISABLE_LSP_DOWNLOAD = "true";
 
         # The DDLC Claude Code themes sit outside ~/.claude/themes, which lists every file in it
         # as a theme; toggle-theme.sh links the current one in as ddlc.json
