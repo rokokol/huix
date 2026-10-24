@@ -22,6 +22,8 @@ let
             --replace-fail "DEFAULT_PORT = ${toString revaDefaultPort};" "DEFAULT_PORT = ${toString cfg.port};"
         '';
       });
+  # ReVa's source carries the skills that drive it, so they come at the revision of the extension
+  revaSkills = "${reva.src}/ReVa/skills";
 in
 {
   options.rokokol.ghidra = {
@@ -60,5 +62,9 @@ in
 
     # It answers only while Ghidra runs
     programs.mcp.servers.ghidra.url = "http://localhost:${toString cfg.port}/mcp/message";
+
+    rokokol.agents.skills = lib.mapAttrs (name: _: "${revaSkills}/${name}") (
+      lib.filterAttrs (_: type: type == "directory") (builtins.readDir revaSkills)
+    );
   };
 }

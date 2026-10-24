@@ -127,9 +127,85 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    nix-best-practices = {
+    # Every input named skill-NAME is one skill, and home-manager/programs/agents/skills.nix gives
+    # each to the agents as NAME. A skill that comes with a service is the service flake's own
+    # input instead, as mail-skill, telegram-skill and papers-skill are
+    skill-3x-ui-admin = {
+      url = "github:rokokol/3x-ui-admin-skill";
+      flake = false;
+    };
+    skill-ai-commit-trailers = {
+      url = "github:rokokol/ai-commit-trailers-skill";
+      flake = false;
+    };
+    skill-bash-best-practices = {
+      url = "github:rokokol/bash-best-practices-skill";
+      flake = false;
+    };
+    skill-ci = {
+      url = "github:rokokol/ci-skill";
+      flake = false;
+    };
+    skill-close-session = {
+      url = "github:rokokol/close-session-skill";
+      flake = false;
+    };
+    skill-code-comments = {
+      url = "github:rokokol/code-comments-skill";
+      flake = false;
+    };
+    skill-contributing = {
+      url = "github:rokokol/contributing-skill";
+      flake = false;
+    };
+    skill-create-readme = {
+      url = "github:rokokol/create-readme-skill";
+      flake = false;
+    };
+    skill-headless-gui = {
+      url = "github:rokokol/headless-gui-skill";
+      flake = false;
+    };
+    skill-huix-standard = {
+      url = "github:rokokol/huix-standard-skill";
+      flake = false;
+    };
+    skill-maintainer-docs = {
+      url = "github:rokokol/maintainer-docs-skill";
+      flake = false;
+    };
+    # A flake, unlike the rest: checks.nix and the check-nix app take its checker from it
+    skill-nix-best-practices = {
       url = "github:rokokol/nix-best-practices-skill";
       inputs.nixpkgs.follows = "nixpkgs";
+    };
+    skill-obsidian-cli = {
+      url = "github:rokokol/obsidian-cli-skill";
+      flake = false;
+    };
+    skill-phone-alert = {
+      url = "github:rokokol/phone-alert-skill";
+      flake = false;
+    };
+    skill-skill-authoring = {
+      url = "github:rokokol/skill-authoring-skill";
+      flake = false;
+    };
+    skill-super-productivity = {
+      url = "github:rokokol/super-productivity-skill";
+      flake = false;
+    };
+    skill-termux-api = {
+      url = "github:rokokol/termux-api-skill";
+      flake = false;
+    };
+    skill-tests = {
+      url = "github:rokokol/tests-skill";
+      flake = false;
+    };
+    skill-versioning = {
+      url = "github:rokokol/versioning-skill";
+      flake = false;
     };
 
     telegram-skill = {
@@ -326,14 +402,14 @@
       apps.${system} = {
         check-nix = {
           type = "app";
-          program = nixpkgs.lib.getExe inputs.nix-best-practices.packages.${system}.check-nix;
+          program = nixpkgs.lib.getExe inputs.skill-nix-best-practices.packages.${system}.check-nix;
           meta.description = "Hold this repository to the standard nix-best-practices carries";
         };
 
         # `nix run .#drv-diff` — every host and every check, here and at another revision
         drv-diff = {
           type = "app";
-          program = nixpkgs.lib.getExe inputs.nix-best-practices.packages.${system}.drv-diff;
+          program = nixpkgs.lib.getExe inputs.skill-nix-best-practices.packages.${system}.drv-diff;
           meta.description = "Say whether a change moved any derivation this flake builds";
         };
 

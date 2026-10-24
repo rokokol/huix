@@ -7,6 +7,7 @@
     ./mail-skill.nix
     ./opencode.nix
     ./papers.nix
+    ./skills.nix
     ./telegram-skill.nix
   ];
 }

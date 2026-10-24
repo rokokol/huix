@@ -17,7 +17,7 @@ pkgs.lib.mapAttrs' (
     cfg.config.home-manager.users.${rokokolName}.programs.nixvim.build.initFile
 ) inputs.self.nixosConfigurations
 // {
-  nix-lint = inputs.nix-best-practices.lib.mkCheck {
+  nix-lint = inputs.skill-nix-best-practices.lib.mkCheck {
     inherit pkgs;
     root = ./.;
     namespaces = [ "rokokol" ];

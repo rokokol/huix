@@ -68,6 +68,7 @@ There is no per-module test, and no check builds a host closure: `ollama-cuda` m
 - **Home Manager (`home-manager/`)** — interactive user environment, app config, shell behavior, desktop theming, Hyprland/Waybar, per-user packages, systemd-user units
 - **New system service** — new file in the matching `nixos/services/<category>/` (`ai/`, `desktop/`, `devices/`, `system/`, `tools/`, `utils/`), imported in `nixos/services/default.nix`; gate it behind `rokokol.<name>.enable` if it shouldn't run on every host. Do not collapse multiple services into one module
 - **New user app with config** — new file in `home-manager/programs/`
+- **New agent skill** — a `skill-NAME` input in `flake.nix`, nothing else: `home-manager/programs/agents/skills.nix` hands every such input to the agents of each home that imports it, and `rokokol.skills.exclude` keeps one from a home. A skill that ships with its service comes through that service's seam in `programs/agents/`, and a private one never enters this public flake
 - Do not cross the streams: no HM options under `nixos/`, no system services under `home-manager/`
 
 Package layering follows the same split: system packages and feature toggles in `nixos/<host>/`, shared user packages in the common block of `home-manager/desktop/packages/packages.nix` (GUI ones in its workstation-only list), host-specific user packages in its `rokokol.packages.{pc,laptop}` groups

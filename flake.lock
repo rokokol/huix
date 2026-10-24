@@ -788,26 +788,6 @@
         "type": "github"
       }
     },
-    "nix-best-practices": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1791197701,
-        "narHash": "sha256-iN2vwNfe1/1dznvskDfOE3MImV2D5Mji9dioi0pf8WE=",
-        "owner": "rokokol",
-        "repo": "nix-best-practices-skill",
-        "rev": "bb5c1614c27476b43d962da6380b2021595e5537",
-        "type": "github"
-      },
-      "original": {
-        "owner": "rokokol",
-        "repo": "nix-best-practices-skill",
-        "type": "github"
-      }
-    },
     "nix-filter": {
       "locked": {
         "lastModified": 1757882181,
@@ -1095,7 +1075,6 @@
         "hyprland-plugins": "hyprland-plugins",
         "hyprland-screen-shader": "hyprland-screen-shader",
         "mail-skill": "mail-skill",
-        "nix-best-practices": "nix-best-practices",
         "nix-flatpak": "nix-flatpak",
         "nix-matlab": "nix-matlab",
         "nixpkgs": "nixpkgs_2",
@@ -1104,6 +1083,25 @@
         "papers-skill": "papers-skill",
         "rofi": "rofi",
         "rofi-wooordhunt": "rofi-wooordhunt",
+        "skill-3x-ui-admin": "skill-3x-ui-admin",
+        "skill-ai-commit-trailers": "skill-ai-commit-trailers",
+        "skill-bash-best-practices": "skill-bash-best-practices",
+        "skill-ci": "skill-ci",
+        "skill-close-session": "skill-close-session",
+        "skill-code-comments": "skill-code-comments",
+        "skill-contributing": "skill-contributing",
+        "skill-create-readme": "skill-create-readme",
+        "skill-headless-gui": "skill-headless-gui",
+        "skill-huix-standard": "skill-huix-standard",
+        "skill-maintainer-docs": "skill-maintainer-docs",
+        "skill-nix-best-practices": "skill-nix-best-practices",
+        "skill-obsidian-cli": "skill-obsidian-cli",
+        "skill-phone-alert": "skill-phone-alert",
+        "skill-skill-authoring": "skill-skill-authoring",
+        "skill-super-productivity": "skill-super-productivity",
+        "skill-termux-api": "skill-termux-api",
+        "skill-tests": "skill-tests",
+        "skill-versioning": "skill-versioning",
         "skvpn": "skvpn",
         "sops-nix": "sops-nix",
         "telegram-skill": "telegram-skill",
@@ -1144,6 +1142,314 @@
         "owner": "SagerNet",
         "ref": "rule-set",
         "repo": "sing-geosite",
+        "type": "github"
+      }
+    },
+    "skill-3x-ui-admin": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792840891,
+        "narHash": "sha256-pPuz+EEaUtdnRK9gGe4z9wDgemN/HKYvt/UNVHPgzmg=",
+        "owner": "rokokol",
+        "repo": "3x-ui-admin-skill",
+        "rev": "f75ddbec811440aec459dde9d50f626e90ed6049",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "3x-ui-admin-skill",
+        "type": "github"
+      }
+    },
+    "skill-ai-commit-trailers": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1790113644,
+        "narHash": "sha256-iOuf5CcnTfaJpuFNtEZb2VCy6ICGo8cyxBThLOxrEe0=",
+        "owner": "rokokol",
+        "repo": "ai-commit-trailers-skill",
+        "rev": "2a6ede688986b13500aca699ba6066d005de1663",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "ai-commit-trailers-skill",
+        "type": "github"
+      }
+    },
+    "skill-bash-best-practices": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792402893,
+        "narHash": "sha256-5ZM1UtBPrMBUpPQO9z1dDi8UEDoWROfxl2BgnITYHSs=",
+        "owner": "rokokol",
+        "repo": "bash-best-practices-skill",
+        "rev": "1045482d25b5f2ec63655c62a45ca3961317c00d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "bash-best-practices-skill",
+        "type": "github"
+      }
+    },
+    "skill-ci": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792447164,
+        "narHash": "sha256-Sx+WeWob0Qj7s4H0tTEFd2dCQ1A9OSIDePCHqofVJ8I=",
+        "owner": "rokokol",
+        "repo": "ci-skill",
+        "rev": "2fd1ba2e37b9a1938bee26e204751704de3ce620",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "ci-skill",
+        "type": "github"
+      }
+    },
+    "skill-close-session": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1790085800,
+        "narHash": "sha256-kEpIPTxSs076qRYb/7silmH8ox/b+WKlJVz8qCpbn9A=",
+        "owner": "rokokol",
+        "repo": "close-session-skill",
+        "rev": "d57063ceab69ebcc7c77805dfcd5b79b5310ffa6",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "close-session-skill",
+        "type": "github"
+      }
+    },
+    "skill-code-comments": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792402962,
+        "narHash": "sha256-PMw/kloPJhGPY0Db25+q/jHfJWDnCpzs69c0OlFOURc=",
+        "owner": "rokokol",
+        "repo": "code-comments-skill",
+        "rev": "89e1945565b9dd82a84992a90ba32d7db17d5a01",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "code-comments-skill",
+        "type": "github"
+      }
+    },
+    "skill-contributing": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792740280,
+        "narHash": "sha256-ejNrsrOna0i2Rcv6azGpcJKUPx+F5xHJTqqnJwmxrOA=",
+        "owner": "rokokol",
+        "repo": "contributing-skill",
+        "rev": "a1ea0c25a2cfa40160616dc39f2974d020ab9c7b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "contributing-skill",
+        "type": "github"
+      }
+    },
+    "skill-create-readme": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792403062,
+        "narHash": "sha256-wNq7mqP/tImUSWe0AE8NLUopSW4pqeys22JiiDrecCY=",
+        "owner": "rokokol",
+        "repo": "create-readme-skill",
+        "rev": "613639eb6ec2a73209bb1f7d1ba103e9d1c90db7",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "create-readme-skill",
+        "type": "github"
+      }
+    },
+    "skill-headless-gui": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792616015,
+        "narHash": "sha256-daYx3fIcvFV6S9vUcrLRDsL47mDgx0RGX7mgbPD6SNk=",
+        "owner": "rokokol",
+        "repo": "headless-gui-skill",
+        "rev": "4b330fe693ed5ac30c64dbde5cfd007de3c0f067",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "headless-gui-skill",
+        "type": "github"
+      }
+    },
+    "skill-huix-standard": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792401745,
+        "narHash": "sha256-ML4/wFvobVYLVMjNfxu6u/HS8IyBHihS9MpyY2p9hB0=",
+        "owner": "rokokol",
+        "repo": "huix-standard-skill",
+        "rev": "6ff31c16f55c92dd55d48a667cff0393e277c2f2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "huix-standard-skill",
+        "type": "github"
+      }
+    },
+    "skill-maintainer-docs": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1790688103,
+        "narHash": "sha256-+Pf7Nm0zi7S1eyc07oR4PfFk6CyZtauddg/JkUra6JM=",
+        "owner": "rokokol",
+        "repo": "maintainer-docs-skill",
+        "rev": "a443cc6320295cd99c32e6b19c67f3919347b6b0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "maintainer-docs-skill",
+        "type": "github"
+      }
+    },
+    "skill-nix-best-practices": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1792493001,
+        "narHash": "sha256-QbItrBvWz+y+R/ecXc94Jy3fMh11U0Ao2CLlRY9ThNk=",
+        "owner": "rokokol",
+        "repo": "nix-best-practices-skill",
+        "rev": "a1238b481d5f377ae8eb24fe9b039d39eb0956e9",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "nix-best-practices-skill",
+        "type": "github"
+      }
+    },
+    "skill-obsidian-cli": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792401823,
+        "narHash": "sha256-xmy6XY2a1eY/UihhPjqo35RfBY9p9+opjadpYBmz+9E=",
+        "owner": "rokokol",
+        "repo": "obsidian-cli-skill",
+        "rev": "8f6ba83cd06be46c4525050731e9f7f1be06b1a0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "obsidian-cli-skill",
+        "type": "github"
+      }
+    },
+    "skill-phone-alert": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792413871,
+        "narHash": "sha256-8pOn9nERuBTcSPTBp2dspKSrk+lL4fZeEIK8ww7UfYc=",
+        "owner": "rokokol",
+        "repo": "phone-alert-skill",
+        "rev": "97e85d14fed45dedb7a5df123f28470bd65658d7",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "phone-alert-skill",
+        "type": "github"
+      }
+    },
+    "skill-skill-authoring": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792068350,
+        "narHash": "sha256-z33yHqxP9zCym1gvkzX7C622mVuKui8vnUJOJD6Pl3s=",
+        "owner": "rokokol",
+        "repo": "skill-authoring-skill",
+        "rev": "9f431bc8c3f5cbcba09363827c4ca81aec847b21",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "skill-authoring-skill",
+        "type": "github"
+      }
+    },
+    "skill-super-productivity": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792626134,
+        "narHash": "sha256-m+2q0TffpaWy4oG3lXUmylQlu2uuvTUub86TImqUJ7k=",
+        "owner": "rokokol",
+        "repo": "super-productivity-skill",
+        "rev": "b6149d51b76acd3851d87f6de81b1eb1df8711d4",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "super-productivity-skill",
+        "type": "github"
+      }
+    },
+    "skill-termux-api": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792413871,
+        "narHash": "sha256-/VA7gNaiQUfoYyI4JaH7L+ishuo9dmgzhiNQREiCnmY=",
+        "owner": "rokokol",
+        "repo": "termux-api-skill",
+        "rev": "a116422fb6793a53141e59e226552049f8d9057e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "termux-api-skill",
+        "type": "github"
+      }
+    },
+    "skill-tests": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792677161,
+        "narHash": "sha256-SH8EfwBANL8q4roorGlTDdXkr6ibQoRJ4ufNQNFkXgY=",
+        "owner": "rokokol",
+        "repo": "tests-skill",
+        "rev": "9fcde010a74664014fdd1bf54cad3dc47b565430",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "tests-skill",
+        "type": "github"
+      }
+    },
+    "skill-versioning": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792405645,
+        "narHash": "sha256-KuodiCrw5qoLzdj6rVMhgwHGS7WSn4AlzfXk+8Bz0jw=",
+        "owner": "rokokol",
+        "repo": "versioning-skill",
+        "rev": "7b23556ab1c61272ba5ec30c94f91824644b3610",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "versioning-skill",
         "type": "github"
       }
     },

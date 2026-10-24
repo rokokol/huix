@@ -15,8 +15,12 @@ in
     ./programs/agents/claude.nix
     ./programs/agents/dav-mcp.nix
     ./programs/agents/mail-skill.nix
+    ./programs/agents/skills.nix
     ./programs/agents/telegram-skill.nix
   ];
+
+  # It talks to a Super Productivity that runs on a workstation, which the station cannot reach
+  rokokol.skills.exclude = [ "super-productivity" ];
 
   home.stateVersion = osConfig.system.stateVersion;
 

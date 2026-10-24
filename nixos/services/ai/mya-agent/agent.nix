@@ -59,10 +59,6 @@ let
         # answer in Telegram
         allow = [ "Read(//**)" ];
       };
-      # The skill reaches the owner's own account, and this session speaks through its bot
-      skillOverrides.telegram = "off";
-      # It talks to a Super Productivity that runs on a workstation, which the station cannot reach
-      skillOverrides.super-productivity = "off";
       enabledPlugins = {
         # The owner keeps it on the workstations only
         "cc-plugin-you-should-know@builtin" = false;
