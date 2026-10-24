@@ -241,43 +241,44 @@ grep -c 'hidden' "$(nix build --no-link --print-out-paths .#nixosConfigurations.
 
 ---
 
-## yazi folds leader groups in its which popup
+## yazi builds chords from Lua tables
 
-**Where:** `patches/yazi-which-groups.patch`, applied by `overlays/yazi.nix` to `yazi-unwrapped` on every host, for the group labels that `home-manager/programs/yazi/keymap.nix` adds to the keymap, the `[which] fold` that `home-manager/programs/yazi/yazi.nix` turns on, and the check in `home-manager/programs/yazi/init.lua` that keeps the labels
+**Where:** `patches/yazi-chord-tables.patch`, applied by `overlays/yazi.nix` to `yazi-unwrapped` on every host after the langmap patch, for the `which-delay` and `which-fold` plugins in `home-manager/programs/yazi/plugins/`
 
-**Symptom it prevents:** `Space` opens a popup with every leader chord in one flat list, three columns of them, instead of one row a group as nixvim's which-key shows. yazi has no group in its keymap and no way to name one
+**Symptom it prevents:** on 26.9.1 neither plugin works. which-delay hides the popup and cannot show it again, because `ya.emit()` refuses the chords of `cx.which.cands` (`unsupported value included`). which-fold returns its group rows as tables, the core refuses them, and the leader key is lost
 
-**Why this works:** the patch makes `run` optional. A chord without it labels the group its keys open, and is never run. With `[which] fold = true`, the popup folds the chords that need more than one key after the next one into a row under that key, with the label; the option is off by default, so a keymap without labels looks as before
+**Why this works:** the patch carries sxyazi/yazi#4391, merged after 26.9.1, and the three commits of branch `chord-from-lua` of the yazi clone. A chord now comes from a Lua table whose keys are strings or `Key` tables, through `ya.emit()` too, and reusing a chord or an action in Lua no longer destroys it. The patch is `git diff` between the langmap commit and the head of branch `huix-26.9.1`, which stacks the same commits on the release
 
-**Removal check:** look for group labels in yazi as nixpkgs ships it
+**Removal check:** look for the conversion in yazi as nixpkgs ships it
 
 ```sh
-grep -c 'is_label' "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.yazi-unwrapped.srcs.code_src)/yazi-config/src/keymap/chord.rs"
+grep -c 'seq_from_lua' "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.yazi-unwrapped.srcs.code_src)/yazi-config/src/keymap/key.rs"
 ```
 
-`0` -> keep the patch. Anything else -> yazi has its own groups; drop the patch and the overlay line, match how it names a group against `keymap.nix`, then press `Space`
+`0` -> keep the patch. Anything else -> yazi converts tables itself; drop the patch and the overlay line, then press `Space`, wait for the popup and open a group. When the conversion lands under another name, rewrite the check to look for it
 
-**Upstream:** [sxyazi/yazi#4380](https://github.com/sxyazi/yazi/pull/4380), from branch `which-groups` of `rokokol/yazi`, closed without a merge; the design is discussed in [sxyazi/yazi#3774](https://github.com/sxyazi/yazi/issues/3774), where the maintainer prefers a plugin
+**Upstream:** the design is in [sxyazi/yazi#3774](https://github.com/sxyazi/yazi/issues/3774), where the maintainer asked for a conversion from a Lua table to a chord; the code waits on branch `chord-from-lua`
 
 ---
 
-## yazi waits before its which popup
+## which-delay and which-fold live here
 
-**Where:** `patches/yazi-which-delay.patch`, applied by `overlays/yazi.nix` to `yazi-unwrapped` on every host after the groups patch, for the `[which] delay` that `home-manager/programs/yazi/yazi.nix` sets from `whichKeyDelay` in `flake.nix`
+**Where:** `home-manager/programs/yazi/plugins/which-delay` and `home-manager/programs/yazi/plugins/which-fold`, set up in `home-manager/programs/yazi/keymap.nix`, which also holds the group names
 
-**Symptom it prevents:** the popup flashes on every leader chord, however fast it is typed, where nixvim's which-key shows it only when a key is not followed quickly. yazi shows it at once
+**Symptom it prevents:** `Space` opens a popup at once, with every leader chord in one flat list, where nixvim's which-key waits and shows one row a group. The maintainer keeps both out of the core and asked for plugins in [sxyazi/yazi#3774](https://github.com/sxyazi/yazi/issues/3774)
 
-**Why this works:** with a delay above 0, a popup the keymap opens starts silent and a timer reveals it, unless the chord ends or another starts first, both of which abort the timer; a popup a plugin asks for shows at once. yazi 26 lets a plugin hold the popup back through the `ind-which-activate` hook, but a plugin cannot put it back: `ya.emit()` refuses the chords `cx.which.cands` hands it (`unsupported value included`), so the example in [sxyazi/yazi#3617](https://github.com/sxyazi/yazi/pull/3617) fails on 26.9.1
+**Why this works:** which-delay hides the popup through the `ind-which-activate` event and shows it after a timeout, unless a newer key press owns it. which-fold puts one row for each group in the popup, and the key of that row opens the group as a new popup. The two share the event table: which-fold opens a group hidden while which-delay still hides its parent. which-delay is a byte copy of branch `which-delay` of the yazi-rs/plugins clone. The cost: keys that arrive in one burst, as from a paste, can reach the file list before a group opens; typed keys 10 ms apart do not
 
-**Removal check:** look for the option in yazi as nixpkgs ships it
+**Removal check:** look for each plugin in nixpkgs
 
 ```sh
-grep -c 'delay' "$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.yazi-unwrapped.srcs.code_src)/yazi-config/src/which/which.rs"
+nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.yaziPlugins.which-delay.version
+nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.yaziPlugins.which-fold.version
 ```
 
-`0` -> keep the patch. Anything else -> yazi has its own delay; drop the patch and the overlay line, match the option against `yazi.nix`, then press `Space` and wait for the popup
+An error -> keep the local copy. A version -> take the package in `keymap.nix` in place of `ownPlugin`, delete the directory, and check that the setup options did not change
 
-**Upstream:** proposed in [sxyazi/yazi#3774](https://github.com/sxyazi/yazi/issues/3774); the maintainer declined it for the core on 2026-10-05 and suggested a plugin, which can hide the popup through the `ind-which-activate` event and draw its own after a delay
+**Upstream:** which-delay goes to yazi-rs/plugins, as the maintainer suggested; which-fold follows once the core change above is released
 
 ---
 

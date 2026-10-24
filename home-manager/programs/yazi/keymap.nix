@@ -5,6 +5,7 @@
   osConfig,
   huixDir,
   ruLayout,
+  whichKeyDelay,
   ...
 }:
 
@@ -25,15 +26,9 @@ let
 
   bind = on: run: desc: { inherit on run desc; };
 
-  # A chord without `run` names the leader group its keys open, for the which popup to fold
-  # the group under (patches/yazi-which-groups.patch); the names follow nixvim's where the
-  # groups match
-  label = keys: desc: {
-    on = leader keys;
-    inherit desc;
-  };
-
-  labels = lib.mapAttrsToList label (
+  # The names which-fold gives the leader groups in the which popup, keyed by the keys that open
+  # each group; the names follow nixvim's where the groups match
+  groups = lib.mapAttrs' (keys: lib.nameValuePair (lib.concatStrings (leader keys))) (
     {
       a = "Archive";
       f = "Find";
@@ -179,6 +174,18 @@ in
           package = ownPlugin "archive-mount";
           setup = true;
         };
+        # The which popup waits as long as nixvim's which-key does, and folds each leader group
+        # under its name (see WORKAROUNDS.md)
+        which-delay = {
+          package = ownPlugin "which-delay";
+          setup = true;
+          settings.timeout = whichKeyDelay;
+        };
+        which-fold = {
+          package = ownPlugin "which-fold";
+          setup = true;
+          settings = { inherit groups; };
+        };
       }
       // lib.optionalAttrs snapshots { inherit (pkgs.yaziPlugins) time-travel; }
       // lib.optionalAttrs workstation {
@@ -313,7 +320,6 @@ in
       ]
       ++ bookmarkBinds
       ++ sortBinds
-      ++ linemodeBinds
-      ++ labels;
+      ++ linemodeBinds;
   };
 }

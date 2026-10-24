@@ -1,0 +1,341 @@
+diff --git a/yazi-actor/src/lives/which.rs b/yazi-actor/src/lives/which.rs
+index 3b2aa93..96adc5a 100644
+--- a/yazi-actor/src/lives/which.rs
++++ b/yazi-actor/src/lives/which.rs
+@@ -24,6 +24,7 @@ impl Which {
+ impl UserData for Which {
+ 	fn add_fields<F: UserDataFields<Self>>(fields: &mut F) {
+ 		fields.add_cached_field("tx", |_, me| Ok(me.tx.clone().map(yazi_binding::MpscUnboundedTx)));
++		fields.add_field_method_get("layer", |_, me| Ok(me.inner.layer));
+ 		fields.add_cached_field("cands", |lua, me| {
+ 			lua.create_sequence_from(me.inner.cands.iter().cloned())
+ 		});
+diff --git a/yazi-config/src/keymap/chord.rs b/yazi-config/src/keymap/chord.rs
+index 34f7f06..ee4c932 100644
+--- a/yazi-config/src/keymap/chord.rs
++++ b/yazi-config/src/keymap/chord.rs
+@@ -1,12 +1,12 @@
+ use std::{borrow::Cow, hash::{Hash, Hasher}, sync::{Arc, OnceLock}};
+ 
+-use mlua::{ExternalError, FromLua, IntoLua, Lua, Table, Value};
++use mlua::{ExternalError, FromLua, IntoLua, Lua, LuaSerdeExt, Table, Value};
+ use regex::Regex;
+ use serde::{Deserialize, Deserializer, de};
+-use serde_with::{DeserializeAs, DisplayFromStr, OneOrMany};
++use serde_with::{DeserializeAs, OneOrMany, Same};
+ use yazi_binding::Iter;
+ use yazi_codegen::DeserializeOver2;
+-use yazi_shared::{event::{Actions, deserialize_actions}, id::Id};
++use yazi_shared::{Source, event::{Actions, deserialize_actions}, id::Id};
+ 
+ use super::{Key, ids::chord_id};
+ use crate::{Mixable, Platform, keymap::{ChordArc, Chords}};
+@@ -80,11 +80,34 @@ impl Mixable for Chord {
+ 	fn filter(&self) -> bool { self.r#for.matches() && !self.noop() }
+ }
+ 
++impl FromLua for Chord {
++	fn from_lua(value: Value, lua: &Lua) -> mlua::Result<Self> {
++		let t = Table::from_lua(value, lua)?;
++
++		let on = Key::seq_from_lua(t.raw_get("on")?, lua)?;
++		if on.is_empty() {
++			return Err("'on' cannot be empty".into_lua_err());
++		}
++
++		let mut run: Actions = t.raw_get("run")?;
++		run.set_source(Source::Key);
++
++		let r#for: Option<Platform> = lua.from_value(t.raw_get("for")?)?;
++		Ok(Self {
++			id: chord_id(),
++			on,
++			run,
++			desc: t.raw_get::<Option<String>>("desc")?.unwrap_or_default(),
++			r#for: r#for.unwrap_or_default(),
++		})
++	}
++}
++
+ fn deserialize_on<'de, D>(deserializer: D) -> Result<Vec<Key>, D::Error>
+ where
+ 	D: Deserializer<'de>,
+ {
+-	let keys: Vec<Key> = OneOrMany::<DisplayFromStr>::deserialize_as(deserializer)?;
++	let keys: Vec<Key> = OneOrMany::<Same>::deserialize_as(deserializer)?;
+ 	if keys.is_empty() {
+ 		return Err(de::Error::custom("'on' cannot be empty"));
+ 	}
+diff --git a/yazi-config/src/keymap/chord_arc.rs b/yazi-config/src/keymap/chord_arc.rs
+index 8b81a8e..3aea534 100644
+--- a/yazi-config/src/keymap/chord_arc.rs
++++ b/yazi-config/src/keymap/chord_arc.rs
+@@ -2,7 +2,8 @@ use std::{ops::{Deref, DerefMut}, sync::Arc};
+ 
+ use mlua::{FromLua, Lua, UserData, UserDataFields, Value};
+ use serde::Deserialize;
+-use yazi_shared::{Layer, event::ActionCow};
++use yazi_macro::impl_data_any;
++use yazi_shared::{Layer, data::Data, event::ActionCow};
+ use yazi_shim::mlua::UserDataFieldsExt;
+ 
+ use crate::{Mixable, keymap::Chord};
+@@ -11,6 +12,8 @@ use crate::{Mixable, keymap::Chord};
+ #[derive(Clone, Debug, Default, Deserialize)]
+ pub struct ChordArc(Arc<Chord>);
+ 
++impl_data_any!(ChordArc, from_into_lua = inherit);
++
+ impl Deref for ChordArc {
+ 	type Target = Arc<Chord>;
+ 
+@@ -76,15 +79,32 @@ impl ChordArc {
+ 	}
+ }
+ 
++impl TryFrom<Data> for ChordArc {
++	type Error = anyhow::Error;
++
++	fn try_from(value: Data) -> Result<Self, Self::Error> {
++		match value {
++			Data::Any(_) => value.into_any2(),
++			_ => Ok(Chord::deserialize(value)?.into()),
++		}
++	}
++}
++
++impl TryFrom<&Data> for ChordArc {
++	type Error = anyhow::Error;
++
++	fn try_from(value: &Data) -> Result<Self, Self::Error> { value.clone().try_into() }
++}
++
+ impl Mixable for ChordArc {
+ 	fn filter(&self) -> bool { self.0.filter() }
+ }
+ 
+ impl FromLua for ChordArc {
+-	fn from_lua(value: Value, _: &Lua) -> mlua::Result<Self> {
++	fn from_lua(value: Value, lua: &Lua) -> mlua::Result<Self> {
+ 		Ok(match value {
+-			Value::UserData(ud) => ud.take()?,
+-			_ => Chord::deserialize(mlua::serde::Deserializer::new(value))?.into(),
++			Value::UserData(ud) => ud.borrow::<Self>()?.clone(),
++			_ => Chord::from_lua(value, lua)?.into(),
+ 		})
+ 	}
+ }
+diff --git a/yazi-config/src/keymap/key.rs b/yazi-config/src/keymap/key.rs
+index 024346a..0e0d5f7 100644
+--- a/yazi-config/src/keymap/key.rs
++++ b/yazi-config/src/keymap/key.rs
+@@ -1,13 +1,14 @@
+-use std::{fmt::{Display, Write}, str::FromStr};
++use std::{fmt::{self, Display, Write}, str::FromStr};
+ 
+ use anyhow::bail;
+ use hashbrown::HashMap;
+-use mlua::{IntoLua, Lua, LuaSerdeExt, Value};
+-use serde::{Deserialize, Serialize};
++use mlua::{ExternalError, FromLua, IntoLua, Lua, LuaSerdeExt, Value};
++use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
+ use yazi_shim::mlua::SER_OPT;
+ use yazi_term::event::{KeyCode, KeyEvent, Modifiers};
+ 
+ #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
++#[serde(remote = "Self")]
+ pub struct Key {
+ 	#[serde(flatten)]
+ 	pub code: KeyCode,
+@@ -203,6 +204,48 @@ impl Display for Key {
+ 	}
+ }
+ 
++impl<'de> Deserialize<'de> for Key {
++	fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
++		struct Visitor;
++
++		impl<'de> de::Visitor<'de> for Visitor {
++			type Value = Key;
++
++			fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
++				f.write_str("a key string or a table of Key")
++			}
++
++			fn visit_str<E: de::Error>(self, s: &str) -> Result<Key, E> { s.parse().map_err(E::custom) }
++
++			fn visit_map<A: de::MapAccess<'de>>(self, map: A) -> Result<Key, A::Error> {
++				Key::deserialize(de::value::MapAccessDeserializer::new(map))
++			}
++		}
++
++		deserializer.deserialize_any(Visitor)
++	}
++}
++
++impl Serialize for Key {
++	fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
++		Self::serialize(self, serializer)
++	}
++}
++
++impl Key {
++	pub fn seq_from_lua(value: Value, lua: &Lua) -> mlua::Result<Vec<Self>> {
++		match value {
++			Value::String(_) => Ok(vec![Self::from_lua(value, lua)?]),
++			Value::Table(_) => Vec::from_lua(value, lua),
++			_ => Err("expected a string or a table of keys".into_lua_err()),
++		}
++	}
++}
++
++impl FromLua for Key {
++	fn from_lua(value: Value, lua: &Lua) -> mlua::Result<Self> { lua.from_value(value) }
++}
++
+ impl IntoLua for Key {
+ 	fn into_lua(self, lua: &Lua) -> mlua::Result<Value> { lua.to_value_with(&self, SER_OPT) }
+ }
+diff --git a/yazi-core/src/which/option.rs b/yazi-core/src/which/option.rs
+index 973ea52..76a7ee5 100644
+--- a/yazi-core/src/which/option.rs
++++ b/yazi-core/src/which/option.rs
+@@ -25,8 +25,8 @@ impl TryFrom<ActionCow> for WhichOpt {
+ 
+ 		Ok(Self {
+ 			tx:     a.take_any2("tx").transpose()?,
+-			layer:  a.str("layer").parse()?,
+-			cands:  a.take_any_iter().collect(),
++			layer:  a.get("layer")?,
++			cands:  a.take_seq(),
+ 			times:  a.get("times").unwrap_or(0),
+ 			silent: a.bool("silent"),
+ 		})
+diff --git a/yazi-plugin/src/utils/layer.rs b/yazi-plugin/src/utils/layer.rs
+index a4e1c6e..d7c1bab 100644
+--- a/yazi-plugin/src/utils/layer.rs
++++ b/yazi-plugin/src/utils/layer.rs
+@@ -1,6 +1,6 @@
+-use std::{str::FromStr, time::Duration};
++use std::time::Duration;
+ 
+-use mlua::{ExternalError, Function, IntoLuaMulti, Lua, LuaString, Table, Value};
++use mlua::{ExternalError, Function, IntoLuaMulti, Lua, Table};
+ use tokio_stream::wrappers::UnboundedReceiverStream;
+ use yazi_binding::{elements::{Line, Text}, runtime};
+ use yazi_config::{Platform, keymap::{Chord, ChordArc, Key}, popup::ConfirmCfg};
+@@ -27,7 +27,7 @@ impl Utils {
+ 					let cand = cand?;
+ 					Ok(ChordArc::from(Chord {
+ 						id:    yazi_config::keymap::chord_id(),
+-						on:    Self::parse_keys(cand.raw_get("on")?)?,
++						on:    Key::seq_from_lua(cand.raw_get("on")?, &lua)?,
+ 						run:   relay!(which:callback, [i + 1]).into(),
+ 						desc:  cand.raw_get("desc").unwrap_or_default(),
+ 						r#for: Platform::All,
+@@ -91,20 +91,4 @@ impl Utils {
+ 	pub(super) fn notify(lua: &Lua) -> mlua::Result<Function> {
+ 		lua.create_function(|_, opt: MessageOpt| Ok(NotifyProxy::push(opt)))
+ 	}
+-
+-	fn parse_keys(value: Value) -> mlua::Result<Vec<Key>> {
+-		Ok(match value {
+-			Value::String(s) => {
+-				vec![Key::from_str(&s.to_str()?)?]
+-			}
+-			Value::Table(t) => {
+-				let mut v = Vec::with_capacity(10);
+-				for s in t.sequence_values::<LuaString>() {
+-					v.push(Key::from_str(&s?.to_str()?)?);
+-				}
+-				v
+-			}
+-			_ => Err("invalid `on`".into_lua_err())?,
+-		})
+-	}
+ }
+diff --git a/yazi-shared/src/event/action.rs b/yazi-shared/src/event/action.rs
+index 7f6faa0..b2531ab 100644
+--- a/yazi-shared/src/event/action.rs
++++ b/yazi-shared/src/event/action.rs
+@@ -220,10 +220,6 @@ impl Action {
+ 		self.args.remove(&name.into()).map(Data::into_any2)
+ 	}
+ 
+-	pub(crate) fn take_any_iter<T: 'static>(&mut self) -> impl Iterator<Item = T> {
+-		(0..self.len()).filter_map(|i| self.args.remove(&DataKey::from(i))?.into_any())
+-	}
+-
+ 	pub(crate) fn take_replier(&mut self) -> Option<Replier> {
+ 		let replier: Replier = self.take_any("replier")?;
+ 		replier.claim();
+@@ -271,7 +267,7 @@ impl FromLua for Action {
+ 	fn from_lua(value: Value, _: &Lua) -> mlua::Result<Self> {
+ 		Ok(match value {
+ 			Value::String(s) => s.to_str()?.parse()?,
+-			Value::UserData(ud) => ud.take()?,
++			Value::UserData(ud) => ud.borrow::<Self>()?.clone(),
+ 			_ => Err(mlua::Error::FromLuaConversionError {
+ 				from:    value.type_name(),
+ 				to:      "Action".to_owned(),
+diff --git a/yazi-shared/src/event/action_cow.rs b/yazi-shared/src/event/action_cow.rs
+index 7133ac8..d2e01a4 100644
+--- a/yazi-shared/src/event/action_cow.rs
++++ b/yazi-shared/src/event/action_cow.rs
+@@ -1,4 +1,4 @@
+-use std::{iter, ops::Deref};
++use std::ops::Deref;
+ 
+ use anyhow::Result;
+ use serde::de::DeserializeOwned;
+@@ -108,13 +108,6 @@ impl ActionCow {
+ 		}
+ 	}
+ 
+-	pub fn take_any_iter<'a, T: 'static>(&'a mut self) -> Box<dyn Iterator<Item = T> + 'a> {
+-		match self {
+-			Self::Owned(c) => Box::new(c.take_any_iter()),
+-			Self::Borrowed(_) => Box::new(iter::empty()),
+-		}
+-	}
+-
+ 	pub fn take_replier(&mut self) -> Option<Replier> {
+ 		match self {
+ 			Self::Owned(c) => c.take_replier(),
+diff --git a/yazi-shared/src/layer.rs b/yazi-shared/src/layer.rs
+index bb6c122..303b9fc 100644
+--- a/yazi-shared/src/layer.rs
++++ b/yazi-shared/src/layer.rs
+@@ -1,8 +1,12 @@
++use anyhow::anyhow;
+ use mlua::{ExternalError, ExternalResult, FromLua, Lua, MetaMethod, UserData, UserDataMethods, Value};
+ use serde::Deserialize;
+ use strum::{Display, EnumString, FromRepr, IntoStaticStr};
++use yazi_macro::impl_data_any;
+ use yazi_shim::strum::IntoStr;
+ 
++use crate::data::Data;
++
+ #[derive(
+ 	Clone,
+ 	Copy,
+@@ -36,6 +40,19 @@ pub enum Layer {
+ 	Notify,
+ }
+ 
++impl_data_any!(Layer, from_into_lua = inherit);
++
++impl TryFrom<&Data> for Layer {
++	type Error = anyhow::Error;
++
++	fn try_from(value: &Data) -> Result<Self, Self::Error> {
++		match value {
++			Data::String(s) => Ok(s.parse()?),
++			_ => value.as_any().copied().ok_or_else(|| anyhow!("expected a Layer")),
++		}
++	}
++}
++
+ impl Layer {
+ 	pub fn or(self, other: Self) -> Self { if self == Self::Null { other } else { self } }
+ }
