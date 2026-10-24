@@ -348,6 +348,7 @@
           overlays.which-key
           overlays.wl-clipboard-rs
           overlays.dav-mcp
+          overlays.freecad-mcp
           nix-matlab.overlay
         ];
       };
@@ -365,6 +366,7 @@
           overlays.which-key
           overlays.wl-clipboard-rs
           overlays.dav-mcp
+          overlays.freecad-mcp
         ];
       };
 

@@ -2,6 +2,7 @@
   imports = [
     ./agents/default.nix
     ./cli/default.nix
+    ./freecad.nix
     ./ghidra.nix
     ./language-servers.nix
     ./nixvim/default.nix

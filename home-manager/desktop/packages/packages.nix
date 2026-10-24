@@ -35,7 +35,6 @@ in
           chromium
           evince
           fragments
-          freecad
           geary
           gnome-disk-utility
           obs-studio
