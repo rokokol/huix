@@ -24,6 +24,9 @@ let
       });
   # ReVa's source carries the skills that drive it, so they come at the revision of the extension
   revaSkills = "${reva.src}/ReVa/skills";
+  skills = lib.mapAttrs (name: _: "${revaSkills}/${name}") (
+    lib.filterAttrs (_: type: type == "directory") (builtins.readDir revaSkills)
+  );
 in
 {
   options.rokokol.ghidra = {
@@ -63,8 +66,10 @@ in
     # It answers only while Ghidra runs
     programs.mcp.servers.ghidra.url = "http://localhost:${toString cfg.port}/mcp/message";
 
-    rokokol.agents.skills = lib.mapAttrs (name: _: "${revaSkills}/${name}") (
-      lib.filterAttrs (_: type: type == "directory") (builtins.readDir revaSkills)
-    );
+    rokokol.agents = {
+      inherit skills;
+      skillGroups = lib.mapAttrs (_: _: "reversing") skills;
+      mcpGroups.ghidra = "reversing";
+    };
   };
 }

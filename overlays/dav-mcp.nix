@@ -1,4 +1,4 @@
-_:
+{ inputs, ... }:
 # dav-mcp is not in nixpkgs. It is plain JavaScript with no build step, so the package is its
 # sources and their locked node_modules
 _final: prev: {
@@ -6,14 +6,10 @@ _final: prev: {
     pname = "dav-mcp";
     version = "5.0.0";
 
-    src = prev.fetchFromGitHub {
-      owner = "PhilflowIO";
-      repo = "dav-mcp";
-      tag = "v${finalAttrs.version}";
-      hash = "sha256-JHtJpZH/UTo3H4EEpwR75RXqrnX8885lb+TBmyDsFaY=";
-    };
+    src = inputs.dav-mcp;
 
-    npmDepsHash = "sha256-vJ8B01MwQmL3kHTCtLrQ+YJGvAflnY1zkkLmethvn1k=";
+    npmDeps = prev.importNpmLock { npmRoot = inputs.dav-mcp; };
+    npmConfigHook = prev.importNpmLock.npmConfigHook;
     dontNpmBuild = true;
 
     meta = {

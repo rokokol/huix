@@ -1,5 +1,21 @@
 {
   "nodes": {
+    "anatomy": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792354824,
+        "narHash": "sha256-v6g6CBGc5p95wdyLJ+UeBuUtX4PMZza31mCz8tvhBjM=",
+        "owner": "wheresryan22",
+        "repo": "anatomy",
+        "rev": "1482e8469b0a9e0d8cc18ea2740a01423d29ae80",
+        "type": "github"
+      },
+      "original": {
+        "owner": "wheresryan22",
+        "repo": "anatomy",
+        "type": "github"
+      }
+    },
     "aquamarine": {
       "inputs": {
         "hyprutils": [
@@ -56,6 +72,38 @@
         "type": "github"
       }
     },
+    "audacity-mcp": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792792715,
+        "narHash": "sha256-nFfjBcmKmO+ywQtdMuT8zlrV8XaTh5wp8AjD+tbDiWU=",
+        "owner": "xDarkzx",
+        "repo": "Audacity-MCP",
+        "rev": "e198f83210f8b70639e540f132e608f737778e1d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "xDarkzx",
+        "repo": "Audacity-MCP",
+        "type": "github"
+      }
+    },
+    "blender-mcp": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792817415,
+        "narHash": "sha256-8D3DWeGAcffqwi0VUIpkoTLMzhG39CWj9OeaeRlT9OA=",
+        "owner": "ahujasid",
+        "repo": "blender-mcp",
+        "rev": "febcd90ece59c3416d7c55fd3723cea46bcaa59d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ahujasid",
+        "repo": "blender-mcp",
+        "type": "github"
+      }
+    },
     "claude-account": {
       "inputs": {
         "nixpkgs": [
@@ -89,6 +137,23 @@
       "original": {
         "owner": "KKV9",
         "repo": "compress.yazi",
+        "type": "github"
+      }
+    },
+    "dav-mcp": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791580238,
+        "narHash": "sha256-JHtJpZH/UTo3H4EEpwR75RXqrnX8885lb+TBmyDsFaY=",
+        "owner": "PhilflowIO",
+        "repo": "dav-mcp",
+        "rev": "3a2c079b35577d38e4eb1163248858e80f87621f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "PhilflowIO",
+        "ref": "v5.0.0",
+        "repo": "dav-mcp",
         "type": "github"
       }
     },
@@ -256,6 +321,22 @@
         "type": "github"
       }
     },
+    "ex-ussr-kinship-research": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1793012655,
+        "narHash": "sha256-K9ibWMPBuqqn9mulbyrhHELlQYxsaS+6i1+kx/lakCo=",
+        "owner": "DenisSergeevitch",
+        "repo": "ex-ussr-kinship-research",
+        "rev": "038815d484c73af5c1c6b828faab803ef321a242",
+        "type": "github"
+      },
+      "original": {
+        "owner": "DenisSergeevitch",
+        "repo": "ex-ussr-kinship-research",
+        "type": "github"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -291,6 +372,27 @@
     "flake-parts": {
       "inputs": {
         "nixpkgs-lib": [
+          "hermes-agent",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1782949081,
+        "narHash": "sha256-vp6Y/Grm98ESt6ceOkWiHWyZRDV3J1RID4w+6NWK9yA=",
+        "owner": "hercules-ci",
+        "repo": "flake-parts",
+        "rev": "17c9d6cdfc60c64f4ee8d306f9bc0b4ccb51481e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hercules-ci",
+        "repo": "flake-parts",
+        "type": "github"
+      }
+    },
+    "flake-parts_2": {
+      "inputs": {
+        "nixpkgs-lib": [
           "nixvim",
           "nixpkgs"
         ]
@@ -306,6 +408,23 @@
       "original": {
         "owner": "hercules-ci",
         "repo": "flake-parts",
+        "type": "github"
+      }
+    },
+    "freecad-mcp": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791897238,
+        "narHash": "sha256-BGxa7+wa9QwiR1R2fs//ksMVfhzqklr0sybPwHYgIYQ=",
+        "owner": "neka-nat",
+        "repo": "freecad-mcp",
+        "rev": "78bf0230a03324b56c9a0b7f55150fb5be2a0d42",
+        "type": "github"
+      },
+      "original": {
+        "owner": "neka-nat",
+        "ref": "v0.1.27",
+        "repo": "freecad-mcp",
         "type": "github"
       }
     },
@@ -328,6 +447,51 @@
       "original": {
         "owner": "FreesmTeam",
         "repo": "FreesmLauncher",
+        "type": "github"
+      }
+    },
+    "gruvbox-gtk-theme": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1761253508,
+        "narHash": "sha256-RXoPj/aj9OCTIi8xWatG0QpDAUh102nFOipdSIiqt7o=",
+        "owner": "Fausto-Korpsvart",
+        "repo": "Gruvbox-GTK-Theme",
+        "rev": "578cd220b5ff6e86b078a6111d26bb20ec8c733f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Fausto-Korpsvart",
+        "repo": "Gruvbox-GTK-Theme",
+        "type": "github"
+      }
+    },
+    "hermes-agent": {
+      "inputs": {
+        "flake-parts": "flake-parts",
+        "home-manager": [
+          "home-manager"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "npm-lockfile-fix": "npm-lockfile-fix",
+        "pyproject-build-systems": "pyproject-build-systems",
+        "pyproject-nix": "pyproject-nix",
+        "uv2nix": "uv2nix"
+      },
+      "locked": {
+        "lastModified": 1792722267,
+        "narHash": "sha256-n6HfR4dydeITXx+ITkQr0l8LiKkUhZPVBvJu2ZwQxdk=",
+        "owner": "NousResearch",
+        "repo": "hermes-agent",
+        "rev": "bf0203a794a07aac3ff764972ab9087baa4e4f4e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NousResearch",
+        "ref": "v0.22.5",
+        "repo": "hermes-agent",
         "type": "github"
       }
     },
@@ -775,6 +939,22 @@
         "type": "github"
       }
     },
+    "kdenlive-mcp": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792877877,
+        "narHash": "sha256-jIK3fRIa5IoRXQm/sjR0FtBZ3eXTtbOsANx1c2PSg58=",
+        "owner": "crom-org",
+        "repo": "kdenlive-mcp-plus",
+        "rev": "d3f3c99b222180aec35972b8386438d145a829cc",
+        "type": "github"
+      },
+      "original": {
+        "owner": "crom-org",
+        "repo": "kdenlive-mcp-plus",
+        "type": "github"
+      }
+    },
     "libnbtplusplus": {
       "flake": false,
       "locked": {
@@ -896,11 +1076,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1791260994,
-        "narHash": "sha256-Miqqk/ammqnTUxaoCyvtwoPeLbI1ksFyLxi/CazZpWY=",
+        "lastModified": 1792773339,
+        "narHash": "sha256-rZLrzrC6i+jnTAlvPZHogKDulY7WWDEv9hJeHieO7Zw=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "151fa4e8ddfdd8dd25d945ad94ed54a13de9f6e4",
+        "rev": "3ec636362e1816bc2f0888fa0fa2c69f1bc9e504",
         "type": "github"
       },
       "original": {
@@ -928,7 +1108,7 @@
     },
     "nixvim": {
       "inputs": {
-        "flake-parts": "flake-parts",
+        "flake-parts": "flake-parts_2",
         "nixpkgs": "nixpkgs_3",
         "systems": "systems_2"
       },
@@ -946,21 +1126,58 @@
         "type": "github"
       }
     },
+    "npm-lockfile-fix": {
+      "inputs": {
+        "nixpkgs": [
+          "hermes-agent",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1775903712,
+        "narHash": "sha256-2GV79U6iVH4gKAPWYrxUReB0S41ty/Y3dBLquU8AlaA=",
+        "owner": "jeslie0",
+        "repo": "npm-lockfile-fix",
+        "rev": "c6093acb0c0548e0f9b8b3d82918823721930fe8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jeslie0",
+        "repo": "npm-lockfile-fix",
+        "type": "github"
+      }
+    },
+    "opus-sound-layer": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791620293,
+        "narHash": "sha256-zXvsypLSERwEK+mZDqMoOcKmafIRHXu2Zgbqp4XqyW4=",
+        "owner": "Bodila51",
+        "repo": "opus-sound-layer",
+        "rev": "52ac266a24b7dfd3cd06a28c34d5af360a8d7586",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Bodila51",
+        "repo": "opus-sound-layer",
+        "type": "github"
+      }
+    },
     "papers-skill": {
       "inputs": {
         "nixpkgs": [
           "nixpkgs"
         ],
-        "pyproject-build-systems": "pyproject-build-systems",
-        "pyproject-nix": "pyproject-nix",
-        "uv2nix": "uv2nix"
+        "pyproject-build-systems": "pyproject-build-systems_2",
+        "pyproject-nix": "pyproject-nix_2",
+        "uv2nix": "uv2nix_2"
       },
       "locked": {
-        "lastModified": 1792500975,
-        "narHash": "sha256-Q86pbqa8w5TrmPOW8yG/Xtdmv+q+ZHhVyt8NMh8MCBA=",
+        "lastModified": 1793036693,
+        "narHash": "sha256-Bx6etwOPvU1drMBot5Pxf51sxc1z/Nuzl1h60559E7o=",
         "owner": "rokokol",
         "repo": "papers-skill",
-        "rev": "5fe7758fd97ae4c94b280130bb8f13ce5f896b68",
+        "rev": "c6363fd8dd60f6f40e95a706bacc86122f022614",
         "type": "github"
       },
       "original": {
@@ -991,7 +1208,52 @@
         "type": "github"
       }
     },
+    "pyloudnorm": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1767526972,
+        "narHash": "sha256-47CU/veoOQYv5G1QBm3F+j7ltmVvcWSY4hQWtaC6WEI=",
+        "owner": "csteinmetz1",
+        "repo": "pyloudnorm",
+        "rev": "b8d67bfd3ce5deef872f688fcfa491a0ca69fddd",
+        "type": "github"
+      },
+      "original": {
+        "owner": "csteinmetz1",
+        "repo": "pyloudnorm",
+        "type": "github"
+      }
+    },
     "pyproject-build-systems": {
+      "inputs": {
+        "nixpkgs": [
+          "hermes-agent",
+          "nixpkgs"
+        ],
+        "pyproject-nix": [
+          "hermes-agent",
+          "pyproject-nix"
+        ],
+        "uv2nix": [
+          "hermes-agent",
+          "uv2nix"
+        ]
+      },
+      "locked": {
+        "lastModified": 1785115949,
+        "narHash": "sha256-8AM37BfyGaL2v/SZyg4PupRxJ01Y4htvM+WrTjWrPpo=",
+        "owner": "pyproject-nix",
+        "repo": "build-system-pkgs",
+        "rev": "62c0d86027edb1c4f39a5facc09876348144f7c9",
+        "type": "github"
+      },
+      "original": {
+        "owner": "pyproject-nix",
+        "repo": "build-system-pkgs",
+        "type": "github"
+      }
+    },
+    "pyproject-build-systems_2": {
       "inputs": {
         "nixpkgs": [
           "papers-skill",
@@ -1023,6 +1285,27 @@
     "pyproject-nix": {
       "inputs": {
         "nixpkgs": [
+          "hermes-agent",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1784591072,
+        "narHash": "sha256-zP/WaDxrRu8GANZM61+V2LT/7ycEEdoyLWn7M6WzU7M=",
+        "owner": "pyproject-nix",
+        "repo": "pyproject.nix",
+        "rev": "e3b599ca2e7fcf93d4edf65d7f19bbf6491724f3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "pyproject-nix",
+        "repo": "pyproject.nix",
+        "type": "github"
+      }
+    },
+    "pyproject-nix_2": {
+      "inputs": {
+        "nixpkgs": [
           "papers-skill",
           "nixpkgs"
         ]
@@ -1038,6 +1321,39 @@
       "original": {
         "owner": "pyproject-nix",
         "repo": "pyproject.nix",
+        "type": "github"
+      }
+    },
+    "rea": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792917315,
+        "narHash": "sha256-2ADn3U3lvUoB4tCEpzO0rMfYE4sis+5uBiEazcp0gpI=",
+        "owner": "morluto",
+        "repo": "rea",
+        "rev": "160d821ac9a0310afcb8d1fc427862dd6508add5",
+        "type": "github"
+      },
+      "original": {
+        "owner": "morluto",
+        "ref": "rea-agents-6.8.0",
+        "repo": "rea",
+        "type": "github"
+      }
+    },
+    "remotion-skills": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792683076,
+        "narHash": "sha256-5CiYB1K0j5XiZ78Kn27rqf0Fmsupk7dFUYR7z1k+IMA=",
+        "owner": "remotion-dev",
+        "repo": "skills",
+        "rev": "6c67adcd9cdbe6eb84d76342da89b225f9161cb2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "remotion-dev",
+        "repo": "skills",
         "type": "github"
       }
     },
@@ -1090,11 +1406,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1791210026,
-        "narHash": "sha256-hRF0iu81oKpS4KYrvNJ5a5Hya80t9OF3GBlVlPdp+dA=",
+        "lastModified": 1793040309,
+        "narHash": "sha256-fsjyxXTjHgCBERveJd/U9KKbM1WDWkPE+mzlvww9Jdg=",
         "owner": "rokokol",
         "repo": "rofi-wooordhunt",
-        "rev": "4893b7b67bd808ee310a83150ab3328bc6d558b0",
+        "rev": "82ae242db2791b59644b6cd17a9e9e34253738d2",
         "type": "github"
       },
       "original": {
@@ -1105,9 +1421,13 @@
     },
     "root": {
       "inputs": {
+        "anatomy": "anatomy",
         "archive-mount-yazi": "archive-mount-yazi",
+        "audacity-mcp": "audacity-mcp",
+        "blender-mcp": "blender-mcp",
         "claude-account": "claude-account",
         "compress-yazi": "compress-yazi",
+        "dav-mcp": "dav-mcp",
         "ddlc-hyprlock": "ddlc-hyprlock",
         "ddlc-nvim": "ddlc-nvim",
         "ddlc-palette": "ddlc-palette",
@@ -1115,19 +1435,28 @@
         "ddlc-sddm-theme": "ddlc-sddm-theme",
         "ddlc-themes": "ddlc-themes",
         "disko": "disko",
+        "ex-ussr-kinship-research": "ex-ussr-kinship-research",
+        "freecad-mcp": "freecad-mcp",
         "freesmlauncher": "freesmlauncher",
+        "gruvbox-gtk-theme": "gruvbox-gtk-theme",
+        "hermes-agent": "hermes-agent",
         "home-manager": "home-manager",
         "hyprgrass": "hyprgrass",
         "hyprland": "hyprland",
         "hyprland-plugins": "hyprland-plugins",
         "hyprland-screen-shader": "hyprland-screen-shader",
+        "kdenlive-mcp": "kdenlive-mcp",
         "mail-skill": "mail-skill",
         "nix-flatpak": "nix-flatpak",
         "nix-matlab": "nix-matlab",
         "nixpkgs": "nixpkgs_2",
         "nixpkgs-stable": "nixpkgs-stable",
         "nixvim": "nixvim",
+        "opus-sound-layer": "opus-sound-layer",
         "papers-skill": "papers-skill",
+        "pyloudnorm": "pyloudnorm",
+        "rea": "rea",
+        "remotion-skills": "remotion-skills",
         "rename-case-yazi": "rename-case-yazi",
         "rofi": "rofi",
         "rofi-wooordhunt": "rofi-wooordhunt",
@@ -1596,6 +1925,31 @@
       }
     },
     "uv2nix": {
+      "inputs": {
+        "nixpkgs": [
+          "hermes-agent",
+          "nixpkgs"
+        ],
+        "pyproject-nix": [
+          "hermes-agent",
+          "pyproject-nix"
+        ]
+      },
+      "locked": {
+        "lastModified": 1792151315,
+        "narHash": "sha256-PMtgvHuGijoIAtPtrBm7kJOI6fxzX4LYPAIK+QVGY+Y=",
+        "owner": "pyproject-nix",
+        "repo": "uv2nix",
+        "rev": "7aba73a3d85454f1118f8cf9de97979b4d26bcac",
+        "type": "github"
+      },
+      "original": {
+        "owner": "pyproject-nix",
+        "repo": "uv2nix",
+        "type": "github"
+      }
+    },
+    "uv2nix_2": {
       "inputs": {
         "nixpkgs": [
           "papers-skill",

@@ -8,10 +8,17 @@
 # Headless OpenCode server for local tools and Claude Code MCP integration. Its only client is
 # the opencode MCP server, which this module declares, so a host without the server has neither
 let
-  port = 4096;
+  port = config.rokokol.opencode.port;
 in
 {
-  options.rokokol.opencode.server = lib.mkEnableOption "the headless OpenCode API server on 127.0.0.1:${toString port}";
+  options.rokokol.opencode = {
+    server = lib.mkEnableOption "the headless OpenCode API server on 127.0.0.1:${toString port}";
+    port = lib.mkOption {
+      type = lib.types.port;
+      default = 4096;
+      description = "Loopback port of the OpenCode API server";
+    };
+  };
 
   config = lib.mkIf config.rokokol.opencode.server {
     systemd.user.services.opencode-server = {
@@ -33,13 +40,5 @@ in
       Install.WantedBy = [ "default.target" ];
     };
 
-    programs.mcp.servers.opencode = {
-      command = lib.getExe' pkgs.nodejs "npx";
-      args = [
-        "-y"
-        "opencode-mcp"
-      ];
-      env.OPENCODE_BASE_URL = "http://127.0.0.1:${toString port}";
-    };
   };
 }

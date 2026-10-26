@@ -13,6 +13,8 @@ let
 in
 {
   config = lib.mkIf (login.enable && login.user == config.home.username) {
+    rokokol.agents.skillGroups.calendar = "remote";
+    rokokol.agents.mcpGroups.dav = "remote";
     programs.mcp.servers.dav = {
       command = lib.getExe pkgs.dav-mcp;
       env = {

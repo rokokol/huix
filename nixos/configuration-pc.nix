@@ -17,7 +17,6 @@
 
   services.flatpak.packages = [
     "com.google.Chrome"
-    "org.kde.kdenlive"
     "ru.linux_gaming.PortProton"
   ];
 

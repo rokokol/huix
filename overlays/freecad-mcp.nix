@@ -1,29 +1,24 @@
-_:
+{ inputs, ... }:
 # freecad-mcp is not in nixpkgs. Its source holds both halves: the MCP server packaged here, and
-# the FreeCAD addon it talks to over XML-RPC, which home-manager/programs/freecad.nix installs
+# the FreeCAD addon, which home-manager/programs/creative/freecad.nix installs
 # from the same source
 _final: prev: {
-  freecad-mcp = prev.python3Packages.buildPythonApplication (finalAttrs: {
+  freecad-mcp = prev.python3Packages.buildPythonApplication {
     pname = "freecad-mcp";
     version = "0.1.27";
     pyproject = true;
 
-    src = prev.fetchFromGitHub {
-      owner = "neka-nat";
-      repo = "freecad-mcp";
-      tag = "v${finalAttrs.version}";
-      hash = "sha256-BGxa7+wa9QwiR1R2fs//ksMVfhzqklr0sybPwHYgIYQ=";
-    };
+    src = inputs.freecad-mcp;
 
     build-system = with prev.python3Packages; [ hatchling ];
 
     dependencies =
       with prev.python3Packages;
       [
-        mcp
+        mcp_1
         validators
       ]
-      ++ mcp.optional-dependencies.cli;
+      ++ mcp_1.optional-dependencies.cli;
 
     # stdio_client filters the environment. The test child needs Nix's dependency paths
     postPatch = ''
@@ -44,5 +39,5 @@ _final: prev: {
       mainProgram = "freecad-mcp";
       platforms = prev.lib.platforms.all;
     };
-  });
+  };
 }

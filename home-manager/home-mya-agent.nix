@@ -13,10 +13,8 @@ in
 {
   imports = [
     ./programs/agents/claude.nix
-    ./programs/agents/dav-mcp.nix
-    ./programs/agents/mail-skill.nix
+    ./programs/agents/remote/default.nix
     ./programs/agents/skills.nix
-    ./programs/agents/telegram-skill.nix
   ];
 
   rokokol.skills.include = [

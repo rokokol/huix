@@ -7,6 +7,12 @@
   ];
 
   rokokol = {
+    audacity.enable = true;
+    blender.enable = true;
+    kdenlive.enable = true;
+    rea.enable = true;
+    kinship-research.enable = true;
+
     btop.withCuda = true;
 
     packages.pc = true;

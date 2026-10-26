@@ -14,8 +14,21 @@
   };
 
   config = lib.mkIf config.rokokol.docs-mcp.enable {
+    rokokol.agents.mcpGroups = {
+      nixos = "research";
+      deepwiki = "research";
+    };
     programs.mcp.servers = {
-      nixos.command = lib.getExe pkgs.mcp-nixos;
+      # See WORKAROUNDS.md: NixOS MCP uses the MCP 1 Python SDK
+      nixos.command = lib.getExe (
+        pkgs.mcp-nixos.override {
+          python3Packages = pkgs.python3Packages.overrideScope (
+            _final: prev: {
+              mcp = prev.mcp_1;
+            }
+          );
+        }
+      );
       deepwiki.url = "https://mcp.deepwiki.com/mcp";
     };
   };

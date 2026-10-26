@@ -18,7 +18,11 @@ let
   skills = removeAttrs (
     if cfg.include == null then available else lib.getAttrs cfg.include available
   ) cfg.exclude;
-  stateDir = "${config.programs.claude-account.sharedDir}/skill-state";
+  stateDir =
+    if config.rokokol.claude.enable then
+      "${config.programs.claude-account.sharedDir}/skill-state"
+    else
+      "${config.xdg.stateHome}/agent-skills";
 in
 {
   options.rokokol.skills = {
@@ -38,6 +42,13 @@ in
 
   config = lib.mkIf config.rokokol.claude.enable {
     rokokol.agents.skills = skills;
+    rokokol.agents.skillGroups = lib.genAttrs (builtins.filter (name: builtins.hasAttr name skills) [
+      "3x-ui-admin"
+      "obsidian-cli"
+      "phone-alert"
+      "super-productivity"
+      "termux-api"
+    ]) (_: "remote");
 
     home.sessionVariables =
       lib.optionalAttrs (skills ? contributing) {

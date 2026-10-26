@@ -18,8 +18,6 @@ in
     package = lib.mkOption {
       type = lib.types.package;
       readOnly = true;
-      # The flag is variadic: written apart from its value, it takes the next word for a second
-      # file, so `claude --mcp-config FILE doctor` reads doctor as a file. With "=" it stops there
       default = pkgs.symlinkJoin {
         name = "claude-code-${lib.getVersion pkgs.claude-code}";
         paths = with pkgs; [ claude-code ];
@@ -27,10 +25,7 @@ in
         postBuild = ''
           wrapProgram $out/bin/claude --add-flags ${
             lib.escapeShellArg (
-              lib.concatStringsSep " " (
-                [ "--mcp-config=${config.rokokol.agents.claudeConfig}" ]
-                ++ map (plugin: "--plugin-dir ${plugin}") config.rokokol.claude.plugins
-              )
+              lib.concatStringsSep " " (map (plugin: "--plugin-dir ${plugin}") config.rokokol.claude.plugins)
             )
           }
         '';

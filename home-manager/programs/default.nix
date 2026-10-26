@@ -2,10 +2,10 @@
   imports = [
     ./agents/default.nix
     ./cli/default.nix
-    ./freecad.nix
-    ./ghidra.nix
+    ./creative/default.nix
     ./language-servers.nix
     ./nixvim/default.nix
+    ./reversing/default.nix
     ./rofi.nix
     ./term/default.nix
     ./thunar.nix

@@ -30,5 +30,7 @@
     };
 
     rokokol.agents.skills.papers = config.programs.papers.skill;
+    rokokol.agents.skillGroups.papers = "research";
+    rokokol.agents.mcpGroups.paper-search = "research";
   };
 }

@@ -139,6 +139,61 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    kdenlive-mcp = {
+      url = "github:crom-org/kdenlive-mcp-plus";
+      flake = false;
+    };
+
+    freecad-mcp = {
+      url = "github:neka-nat/freecad-mcp/v0.1.27";
+      flake = false;
+    };
+
+    dav-mcp = {
+      url = "github:PhilflowIO/dav-mcp/v5.0.0";
+      flake = false;
+    };
+
+    blender-mcp = {
+      url = "github:ahujasid/blender-mcp";
+      flake = false;
+    };
+
+    audacity-mcp = {
+      url = "github:xDarkzx/Audacity-MCP";
+      flake = false;
+    };
+
+    rea = {
+      url = "github:morluto/rea/rea-agents-6.8.0";
+      flake = false;
+    };
+
+    anatomy = {
+      url = "github:wheresryan22/anatomy";
+      flake = false;
+    };
+
+    opus-sound-layer = {
+      url = "github:Bodila51/opus-sound-layer";
+      flake = false;
+    };
+
+    pyloudnorm = {
+      url = "github:csteinmetz1/pyloudnorm";
+      flake = false;
+    };
+
+    remotion-skills = {
+      url = "github:remotion-dev/skills";
+      flake = false;
+    };
+
+    ex-ussr-kinship-research = {
+      url = "github:DenisSergeevitch/ex-ussr-kinship-research";
+      flake = false;
+    };
+
     # Every input named skill-NAME is one skill, and home-manager/programs/agents/skills.nix gives
     # each to the agents as NAME. A skill that comes with a service is the service flake's own
     # input instead, as mail-skill, telegram-skill and papers-skill are
@@ -349,6 +404,10 @@
           overlays.wl-clipboard-rs
           overlays.dav-mcp
           overlays.freecad-mcp
+          overlays.kdenlive-mcp
+          overlays.blender-mcp
+          overlays.audacity-mcp
+          overlays.rea
           nix-matlab.overlay
         ];
       };

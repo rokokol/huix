@@ -66,31 +66,81 @@ let
     extensions = lib.attrNames server.extensions;
   };
 
-  # One directory of every skill by its name, which OpenCode reads as it is and Claude Code reads
-  # as the skills of one plugin, which also carries the language servers
+  # OpenCode and Hermes retain flat names; Claude Code can disable each group as one plugin
   skills = pkgs.linkFarm "agent-skills" cfg.skills;
-  claudePlugin = pkgs.runCommandLocal "agent-skills-plugin" { } ''
-    mkdir -p $out/.claude-plugin
-    cp ${
-      json.generate "plugin.json" (
-        {
-          name = "huix";
-        }
-        // lib.optionalAttrs (cfg.lspServers != { }) {
-          lspServers = lib.mapAttrs lspForClaude cfg.lspServers;
-        }
+  groupNames = builtins.attrNames cfg.groups;
+  groups = lib.genAttrs groupNames (group: {
+    skills = lib.filterAttrs (name: _: (cfg.skillGroups.${name} or "huix") == group) cfg.skills;
+    servers = lib.filterAttrs (name: _: (cfg.mcpGroups.${name} or "huix") == group) servers;
+    lspServers = lib.optionalAttrs (group == "huix") cfg.lspServers;
+  });
+  plugins =
+    lib.mapAttrs
+      (
+        name: group:
+        let
+          groupSkills = pkgs.linkFarm "${name}-skills" group.skills;
+          manifest = json.generate "${name}-plugin.json" (
+            {
+              inherit name;
+              description = cfg.groups.${name};
+            }
+            // lib.optionalAttrs (group.lspServers != { }) {
+              lspServers = lib.mapAttrs lspForClaude group.lspServers;
+            }
+          );
+          mcpConfig = json.generate "${name}-mcp.json" {
+            mcpServers = lib.mapAttrs forClaude group.servers;
+          };
+        in
+        pkgs.runCommandLocal "${name}-agent-plugin" { } ''
+          mkdir -p $out/.claude-plugin $out/skills
+          cp ${manifest} $out/.claude-plugin/plugin.json
+          cp ${mcpConfig} $out/.mcp.json
+          cp -rL ${groupSkills}/. $out/skills/
+        ''
       )
-    } $out/.claude-plugin/plugin.json
-    ln -s ${skills} $out/skills
-  '';
+      (
+        lib.filterAttrs (
+          _: group: group.skills != { } || group.servers != { } || group.lspServers != { }
+        ) groups
+      );
 in
 {
   options.rokokol.agents = {
+    groups = lib.mkOption {
+      type = lib.types.attrsOf lib.types.str;
+      default = { };
+      example = {
+        research = "Research tools and scientific papers";
+      };
+      description = "Plugin groups by name, with a description for each group";
+    };
+
     skills = lib.mkOption {
       type = lib.types.attrsOf lib.types.path;
       default = { };
       example = lib.literalExpression "{ calendar = ./calendar-skill; }";
       description = "Skills every agent of this user loads, as directories with a SKILL.md, by name";
+    };
+
+    skillGroups = lib.mkOption {
+      type = lib.types.attrsOf (lib.types.enum groupNames);
+      default = { };
+      description = "Claude Code plugin group for each skill, with huix as the default";
+    };
+
+    mcpGroups = lib.mkOption {
+      type = lib.types.attrsOf (lib.types.enum groupNames);
+      default = { };
+      description = "Claude Code plugin group for each MCP server, with huix as the default";
+    };
+
+    claudePlugins = lib.mkOption {
+      type = lib.types.attrsOf lib.types.package;
+      readOnly = true;
+      default = plugins;
+      description = "Claude Code plugins generated from the skill and MCP groups";
     };
 
     lspServers = lib.mkOption {
@@ -150,7 +200,8 @@ in
     };
   };
 
-  config.rokokol.claude.plugins = lib.mkIf (cfg.skills != { } || cfg.lspServers != { }) [
-    claudePlugin
-  ];
+  config = {
+    rokokol.agents.groups.huix = "Software development and system configuration";
+    rokokol.claude.plugins = lib.attrValues plugins;
+  };
 }

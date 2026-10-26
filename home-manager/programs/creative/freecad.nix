@@ -43,5 +43,6 @@ in
         "${freecad}/bin/freecadcmd"
       ];
     };
+    rokokol.agents.mcpGroups.freecad = "creative";
   };
 }

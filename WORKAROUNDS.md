@@ -6,6 +6,28 @@ Rules for this file: one entry per workaround, and every entry must carry a **me
 
 ---
 
+## NixOS MCP uses the MCP 1 Python SDK
+
+**Where:** `home-manager/programs/agents/research/docs-mcp.nix`, on hosts with `rokokol.docs-mcp.enable`
+
+**Symptom it prevents:** host evaluation refuses `fastmcp-slim` as broken when the NixOS MCP command enters the generated agent configuration
+
+**Why it happens:** nixpkgs selects Python SDK 2 as `python3Packages.mcp`. Its FastMCP package declares itself broken with SDK 2. The `mcp-nixos` recipe consumes FastMCP through its Python package set
+
+**Why this works:** a local Python scope selects the official `mcp_1` package for this server and its dependencies. The interpreter and the global Python scope retain their original definitions
+
+**Removal check:** build the stock package without the local scope
+
+```sh
+nix build --no-link .#nixosConfigurations.nixos-pc.pkgs.mcp-nixos
+```
+
+The error names broken FastMCP -> keep the scope. Another error -> inspect it before changing the scope. A clean build -> verify stock-server discovery in an MCP client, then remove the override
+
+**Upstream:** [nixpkgs FastMCP compatibility guard](https://github.com/NixOS/nixpkgs/blob/3ec636362e1816bc2f0888fa0fa2c69f1bc9e504/pkgs/development/python-modules/fastmcp-slim/default.nix#L175); not reported yet
+
+---
+
 ## Separate Bambu Studio NVIDIA wrapper
 
 **Where:** `home-manager/desktop/packages/packages.nix` in the workstation package group

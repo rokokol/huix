@@ -8,7 +8,7 @@
 
 # The Radicale login of one local user, for dav-mcp, the calendar MCP server that the user's
 # agents start. The server is registered on the Home Manager side, in
-# home-manager/programs/agents/dav-mcp.nix, which reads the password file and the URL from here
+# home-manager/programs/agents/remote/dav-mcp.nix reads the password file and the URL from here
 let
   cfg = config.rokokol.dav-mcp;
   # The host of this flake that runs Radicale, read from its own configuration

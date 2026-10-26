@@ -3,12 +3,10 @@
 {
   imports = [
     ./claude.nix
-    ./dav-mcp.nix
-    ./docs-mcp.nix
-    ./mail-skill.nix
+    ./huix/default.nix
     ./opencode.nix
-    ./papers.nix
+    ./remote/default.nix
+    ./research/default.nix
     ./skills.nix
-    ./telegram-skill.nix
   ];
 }
