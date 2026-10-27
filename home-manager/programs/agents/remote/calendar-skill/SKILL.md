@@ -5,11 +5,11 @@ description: Read and change the owner's schedule and the TODO list in the calen
 
 # calendar
 
-The calendars live in Radicale on the station, and the `dav` MCP server reaches them as the login of this host's user. The owner and the agent Mya share one home there, so every login sees the same calendars, and a calendar made by either lands in that home. The owner sees them in Super Productivity too: events on the schedule, and the tasks of the TODO list as tasks
+The calendars live in Radicale on the station, and the `dav` MCP server reaches them as the login of this host's user. The owner and the agent Mya share one home there, so every login sees the same calendars, and a calendar made by either lands in that home. The owner sees them in Super Productivity too: events on the schedule, and the tasks of the TODO list as tasks. "The schedule" below means every calendar that holds events
 
 ## Which calendar is which
 
-`list_calendars` names them. The one that holds events (`VEVENT`) is the owner's schedule, and the one that holds tasks (`VTODO`) is the TODO list. When there are more of either kind, or none, ask the owner which one is meant rather than choosing
+`list_calendars` names them and prints each one's description, and the description says what the calendar holds. A new event goes to the calendar whose description names it the default, unless the owner names another. The one that holds tasks (`VTODO`) is the TODO list. When no description settles it, or more than one calendar holds tasks, ask the owner which one is meant rather than choosing
 
 ## The schedule
 
