@@ -5,8 +5,19 @@ let
     panel
     query
     row
+    states
     table
     ;
+  upDown = {
+    "0" = {
+      text = "down";
+      color = roles.danger;
+    };
+    "1" = {
+      text = "up";
+      color = roles.ok;
+    };
+  };
 in
 panels.dashboard {
   uid = "hermes";
@@ -81,32 +92,59 @@ panels.dashboard {
       coloured = false;
     })
     (row "Service health" null 26)
-    (panel {
-      title = "Gateway and active work";
+    (states {
+      title = "Gateway";
       x = 0;
       y = 27;
-      w = 12;
-      unit = "short";
-      queries = [
-        (query "A" roles.series-1 "hermes_gateway_up" "Gateway")
-        (query "B" roles.series-3 "hermes_gateway_active_agents" "Active agents")
-        (query "C" roles.series-4 "hermes_gateway_background_work" "Background work")
-      ];
+      w = 8;
+      expr = "max(hermes_gateway_up)";
+      legend = "Gateway";
+      mappings = upDown;
+    })
+    # The state label changes with the state, so one platform keeps one band only aggregated
+    (states {
+      title = "Platforms";
+      x = 8;
+      y = 27;
+      w = 8;
+      expr = "max by (hermes_platform) (hermes_platform_up)";
+      legend = "{{hermes_platform}}";
+      mappings = upDown;
     })
     (panel {
-      title = "Collection status";
-      x = 12;
+      title = "Active work";
+      x = 16;
       y = 27;
-      w = 12;
+      w = 8;
       unit = "short";
-      shaded = true;
-      queries = [ (query "A" roles.series-1 "hermes_collect_success" "{{source}}") ];
+      queries = [
+        (query "A" roles.series-1 "hermes_gateway_active_agents" "Active agents")
+        (query "B" roles.series-3 "hermes_gateway_background_work" "Background work")
+      ];
+    })
+    (states {
+      title = "Collection status";
+      x = 8;
+      y = 35;
+      w = 8;
+      expr = "hermes_collect_success";
+      legend = "{{source}}";
+      mappings = {
+        "0" = {
+          text = "failed";
+          color = roles.danger;
+        };
+        "1" = {
+          text = "ok";
+          color = roles.ok;
+        };
+      };
     })
     (panel {
       title = "Cron jobs";
       x = 0;
       y = 35;
-      w = 12;
+      w = 8;
       unit = "short";
       queries = [
         (query "A" roles.series-1 "hermes_cron_jobs_enabled" "Enabled")
@@ -116,9 +154,9 @@ panels.dashboard {
     })
     (panel {
       title = "Collection age";
-      x = 12;
+      x = 16;
       y = 35;
-      w = 12;
+      w = 8;
       unit = "s";
       queries = [ (query "A" roles.series-1 "time() - hermes_collect_timestamp_seconds" "Age") ];
     })
