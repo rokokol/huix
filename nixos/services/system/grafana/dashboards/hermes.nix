@@ -27,6 +27,7 @@ panels.dashboard {
       y = 1;
       w = 8;
       unit = "currencyUSD";
+      decimals = 2;
       queries = [
         (query "A" roles.series-1 "openrouter_key_usage_daily_usd" "Current UTC day")
         (query "B" roles.series-3 "openrouter_key_usage_monthly_usd" "Current UTC month")

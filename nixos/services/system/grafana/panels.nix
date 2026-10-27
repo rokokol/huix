@@ -76,6 +76,7 @@ rec {
       shaded ? false,
       thresholds ? null,
       dangerBelow ? false,
+      decimals ? null,
     }:
     {
       type = "timeseries";
@@ -106,7 +107,8 @@ rec {
           thresholds = thresholdSteps thresholds dangerBelow;
         }
         // lib.optionalAttrs (min != null) { inherit min; }
-        // lib.optionalAttrs (max != null) { inherit max; };
+        // lib.optionalAttrs (max != null) { inherit max; }
+        // lib.optionalAttrs (decimals != null) { inherit decimals; };
         overrides = lib.optionals (!shaded) (map (q: q.override) queries);
       };
       options = {
