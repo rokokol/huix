@@ -936,6 +936,34 @@ pkgs.testers.runNixOSTest {
         station.wait_until_succeeds(f"grep -qx fresh {agent_home}/fresh", timeout=timedelta(seconds=30))
         assert station.succeed(f"systemctl show -P ActiveState {agent_unit}").strip() == "active"
 
+    with subtest("hermes-bootstrap gives a fresh state its documents and initial settings"):
+        yq = "${lib.getExe pkgs.yq-go}"
+        config_yaml = f"{agent_home}/.hermes/config.yaml"
+        # The first start leaves Hermes' own starter SOUL.md, which is no document of the owner's
+        station.succeed(f"grep -q 'You are Hermes Agent' {agent_home}/.hermes/SOUL.md")
+        for name in ["soul", "user", "memory"]:
+            station.succeed(f"runuser -u ${agent.user} -- sh -c 'echo boot-{name} >{agent_home}/boot-{name}.md'")
+        bootstrap = f"runuser -u ${agent.user} -- /etc/profiles/per-user/${agent.user}/bin/hermes-bootstrap --soul {agent_home}/boot-soul.md --user {agent_home}/boot-user.md --memory {agent_home}/boot-memory.md"
+        station.fail(bootstrap)
+        station.succeed(f"systemctl stop {agent_unit}")
+        station.succeed(bootstrap)
+        station.succeed(f"grep -qx boot-soul {agent_home}/.hermes/SOUL.md")
+        station.succeed(f"grep -qx boot-user {agent_home}/.hermes/memories/USER.md")
+        station.succeed(f"grep -qx boot-memory {agent_home}/.hermes/memories/MEMORY.md")
+        assert station.succeed(f"{yq} .memory.provider {config_yaml}").strip() == "builtin"
+        assert station.succeed(f"{yq} .curator.consolidate {config_yaml}").strip() == "true"
+        assert station.succeed(f"{yq} .memory.user_char_limit {config_yaml}").strip() == "24000"
+        station.succeed(f"{yq} -e .mcp_servers.dav {config_yaml}")
+        # A second run keeps what the owner or Hermes wrote since
+        station.succeed(f"runuser -u ${agent.user} -- sh -c 'echo edited >{agent_home}/.hermes/SOUL.md'")
+        assert "Kept existing document: SOUL.md" in station.succeed(bootstrap)
+        station.succeed(f"grep -qx edited {agent_home}/.hermes/SOUL.md")
+        station.succeed(f"rm {agent_home}/boot-*.md && systemctl start {agent_unit}")
+        station.wait_until_succeeds(
+            "curl -sf http://127.0.0.1:${toString station.config.rokokol.mya-agent.hermes.webhookPort}/health",
+            timeout=timedelta(minutes=2),
+        )
+
     hermes_restic = "RESTIC_PASSWORD_FILE=${station.config.sops.secrets.hermes-restic-password.path} ${lib.getExe pkgs.restic} -r ${restic.dataDir}/station"
 
     with subtest("Hermes state reaches its local restic repository and the portable archive is valid"):

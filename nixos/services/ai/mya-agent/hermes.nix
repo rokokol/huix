@@ -85,6 +85,7 @@ let
     inherit model;
     extra_body.provider = routing;
   };
+  # Every start adds a server that the shared registry gained, so a new one needs no second list
   seedFile = (pkgs.formats.json { }).generate "hermes-seed.json" {
     mcp_servers = lib.mapAttrs (
       name: server:
@@ -94,6 +95,9 @@ let
         args = [ ];
       }
     ) mcpServers;
+  };
+  # Only an empty state takes these; afterwards they live in config.yaml and its backup
+  initialSettings = (pkgs.formats.json { }).generate "hermes-initial-settings.json" {
     memory = {
       provider = "builtin";
       user_char_limit = 24000;
@@ -120,6 +124,8 @@ let
         }
       } \
         --home ${agent.home}/.hermes \
+        --seed-script ${seedScript} \
+        --initial-settings ${initialSettings} \
         "$@"
     '';
   };
