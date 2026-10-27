@@ -52,6 +52,9 @@ class Handler(BaseHTTPRequestHandler):
             time.sleep(0.2)
             self.answer({"ok": True, "result": []})
         elif self.path.endswith(("/sendMessage", "/sendRichMessage")):
+            # The journal of this unit is the chat the tests read
+            topic = data.get("message_thread_id", "-")
+            print(f"sent to {topic}: " + str(data.get("text", "")), file=sys.stderr, flush=True)
             self.answer({"ok": True, "result": {
                 "message_id": 1, "date": int(time.time()),
                 "chat": {"id": int(data.get("chat_id", 1)), "type": "private"},

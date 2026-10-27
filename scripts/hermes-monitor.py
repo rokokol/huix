@@ -184,24 +184,27 @@ def collect(args):
         errors.append("openrouter_key")
     output.append(metric("hermes_collect_success", int(key_data is not None), {"source": "openrouter_key"}))
 
+    # The account balance answers the same key that pays for requests, as Hermes' own usage report reads it
     balance = None
-    if args.management_key_file:
-        try:
-            credits = request_json(args.api + "/credits", args.management_key_file.read_text().strip())["data"]
-            value = Decimal(str(credits["total_credits"])) - Decimal(str(credits["total_usage"]))
-            balance = {"value": value, "checked_at": now}
-            output.append(metric("openrouter_balance_usd", value))
-        except (OSError, ValueError, KeyError):
-            errors.append("openrouter_balance")
-        output.append(metric("hermes_collect_success", int(balance is not None), {"source": "openrouter_balance"}))
+    try:
+        credits = request_json(args.api + "/credits", args.key_file.read_text().strip())["data"]
+        value = Decimal(str(credits["total_credits"])) - Decimal(str(credits["total_usage"]))
+        balance = {"value": value, "checked_at": now}
+        output.append(metric("openrouter_balance_usd", value))
+    except (OSError, ValueError, KeyError):
+        errors.append("openrouter_balance")
+    output.append(metric("hermes_collect_success", int(balance is not None), {"source": "openrouter_balance"}))
 
     token = args.bot_token_file.read_text().strip()
     chat = args.chat_id_file.read_text().strip()
 
     def send(text):
+        message = {"chat_id": chat, "text": text}
+        if args.telegram_thread_id is not None:
+            message["message_thread_id"] = args.telegram_thread_id
         reply = request_json(
             args.telegram_api + "/bot" + token + "/sendMessage",
-            data=json.dumps({"chat_id": chat, "text": text}).encode(),
+            data=json.dumps(message).encode(),
         )
         if reply.get("ok") is not True or not reply.get("result", {}).get("message_id"):
             raise ValueError("Telegram did not confirm delivery")
@@ -249,13 +252,13 @@ def main():
     parser.add_argument("--state-dir", required=True, type=Path)
     parser.add_argument("--metrics", required=True, type=Path)
     parser.add_argument("--key-file", required=True, type=Path)
-    parser.add_argument("--management-key-file", type=Path)
     parser.add_argument("--bot-token-file", required=True, type=Path)
     parser.add_argument("--chat-id-file", required=True, type=Path)
     parser.add_argument("--spend-step", default=Decimal("0.50"), type=Decimal)
     parser.add_argument("--low-balance", default=Decimal("5"), type=Decimal)
     parser.add_argument("--api", default="https://openrouter.ai/api/v1")
     parser.add_argument("--telegram-api", default="https://api.telegram.org")
+    parser.add_argument("--telegram-thread-id", type=int, help="Topic of the chat that takes the notices")
     args = parser.parse_args()
     crossed_threshold(Decimal(0), 0, args.spend_step)
     args.state_dir.mkdir(parents=True, exist_ok=True)

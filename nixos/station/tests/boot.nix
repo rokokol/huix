@@ -381,6 +381,19 @@ pkgs.testers.runNixOSTest {
         '';
         services.hermes-agent.settings = {
           platforms.telegram.extra.base_url = "http://192.168.0.1:8094/bot";
+          # The alert route only delivers; this one runs the agent, so the tests can type into it
+          platforms.webhook.extra.routes.test = {
+            prompt = "{text}";
+            toolsets = [
+              "terminal"
+              "file"
+              "web"
+              "skills"
+              "memory"
+              "session_search"
+            ];
+            deliver = "log";
+          };
           auxiliary = lib.mapAttrs (
             _: value:
             value
@@ -811,11 +824,12 @@ pkgs.testers.runNixOSTest {
 
     agent_unit = "hermes-agent.service"
     agent_home = "${agent.home}"
+    webhooks = "http://127.0.0.1:${toString station.config.rokokol.mya-agent.hermes.webhookPort}/webhooks"
 
     def type_in(text):
         import base64
         encoded = base64.b64encode(text.encode()).decode()
-        station.succeed(f"${agent.notify} RUN:{encoded}")
+        station.succeed(f"${agent.notify} --url {webhooks}/test RUN:{encoded}")
 
     with subtest("Hermes starts without a shared Claude profile and mails root if it fails"):
         station.succeed(f"systemctl show -P OnFailure {agent_unit} | grep -qx 'alert-mail@{agent_unit}.service'")
@@ -862,8 +876,17 @@ pkgs.testers.runNixOSTest {
         station.fail("runuser -u rokokol -- systemctl restart ${agent.syncUnit}")
         station.fail("runuser -u rokokol -- systemctl start mya-agent-clone.service")
 
-    with subtest("a signed alert reaches the agent and an unsigned request is rejected"):
-        station.succeed("curl -s -o /tmp/rejected -w '%{http_code}' -H 'Content-Type: application/json' -d '{}' http://127.0.0.1:${toString station.config.rokokol.mya-agent.hermes.webhookPort}/webhooks/alerts | grep -qx 401")
+    with subtest("a signed alert reaches the chat without an agent run, and an unsigned request is rejected"):
+        station.succeed(f"curl -s -o /tmp/rejected -w '%{{http_code}}' -H 'Content-Type: application/json' -d '{{}}' {webhooks}/alerts | grep -qx 401")
+        sessions = f"${lib.getExe pkgs.sqlite} {agent_home}/.hermes/state.db 'select count(*) from sessions'"
+        before = station.succeed(sessions).strip()
+        # A word with no MarkdownV2 character, which Telegram delivery would escape
+        station.succeed("${agent.notify} probealert")
+        router.wait_until_succeeds(
+            "journalctl -u fake-hermes -o cat | grep -qxF 'sent to ${toString station.config.rokokol.mya-agent.hermes.reportsTopic}: Station alert: probealert'",
+            timeout=timedelta(minutes=1),
+        )
+        assert station.succeed(sessions).strip() == before, "the alert started an agent session"
         type_in("echo 'semi;colon \"Enter\" $x' >~/typed")
         station.wait_until_succeeds(f"test -s {agent_home}/typed", timeout=timedelta(seconds=30))
         typed = station.succeed(f"cat {agent_home}/typed")
@@ -946,6 +969,8 @@ pkgs.testers.runNixOSTest {
         bootstrap = f"runuser -u ${agent.user} -- /etc/profiles/per-user/${agent.user}/bin/hermes-bootstrap --soul {agent_home}/boot-soul.md --user {agent_home}/boot-user.md --memory {agent_home}/boot-memory.md"
         station.fail(bootstrap)
         station.succeed(f"systemctl stop {agent_unit}")
+        # A stop is planned, so it neither fails the unit nor raises an alert
+        assert station.succeed(f"systemctl show -P Result {agent_unit}").strip() == "success"
         station.succeed(bootstrap)
         station.succeed(f"grep -qx boot-soul {agent_home}/.hermes/SOUL.md")
         station.succeed(f"grep -qx boot-user {agent_home}/.hermes/memories/USER.md")
@@ -953,6 +978,8 @@ pkgs.testers.runNixOSTest {
         assert station.succeed(f"{yq} .memory.provider {config_yaml}").strip() == "builtin"
         assert station.succeed(f"{yq} .curator.consolidate {config_yaml}").strip() == "true"
         assert station.succeed(f"{yq} .memory.user_char_limit {config_yaml}").strip() == "24000"
+        assert station.succeed(f"{yq} .agent.reasoning_effort {config_yaml}").strip() == "low"
+        assert station.succeed(f"{yq} .cron.wrap_response {config_yaml}").strip() == "false"
         station.succeed(f"{yq} -e .mcp_servers.dav {config_yaml}")
         # A second run keeps what the owner or Hermes wrote since
         station.succeed(f"runuser -u ${agent.user} -- sh -c 'echo edited >{agent_home}/.hermes/SOUL.md'")

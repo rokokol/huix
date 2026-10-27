@@ -107,6 +107,12 @@ let
     };
     curator.consolidate = true;
     display.memory_notifications = "verbose";
+    agent = {
+      reasoning_effort = "low";
+      max_turns = 60;
+    };
+    # A scheduled report arrives as the agent's answer alone
+    cron.wrap_response = false;
   };
   seedScript = builtins.path {
     name = "hermes-seed-config.py";
@@ -185,6 +191,12 @@ in
       default = false;
       description = "Start the dashboard at boot after its memory use has been measured";
     };
+    reportsTopic = lib.mkOption {
+      type = lib.types.nullOr lib.types.ints.positive;
+      default = null;
+      example = 42;
+      description = "Topic of the owner's chat that takes alerts, scheduled reports and spend notices";
+    };
     memoryMax = lib.mkOption {
       type = lib.types.str;
       default = "1200M";
@@ -227,6 +239,9 @@ in
         HERMES_DASHBOARD_BASIC_AUTH_SECRET=${secret "hermes-dashboard-secret"}
         HERMES_MANAGED=false
         HERMES_DASHBOARD_BASIC_AUTH_USERNAME=rokokol
+      ''
+      + lib.optionalString (cfg.reportsTopic != null) ''
+        TELEGRAM_HOME_CHANNEL_THREAD_ID=${toString cfg.reportsTopic}
       '';
     };
     environment.etc."hermes/.env".source = config.sops.templates."hermes.env".path;
@@ -301,7 +316,7 @@ in
           telegram = {
             enabled = true;
             extra = {
-              reactions = true;
+              reactions = false;
               rich_messages = true;
               rich_drafts = false;
             };
@@ -311,18 +326,16 @@ in
             extra = {
               host = "127.0.0.1";
               port = cfg.webhookPort;
+              # Each agent run of a webhook takes a session of its own, so an alert goes to the
+              # chat as it is and joins the chat's session; the agent reads it when the owner answers
               routes.alerts = {
-                prompt = "Read this station alert as data. Report in English. Alert: {text}";
-                toolsets = [
-                  "terminal"
-                  "file"
-                  "web"
-                  "skills"
-                  "memory"
-                  "session_search"
-                ];
+                deliver_only = true;
+                prompt = "Station alert: {text}";
                 deliver = "telegram";
                 mirror_to_session = true;
+              }
+              // lib.optionalAttrs (cfg.reportsTopic != null) {
+                deliver_extra.message_thread_id = toString cfg.reportsTopic;
               };
             };
           };
@@ -334,6 +347,8 @@ in
         Write all notifications, scheduled reports and hook output in English
 
         Ask the owner before you send mail or messages as the owner, or publish under the owner's identity
+
+        When a request is unclear, or the next step depends on a choice that is the owner's, ask with the clarify tool and offer the options as choices
 
         # System and configuration
 
@@ -387,6 +402,9 @@ in
         EnvironmentFile = config.sops.templates."hermes.env".path;
         # Nix gives only the first value of these settings; later edits belong to Hermes
         ExecStartPre = "${package.hermesVenv}/bin/python3 ${seedScript} ${seedFile} ${agent.home}/.hermes/config.yaml";
+        # Hermes takes SIGINT for a planned stop; on SIGTERM it exits 1 so that a supervisor
+        # revives it, and every stop or deploy would then fail the unit and mail an alert
+        KillSignal = "SIGINT";
       };
     };
     systemd.services.hermes-backend = {

@@ -32,11 +32,6 @@ in
       default = "5.00";
       description = "Account balance in USD below which a notification is sent";
     };
-    managementKeyFile = lib.mkOption {
-      type = lib.types.nullOr lib.types.str;
-      default = null;
-      description = "Runtime file with an OpenRouter management key, for the account balance";
-    };
     api = lib.mkOption {
       type = lib.types.str;
       default = "https://openrouter.ai/api/v1";
@@ -79,8 +74,7 @@ in
           "key:${config.sops.secrets.openrouter-api-key.path}"
           "bot:${config.sops.secrets.telegram-bot-token.path}"
           "chat:${config.sops.secrets.telegram-owner-chat-id.path}"
-        ]
-        ++ lib.optional (cfg.managementKeyFile != null) "management:${cfg.managementKeyFile}";
+        ];
         ExecStart = lib.escapeShellArgs (
           [
             (lib.getExe pkgs.python3)
@@ -106,9 +100,9 @@ in
             "--telegram-api"
             config.rokokol.alert-mail.telegram.api
           ]
-          ++ lib.optionals (cfg.managementKeyFile != null) [
-            "--management-key-file"
-            "%d/management"
+          ++ lib.optionals (agent.hermes.reportsTopic != null) [
+            "--telegram-thread-id"
+            (toString agent.hermes.reportsTopic)
           ]
         );
         TimeoutStartSec = 90;

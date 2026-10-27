@@ -42,6 +42,8 @@ in
       git.email = "mya@rokokol.art";
       packages = with pkgs; [ ffmpeg ];
       pythonPackages = ps: [ ps.matplotlib ];
+      # The "reports" topic of the owner's chat with the bot
+      hermes.reportsTopic = 1089071;
       hermes.backup = {
         mountPoint = backup;
         dataDir = "${backup}/hermes";
