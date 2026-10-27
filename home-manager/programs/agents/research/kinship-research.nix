@@ -14,7 +14,7 @@
     home.sessionVariables.CHROME_PATH = lib.getExe pkgs.chromium;
     rokokol.agents = {
       skills.ex-ussr-kinship-research = inputs.ex-ussr-kinship-research;
-      skillGroups.ex-ussr-kinship-research = "research";
+      skillGroups.ex-ussr-kinship-research = "deep-research";
     };
   };
 }
