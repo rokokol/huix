@@ -13,7 +13,8 @@
 # nixos/services/tools/paper-search.nix renders from sops, and the corpus folder, which is
 # the cache the skill downloads into. The Ollama models the preset names are pulled by hand
 {
-  # The env file exists only where the system's rokokol.paper-search is on
+  # The env file exists only where the system's rokokol.paper-search is on; without it the
+  # server reaches every source anonymously
   options.rokokol.papers.enable = lib.mkEnableOption "the papers skill's tools" // {
     default = osConfig.rokokol.paper-search.enable;
     defaultText = lib.literalExpression "osConfig.rokokol.paper-search.enable";
@@ -22,7 +23,11 @@
   config = lib.mkIf config.rokokol.papers.enable {
     programs.papers = {
       enable = true;
-      envFile = osConfig.sops.templates."paper-search.env".path;
+      envFile =
+        if osConfig.rokokol.paper-search.enable then
+          osConfig.sops.templates."paper-search.env".path
+        else
+          null;
       corpus = {
         enable = lib.mkDefault true;
         directory = "/home/${rokokolName}/.cache/papers";

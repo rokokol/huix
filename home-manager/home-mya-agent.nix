@@ -39,6 +39,7 @@ in
     "versioning"
   ];
   rokokol.docs-mcp.enable = true;
+  rokokol.papers.enable = true;
   # PaperQA's preset runs on Ollama, which the station lacks
   programs.papers.corpus.enable = false;
 
