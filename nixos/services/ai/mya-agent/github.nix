@@ -24,10 +24,13 @@ let
   ];
 
   proxyTo = token: {
-    proxyPass = cfg.api;
+    # A variable makes nginx resolve the name per request: a name resolved at load stops all of
+    # nginx when the host boots without DNS. The API is a bare origin, so the URI passes unchanged
+    proxyPass = "$github_api";
     # The default Host is the API's own, which is what GitHub expects
     recommendedProxySettings = false;
     extraConfig = ''
+      set $github_api ${cfg.api};
       proxy_set_header Authorization ${token};
       proxy_ssl_server_name on;
       proxy_ssl_verify on;
@@ -80,7 +83,11 @@ in
       enable = true;
       virtualHosts.mya-github = {
         listen = [ { addr = "unix:${cfg.socket}"; } ];
-        extraConfig = "include ${tokens.path};";
+        extraConfig = ''
+          include ${tokens.path};
+          # The stub of systemd-resolved, which resolves a name at the time of each request
+          resolver 127.0.0.53;
+        '';
         locations = {
           "/" = proxyTo "$github_read";
         }
