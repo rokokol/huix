@@ -11,13 +11,15 @@ usage() {
 backup-heartbeat.sh — fail when a node behind this server went quiet
 
   backup-heartbeat.sh check [-m FILE] [-p FILE] DATA HTPASSWD MAX_AGE MIN_FREE
-  backup-heartbeat.sh push [-p FILE] HTPASSWD MAX_SILENCE < PAGE
+  backup-heartbeat.sh push [-p FILE] [-l USER]... HTPASSWD MAX_SILENCE < PAGE
 
   -m FILE   also write the newest snapshot time of each repository, and the free space,
             to FILE as Prometheus text metrics (a missing repository is time 0)
   -p FILE   write each problem to FILE as a cause, one a line: a key, a tab, a subject.
             The run then passes with problems found, and FILE carries them; an empty FILE
             means none
+  -l USER   push: a user of HTPASSWD that backs up from this host and pushes nowhere;
+            give it once for each such user
 
 DATA is the rest-server data directory. Every user in the HTPASSWD file is one expected
 repository at DATA/<user>/, so a user that never pushed is reported as well. The user named
@@ -29,7 +31,8 @@ deeper, at DATA/<user>/<name>/, is not the expected layout: it is reported as mi
 a note that names the nested path
 
 push reads a Pushgateway metrics page on stdin. Every user in HTPASSWD is one expected node,
-which pushes with its own name as the instance label. A node fails when its newest
+which pushes with its own name as the instance label, except each user given with -l: that
+one backs up from the server's own host and pushes nowhere. A node fails when its newest
 push_time_seconds, over every job, is older than MAX_SILENCE (1h), or when it never pushed.
 A node that pushes on time also fails for each problem it reports of itself: a series
 node_problem{key="…",summary="…"} with a value above zero, one a problem
@@ -53,6 +56,7 @@ die() { # the request itself is wrong
 
 # The list that -p writes, and the host that names the subjects in it
 causes_file=""
+local_users=()
 causes=""
 host=$(uname -n)
 
@@ -183,6 +187,11 @@ cmd_push() {
         causes_file=$2
         shift 2
         ;;
+      -l)
+        (($# >= 2)) || die "-l needs a user"
+        local_users+=("$2")
+        shift 2
+        ;;
       -*) die "no such flag: $1" ;;
       *) break ;;
     esac
@@ -221,6 +230,7 @@ cmd_push() {
   local now problems=() pushed key summary
   now=$(date +%s)
   for user in "${users[@]}"; do
+    case " ${local_users[*]-} " in *" $user "*) continue ;; esac
     pushed=$(awk -v u="$user" '$1 == "time" && $2 == u { print $3 }' <<<"$page")
     if [ -z "$pushed" ]; then
       printf 'backup-heartbeat.sh: %s: never pushed\n' "$user" >&2

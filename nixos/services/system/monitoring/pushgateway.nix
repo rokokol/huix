@@ -127,6 +127,11 @@ in
         curl --fail --silent --show-error --max-time 30 http://${backend}/metrics \
           | ${lib.getExe pkgs.bash} ${script} push \
             ${lib.optionalString (cfg.causesFile != null) "-p ${cfg.causesFile}"} \
+            ${
+              lib.concatMapStringsSep " " (
+                user: "-l ${lib.escapeShellArg user}"
+              ) config.rokokol.restic-server.localUsers
+            } \
             ${config.services.restic.server.htpasswd-file} ${cfg.maxSilence}
       '';
       serviceConfig = {

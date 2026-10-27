@@ -44,6 +44,13 @@ in
       description = "TCP port of the REST server, on every interface";
     };
 
+    localUsers = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ ];
+      example = [ "station" ];
+      description = "Users of the htpasswd that back up from this host, so no node push is expected of them";
+    };
+
     snapshotDir = lib.mkOption {
       type = lib.types.path;
       example = "/srv/backup/snapshots/restic";

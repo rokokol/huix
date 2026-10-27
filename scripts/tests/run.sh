@@ -445,6 +445,12 @@ is "the node that never pushed is named in the last line" yes "$(grep -q gamma <
 push htpasswd-metrics
 is "the metrics reader is not an expected node" 0 "$?"
 
+# A user that backs up on the server's own host pushes nowhere
+beat_out=$(bash "$heartbeat" push -l gamma "$work/htpasswd-gamma" 1h <"$work/pushgateway.prom" 2>&1)
+is "a local user is not an expected node" 0 "$?"
+beat_out=$(bash "$heartbeat" push -l gamma "$work/htpasswd-beta" 1h <"$work/pushgateway.prom" 2>&1)
+is "a local user leaves the other nodes checked" 1 "$?"
+
 push htpasswd-alpha /dev/null
 is "an empty page fails every node" 1 "$?"
 

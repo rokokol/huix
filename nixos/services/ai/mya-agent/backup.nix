@@ -11,6 +11,8 @@ let
   cfg = agent.hermes.backup;
   onVolume = lib.removePrefix "${cfg.mountPoint}/";
   cache = "/var/cache/hermes-backup";
+  # The repository's user on the station's own restic server, which takes its repository at /<user>/
+  resticUser = "station";
   package = config.services.hermes-agent.package;
   guard = {
     RequiresMountsFor = [ cfg.dataDir ];
@@ -59,10 +61,12 @@ in
         message = "Hermes state and snapshots must be under the backup mountpoint";
       }
     ];
+    # The station itself backs up here, and it pushes no node metrics
+    rokokol.restic-server.localUsers = [ resticUser ];
     sops.secrets.hermes-restic-password = { };
     sops.secrets.hermes-restic-rest-password = { };
     sops.templates."hermes-restic.env".content = ''
-      RESTIC_REST_USERNAME=station
+      RESTIC_REST_USERNAME=${resticUser}
       RESTIC_REST_PASSWORD=${config.sops.placeholder.hermes-restic-rest-password}
     '';
 
@@ -122,7 +126,7 @@ in
     systemd.services.btrbk-hermes.unitConfig = guard;
 
     services.restic.backups.hermes = {
-      repository = "rest:http://127.0.0.1:${toString config.rokokol.restic-server.port}/station/";
+      repository = "rest:http://127.0.0.1:${toString config.rokokol.restic-server.port}/${resticUser}/";
       passwordFile = config.sops.secrets.hermes-restic-password.path;
       environmentFile = config.sops.templates."hermes-restic.env".path;
       initialize = true;
