@@ -1769,11 +1769,11 @@
     "skill-super-productivity": {
       "flake": false,
       "locked": {
-        "lastModified": 1792626134,
-        "narHash": "sha256-m+2q0TffpaWy4oG3lXUmylQlu2uuvTUub86TImqUJ7k=",
+        "lastModified": 1793101269,
+        "narHash": "sha256-+TNpOjYkoSvKX3ElIxDcKqIyyv8f2Evq1AWo8x3wdXE=",
         "owner": "rokokol",
         "repo": "super-productivity-skill",
-        "rev": "b6149d51b76acd3851d87f6de81b1eb1df8711d4",
+        "rev": "f1b1855b081ef3da3fdd2fc853ffc5b68c962e71",
         "type": "github"
       },
       "original": {
