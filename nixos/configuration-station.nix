@@ -61,6 +61,10 @@ in
       enable = true;
       socketUser = config.rokokol.mya-agent.user;
     };
+    paper-search = {
+      enable = true;
+      owner = config.rokokol.mya-agent.user;
+    };
 
     backup-heartbeat.enable = true;
     alert-mail.enable = true;

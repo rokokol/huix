@@ -10,17 +10,37 @@ let
   agent = osConfig.rokokol.mya-agent;
 in
 {
+  # Of the research directory, the research group alone: ex-USSR kinship is deep-research
   imports = [
     ./programs/agents/agents.nix
     ./programs/agents/remote/default.nix
+    ./programs/agents/research/group.nix
+    ./programs/agents/research/docs-mcp.nix
+    ./programs/agents/research/papers.nix
     ./programs/agents/skills.nix
   ];
 
+  # The huix group without close-session, which keeps Claude Code's memory, and headless-gui,
+  # which needs a GUI the station does not run
   rokokol.skills.include = [
+    "ai-commit-trailers"
+    "bash-best-practices"
+    "ci"
+    "code-comments"
     "contributing"
+    "create-readme"
+    "huix-standard"
+    "maintainer-docs"
+    "nix-best-practices"
     "phone-alert"
+    "skill-authoring"
     "termux-api"
+    "tests"
+    "versioning"
   ];
+  rokokol.docs-mcp.enable = true;
+  # PaperQA's preset runs on Ollama, which the station lacks
+  programs.papers.corpus.enable = false;
 
   home.stateVersion = osConfig.system.stateVersion;
 

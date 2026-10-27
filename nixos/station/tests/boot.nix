@@ -598,10 +598,10 @@ pkgs.testers.runNixOSTest {
         assert json.loads(station.succeed("cat ${station.config.services.mail-agent.configFile}")) == {}
         station.succeed("test \"$(stat -c '%a %U %G' ${station.config.services.mail-agent.configFile})\" = '400 root root'")
 
-    with subtest("the secretary gets communication skills without workstation tools"):
+    with subtest("the secretary gets communication, huix and research skills without workstation tools"):
         skills = set(json.loads(station.succeed("cat /etc/test/mya-skills.json")))
-        assert {"calendar", "mail", "telegram", "contributing"} <= skills, skills
-        assert not skills & {"3x-ui-admin", "nix-best-practices", "obsidian-cli", "super-productivity", "tests"}, skills
+        assert {"calendar", "mail", "telegram", "contributing", "nix-best-practices", "tests", "papers"} <= skills, skills
+        assert not skills & {"3x-ui-admin", "obsidian-cli", "super-productivity", "close-session", "headless-gui"}, skills
 
     with subtest("only the secretary may use the Telegram socket, not its credentials"):
         station.wait_for_unit("tg-agent.socket")

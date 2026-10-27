@@ -11,8 +11,15 @@
 # the three is required for the server to run; each unlocks a source's proper rate limit
 # or, for Unpaywall, the open-access step of the download fallback
 {
-  options.rokokol.paper-search.enable = lib.mkEnableOption "the paper-search-mcp keys file" // {
-    default = config.rokokol.workstation.enable;
+  options.rokokol.paper-search = {
+    enable = lib.mkEnableOption "the paper-search-mcp keys file" // {
+      default = config.rokokol.workstation.enable;
+    };
+    owner = lib.mkOption {
+      type = lib.types.str;
+      default = rokokolName;
+      description = "User whose agents read the keys file";
+    };
   };
 
   config = lib.mkIf config.rokokol.paper-search.enable {
@@ -21,7 +28,7 @@
     sops.secrets."unpaywall-email" = { };
 
     sops.templates."paper-search.env" = {
-      owner = rokokolName;
+      inherit (config.rokokol.paper-search) owner;
       content = ''
         PAPER_SEARCH_MCP_SEMANTIC_SCHOLAR_API_KEY=${config.sops.placeholder."semantic-scholar-api-key"}
         PAPER_SEARCH_MCP_CORE_API_KEY=${config.sops.placeholder."core-api-key"}

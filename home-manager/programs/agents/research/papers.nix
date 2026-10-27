@@ -24,7 +24,7 @@
       enable = true;
       envFile = osConfig.sops.templates."paper-search.env".path;
       corpus = {
-        enable = true;
+        enable = lib.mkDefault true;
         directory = "/home/${rokokolName}/.cache/papers";
       };
     };
