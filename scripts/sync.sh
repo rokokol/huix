@@ -30,12 +30,12 @@ got after huix's first pull. After the push UNIT starts again, and the clone dro
 of what is now upstream. An agent out of reach is reported and passed over. A conflict is
 wound back, leaves the agent's commits in its clone and makes the exit status 1
 
-Both modes end by catching every git repository under ~/Projects up to its upstream;
-PROJECTS_DIR names that directory. The search
-is recursive, but stops at the first directory containing .git. Without local commits it
-fast-forwards; with them it rebases them on top, autostashing a dirty tree, and winds the whole
-thing back if that would conflict. It never commits and never pushes, a repository with no
-upstream is left alone, and one holding a .git/nosync file is skipped before it is even
+Both modes end by catching every git repository under the roots PROJECTS_DIR names, up to
+its upstream; PROJECTS_DIR is a colon-separated list of directories. The search is
+recursive, but stops at the first directory containing .git. Without local commits it
+fast-forwards; with them it rebases them on top, autostashing a dirty tree, and winds the
+whole thing back if that would conflict. It never commits and never pushes, a repository with
+no upstream is left alone, and one holding a .git/nosync file is skipped before it is even
 fetched. A name marked * in the summary was rebased rather than fast-forwarded
 
 Before that, each line "NAME ORIGIN URL [UNIT]" of the file SYNC_REMOTES gives every checkout
@@ -77,9 +77,15 @@ collect_repos() {
   done
 }
 
-# Every repository under PROJECTS_PATH
+# Every repository under the roots PROJECTS_PATHS names, a colon-separated list
 project_repos() {
-  [ -d "$PROJECTS_PATH" ] && collect_repos "$PROJECTS_PATH" "$1"
+  local root
+  local -a roots
+  IFS=: read -r -a roots <<<"$PROJECTS_PATHS"
+
+  for root in "${roots[@]}"; do
+    [ -d "$root" ] && collect_repos "$root" "$1"
+  done
   return 0
 }
 
@@ -206,7 +212,7 @@ take_agents() {
   done
 }
 
-# Catch every repository under PROJECTS_PATH up to its upstream. Fetching is the
+# Catch every repository under the roots PROJECTS_PATHS up to its upstream. Fetching is the
 # slow half and the repositories are independent, so it runs in parallel; moving a branch is
 # local and serial
 sweep_projects() {
@@ -325,7 +331,7 @@ export DBUS_SESSION_BUS_ADDRESS
 # Home Manager sets both for the session and repeats them in the unit, which inherits no
 # session variable. The fallback is for a call from a shell that has neither
 HUIX_PATH="${HUIX:-$HOME/huix}"
-PROJECTS_PATH="${PROJECTS_DIR:-$HOME/Projects}"
+PROJECTS_PATHS="${PROJECTS_DIR:-$HOME/Projects}"
 SSH_OPTS=(-o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=2)
 GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh ${SSH_OPTS[*]}}"
 

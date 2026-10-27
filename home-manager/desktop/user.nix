@@ -4,7 +4,7 @@
   osConfig,
   huixDir,
   myWikiDir,
-  projectsDir,
+  projectsDirs,
   rokokolName,
   ...
 }:
@@ -82,7 +82,7 @@ in
         }
         {
           key = "p";
-          path = projectsDir;
+          path = builtins.head projectsDirs;
         }
         {
           key = "w";
@@ -100,8 +100,7 @@ in
       };
 
       # Directories
-      systemd.user.tmpfiles.rules = [
-        "d ${projectsDir} 0755 - - -"
+      systemd.user.tmpfiles.rules = map (dir: "d ${dir} 0755 - - -") projectsDirs ++ [
         "D ${tempDir} 0777 - - -"
       ];
 

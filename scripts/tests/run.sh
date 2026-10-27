@@ -869,6 +869,26 @@ sync_run
 is "an agent's clone out of reach does not fail the sync" 0 "$sync_status"
 logged "an agent's clone out of reach is reported" '^notify-send' 'mya' 'huix'
 
+# PROJECTS_DIR is a colon-separated list: every root is swept and a root that does not exist is
+# passed over. Each clone here is behind a commit its own bare repository already holds
+mkdir -p "$git_work/more"
+git clone -q "$git_work/other.git" "$git_work/more/other"
+for name in tool other; do
+  git clone -q "$git_work/$name.git" "$git_work/pusher"
+  git -C "$git_work/pusher" commit -q --allow-empty -m "a later commit of $name"
+  git -C "$git_work/pusher" push -q origin master
+  rm -rf "$git_work/pusher"
+done
+
+HUIX=$git_work/huix SYNC_REMOTES= \
+  PROJECTS_DIR="$git_work/Projects:$git_work/more:$git_work/none" \
+  bash "$sync_sh" --pull-only >/dev/null 2>&1
+is "a colon-separated PROJECTS_DIR succeeds" 0 "$?"
+is "the first root is swept" "a later commit of tool" \
+  "$(git -C "$git_work/Projects/tool" log -1 --format=%s)"
+is "the second root is swept" "a later commit of other" \
+  "$(git -C "$git_work/more/other" log -1 --format=%s)"
+
 # agent-sync.sh and the commit mode of sync.sh taking what an agent's clone holds. The clone is
 # reached as station:PATH through a stub ssh that runs the command here: git's upload-pack as it
 # is, and the start of the agent's sync unit as agent-sync.sh over that clone

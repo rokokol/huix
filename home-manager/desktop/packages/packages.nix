@@ -4,7 +4,7 @@
   pkgs,
   huixDir,
   inputs,
-  projectsDir,
+  projectsDirs,
   ...
 }:
 
@@ -103,7 +103,7 @@ in
         EDITOR = "nvim";
         VISUAL = "nvim";
         HUIX = huixDir;
-        PROJECTS_DIR = projectsDir;
+        PROJECTS_DIR = lib.concatStringsSep ":" projectsDirs;
       };
     }
 
