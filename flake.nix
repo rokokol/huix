@@ -160,6 +160,11 @@
       flake = false;
     };
 
+    gruvbox-gtk-theme = {
+      url = "github:Fausto-Korpsvart/Gruvbox-GTK-Theme";
+      flake = false;
+    };
+
     blender-mcp = {
       url = "github:ahujasid/blender-mcp";
       flake = false;

@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  inputs,
   ...
 }:
 
@@ -11,7 +12,7 @@ let
   iconThemeName = "Mint-Y-Pink";
   colorScheme = "prefer-light";
   darkColorScheme = "prefer-dark";
-  gruvbox = pkgs.callPackage ./gruvbox-gtk-theme.nix { };
+  gruvbox = pkgs.callPackage ./gruvbox-gtk-theme.nix { src = inputs.gruvbox-gtk-theme; };
 
   # gtk-theme-name is written ONLY to settings.ini (via extraConfig), NOT to dconf
   # This is the baseline theme for apps that don't hook into the GtkSettings↔dconf bridge

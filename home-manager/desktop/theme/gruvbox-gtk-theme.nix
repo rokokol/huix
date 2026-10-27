@@ -3,7 +3,7 @@
 {
   lib,
   stdenvNoCC,
-  fetchFromGitHub,
+  src,
   sassc,
   gnome-themes-extra,
 }:
@@ -12,12 +12,7 @@ stdenvNoCC.mkDerivation {
   pname = "gruvbox-gtk-theme";
   version = "0-unstable-2025-10-23";
 
-  src = fetchFromGitHub {
-    owner = "Fausto-Korpsvart";
-    repo = "Gruvbox-GTK-Theme";
-    rev = "578cd220b5ff6e86b078a6111d26bb20ec8c733f";
-    hash = "sha256-RXoPj/aj9OCTIi8xWatG0QpDAUh102nFOipdSIiqt7o=";
-  };
+  inherit src;
 
   nativeBuildInputs = [ sassc ];
   buildInputs = [ gnome-themes-extra ];
