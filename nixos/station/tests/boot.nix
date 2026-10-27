@@ -698,6 +698,11 @@ pkgs.testers.runNixOSTest {
     # btrbk sees a change once btrfs commits it, which it does every 30 seconds; the timer's next
     # run takes a change it missed, and the test commits at once
     def snapshot():
+        # A run its timer began before the sync sees the old generation and makes no snapshot
+        station.wait_until_succeeds(
+            "case $(systemctl show -P ActiveState btrbk-syncthing.service) in active|activating) exit 1;; esac",
+            timeout=timedelta(minutes=2),
+        )
         station.succeed(f"{btrfs} filesystem sync /srv/backup")
         assert run_to_end("btrbk-syncthing.service") == "success", "btrbk failed"
         return station.succeed(f"ls -d {snapshots}/myWiki.* | sort").split()
@@ -735,8 +740,13 @@ pkgs.testers.runNixOSTest {
         pc.fail("timeout 5 bash -c '</dev/tcp/192.168.0.104/22000'")
         pc_id = st(pc, "GET", "system/status")["myID"]
         station_id = st(station, "GET", "system/status")["myID"]
+        # Syncthing also dials from its listening port. A dial from 22000 to 22000 at once from both
+        # ends makes one TCP simultaneous open, which the station's firewall lets in and which
+        # fails as TLS from two clients. So only the station dials 22000: the PC gets a port the
+        # firewall drops, and the real PC's entry, whose key the test PC lacks, goes
+        st(station, "DELETE", "config/devices/${station.config.services.syncthing.settings.devices.nixos-pc.id}")
         pair(station, pc_id, "tcp://nixos-pc:22000")
-        pair(pc, station_id, "tcp://nixos-station:22000")
+        pair(pc, station_id, "tcp://nixos-station:22001")
         station.wait_until_succeeds(
             st_curl(station, "GET", "system/connections") + f" | {jq} -e '.connections[\"{pc_id}\"].connected'",
             timeout=timedelta(minutes=2),
