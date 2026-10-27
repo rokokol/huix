@@ -191,11 +191,17 @@ in
       default = false;
       description = "Start the dashboard at boot after its memory use has been measured";
     };
+    homeTopic = lib.mkOption {
+      type = lib.types.nullOr lib.types.ints.positive;
+      default = null;
+      example = 41;
+      description = "Topic of the owner's chat that is Hermes' home channel, for gateway notices, cron jobs with no target of their own and the spend of cron sessions";
+    };
     reportsTopic = lib.mkOption {
       type = lib.types.nullOr lib.types.ints.positive;
       default = null;
       example = 42;
-      description = "Topic of the owner's chat that takes alerts, scheduled reports and spend notices";
+      description = "Topic of the owner's chat that takes station alerts, balance notices and the spend of sessions that run outside the chat; a chat session hears of its spend where it runs";
     };
     memoryMax = lib.mkOption {
       type = lib.types.str;
@@ -240,8 +246,8 @@ in
         HERMES_MANAGED=false
         HERMES_DASHBOARD_BASIC_AUTH_USERNAME=rokokol
       ''
-      + lib.optionalString (cfg.reportsTopic != null) ''
-        TELEGRAM_HOME_CHANNEL_THREAD_ID=${toString cfg.reportsTopic}
+      + lib.optionalString (cfg.homeTopic != null) ''
+        TELEGRAM_HOME_CHANNEL_THREAD_ID=${toString cfg.homeTopic}
       '';
     };
     environment.etc."hermes/.env".source = config.sops.templates."hermes.env".path;

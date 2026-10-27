@@ -104,6 +104,10 @@ in
             "--telegram-thread-id"
             (toString agent.hermes.reportsTopic)
           ]
+          ++ lib.optionals (agent.hermes.homeTopic != null) [
+            "--home-thread-id"
+            (toString agent.hermes.homeTopic)
+          ]
         );
         TimeoutStartSec = 90;
         ProtectHome = "tmpfs";

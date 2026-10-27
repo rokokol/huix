@@ -14,6 +14,11 @@ monitor = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(monitor)
 
 
+def record(sent):
+    """A sender that keeps the text of each notice"""
+    return lambda text, about=None: sent.append(text)
+
+
 class MonitorTest(unittest.TestCase):
     def test_threshold_boundaries_and_large_jump(self):
         step = Decimal("0.50")
@@ -27,17 +32,17 @@ class MonitorTest(unittest.TestCase):
         state = {}
         session = {"id": "one", "cost": Decimal("0.53"), "estimated": False}
 
-        def reject(_text):
+        def reject(_text, _about=None):
             raise RuntimeError("offline")
 
         with self.assertRaises(RuntimeError):
             monitor.notify_sessions([session], state, Decimal("0.50"), None, reject)
         self.assertEqual(state, {})
         sent = []
-        monitor.notify_sessions([session], state, Decimal("0.50"), None, sent.append)
+        monitor.notify_sessions([session], state, Decimal("0.50"), None, record(sent))
         self.assertEqual(len(sent), 1)
         self.assertIn("Balance unavailable", sent[0])
-        monitor.notify_sessions([session], state, Decimal("0.50"), None, sent.append)
+        monitor.notify_sessions([session], state, Decimal("0.50"), None, record(sent))
         self.assertEqual(len(sent), 1)
 
     def test_notification_has_account_balance_and_estimate_label(self):
@@ -47,12 +52,28 @@ class MonitorTest(unittest.TestCase):
             {},
             Decimal("0.50"),
             {"value": Decimal("18.47"), "checked_at": "2026-10-25T12:00:00+00:00"},
-            sent.append,
+            record(sent),
         )
         self.assertEqual(len(sent), 1)
         self.assertIn("Estimated session spend: $1.02", sent[0])
         self.assertIn("OpenRouter balance: $18.47", sent[0])
         self.assertIn("12:00:00", sent[0])
+
+    def test_spend_notice_follows_the_session_into_its_topic(self):
+        def topic(**session):
+            return monitor.notice_topic(session, owner_chat="1", reports=5, home=6)
+        self.assertEqual(topic(source="telegram", chat_id="1", thread_id="77"), 77)
+        self.assertIsNone(topic(source="telegram", chat_id="1", thread_id=None))
+        self.assertEqual(topic(source="webhook", chat_id=None, thread_id=None), 5)
+        self.assertEqual(topic(source="cron", chat_id=None, thread_id=None), 6)
+        self.assertEqual(topic(source="telegram", chat_id="2", thread_id="77"), 5)
+        self.assertEqual(monitor.notice_topic(None, owner_chat="1", reports=5, home=6), 5)
+
+    def test_notice_carries_its_session_to_the_sender(self):
+        sent = []
+        session = {"id": "one", "cost": Decimal("0.53"), "estimated": False, "thread_id": "77"}
+        monitor.notify_sessions([session], {}, Decimal("0.50"), None, lambda text, about=None: sent.append(about))
+        self.assertEqual(sent, [session])
 
     def test_read_only_database_groups_compression_but_not_new_sessions(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -63,7 +84,8 @@ class MonitorTest(unittest.TestCase):
                         id TEXT, parent_session_id TEXT, end_reason TEXT,
                         model_config TEXT, source TEXT, input_tokens INTEGER,
                         output_tokens INTEGER, estimated_cost_usd REAL,
-                        actual_cost_usd REAL, cost_status TEXT
+                        actual_cost_usd REAL, cost_status TEXT,
+                        chat_id TEXT, thread_id TEXT
                     );
                     CREATE TABLE session_model_usage (
                         session_id TEXT, task TEXT, estimated_cost_usd REAL,
@@ -72,13 +94,13 @@ class MonitorTest(unittest.TestCase):
                     );
                 """)
                 db.executemany(
-                    "INSERT INTO sessions VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    "INSERT INTO sessions VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     [
-                        ("root", None, "compression", "{}", "telegram", 100, 10, 9, 0.30, "actual"),
-                        ("continued", "root", None, "{}", "telegram", 100, 10, 9, 0.25, "actual"),
-                        ("new", "root", None, '{"_reset_from":"root"}', "telegram", 1, 1, 0.1, None, "estimated"),
-                        ("branch", "root", None, '{"_branched_from":"root"}', "telegram", 1, 1, 0.2, None, "estimated"),
-                        ("delegate", "continued", None, '{"_delegate_from":"continued"}', "tool", 10, 2, 9, 0.05, "actual"),
+                        ("root", None, "compression", "{}", "telegram", 100, 10, 9, 0.30, "actual", "1", "77"),
+                        ("continued", "root", None, "{}", "telegram", 100, 10, 9, 0.25, "actual", "1", "77"),
+                        ("new", "root", None, '{"_reset_from":"root"}', "telegram", 1, 1, 0.1, None, "estimated", "1", "78"),
+                        ("branch", "root", None, '{"_branched_from":"root"}', "telegram", 1, 1, 0.2, None, "estimated", "1", None),
+                        ("delegate", "continued", None, '{"_delegate_from":"continued"}', "tool", 10, 2, 9, 0.05, "actual", None, None),
                     ],
                 )
                 db.executemany(
@@ -92,6 +114,8 @@ class MonitorTest(unittest.TestCase):
             self.assertEqual(result["root"]["input_tokens"], 220)
             self.assertEqual(result["new"]["cost"], Decimal("0.1"))
             self.assertEqual(result["branch"]["cost"], Decimal("0.2"))
+            self.assertEqual((result["root"]["chat_id"], result["root"]["thread_id"]), ("1", "77"))
+            self.assertEqual(result["new"]["thread_id"], "78")
 
     def test_missing_database_is_not_created(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -108,7 +132,7 @@ class MonitorTest(unittest.TestCase):
             sent = []
             monitor.notify_sessions(
                 [{"id": "one", "cost": Decimal("1.02"), "estimated": False}],
-                monitor.load_state(path), Decimal("0.50"), None, sent.append,
+                monitor.load_state(path), Decimal("0.50"), None, record(sent),
             )
             self.assertEqual(sent, [])
 

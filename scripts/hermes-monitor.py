@@ -40,7 +40,7 @@ def read_sessions(path):
         db.row_factory = sqlite3.Row
         db.execute("BEGIN")
         rows = {row["id"]: dict(row) for row in db.execute(
-            "SELECT id, parent_session_id, end_reason, model_config, source, "
+            "SELECT id, parent_session_id, end_reason, model_config, source, chat_id, thread_id, "
             "input_tokens, output_tokens, estimated_cost_usd, actual_cost_usd, cost_status FROM sessions"
         )}
         auxiliary = list(db.execute(
@@ -71,6 +71,7 @@ def read_sessions(path):
         entry = totals.setdefault(logical, {
             "id": logical, "cost": Decimal(0), "estimated": False,
             "source": rows[logical]["source"] or "unknown", "input_tokens": 0, "output_tokens": 0,
+            "chat_id": rows[logical]["chat_id"], "thread_id": rows[logical]["thread_id"],
         })
         cost, estimated = recorded_cost(row)
         entry["cost"] += cost
@@ -104,6 +105,20 @@ def load_state(path):
     return json.loads(path.read_text()) if path.exists() else {}
 
 
+def notice_topic(session, owner_chat, reports, home):
+    """The topic that hears of a session's spend: where a session of the owner's chat runs, its
+    topic or the chat's root. A cron session records no chat, so it goes to the home topic, and
+    any other session, and a notice of no session, to the reports topic"""
+    if not session:
+        return reports
+    if session.get("source") == "cron":
+        return home
+    if session.get("source") == "telegram" and session.get("chat_id") == owner_chat:
+        thread = session.get("thread_id")
+        return int(thread) if thread else None
+    return reports
+
+
 def notify_sessions(sessions, state, step, balance, send, persist=lambda: None):
     for session in sessions:
         bucket = crossed_threshold(session["cost"], int(state.get(session["id"], 0)), step)
@@ -119,7 +134,7 @@ def notify_sessions(sessions, state, step, balance, send, persist=lambda: None):
             text += "OpenRouter: Balance unavailable"
         else:
             text += f"OpenRouter balance: ${balance['value']:.2f}\nChecked: {balance['checked_at']}"
-        send(text)
+        send(text, session)
         state[session["id"]] = bucket
         persist()
 
@@ -198,10 +213,11 @@ def collect(args):
     token = args.bot_token_file.read_text().strip()
     chat = args.chat_id_file.read_text().strip()
 
-    def send(text):
+    def send(text, about=None):
         message = {"chat_id": chat, "text": text}
-        if args.telegram_thread_id is not None:
-            message["message_thread_id"] = args.telegram_thread_id
+        topic = notice_topic(about, chat, args.telegram_thread_id, args.home_thread_id)
+        if topic is not None:
+            message["message_thread_id"] = topic
         reply = request_json(
             args.telegram_api + "/bot" + token + "/sendMessage",
             data=json.dumps(message).encode(),
@@ -258,7 +274,9 @@ def main():
     parser.add_argument("--low-balance", default=Decimal("5"), type=Decimal)
     parser.add_argument("--api", default="https://openrouter.ai/api/v1")
     parser.add_argument("--telegram-api", default="https://api.telegram.org")
-    parser.add_argument("--telegram-thread-id", type=int, help="Topic of the chat that takes the notices")
+    parser.add_argument("--telegram-thread-id", type=int,
+                        help="Topic for the balance notices and for sessions that run outside the chat")
+    parser.add_argument("--home-thread-id", type=int, help="Topic for the spend of cron sessions")
     args = parser.parse_args()
     crossed_threshold(Decimal(0), 0, args.spend_step)
     args.state_dir.mkdir(parents=True, exist_ok=True)
