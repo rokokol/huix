@@ -29,18 +29,13 @@ in
       rokokol.syncthing.archive.editor = agent.user;
 
       rokokol.mya-agent = {
-        # The shared Claude Code state holds absolute paths under the owner's home, as the
-        # workstations write them
-        homeAlias = ownerHome;
-
         # The owner fetches the agent's commits from here over SSH, and syssync takes them
         repositories.huix = "https://github.com/rokokol/huix";
         syncedBy = rokokolName;
 
-        # Each folder where a workstation keeps it, so the paths in the shared state resolve
         directories = lib.mapAttrs' (
           path: dir: lib.nameValuePair (lib.removePrefix "${ownerHome}/" path) dir
-        ) archive.folders;
+        ) (lib.filterAttrs (path: _: path == "${ownerHome}/myWiki") archive.folders);
 
         # Syncthing runs as the same user, so /proc/PID/root of Syncthing would show its keys
         # too; the PrivateUsers of the nixpkgs unit shuts that path, and the boot test checks it
@@ -50,7 +45,7 @@ in
         ];
       };
 
-      systemd.services.mya-agent.after = [ "syncthing.service" ];
+      systemd.services.hermes-agent.after = [ "syncthing.service" ];
     })
   ];
 }

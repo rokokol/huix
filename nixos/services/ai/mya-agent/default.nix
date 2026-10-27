@@ -3,9 +3,10 @@
 {
   imports = [
     ./agent.nix
+    ./backup.nix
     ./github.nix
-    ./hooks.nix
+    ./hermes.nix
+    ./monitor.nix
     ./power.nix
-    ./print.nix
   ];
 }

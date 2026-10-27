@@ -5,8 +5,7 @@
   ...
 }:
 
-# Claude Code for every user who runs it, the station's agent among them. Profile switching and
-# shared OpenCode config live in rokokol/claude-account
+# Profile selection and shared OpenCode config live in rokokol/claude-account
 let
   cfg = config.rokokol.claude;
   sharedDir = "${config.xdg.dataHome}/claude-shared";
@@ -52,6 +51,7 @@ in
   config = lib.mkIf cfg.enable (
     lib.mkMerge [
       {
+        rokokol.claude.plugins = lib.attrValues config.rokokol.agents.claudePlugins;
         home.packages = [ cfg.package ];
 
         programs.claude-account = {

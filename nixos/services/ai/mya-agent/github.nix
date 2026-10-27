@@ -40,6 +40,14 @@ let
 
   # gh reads the socket from its config; it writes nothing there unless asked to log in
   ghConfig = pkgs.writeTextDir "config.yml" "http_unix_socket: ${cfg.socket}\n";
+  myaGh = pkgs.writeShellApplication {
+    name = "gh";
+    text = ''
+      export GH_CONFIG_DIR=${ghConfig}
+      export GH_TOKEN=held-by-the-proxy
+      exec ${lib.getExe pkgs.gh} "$@"
+    '';
+  };
 in
 {
   options.rokokol.mya-agent.github = {
@@ -95,10 +103,7 @@ in
       };
     };
 
-    systemd.services.mya-agent.environment = {
-      GH_CONFIG_DIR = "${ghConfig}";
-      # gh refuses to run without a token; the proxy replaces this one on every request
-      GH_TOKEN = "held-by-the-proxy";
-    };
+    # Hermes strips GH_TOKEN before terminal commands; the wrapper sets only a non-secret marker
+    rokokol.mya-agent.packages = [ (lib.hiPrio myaGh) ];
   };
 }

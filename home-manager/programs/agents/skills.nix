@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  osConfig,
   inputs,
   ...
 }:
@@ -11,6 +12,7 @@
 # Syncthing carries between the hosts. A token stays on its host: each app issues its own
 let
   cfg = config.rokokol.skills;
+  claudeEnabled = lib.attrByPath [ "rokokol" "claude" "enable" ] false config;
   prefix = "skill-";
   available = lib.mapAttrs' (
     name: input: lib.nameValuePair (lib.removePrefix prefix name) input.outPath
@@ -19,7 +21,7 @@ let
     if cfg.include == null then available else lib.getAttrs cfg.include available
   ) cfg.exclude;
   stateDir =
-    if config.rokokol.claude.enable then
+    if claudeEnabled then
       "${config.programs.claude-account.sharedDir}/skill-state"
     else
       "${config.xdg.stateHome}/agent-skills";
@@ -40,23 +42,31 @@ in
     };
   };
 
-  config = lib.mkIf config.rokokol.claude.enable {
-    rokokol.agents.skills = skills;
-    rokokol.agents.skillGroups = lib.genAttrs (builtins.filter (name: builtins.hasAttr name skills) [
-      "3x-ui-admin"
-      "obsidian-cli"
-      "phone-alert"
-      "super-productivity"
-      "termux-api"
-    ]) (_: "remote");
+  config =
+    lib.mkIf
+      (
+        claudeEnabled
+        || (
+          osConfig.services.hermes-agent.enable && osConfig.services.hermes-agent.user == config.home.username
+        )
+      )
+      {
+        rokokol.agents.skills = skills;
+        rokokol.agents.skillGroups = lib.genAttrs (builtins.filter (name: builtins.hasAttr name skills) [
+          "3x-ui-admin"
+          "obsidian-cli"
+          "phone-alert"
+          "super-productivity"
+          "termux-api"
+        ]) (_: "remote");
 
-    home.sessionVariables =
-      lib.optionalAttrs (skills ? contributing) {
-        CONTRIB_HOME = "${stateDir}/contributing";
-      }
-      // lib.optionalAttrs (skills ? super-productivity) {
-        SP_HOME = "${stateDir}/super-productivity";
-        SP_TOKEN_FILE = "${config.xdg.configHome}/super-productivity-skill/secrets/token";
+        home.sessionVariables =
+          lib.optionalAttrs (skills ? contributing) {
+            CONTRIB_HOME = "${stateDir}/contributing";
+          }
+          // lib.optionalAttrs (skills ? super-productivity) {
+            SP_HOME = "${stateDir}/super-productivity";
+            SP_TOKEN_FILE = "${config.xdg.configHome}/super-productivity-skill/secrets/token";
+          };
       };
-  };
 }

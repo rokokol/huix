@@ -82,12 +82,13 @@ in
 
   config = lib.mkMerge [
     (lib.mkIf agent.power.enable {
-      rokokol.mya-agent.plugins = [
-        (builtins.path {
+      home-manager.users.${agent.user}.rokokol.agents = {
+        skillGroups.power = "remote";
+        skills.power = builtins.path {
           name = "power-plugin";
-          path = "${inputs.self}/nixos/services/ai/mya-agent/plugins/power";
-        })
-      ];
+          path = "${inputs.self}/nixos/services/ai/mya-agent/skills/power";
+        };
+      };
     })
 
     (lib.mkIf guest.power.enable {

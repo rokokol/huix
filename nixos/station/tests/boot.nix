@@ -38,8 +38,8 @@ let
     inherit (station.config.rokokol.tailnet-web.sites.radicale) port;
     inherit (station.config.rokokol.radicale) dataDir snapshotDir;
     backend = lib.head station.config.services.radicale.settings.server.hosts;
-    # The servers of the agent's own Claude Code, as the VM itself builds them
-    mcpConfig = "/etc/test/mya-mcp.json";
+    # The config that Hermes start seeded, so the test reads what the agent reads
+    mcpConfig = "${agent.home}/.hermes/config.yaml";
   };
 
   syncthing = {
@@ -54,8 +54,8 @@ let
     inherit (station.config.rokokol.mya-agent) user;
     inherit (station.config.users.users.${user}) home;
     inherit (station.config.rokokol.mya-agent) notify syncUnit;
-    stateDir = station.config.systemd.services.mya-agent.environment.TELEGRAM_STATE_DIR;
-    workDir = station.config.systemd.services.mya-agent.environment.HOME;
+    stateDir = "${home}/.hermes";
+    workDir = home;
     ownerChatId = "1234567";
 
     # What the session can reach, typed into it as a command. Each line is a name and yes or no;
@@ -70,17 +70,22 @@ let
       }
       echo "user=$(id -un)" >&3
       can write-vault sh -c 'echo agent >"$HOME/myWiki/agent.md"'
-      can write-shared sh -c 'echo agent >"$HOME/.local/share/claude-shared/agent.md"'
-      # Where a workstation writes it into the shared state
-      can owner-paths test -r /home/rokokol/.local/share/claude-shared/settings.json
+      can write-shared sh -c 'echo agent >${syncthing.shared}/agent.md'
+      can read-shared test -r ${syncthing.shared}/settings.json
       can owner-home test -e /home/rokokol/.owner-only
       can snapshots ls ${syncthing.snapshotDir}
       can restic ls ${station.config.rokokol.restic-server.dataDir}
       can syncthing-key cat ${syncthing.config}
       # Syncthing runs as the same user, so its view of the files is the next way to its key
       can syncthing-root ls "/proc/$1/root${station.config.services.syncthing.configDir}"
-      can bot-token test -n "''${TELEGRAM_BOT_TOKEN:-}"
-      can profile test -L "$CLAUDE_CONFIG_DIR" -a -e "$CLAUDE_CONFIG_DIR/settings.json"
+      can user-manager-root test -r "/proc/$2/root${syncthing.shared}/settings.json"
+      can user-manager-spawn env \
+        XDG_RUNTIME_DIR="/proc/$2/root/run/user/$(id -u)" \
+        DBUS_SESSION_BUS_ADDRESS="unix:path=/proc/$2/root/run/user/$(id -u)/bus" \
+        systemd-run --user --quiet --wait --pipe cat ${syncthing.shared}/settings.json
+      can bot-token-env test -n "''${TELEGRAM_BOT_TOKEN:-}"
+      can external-skills sh -c 'touch ${lib.head station.config.services.hermes-agent.settings.skills.external_dirs}/writable'
+      can sops-key test -r /var/lib/sops-nix/key.txt
       can wake-pc command -v wake-pc
       can pc-mac test -r ${station.config.sops.secrets.pc-mac.path}
       # A setuid program such as sudo could raise the session's privileges
@@ -258,6 +263,7 @@ pkgs.testers.runNixOSTest {
               inherit (backup) fsType options;
               autoFormat = true;
             };
+            fileSystems."${agent.home}/.hermes" = station.config.fileSystems."${agent.home}/.hermes";
           };
 
           # The subvolumes that disko makes on the backup volume, made on the empty disk before
@@ -268,6 +274,7 @@ pkgs.testers.runNixOSTest {
                 "syncthing.service"
                 "restic-rest-server.socket"
                 "radicale.service"
+                "home-mya-.hermes.mount"
               ];
             in
             {
@@ -289,10 +296,14 @@ pkgs.testers.runNixOSTest {
                 RemainAfterExit = true;
               };
               path = [ pkgs.btrfs-progs ];
-              script = lib.concatMapStrings (name: ''
-                mkdir -p "$(dirname /srv/backup/${name})"
-                btrfs subvolume create /srv/backup/${name}
-              '') (lib.attrNames config.disko.devices.disk.main.content.partitions.backup.content.subvolumes);
+              script =
+                lib.concatMapStrings (name: ''
+                  mkdir -p "$(dirname /srv/backup/${name})"
+                  btrfs subvolume create /srv/backup/${name}
+                '') (lib.attrNames config.disko.devices.disk.main.content.partitions.backup.content.subvolumes)
+                + ''
+                  chown mya:mya ${config.rokokol.mya-agent.hermes.backup.dataDir}
+                '';
             };
         }
       )
@@ -344,9 +355,6 @@ pkgs.testers.runNixOSTest {
         # Prometheus finds the PC by its tailnet name, which here leads over the LAN
         networking.hosts."192.168.0.102" = [ "nixos-pc" ];
 
-        # The servers of the agent's own Claude Code, as this host builds them
-        environment.etc."test/mya-mcp.json".source =
-          config.home-manager.users.${agent.user}.rokokol.agents.claudeConfig;
         environment.etc."test/mya-session-vars.json".text =
           builtins.toJSON
             config.home-manager.users.${agent.user}.home.sessionVariables;
@@ -368,9 +376,20 @@ pkgs.testers.runNixOSTest {
         # The fixtures hold a Syncthing key, as the real secrets will
         rokokol.syncthing.keyFromSops = true;
 
-        # Claude Code cannot log in here. A shell in its place runs what notify types, so the
-        # test reaches the session's view of the host through the path the owner's units use
-        rokokol.mya-agent.command = lib.getExe pkgs.bashInteractive;
+        sops.templates."hermes.env".content = ''
+          OPENROUTER_BASE_URL=http://192.168.0.1:8094/v1
+        '';
+        services.hermes-agent.settings = {
+          platforms.telegram.extra.base_url = "http://192.168.0.1:8094/bot";
+          auxiliary = lib.mapAttrs (
+            _: value:
+            value
+            // {
+              base_url = "http://192.168.0.1:8094/v1";
+            }
+          ) station.config.services.hermes-agent.settings.auxiliary;
+        };
+        rokokol.mya-agent.hermes.monitor.api = "http://192.168.0.1:8094/v1";
         # The VM has no internet, so the agent clones a repository from the store. git trusts
         # it, though root owns it
         rokokol.mya-agent.repositories = lib.mkForce { huix = "${agentRepo}"; };
@@ -401,8 +420,14 @@ pkgs.testers.runNixOSTest {
       1025
       github.port
       telegramPort
+      8094
     ];
     networking.firewall.allowedUDPPorts = [ 53 ];
+
+    systemd.services.fake-hermes = {
+      wantedBy = [ "multi-user.target" ];
+      serviceConfig.ExecStart = "${lib.getExe pkgs.python3} ${./hermes-api.py} 8094";
+    };
 
     # The Telegram Bot API: each request is one line of its path and form, answered with ok
     systemd.services.fake-telegram = {
@@ -466,7 +491,8 @@ pkgs.testers.runNixOSTest {
       inputs.sops-nix.nixosModules.sops
       ../../services/utils/forgejo-runner.nix
       ../../services/system/monitoring/node-exporter.nix
-      ../../services/ai/mya-agent
+      ../../services/ai/mya-agent/agent.nix
+      ../../services/ai/mya-agent/power.nix
       inputs.home-manager.nixosModules.home-manager
     ];
     _module.args.inputs = inputs;
@@ -783,30 +809,28 @@ pkgs.testers.runNixOSTest {
         station.fail(f"echo changed >{newest}/notes/kept.md")
         station.succeed(f"grep -qx new {newest}/notes/kept.md")
 
-    agent_unit = "mya-agent.service"
+    agent_unit = "hermes-agent.service"
     agent_home = "${agent.home}"
 
-    # Typed into the session; with a shell there, a command
     def type_in(text):
-        station.succeed(f"${agent.notify} {shlex.quote(text)}")
+        import base64
+        encoded = base64.b64encode(text.encode()).decode()
+        station.succeed(f"${agent.notify} RUN:{encoded}")
 
-    with subtest("the agent's session waits for the shared state, then starts, and mails root if it fails"):
+    with subtest("Hermes starts without a shared Claude profile and mails root if it fails"):
         station.succeed(f"systemctl show -P OnFailure {agent_unit} | grep -qx 'alert-mail@{agent_unit}.service'")
-        # Nothing has brought the shared state here yet, and a profile made now would seed an
-        # empty settings.json that could win over the workstations' own
-        station.succeed(f"systemctl show -P ConditionResult {agent_unit} | grep -qx no")
         station.fail("test -e ${syncthing.shared}/settings.json")
-        as_syncthing(station, "echo '{}' >${syncthing.shared}/settings.json")
-        station.succeed(f"systemctl start {agent_unit}")
         station.wait_for_unit(agent_unit)
+        station.wait_until_succeeds("curl -sf http://127.0.0.1:${toString station.config.rokokol.mya-agent.hermes.webhookPort}/health", timeout=timedelta(minutes=2))
+        station.fail("systemctl is-active mya-agent.service")
+        as_syncthing(station, "echo '{}' >${syncthing.shared}/settings.json")
 
     with subtest("the bot answers the owner alone, from the start"):
-        access = json.loads(station.succeed("cat ${agent.stateDir}/access.json"))
-        assert access["dmPolicy"] == "allowlist", f"the bot's direct messages are {access['dmPolicy']}"
-        assert access["allowFrom"] == ["${agent.ownerChatId}"], f"the bot answers {access['allowFrom']}"
-        station.succeed("test $(stat -c %U ${agent.stateDir}/access.json) = ${agent.user}")
+        station.succeed("grep -qx 'TELEGRAM_ALLOWED_USERS=${agent.ownerChatId}' /etc/hermes/.env")
+        station.succeed("test $(stat -Lc %a /etc/hermes/.env) = 440")
+        station.fail("runuser -u nobody -- cat /etc/hermes/.env")
 
-    with subtest("contributing in the agent's session finds its shared private state"):
+    with subtest("contributing in the agent's session finds its own private state"):
         variables = json.loads(station.succeed("cat /etc/test/mya-session-vars.json"))
         expected = variables["CONTRIB_HOME"].replace(agent_home, "${agent.workDir}", 1)
         type_in("${
@@ -816,20 +840,14 @@ pkgs.testers.runNixOSTest {
         actual = station.succeed(f"cat {agent_home}/contrib-home").strip()
         assert actual == expected, f"contributing uses {actual}, not {expected} from Home Manager"
 
-    # Claude Code keeps no answer given for a home directory, so a session there would ask again
-    with subtest("the session's directory is trusted from the start, so no session waits on the question"):
-        conf = "${agent.home}/.claude/.claude.json"
-        station.succeed(f"runuser -u ${agent.user} -- sh -c 'echo {{}} >{conf}'")
-        station.succeed(f"systemctl restart {agent_unit}")
-        station.wait_for_unit(agent_unit)
-        trusted = station.succeed(f"{jq} '.projects[\"${agent.workDir}\"].hasTrustDialogAccepted' {conf}").strip()
-        assert trusted == "true", f"the session's directory is trusted: {trusted}"
+    with subtest("Hermes can edit runtime settings without a Claude profile"):
+        station.succeed("runuser -u ${agent.user} -- ${lib.getExe station.config.services.hermes-agent.package} config set curator.consolidate true")
+        station.fail("test -e ${agent.home}/.claude")
 
     with subtest("the agent's repositories are cloned, and the owner fetches from them"):
         clone = f"{agent_home}/huix"
         station.wait_until_succeeds("systemctl show -P Result mya-agent-clone.service | grep -qx success")
         station.succeed(f"test $(stat -c %U {clone}) = ${agent.user}")
-        station.succeed(f"grep -qxF CLAUDE.local.md {clone}/.git/info/exclude")
         # The group passes through the home to the clone, and lists nothing in the home
         station.succeed(f"runuser -u rokokol -- git -C {clone} log -1 --format=%s | grep -qx first")
         station.fail(f"runuser -u rokokol -- ls {agent_home}")
@@ -844,31 +862,35 @@ pkgs.testers.runNixOSTest {
         station.fail("runuser -u rokokol -- systemctl restart ${agent.syncUnit}")
         station.fail("runuser -u rokokol -- systemctl start mya-agent-clone.service")
 
-    with subtest("notify types its text into the session as it is"):
-        # Quotes, a separator and a variable reach the session unchanged
+    with subtest("a signed alert reaches the agent and an unsigned request is rejected"):
+        station.succeed("curl -s -o /tmp/rejected -w '%{http_code}' -H 'Content-Type: application/json' -d '{}' http://127.0.0.1:${toString station.config.rokokol.mya-agent.hermes.webhookPort}/webhooks/alerts | grep -qx 401")
         type_in("echo 'semi;colon \"Enter\" $x' >~/typed")
         station.wait_until_succeeds(f"test -s {agent_home}/typed", timeout=timedelta(seconds=30))
         typed = station.succeed(f"cat {agent_home}/typed")
         assert typed == "semi;colon \"Enter\" $x\n", f"the session got {typed!r}"
-        # A text that is a key name in whole, which tmux would press rather than type. Typed,
-        # it calls this function
-        type_in("Enter() { echo typed >~/key; }")
-        type_in("Enter")
-        station.wait_until_succeeds(f"grep -qx typed {agent_home}/key", timeout=timedelta(seconds=30))
         station.fail("runuser -u rokokol -- ${agent.notify} text")
 
-    with subtest("the morning timer asks the session for the letter"):
-        station.succeed("systemctl list-timers --no-legend morning-letter.timer | grep -q morning-letter")
-        # Typed into the shell in the session's place, the request's first word calls this
-        type_in("It() { echo \"$*\" >~/morning; }")
-        station.succeed("systemctl start morning-letter.service")
-        station.wait_until_succeeds(f"grep -q 'morning skill' {agent_home}/morning", timeout=timedelta(seconds=30))
+    with subtest("the old morning timer is absent"):
+        station.fail("systemctl cat morning-letter.timer")
+
+    with subtest("the gateway executes an editable cron job inside its sandbox"):
+        prompt = "RUN:" + base64.b64encode(b"readlink /proc/self/ns/user >~/cron-namespace; echo cron-ran >~/cron-probe").decode()
+        hermes = "runuser -u ${agent.user} -- ${lib.getExe station.config.services.hermes-agent.package}"
+        schedule = station.succeed("date -d '+5 seconds' --iso-8601=seconds").strip()
+        station.succeed(f"{hermes} cron create {shlex.quote(schedule)} {shlex.quote(prompt)} --name vm-cron --deliver local --repeat 1")
+        store = json.loads(station.succeed("cat ${agent.stateDir}/cron/jobs.json"))
+        jobs = store["jobs"] if isinstance(store, dict) else store
+        assert any(job["name"] == "vm-cron" for job in jobs)
+        station.wait_until_succeeds("grep -qx cron-ran ${agent.home}/cron-probe", timeout=timedelta(minutes=2))
+        gateway_ns = station.succeed(f"readlink /proc/$(systemctl show -P MainPID {agent_unit})/ns/user").strip()
+        assert station.succeed("cat ${agent.home}/cron-namespace").strip() == gateway_ns
 
     with subtest("gh in the session reaches GitHub through the proxy, which picks the token by path"):
         station.wait_for_unit("github-echo.service")
         station.wait_for_open_port(${toString githubEcho.port})
-        type_in("gh api /notifications >~/gh-classic; gh api /user >~/gh-read; env >~/gh-env")
+        type_in("{ gh api /notifications >~/gh-classic; gh api /user >~/gh-read; } 2>~/gh-errors; env >~/gh-env")
         station.wait_until_succeeds(f"test -s {agent_home}/gh-env", timeout=timedelta(seconds=30))
+        station.succeed(f"cat {agent_home}/gh-errors")
         classic = json.loads(station.succeed(f"cat {agent_home}/gh-classic"))
         read = json.loads(station.succeed(f"cat {agent_home}/gh-read"))
         assert classic["authorization"] == "token ghp_test", f"the inbox went with {classic}"
@@ -880,14 +902,17 @@ pkgs.testers.runNixOSTest {
         # The socket's directory admits the agent's group alone, which the owner is in as well
         station.fail("runuser -u nobody -- ${lib.getExe pkgs.curl} -sf --unix-socket ${station.config.rokokol.mya-agent.github.socket} http://api.github.com/user")
 
-    with subtest("the session edits the vault and the shared state, and sees no snapshot, no backup, no key of Syncthing and not the owner's home"):
+    with subtest("the session edits the vault and cannot reach shared history, backups or outside user services"):
         station.succeed("install -m 0600 -o rokokol /dev/null /home/rokokol/.owner-only")
         syncthing_pid = station.succeed("systemctl show -P MainPID syncthing.service").strip()
-        type_in(f"sh ${agent.probe} {syncthing_pid}")
+        uid = station.succeed("id -u ${agent.user}").strip()
+        station.wait_for_unit(f"user@{uid}.service")
+        manager_pid = station.succeed(f"systemctl show -P MainPID user@{uid}.service").strip()
+        type_in(f"sh ${agent.probe} {syncthing_pid} {manager_pid}")
         station.wait_until_succeeds(f"test -e {agent_home}/probe", timeout=timedelta(seconds=30))
         found = dict(line.split("=", 1) for line in station.succeed(f"cat {agent_home}/probe").split())
-        reachable = {"write-vault", "write-shared", "owner-paths", "bot-token", "profile", "wake-pc", "pc-mac"}
-        hidden = {"owner-home", "snapshots", "restic", "syncthing-key", "syncthing-root", "new-privileges"}
+        reachable = {"write-vault", "wake-pc", "pc-mac"}
+        hidden = {"bot-token-env", "read-shared", "write-shared", "external-skills", "sops-key", "owner-home", "snapshots", "restic", "syncthing-key", "syncthing-root", "user-manager-root", "user-manager-spawn", "new-privileges"}
         expected = {"user": "${agent.user}"} | dict.fromkeys(reachable, "yes") | dict.fromkeys(hidden, "no")
         assert found == expected, f"the session sees {found}, not {expected}"
 
@@ -896,16 +921,49 @@ pkgs.testers.runNixOSTest {
         newest = snapshot()[-1]
         station.succeed(f"grep -qx agent {newest}/agent.md")
 
-    with subtest("ending tmux, as the new-session skill does, brings a new session"):
+    with subtest("restarting Hermes keeps its mutable state and the service recovers"):
         before = station.succeed(f"systemctl show -P MainPID {agent_unit}").strip()
-        type_in("tmux kill-server")
+        station.succeed(f"systemctl restart {agent_unit}")
         station.wait_until_succeeds(
             f"pid=$(systemctl show -P MainPID {agent_unit}); [ \"$pid\" != 0 ] && [ \"$pid\" != {before} ]",
             timeout=timedelta(minutes=1),
         )
+        station.wait_until_succeeds(
+            "curl -sf http://127.0.0.1:${toString station.config.rokokol.mya-agent.hermes.webhookPort}/health",
+            timeout=timedelta(minutes=2),
+        )
         type_in("echo fresh >~/fresh")
         station.wait_until_succeeds(f"grep -qx fresh {agent_home}/fresh", timeout=timedelta(seconds=30))
         assert station.succeed(f"systemctl show -P ActiveState {agent_unit}").strip() == "active"
+
+    hermes_restic = "RESTIC_PASSWORD_FILE=${station.config.sops.secrets.hermes-restic-password.path} ${lib.getExe pkgs.restic} -r ${restic.dataDir}/station"
+
+    with subtest("Hermes state reaches its local restic repository and the portable archive is valid"):
+        station.succeed(f"runuser -u ${agent.user} -- sh -c 'echo restore-marker >{agent_home}/.hermes/SOUL.md'")
+        station.succeed("systemctl start restic-backups-hermes.service")
+        station.succeed("test -s /var/cache/hermes-backup/current.zip")
+        station.succeed("${lib.getExe pkgs.python3} -c 'import zipfile; z=zipfile.ZipFile(\"/var/cache/hermes-backup/current.zip\"); assert z.testzip() is None; assert any(p.endswith(\"state.db\") for p in z.namelist())'")
+        station.succeed(f"{hermes_restic} snapshots --json | ${lib.getExe pkgs.jq} -e 'length > 0'")
+
+    with subtest("a new machine gets the whole Hermes state back from restic"):
+        station.succeed(f"{hermes_restic} restore latest --target /root/restore")
+        station.succeed(f"install -m 0600 -o ${agent.user} -g ${agent.user} /root/restore/var/cache/hermes-backup/current.zip {agent_home}/hermes.zip")
+        # An empty state that activation and the first start fill, as after an install
+        station.succeed(f"systemctl stop {agent_unit}")
+        station.succeed(f"find {agent_home}/.hermes -mindepth 1 -delete")
+        station.succeed(f"systemctl restart hermes-state.service && systemctl start {agent_unit}")
+        station.wait_until_succeeds(f"test -e {agent_home}/.hermes/state.db", timeout=timedelta(minutes=1))
+        station.fail(f"grep -q restore-marker {agent_home}/.hermes/SOUL.md")
+        station.succeed(f"systemctl stop {agent_unit}")
+        # Hermes copies its bundled skills with the store's read-only modes
+        station.succeed(f"runuser -u ${agent.user} -- chmod -R u+w {agent_home}/.hermes")
+        station.succeed(f"runuser -u ${agent.user} -- env HOME={agent_home} ${lib.getExe station.config.services.hermes-agent.package} import --force {agent_home}/hermes.zip")
+        station.succeed(f"rm {agent_home}/hermes.zip && systemctl start {agent_unit}")
+        station.succeed(f"grep -qx restore-marker {agent_home}/.hermes/SOUL.md")
+        station.wait_until_succeeds(
+            "curl -sf http://127.0.0.1:${toString station.config.rokokol.mya-agent.hermes.webhookPort}/health",
+            timeout=timedelta(minutes=2),
+        )
 
     with subtest("the archive ignores what the workstations ignore, once their list arrives"):
         # Until then the folder runs: an include of a missing file would stop it
@@ -982,8 +1040,8 @@ pkgs.testers.runNixOSTest {
         station.succeed("test -d ${radicale.dataDir}/collection-root/rokokol/made")
 
     with subtest("the agent's dav-mcp lists the owner's calendars and adds a task the owner sees"):
-        # Started in the session, as Claude Code starts it there: with the variables of its entry
-        entry = json.loads(station.succeed(f"{jq} -c .mcpServers.dav ${radicale.mcpConfig}"))
+        # Use the entry's variables and wrapper from the Hermes session
+        entry = json.loads(station.succeed("${lib.getExe pkgs.yq-go} -o json -I 0 .mcp_servers.dav ${radicale.mcpConfig}"))
         variables = " ".join(f"{name}={shlex.quote(value)}" for name, value in entry["env"].items())
         calls = [
             {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2025-06-18", "capabilities": {}, "clientInfo": {"name": "test", "version": "0"}}},
@@ -1468,7 +1526,9 @@ pkgs.testers.runNixOSTest {
     with subtest("the heartbeat's numbers reach Prometheus through the textfile directory"):
         # The heartbeat ran in the subtests above; its file lives apart and is linked in
         station.succeed("test -s ${station.config.rokokol.node-exporter.textfileDir}/backup.prom")
-        wait_for_series('count by (host) (backup_last_snapshot_timestamp_seconds)', {"nixos-station": 1.0})
+        repositories = set(station.succeed("cut -d: -f1 ${station.config.sops.secrets.restic-server-htpasswd.path}").split()) - {"metrics"}
+        assert repositories, "the backup server has no expected repository"
+        wait_for_series('count by (host) (backup_last_snapshot_timestamp_seconds)', {"nixos-station": len(repositories)})
         wait_for_series('count by (host) (backup_free_bytes)', {"nixos-station": 1.0})
 
     with subtest("the nodes push to the Pushgateway, each only under its own name"):

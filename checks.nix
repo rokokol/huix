@@ -33,6 +33,8 @@ pkgs.lib.mapAttrs' (
           # sync.sh runs against real repositories made by the tests
           git
           jq
+          # The Hermes scripts read config.yaml as Hermes writes it
+          (python3.withPackages (ps: [ ps.ruamel-yaml ]))
           # flock, which alert.sh takes its lock with
           util-linux
           xorriso
@@ -44,6 +46,8 @@ pkgs.lib.mapAttrs' (
       }
       ''
         bash "$scripts/tests/run.sh"
+        python3 -B "$scripts/tests/test-hermes-monitor.py"
+        python3 -B "$scripts/tests/test-hermes-seed-config.py"
         touch "$out"
       '';
 

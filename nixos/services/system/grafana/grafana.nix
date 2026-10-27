@@ -79,7 +79,10 @@ let
       maxConntrackUsed = 0.8;
       maxStuckSockets = 200;
     })
-  ];
+  ]
+  ++ lib.optional config.rokokol.mya-agent.hermes.monitor.enable (
+    import ./dashboards/hermes.nix { inherit roles panels; }
+  );
 in
 {
   options.rokokol.grafana.enable = lib.mkEnableOption "Grafana over the Prometheus of this host";

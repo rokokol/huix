@@ -6,6 +6,44 @@ Rules for this file: one entry per workaround, and every entry must carry a **me
 
 ---
 
+## Hermes Node needs RPATH before the ELF interpreter
+
+**Where:** `nixos/services/ai/mya-agent/hermes.nix`, in the Linux override of the upstream Node package
+
+**Symptom it prevents:** Node exits with SIGSEGV before it can print its version. The TUI build fails at `npm config set offline true`
+
+**Why it happens:** the stock package uses `autoPatchelf` on the binary from the upstream package lock. Its result has overlapping load segments and crashes in glibc's `dl_main`. The original binary runs through the Nix loader. A combined interpreter and RPATH change also reproduces the crash
+
+**Why this works:** the override sets RPATH first and changes the interpreter in a separate operation. It preserves the upstream archive and version. The install check runs Node directly and starts another Node process through `process.execPath`
+
+**Removal check:** run the stock upstream package with the pinned system packages
+
+```sh
+nix shell --impure --expr 'let f = builtins.getFlake (toString ./.); in (f.nixosConfigurations.nixos-station.pkgs.callPackage "${f.inputs.hermes-agent}/nix/pm-packages.nix" {}).node' -c node -e 'require("node:child_process").execFileSync(process.execPath, ["--version"], {stdio: "inherit"})'
+```
+
+SIGSEGV -> keep the override. A different failure -> investigate it. Success -> remove the override and verify the complete Hermes build
+
+**Upstream:** [NixOS/patchelf#674](https://github.com/NixOS/patchelf/issues/674) describes the same order-dependent failure in another binary
+
+---
+
+## Hermes bundled skills keep the Nix store's dates and modes
+
+**Where:** `backupPrepareCommand` in `nixos/services/ai/mya-agent/backup.nix`, the restore steps in `nixos/services/ai/mya-agent/README.md`, and the restore subtest of `nixos/station/tests/boot.nix`
+
+**Symptom it prevents:** `hermes backup` reports "ZIP does not support timestamps before 1980" for every bundled skill and exits 1, so the nightly restic backup fails. `hermes import` over a started state reports "Permission denied" for the same files and exits 1
+
+**Why it happens:** Hermes copies its bundled skills from the package into `~/.hermes/skills` and keeps their metadata. In the Nix store every file has the 1970 timestamp and every directory is read-only. Python's `zipfile` refuses a date before 1980 unless `strict_timestamps=False`. The import writes through a temporary file in each directory, and a read-only directory refuses it
+
+**Why this works:** before the backup, every file older than 1980-01-02 gets that date; only the bundled skills match, and their content does not change. Before an import, `chmod -R u+w` gives the owner write access to those directories again
+
+**Removal check:** in a Hermes state whose bundled skills came from the store, run `hermes backup --output OUT --keep 0` without the date step, and `hermes import --force OUT` over a started state without the `chmod`. Both exit 0 -> remove both steps
+
+**Upstream:** the copy that keeps the store's metadata is [NousResearch/hermes-agent#101226](https://github.com/NousResearch/hermes-agent/issues/101226), with fixes in [#110270](https://github.com/NousResearch/hermes-agent/pull/110270) and [#101300](https://github.com/NousResearch/hermes-agent/pull/101300). The backup that refuses a pre-1980 date on any file is fixed in [#136372](https://github.com/NousResearch/hermes-agent/pull/136372)
+
+---
+
 ## NixOS MCP uses the MCP 1 Python SDK
 
 **Where:** `home-manager/programs/agents/research/docs-mcp.nix`, on hosts with `rokokol.docs-mcp.enable`

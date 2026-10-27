@@ -31,9 +31,10 @@ in
     "backup-heartbeat"
     "btrbk-radicale"
     "btrbk-restic"
+    "btrbk-hermes"
     "btrbk-syncthing"
     "btrfs-scrub@"
-    "mya-agent"
+    "hermes-agent"
     "forgejo"
     "forgejo-dump"
     "forgejo-mirrors"
@@ -45,6 +46,7 @@ in
     "pushgateway"
     "radicale"
     "restic-rest-server"
+    "restic-backups-hermes"
     "smartd"
     "syncthing"
     "tailscaled"
@@ -73,11 +75,12 @@ in
   # which the owner accepts
   rokokol.mya-agent = {
     extraGroups = [ "systemd-journal" ];
-    plugins = [
-      (builtins.path {
-        name = "station-health-plugin";
-        path = "${inputs.self}/nixos/services/ai/mya-agent/plugins/station-health";
-      })
-    ];
+  };
+  home-manager.users.${config.rokokol.mya-agent.user}.rokokol.agents = {
+    skills.station-health = builtins.path {
+      name = "station-health-skill";
+      path = "${inputs.self}/nixos/services/ai/mya-agent/skills/station-health";
+    };
+    skillGroups.station-health = "remote";
   };
 }

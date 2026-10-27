@@ -119,6 +119,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    hermes-agent = {
+      url = "github:NousResearch/hermes-agent/v0.22.5";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
+    };
+
     rofi-wooordhunt = {
       url = "github:rokokol/rofi-wooordhunt";
       inputs.nixpkgs.follows = "nixpkgs";

@@ -42,11 +42,20 @@ in
       git.email = "mya@rokokol.art";
       packages = with pkgs; [ ffmpeg ];
       pythonPackages = ps: [ ps.matplotlib ];
+      hermes.backup = {
+        mountPoint = backup;
+        dataDir = "${backup}/hermes";
+        snapshotDir = "${backup}/snapshots/hermes";
+      };
     };
 
     mail-agent = {
       enable = true;
       socketUser = config.rokokol.mya-agent.user;
+    };
+    printer.client = {
+      enable = true;
+      prepareCommand = [ "wake-pc" ];
     };
     telegram-agent = {
       enable = true;

@@ -5,20 +5,12 @@
   ...
 }:
 
-# What every AI agent of this user gets, declared once by the module of the tool it belongs to:
-# the MCP servers, in Home Manager's shared list programs.mcp.servers, the skills, in
-# rokokol.agents.skills, and the language servers, in rokokol.agents.lspServers. This module
-# turns them into what each agent reads, and the agent's own
-# seam passes that on. Home Manager's programs.claude-code and programs.opencode read the MCP
-# list too, but they write into ~/.claude and ~/.config/opencode, which claude-account shares
-# between hosts through Syncthing, and a store path of one host would reach the others there. A
-# secret reaches a server only as a file, through `env.<NAME>.file`
+# Shared registries let each agent use tools without an import of another agent's module
 let
   cfg = config.rokokol.agents;
   json = pkgs.formats.json { };
   servers = lib.filterAttrs (_: server: server.enabled or null != false) config.programs.mcp.servers;
 
-  # Claude Code starts the server through a script that reads each file into its variable
   forClaude =
     name: server:
     lib.hm.mcp.transformMcpServer {
@@ -55,8 +47,6 @@ let
         // lib.optionalAttrs (env != { }) { environment = env; }
     );
 
-  # Both agents take a language server as a command and the file extensions it serves, and each
-  # spells the fields its own way
   lspForClaude = _: server: {
     inherit (server) command args;
     extensionToLanguage = server.extensions;
@@ -66,7 +56,6 @@ let
     extensions = lib.attrNames server.extensions;
   };
 
-  # OpenCode and Hermes retain flat names; Claude Code can disable each group as one plugin
   skills = pkgs.linkFarm "agent-skills" cfg.skills;
   groupNames = builtins.attrNames cfg.groups;
   groups = lib.genAttrs groupNames (group: {
@@ -202,6 +191,5 @@ in
 
   config = {
     rokokol.agents.groups.huix = "Software development and system configuration";
-    rokokol.claude.plugins = lib.attrValues plugins;
   };
 }

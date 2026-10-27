@@ -5,20 +5,18 @@
   ...
 }:
 
-# The home of the Claude Code agent that nixos/services/ai/mya-agent runs. It shares
-# the workstations' Claude Code state through the copy of it the host keeps
+# The agent keeps its own state and receives only the shared tool registry
 let
   agent = osConfig.rokokol.mya-agent;
 in
 {
   imports = [
-    ./programs/agents/claude.nix
+    ./programs/agents/agents.nix
     ./programs/agents/remote/default.nix
     ./programs/agents/skills.nix
   ];
 
   rokokol.skills.include = [
-    "close-session"
     "contributing"
     "phone-alert"
     "termux-api"
@@ -58,14 +56,4 @@ in
     };
   };
 
-  rokokol.claude.enable = true;
-
-  programs.claude-account = {
-    # Spelled out, as the session may run with HOME set to an alias of the home, and the defaults
-    # would follow it
-    claudeDir = "${config.home.homeDirectory}/.claude";
-    profilesDir = "${config.xdg.dataHome}/claude-profiles";
-    # No OpenCode runs here
-    opencode.share = false;
-  };
 }
