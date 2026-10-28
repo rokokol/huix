@@ -40,8 +40,38 @@ in
     mya-agent = {
       enable = true;
       git.email = "mya@rokokol.art";
-      packages = with pkgs; [ ffmpeg ];
-      pythonPackages = ps: [ ps.matplotlib ];
+      # Hermes puts its own ffmpeg, Node and ripgrep only on its process's PATH, so a shell or a
+      # unit of the agent outside it lacks them. The rest are documents and checks the skills call
+      packages = with pkgs; [
+        ffmpeg
+        nixfmt
+        nodejs
+        pandoc
+        poppler-utils
+        ripgrep
+        ruff
+        shellcheck
+        sqlite
+        unzip
+        uv
+      ];
+      pythonPackages =
+        ps: with ps; [
+          beautifulsoup4
+          httpx
+          lxml
+          matplotlib
+          openpyxl
+          pandas
+          pypdf
+          pytest
+          python-docx
+          python-pptx
+          reportlab
+          scipy
+          sympy
+          xlsxwriter
+        ];
       # Topics of the owner's chat with the bot
       hermes.homeTopic = 1089068;
       hermes.cronTopic = 1089660;
