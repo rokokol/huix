@@ -48,7 +48,13 @@ let
   plain =
     (import ../installer/mk-image.nix (builtins.removeAttrs args [ "pkgs" ]) {
       inherit target;
-      modules = [ instrumentation ];
+      modules = [
+        instrumentation
+        {
+          # The test module supplies the empty root password through hashedPasswordFile
+          users.users.root.initialHashedPassword = lib.mkForce null;
+        }
+      ];
     }).config.system.build.isoImage;
   plainIso = "${plain}/iso/${plain.isoName}";
 
