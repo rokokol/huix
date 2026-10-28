@@ -142,6 +142,9 @@ let
   guests = lib.filterAttrs (
     _: host: host.config.rokokol.mya-agent.guest.enable
   ) inputs.self.nixosConfigurations;
+  # The compute host is the PC, and its name comes from that host's own configuration rather than
+  # being written here a second time
+  computeHost = inputs.self.nixosConfigurations.nixos-pc.config.networking.hostName;
   secret = name: config.sops.placeholder.${name};
   notifyScript = builtins.path {
     name = "hermes-notify.py";
@@ -404,7 +407,7 @@ in
 
         # Heavy computation
 
-        The PC is the compute host: send long work there over `ssh nixos-pc` instead of running it on the station, which carries the agent and its services beside the calculation
+        The PC is the compute host: send long work there over `ssh ${computeHost}` instead of running it on the station, which carries the agent and its services beside the calculation
 
         That covers the CPU and CUDA sides alike — simulations, numeric sweeps, compiles, anything that wants minutes of a machine
 
