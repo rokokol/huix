@@ -234,6 +234,7 @@ pkgs.testers.runNixOSTest {
   name = "station-boot";
 
   imports = [
+    (import ./sops-activation.nix { inherit pkgs fixtures; })
     (import ./test-meta.nix {
       inherit lib;
       description = "Boot nixos-station in a VM and check its network, backups, secrets and alerts";
@@ -315,7 +316,6 @@ pkgs.testers.runNixOSTest {
           install -D -m 0400 ${fixtures}/key.txt /var/lib/sops-nix/key.txt
         '';
         system.activationScripts.setupSecretsForUsers.deps = [ "testAgeKey" ];
-        system.activationScripts.setupSecrets.deps = [ "testAgeKey" ];
 
         # Both kinds of site, on a backend that does nothing else, so a failure is the module's
         rokokol.tailnet-web.sites = {

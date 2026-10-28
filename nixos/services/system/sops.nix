@@ -16,6 +16,8 @@
   ];
 
   sops = {
+    useSystemdActivation = true;
+
     # builtins.path so the hash follows the secrets file, not every commit. A default, so a
     # host with secrets of its own can point at another file
     defaultSopsFile = lib.mkDefault (
