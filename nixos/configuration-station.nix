@@ -46,6 +46,8 @@ in
       hermes.homeTopic = 1089068;
       hermes.cronTopic = 1089660;
       hermes.reportsTopic = 1089071;
+      # About 200 MB at rest, measured in the station test VM
+      hermes.dashboardAutoStart = true;
       hermes.backup = {
         mountPoint = backup;
         dataDir = "${backup}/hermes";
