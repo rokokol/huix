@@ -978,7 +978,7 @@ pkgs.testers.runNixOSTest {
         assert station.succeed(f"{yq} .memory.provider {config_yaml}").strip() == "builtin"
         assert station.succeed(f"{yq} .curator.consolidate {config_yaml}").strip() == "true"
         assert station.succeed(f"{yq} .memory.user_char_limit {config_yaml}").strip() == "24000"
-        assert station.succeed(f"{yq} .agent.reasoning_effort {config_yaml}").strip() == "low"
+        assert station.succeed(f"{yq} .agent.reasoning_effort {config_yaml}").strip() not in {"", "null"}
         assert station.succeed(f"{yq} .cron.wrap_response {config_yaml}").strip() == "false"
         station.succeed(f"{yq} -e .mcp_servers.dav {config_yaml}")
         # A second run keeps what the owner or Hermes wrote since

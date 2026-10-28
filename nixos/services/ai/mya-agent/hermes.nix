@@ -108,7 +108,7 @@ let
     curator.consolidate = true;
     display.memory_notifications = "verbose";
     agent = {
-      reasoning_effort = "low";
+      reasoning_effort = "medium";
       max_turns = 60;
     };
     # A scheduled report arrives as the agent's answer alone
