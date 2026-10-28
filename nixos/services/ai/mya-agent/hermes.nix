@@ -308,22 +308,22 @@ in
         port = cfg.dashboardPort + 1;
       };
       settings = {
-        # The owner's ChatGPT plan through Codex, logged in by hand. When its quota or the link
-        # to OpenAI fails, a turn falls back to the OpenRouter models in this order
         model = {
-          provider = "openai-codex";
-          default = "gpt-6-luna";
+          provider = "openrouter";
+          default = model;
         };
-        fallback_providers =
-          map
-            (fallback: {
-              provider = "openrouter";
-              model = fallback;
-            })
-            [
-              model
-              glm
-            ];
+        # A turn whose model fails moves down this list. Luna is the owner's ChatGPT plan through
+        # Codex, logged in by hand, and it needs the link to OpenAI
+        fallback_providers = [
+          {
+            provider = "openai-codex";
+            model = "gpt-6-luna";
+          }
+          {
+            provider = "openrouter";
+            model = glm;
+          }
+        ];
         # Only requests to OpenRouter carry it, and an entry under models replaces the flat
         # endpoints for that model alone
         provider_routing = routing // {
