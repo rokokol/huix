@@ -80,6 +80,9 @@ let
     only = providers;
     data_collection = "deny";
     require_parameters = true;
+    # Only the auxiliary calls send it: Hermes builds the main agent's routing from a fixed list
+    # of keys without zdr, so the main model's requests go without zero data retention
+    zdr = true;
   };
   auxiliary = {
     provider = "openrouter";
