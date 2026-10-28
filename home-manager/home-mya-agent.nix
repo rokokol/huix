@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   osConfig,
   ...
 }:
@@ -21,6 +22,13 @@ in
     ./programs/cli/matplotlib.nix
   ];
   rokokol.matplotlib.enable = true;
+
+  # Hermes puts its own Node and ripgrep only on its process's PATH, so a shell or a unit of the
+  # agent outside it lacks them
+  home.packages = with pkgs; [
+    nodejs
+    ripgrep
+  ];
 
   # The huix group without close-session, which keeps Claude Code's memory, and headless-gui,
   # which needs a GUI the station does not run
