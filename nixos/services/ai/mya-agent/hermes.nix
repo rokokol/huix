@@ -242,6 +242,19 @@ in
       ]
       ++ lib.attrValues mcpPackages;
     };
+    # The owner runs the agent's Hermes by name: sudo keeps the caller's HOME and drops the
+    # agent's profile from PATH, so the call goes through sudo with both set. The module's
+    # addToSystemPackages exports HERMES_HOME instead, which sudo drops as well
+    environment.systemPackages = [
+      (pkgs.writeShellScriptBin "hermes" ''
+        hermes=${lib.getExe' package "hermes"}
+        if [ "$(${pkgs.coreutils}/bin/id -un)" = ${lib.escapeShellArg agent.user} ]; then
+          exec "$hermes" "$@"
+        fi
+        exec /run/wrappers/bin/sudo -u ${lib.escapeShellArg agent.user} \
+          ${pkgs.coreutils}/bin/env HOME=${lib.escapeShellArg agent.home} "$hermes" "$@"
+      '')
+    ];
 
     sops.secrets = lib.genAttrs [
       "openrouter-api-key"
