@@ -13,7 +13,7 @@
 # arrive through sops and never enter the store
 let
   cfg = config.rokokol.alert-mail;
-  stateDir = "/var/lib/alerts";
+  inherit (cfg) stateDir;
 
   # How long an alert keeps trying a relay that does not answer. msmtp has no queue, so without
   # the retries an alert raised while the relay is down is lost
@@ -138,6 +138,13 @@ in
 {
   options.rokokol.alert-mail = {
     enable = lib.mkEnableOption "alert e-mail through an SMTP relay";
+
+    stateDir = lib.mkOption {
+      type = lib.types.str;
+      readOnly = true;
+      default = "/var/lib/alerts";
+      description = "Directory of the open problems and their journal";
+    };
 
     telegram = {
       enable = lib.mkEnableOption ''

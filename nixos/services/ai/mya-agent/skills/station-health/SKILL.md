@@ -11,14 +11,14 @@ Every source here is read-only for you. Never restart, reset or clear anything w
 
 `alert list` prints each open problem: key, time it opened, subject, separated by tabs. A problem opens once, is sent by mail, Telegram and to you, and closes by itself when its cause goes. `alert help` says what each key means
 
-- The body of a problem, with the unit's status and its last journal lines when it is a unit, is `/var/lib/alerts/open/<key>/body`
-- The history of every problem is `/var/lib/alerts/journal`: time, `OPEN`, `UPDATE` or `RESOLVED`, key, subject, separated by tabs. A problem that opens and closes again and again is the thing to report, even when nothing is open now
+- The body of a problem, with the unit's status and its last journal lines when it is a unit, is `@alertState@/open/<key>/body`
+- The history of every problem is `@alertState@/journal`: time, `OPEN`, `UPDATE` or `RESOLVED`, key, subject, separated by tabs. A problem that opens and closes again and again is the thing to report, even when nothing is open now
 - A key `backup:<cause>` is one backup repository that is stale or missing, or the backup space running low; `node:<node>-<cause>` is a node that went silent or a problem the node reports of itself, in its own words. Each closes by itself once its cause is gone
 - A key `unit:<name>` is a failed unit: read `systemctl status <name>`, the body, and `journalctl -u <name> -n 200` when the body's lines are too few. The reboot key is quiet: it means a new kernel waits for a reboot, which only the owner decides
 
 ## Metrics
 
-Prometheus answers on `http://127.0.0.1:9090`. Ask it with `curl -s --get --data-urlencode 'query=<PromQL>' http://127.0.0.1:9090/api/v1/query`, and read `.data.result`. Grafana draws the same data for the owner at `http://nixos-station:3200`, dashboards Hosts, Guards, Mail and VPN
+Prometheus answers on `@prometheus@`. Ask it with `curl -s --get --data-urlencode 'query=<PromQL>' @prometheus@/api/v1/query`, and read `.data.result`. Grafana draws the same data for the owner at `@grafana@`, dashboards @dashboards@
 
 | Question | PromQL |
 | --- | --- |
@@ -33,6 +33,22 @@ Prometheus answers on `http://127.0.0.1:9090`. Ask it with `curl -s --get --data
 | What a Syncthing folder still needs, in bytes | `syncthing_model_folder_summary{scope="need", type="bytes"}` |
 
 A laptop or PC that is off shows `up == 0`; that alone is not a fault. The thresholds that raise an alert are in the subjects of the alerts, not here
+
+An empty `systemctl --failed` is not a health verdict: it never reads the alert state. Read the open problems before you call a host healthy
+
+## Backups
+
+The backup checks take the names they expect from the restic server's htpasswd: each user there is a repository that must hold a fresh snapshot, and a node that must push its metrics, except these users, which back up from this host and push nothing: @localUsers@
+
+- A name new to the htpasswd opens `no snapshot at all` and `never pushed` in the same second, on the first check after an activation. That is a setup not yet finished, not lost data: say so, and name the job that has not run
+- `backup_last_snapshot_timestamp_seconds` of 0 means no snapshot ever, not the epoch
+- A missing repository is created by its client's own first run, so the one action is to start that client's unit once
+
+## Spend
+
+- The `hermes_*` series are sums over the whole session store, and no restart resets them: a figure per hour is the difference of two samples
+- `hermes_cost_usd` is Hermes' estimate wherever the provider reported no cost, so it is not a bill. The bill is OpenRouter's: `openrouter_key_usage_daily_usd`, `openrouter_key_usage_monthly_usd`, `openrouter_balance_usd`, `openrouter_budget_remaining_usd`
+- OpenRouter's day is the UTC day, not the station's local one, so its daily figure and a local day's sum differ by design. Say which day you mean
 
 ## On the nodes
 

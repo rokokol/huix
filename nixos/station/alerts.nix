@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   inputs,
   ...
 }:
@@ -77,10 +78,25 @@ in
     extraGroups = [ "systemd-journal" ];
   };
   home-manager.users.${config.rokokol.mya-agent.user}.rokokol.agents = {
-    skills.station-health = builtins.path {
-      name = "station-health-skill";
-      path = "${inputs.self}/nixos/services/ai/mya-agent/skills/station-health";
-    };
+    # The addresses, paths and dashboards come from the modules that own them, so they cannot drift
+    skills.station-health = pkgs.runCommand "station-health-skill" { } ''
+      install -D -m 0444 ${
+        pkgs.replaceVars
+          (builtins.path {
+            name = "station-health-skill.md";
+            path = "${inputs.self}/nixos/services/ai/mya-agent/skills/station-health/SKILL.md";
+          })
+          {
+            prometheus = "http://127.0.0.1:${toString config.services.prometheus.port}";
+            grafana = "http://${config.networking.hostName}:${toString config.rokokol.tailnet-web.sites.grafana.port}";
+            dashboards = lib.concatStringsSep ", " config.rokokol.grafana.dashboardTitles;
+            alertState = config.rokokol.alert-mail.stateDir;
+            localUsers = lib.concatMapStringsSep ", " (
+              user: "`${user}`"
+            ) config.rokokol.restic-server.localUsers;
+          }
+      } $out/SKILL.md
+    '';
     skillGroups.station-health = "remote";
   };
 }

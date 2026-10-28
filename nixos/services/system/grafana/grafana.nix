@@ -85,7 +85,17 @@ let
   );
 in
 {
-  options.rokokol.grafana.enable = lib.mkEnableOption "Grafana over the Prometheus of this host";
+  options.rokokol.grafana = {
+    enable = lib.mkEnableOption "Grafana over the Prometheus of this host";
+
+    dashboardTitles = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      readOnly = true;
+      default = map (dashboard: dashboard.title) dashboards;
+      defaultText = lib.literalMD "the titles of the dashboards this module provisions";
+      description = "Titles of the provisioned dashboards, for what points a reader at them";
+    };
+  };
 
   config = lib.mkIf config.rokokol.grafana.enable {
     assertions = [
