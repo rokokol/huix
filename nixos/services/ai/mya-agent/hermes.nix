@@ -392,6 +392,10 @@ in
         ${lib.concatStrings (
           lib.mapAttrsToList (name: host: "- `${name}`: `${host.config.rokokol.mya-agent.user}`\n") guests
         )}
+        # DDLC style
+
+        Take DDLC colours, roles, the web kit and the report style from ddlc-themes at ${inputs.ddlc-themes}, the version the owner's hosts use; its README lists what it ships. Never type a colour by hand. In matplotlib use plt.style.use("ddlc"). The Doki and Nunito faces are installed
+
         # Notes
 
         The vault is at ~/myWiki. Read its instructions before you edit notes

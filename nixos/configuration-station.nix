@@ -68,6 +68,8 @@ in
       socketUser = config.rokokol.mya-agent.user;
     };
 
+    # The agent draws charts and pages in the DDLC faces
+    fonts.enable = true;
     backup-heartbeat.enable = true;
     alert-mail.enable = true;
     prometheus.enable = true;

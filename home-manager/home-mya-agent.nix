@@ -18,7 +18,9 @@ in
     ./programs/agents/research/docs-mcp.nix
     ./programs/agents/research/papers.nix
     ./programs/agents/skills.nix
+    ./programs/cli/matplotlib.nix
   ];
+  rokokol.matplotlib.enable = true;
 
   # The huix group without close-session, which keeps Claude Code's memory, and headless-gui,
   # which needs a GUI the station does not run
