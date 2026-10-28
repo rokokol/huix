@@ -1801,11 +1801,11 @@
     "skill-tests": {
       "flake": false,
       "locked": {
-        "lastModified": 1792677161,
-        "narHash": "sha256-SH8EfwBANL8q4roorGlTDdXkr6ibQoRJ4ufNQNFkXgY=",
+        "lastModified": 1793223512,
+        "narHash": "sha256-2Fnwmm5Lj2Z1ZgacOk+F4imGeGG5IxY0AJ83Lc4asPs=",
         "owner": "rokokol",
         "repo": "tests-skill",
-        "rev": "9fcde010a74664014fdd1bf54cad3dc47b565430",
+        "rev": "3dd93f8f99d4611269847cf5e3020d32d5f8ab25",
         "type": "github"
       },
       "original": {

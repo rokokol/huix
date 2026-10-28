@@ -69,7 +69,6 @@ let
   ) (lib.filterAttrs (_: server: server ? command) mcpServers);
   model = "deepseek/deepseek-v4.1-flash-1017";
   providers = [
-    "deepinfra/fp8/flex"
     "deepinfra/fp8"
     "inference-net/fp8"
     "novita/fp8"
@@ -78,6 +77,7 @@ let
     "nebius/fp8"
     "siliconflow/fp8"
     "parasail/fp8"
+    "deepinfra/fp8/flex"
   ];
   routing = {
     order = providers;
