@@ -281,6 +281,10 @@ in
               if [ ! -e ${repo}/.git ]; then
                 git clone ${lib.escapeShellArg url} ${repo}
               fi
+              # The owner fetches through the group, and the agent's sandbox writes with umask
+              # 0077: git gives the group read on what it writes, and older files get it here
+              git -C ${repo} config core.sharedRepository 0640
+              chmod -R g+rX ${repo}/.git
             ''
           ) cfg.repositories
         );

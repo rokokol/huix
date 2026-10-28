@@ -865,6 +865,11 @@ pkgs.testers.runNixOSTest {
         # The group passes through the home to the clone, and lists nothing in the home
         station.succeed(f"runuser -u rokokol -- git -C {clone} log -1 --format=%s | grep -qx first")
         station.fail(f"runuser -u rokokol -- ls {agent_home}")
+        # A commit the agent makes in its sandbox, whose umask is 0077, stays readable to the owner
+        type_in("cd ~/huix && git commit -q --allow-empty -m from-the-session && echo done >~/committed")
+        station.wait_until_succeeds(f"grep -qx done {agent_home}/committed", timeout=timedelta(minutes=1))
+        station.succeed(f"runuser -u rokokol -- git -C {clone} log -1 --format=%s | grep -qx from-the-session")
+        station.succeed(f"runuser -u rokokol -- git -C {clone} status --short")
 
     with subtest("the owner starts the agent's sync and no other verb, and the agent's work is committed as the agent's"):
         clone = f"{agent_home}/huix"
