@@ -13,6 +13,10 @@ let
   home = config.home-manager.users.${agent.user};
   # Replace the upstream all group without a second package recipe
   package = inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.default.override {
+    # See WORKAROUNDS.md: upstream Nix recipes use deprecated nixpkgs attributes
+    stdenv = pkgs.stdenv // {
+      isLinux = pkgs.stdenv.hostPlatform.isLinux;
+    };
     extraDependencyGroups = [ ];
     callPackage =
       path: args:

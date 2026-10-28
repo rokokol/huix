@@ -326,7 +326,7 @@
   };
 
   outputs =
-    { nixpkgs, nix-matlab, ... }@inputs:
+    { nixpkgs, ... }@inputs:
 
     let
       system = "x86_64-linux";
@@ -420,7 +420,7 @@
           overlays.blender-mcp
           overlays.audacity-mcp
           overlays.rea
-          nix-matlab.overlay
+          overlays.matlab
         ];
       };
 

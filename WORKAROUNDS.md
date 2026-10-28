@@ -6,6 +6,27 @@ Rules for this file: one entry per workaround, and every entry must carry a **me
 
 ---
 
+## Upstream Nix recipes use deprecated nixpkgs attributes
+
+**Where:** `overlays/matlab.nix` and the package override in `nixos/services/ai/mya-agent/hermes.nix`
+
+**Symptom it prevents:** evaluation emits Xorg package-set deprecation warnings for MATLAB and a `stdenv.isLinux` warning for Hermes
+
+**Why it happens:** nix-matlab's dependency function reads `pkgs.xorg.libX…`, while the pinned Hermes recipe reads `stdenv.isLinux`. The supported attributes are top-level lowercase Xorg package names and `stdenv.hostPlatform.isLinux`
+
+**Why this works:** the MATLAB override supplies the upstream dependency function with the same libraries through their canonical names. The Hermes override supplies its legacy platform lookup from `hostPlatform`. Both adapters are local to the affected recipe; neither disables warnings or changes the global package set
+
+**Removal check:** evaluate the unadapted upstream recipes with warnings treated as errors
+
+```sh
+nix eval --impure --option abort-on-warn true --expr 'let f = builtins.getFlake (toString ./.); in f.inputs.nix-matlab.packages.x86_64-linux.matlab.drvPath'
+nix eval --impure --option abort-on-warn true --expr 'let f = builtins.getFlake (toString ./.); in f.inputs.hermes-agent.packages.x86_64-linux.default.drvPath'
+```
+
+Each command that succeeds without its deprecation warning permits removal of that recipe's adapter. A different failure needs investigation before removal
+
+---
+
 ## Hermes Node needs RPATH before the ELF interpreter
 
 **Where:** `nixos/services/ai/mya-agent/hermes.nix`, in the Linux override of the upstream Node package
