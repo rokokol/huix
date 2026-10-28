@@ -105,14 +105,14 @@ def load_state(path):
     return json.loads(path.read_text()) if path.exists() else {}
 
 
-def notice_topic(session, owner_chat, reports, home):
+def notice_topic(session, owner_chat, reports, cron):
     """The topic that hears of a session's spend: where a session of the owner's chat runs, its
-    topic or the chat's root. A cron session records no chat, so it goes to the home topic, and
+    topic or the chat's root. A cron session records no chat, so it goes to the cron topic, and
     any other session, and a notice of no session, to the reports topic"""
     if not session:
         return reports
     if session.get("source") == "cron":
-        return home
+        return cron
     if session.get("source") == "telegram" and session.get("chat_id") == owner_chat:
         thread = session.get("thread_id")
         return int(thread) if thread else None
@@ -215,7 +215,7 @@ def collect(args):
 
     def send(text, about=None):
         message = {"chat_id": chat, "text": text}
-        topic = notice_topic(about, chat, args.telegram_thread_id, args.home_thread_id)
+        topic = notice_topic(about, chat, args.telegram_thread_id, args.cron_thread_id)
         if topic is not None:
             message["message_thread_id"] = topic
         reply = request_json(
@@ -276,7 +276,7 @@ def main():
     parser.add_argument("--telegram-api", default="https://api.telegram.org")
     parser.add_argument("--telegram-thread-id", type=int,
                         help="Topic for the balance notices and for sessions that run outside the chat")
-    parser.add_argument("--home-thread-id", type=int, help="Topic for the spend of cron sessions")
+    parser.add_argument("--cron-thread-id", type=int, help="Topic for the spend of cron sessions")
     args = parser.parse_args()
     crossed_threshold(Decimal(0), 0, args.spend_step)
     args.state_dir.mkdir(parents=True, exist_ok=True)

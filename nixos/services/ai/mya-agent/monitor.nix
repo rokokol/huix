@@ -11,6 +11,7 @@ let
   agent = config.rokokol.mya-agent;
   cfg = agent.hermes.monitor;
   home = "${config.services.hermes-agent.stateDir}/.hermes";
+  inherit (agent.hermes) cronTopic;
   script = builtins.path {
     name = "hermes-monitor.py";
     path = "${inputs.self}/scripts/hermes-monitor.py";
@@ -104,9 +105,9 @@ in
             "--telegram-thread-id"
             (toString agent.hermes.reportsTopic)
           ]
-          ++ lib.optionals (agent.hermes.homeTopic != null) [
-            "--home-thread-id"
-            (toString agent.hermes.homeTopic)
+          ++ lib.optionals (cronTopic != null) [
+            "--cron-thread-id"
+            (toString cronTopic)
           ]
         );
         TimeoutStartSec = 90;

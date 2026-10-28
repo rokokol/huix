@@ -195,7 +195,14 @@ in
       type = lib.types.nullOr lib.types.ints.positive;
       default = null;
       example = 41;
-      description = "Topic of the owner's chat that is Hermes' home channel, for gateway notices, cron jobs with no target of their own and the spend of cron sessions";
+      description = "Topic of the owner's chat that is Hermes' home channel, for gateway notices";
+    };
+    cronTopic = lib.mkOption {
+      type = lib.types.nullOr lib.types.ints.positive;
+      default = cfg.homeTopic;
+      defaultText = lib.literalExpression "config.rokokol.mya-agent.hermes.homeTopic";
+      example = 43;
+      description = "Topic of the owner's chat that takes cron jobs aimed at the home channel, and the spend of cron sessions";
     };
     reportsTopic = lib.mkOption {
       type = lib.types.nullOr lib.types.ints.positive;
@@ -248,6 +255,9 @@ in
       ''
       + lib.optionalString (cfg.homeTopic != null) ''
         TELEGRAM_HOME_CHANNEL_THREAD_ID=${toString cfg.homeTopic}
+      ''
+      + lib.optionalString (cfg.cronTopic != null) ''
+        TELEGRAM_CRON_THREAD_ID=${toString cfg.cronTopic}
       '';
     };
     environment.etc."hermes/.env".source = config.sops.templates."hermes.env".path;

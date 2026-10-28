@@ -61,13 +61,13 @@ class MonitorTest(unittest.TestCase):
 
     def test_spend_notice_follows_the_session_into_its_topic(self):
         def topic(**session):
-            return monitor.notice_topic(session, owner_chat="1", reports=5, home=6)
+            return monitor.notice_topic(session, owner_chat="1", reports=5, cron=6)
         self.assertEqual(topic(source="telegram", chat_id="1", thread_id="77"), 77)
         self.assertIsNone(topic(source="telegram", chat_id="1", thread_id=None))
         self.assertEqual(topic(source="webhook", chat_id=None, thread_id=None), 5)
         self.assertEqual(topic(source="cron", chat_id=None, thread_id=None), 6)
         self.assertEqual(topic(source="telegram", chat_id="2", thread_id="77"), 5)
-        self.assertEqual(monitor.notice_topic(None, owner_chat="1", reports=5, home=6), 5)
+        self.assertEqual(monitor.notice_topic(None, owner_chat="1", reports=5, cron=6), 5)
 
     def test_notice_carries_its_session_to_the_sender(self):
         sent = []

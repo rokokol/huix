@@ -44,6 +44,7 @@ in
       pythonPackages = ps: [ ps.matplotlib ];
       # Topics of the owner's chat with the bot
       hermes.homeTopic = 1089068;
+      hermes.cronTopic = 1089660;
       hermes.reportsTopic = 1089071;
       hermes.backup = {
         mountPoint = backup;
