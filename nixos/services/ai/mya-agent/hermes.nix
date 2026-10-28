@@ -402,6 +402,16 @@ in
 
         Take DDLC colours, roles, the web kit and the report style from ddlc-themes at ${inputs.ddlc-themes}, the version the owner's hosts use; its README lists what it ships. Never type a colour by hand. In matplotlib use plt.style.use("ddlc"). The Doki and Nunito faces are installed
 
+        # Heavy computation
+
+        The PC is the compute host: send long work there over `ssh nixos-pc` instead of running it on the station, which carries the agent and its services beside the calculation
+
+        That covers the CPU and CUDA sides alike — simulations, numeric sweeps, compiles, anything that wants minutes of a machine
+
+        Read the `power` skill before touching a host's power state. `wake-pc` on the station brings the PC up, and a sleep or a shutdown drops your SSH connection, so its exit status says nothing about whether the unit ran
+
+        Ask the owner before you shut the PC down or suspend it, every time, whatever the reason — waking it is yours to decide, turning it off is not
+
         # Notes
 
         The vault is at ~/myWiki. Read its instructions before you edit notes
