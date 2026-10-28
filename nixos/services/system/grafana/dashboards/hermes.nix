@@ -153,12 +153,14 @@ panels.dashboard {
       ];
     })
     (panel {
-      title = "Collection age";
+      title = "Time since the last usage sample";
       x = 16;
       y = 35;
       w = 8;
       unit = "s";
-      queries = [ (query "A" roles.series-1 "time() - hermes_collect_timestamp_seconds" "Age") ];
+      queries = [
+        (query "A" roles.series-1 "time() - hermes_collect_timestamp_seconds" "hermes-monitor")
+      ];
     })
   ];
 }
