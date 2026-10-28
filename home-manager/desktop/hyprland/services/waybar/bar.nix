@@ -146,7 +146,7 @@ in
             orientation = "horizontal";
             modules = [
               "cpu"
-              (if cfg.swap then "custom/memory" else "memory")
+              "custom/memory"
               "temperature"
             ];
           };
@@ -171,11 +171,6 @@ in
           // lib.optionalAttrs (cfg.temperatureSensor != null) {
             hwmon-path-abs = cfg.temperatureSensor.device;
             input-filename = cfg.temperatureSensor.input;
-          };
-
-          "memory" = {
-            format = "{used:0.1f}Gb 🧠";
-            interval = 2;
           };
 
           "tray" = {

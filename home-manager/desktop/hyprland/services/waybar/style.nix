@@ -74,7 +74,7 @@ in
   }
 
   /* Modules ride on the panel and carry no ground of their own */
-  #window, #clock, #cpu, #memory, #custom-memory, #temperature, #pulseaudio, #network,
+  #window, #clock, #cpu, #custom-memory, #temperature, #pulseaudio, #network,
   #language, #custom-gpu, #custom-shader, #custom-notifications, #custom-launcher,
   #custom-virt-keyboard, #backlight, #battery {
       background: transparent;

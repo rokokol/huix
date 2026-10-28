@@ -33,7 +33,6 @@
       battery = true;
       launcher = true;
       virtKeyboard = true;
-      swap = true;
       layoutKeyboard = "at-translated-set-2-keyboard";
     };
   };
