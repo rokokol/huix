@@ -35,7 +35,6 @@ in
     "maintainer-docs"
     "nix-best-practices"
     "phone-alert"
-    "skill-authoring"
     "termux-api"
     "tests"
     "versioning"

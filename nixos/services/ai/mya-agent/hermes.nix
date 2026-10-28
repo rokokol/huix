@@ -369,6 +369,8 @@ in
 
         When a request is unclear, or the next step depends on a choice that is the owner's, ask with the clarify tool and offer the options as choices
 
+        Before you create, patch or delete a skill, a background review included, read the skill-authoring skill with skill_view and follow it
+
         # System and configuration
 
         You run on ${config.networking.hostName}, which uses NixOS. Your huix checkout is at ${agent.home}/huix
