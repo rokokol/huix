@@ -104,6 +104,8 @@ What neither checker can know, because it is this repository's own:
 
 ## Editing gotchas
 
+- **Investigate adjacent findings while doing the requested work.** Include a related fix when it improves the result with little extra effort; report what changed. Ask before unrelated work, risky changes or a substantial expansion of scope
+
 - **`backupFileExtension = "bak"`** in `lib/mk-host.nix` is deliberately a fixed string — a `lastModified` suffix rebuilt the HM generation on every commit and littered `$HOME` with one `.bak` set per revision. The cost: a second collision on the same path aborts activation until the stale `.bak` is deleted by hand. For a file some app re-creates, set `force = true` on the `home.file` entry instead of relying on backups
 - **Repo assets that a derivation consumes go through `inputs.self`, always isolated via `builtins.path`**: `src = builtins.path { name = "my-assets"; path = "${inputs.self}/assets/..."; };`. A bare `"${inputs.self}/assets/..."` ties the derivation hash to the whole repository, so every commit triggers a rebuild and re-download. The rule is about **derivation inputs only** — `imports = [ "${inputs.self}/scripts/some-module.nix" ]` needs no wrapping, because a module is read at eval time and only the values it produces reach any derivation (verified: an unrelated edit leaves `toplevel.drvPath` byte-identical)
 - **`HUIX` / `huixDir` are runtime references to the live checkout**, consumed by scripts, aliases and `source` includes. Don't hardcode `/home/rokokol/huix`. But as a string, `"${huixDir}/…"` is **not** copied into the store, so it is useless for anything a build reads — and unusable in `imports`, where an absolute path is forbidden under pure evaluation
