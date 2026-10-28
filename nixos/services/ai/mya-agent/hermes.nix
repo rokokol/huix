@@ -84,6 +84,15 @@ let
     # of keys without zdr, so the main model's requests go without zero data retention
     zdr = true;
   };
+  # The second fallback, on fp8 endpoints that keep no data, cheapest first
+  glm = "z-ai/glm-5.3";
+  glmProviders = [
+    "morph/fp8"
+    "sail-research/fp8"
+    "novita/fp8"
+    "tenstorrent/fp8"
+    "siliconflow/fp8"
+  ];
   auxiliary = {
     provider = "openrouter";
     inherit model;
@@ -299,11 +308,30 @@ in
         port = cfg.dashboardPort + 1;
       };
       settings = {
+        # The owner's ChatGPT plan through Codex, logged in by hand. When its quota or the link
+        # to OpenAI fails, a turn falls back to the OpenRouter models in this order
         model = {
-          provider = "openrouter";
-          default = model;
+          provider = "openai-codex";
+          default = "gpt-6-luna";
         };
-        provider_routing = routing;
+        fallback_providers =
+          map
+            (fallback: {
+              provider = "openrouter";
+              model = fallback;
+            })
+            [
+              model
+              glm
+            ];
+        # Only requests to OpenRouter carry it, and an entry under models replaces the flat
+        # endpoints for that model alone
+        provider_routing = routing // {
+          models.${glm} = {
+            order = glmProviders;
+            only = glmProviders;
+          };
+        };
         # A planned stop lets a running turn finish this long before interrupting it, which
         # pauses its session until /discard; it stays under systemd's default stop timeout of 90
         agent.restart_drain_timeout = 30;
