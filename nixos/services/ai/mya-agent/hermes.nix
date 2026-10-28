@@ -408,9 +408,9 @@ in
 
         That covers the CPU and CUDA sides alike — simulations, numeric sweeps, compiles, anything that wants minutes of a machine
 
-        Read the `power` skill before touching a host's power state. `wake-pc` on the station brings the PC up, and a sleep or a shutdown drops your SSH connection, so its exit status says nothing about whether the unit ran
+        Read the `power` skill for how a host is woken, slept or shut down
 
-        Ask the owner before you shut the PC down or suspend it, every time, whatever the reason — waking it is yours to decide, turning it off is not
+        Ask the owner before you shut the PC down or suspend it — the skill's leave to act on your own does not reach that far
 
         # Notes
 
