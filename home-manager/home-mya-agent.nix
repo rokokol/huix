@@ -23,9 +23,10 @@ in
   ];
   rokokol.matplotlib.enable = true;
 
-  # Hermes puts its own Node and ripgrep only on its process's PATH, so a shell or a unit of the
-  # agent outside it lacks them
+  # Hermes puts its own ffmpeg, Node and ripgrep only on its process's PATH, so a shell or a unit
+  # of the agent outside it lacks them
   home.packages = with pkgs; [
+    ffmpeg
     nodejs
     ripgrep
   ];
