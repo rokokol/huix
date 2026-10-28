@@ -298,8 +298,8 @@ in
         };
         provider_routing = routing;
         # A planned stop lets a running turn finish this long before interrupting it, which
-        # pauses its session until /discard; it stays under the unit's TimeoutStopSec of 30
-        agent.restart_drain_timeout = 20;
+        # pauses its session until /discard; it stays under systemd's default stop timeout of 90
+        agent.restart_drain_timeout = 30;
         auxiliary = lib.genAttrs [
           "compression"
           "title_generation"
