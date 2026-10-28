@@ -28,7 +28,9 @@ huix lacks is cherry-picked, and the owner hears what was taken under the remote
 something was taken, huix pulls once more, which drops a copy of an upstream commit the clone
 got after huix's first pull. After the push UNIT starts again, and the clone drops its copies
 of what is now upstream. An agent out of reach is reported and passed over. A conflict is
-wound back, leaves the agent's commits in its clone and makes the exit status 1
+wound back, leaves the agent's commits in its clone and makes the exit status 1. When taking
+leaves HEAD without a commit it held before, nothing is pushed, the exit status is 1, and the
+notice names the commit to fast-forward back to
 
 Both modes end by catching every git repository under the roots PROJECTS_DIR names, up to
 its upstream; PROJECTS_DIR is a colon-separated list of directories. The search is
@@ -413,7 +415,15 @@ else
   git commit -m "${MESSAGE:-sync $(date -Iseconds)}"
 fi
 
+before_take=$(git rev-parse HEAD)
 take_agents
+# Taking only adds commits. An abort that meets a sequencer left by an older cherry-pick resets
+# HEAD to that older head instead, and the push would publish the rewind
+if ! git merge-base --is-ancestor "$before_take" HEAD; then
+  notify critical "Push refused (╯°□°）╯︵ ┻━┻" \
+    "HEAD lost commits while taking the agents' work: git merge --ff-only $before_take"
+  exit 1
+fi
 if [ "$TOOK" = 1 ] && ! timeout 90 git pull --quiet --rebase; then
   git rebase --abort 2>/dev/null || true
   notify critical "Sync Error (#｀ε´#ゞ" "git pull after taking the agents' commits failed"

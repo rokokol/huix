@@ -1009,6 +1009,36 @@ is "no rebase is left half done in the agent's clone" no \
 logged "the conflict is reported under the remote's name" '^notify-send' 'mya'
 git -C "$agent_clone" reset -q --hard origin/master
 
+# A cherry-pick of two commits refused over a dirty tree still leaves its sequencer, with the
+# head of that moment. A later abort rewinds HEAD to it, past an unpushed commit made since
+pair=$git_work/pair
+printf 'base\n' >"$pair/old-pick.txt"
+git -C "$pair" add old-pick.txt
+git -C "$pair" commit -q -m "an unpushed commit"
+git -C "$pair" checkout -q -b old-pick
+printf 'one\n' >>"$pair/old-pick.txt"
+git -C "$pair" commit -q -am "old pick one"
+printf 'two\n' >>"$pair/old-pick.txt"
+git -C "$pair" commit -q -am "old pick two"
+git -C "$pair" checkout -q master
+printf 'dirty\n' >>"$pair/old-pick.txt"
+git -C "$pair" cherry-pick old-pick~1 old-pick >/dev/null 2>&1
+git -C "$pair" checkout -q -- old-pick.txt
+git -C "$pair" branch -q -D old-pick
+is "a refused cherry-pick leaves its sequencer" yes "$(test -d "$pair/.git/sequencer" && echo yes || echo no)"
+printf 'unpushed after\n' >"$pair/after.txt"
+git -C "$pair" add after.txt
+git -C "$pair" commit -q -m "a commit after the refused cherry-pick"
+upstream=$(git -C "$git_work/pair.git" rev-parse master)
+printf 'agent rewind\n' >"$agent_clone/shared.txt"
+printf 'owner rewind\n' >"$pair/shared.txt"
+take_run
+is "a rewind under the agents' commits fails the sync" 1 "$take_status"
+is "a rewind is never pushed" "$upstream" "$(git -C "$git_work/pair.git" rev-parse master)"
+logged "the rewind is reported with the way back" '^notify-send' 'critical' 'merge --ff-only'
+git -C "$pair" reset -q --hard origin/master
+git -C "$agent_clone" reset -q --hard origin/master
+
 # Both sides make the same change: nothing conflicts, and the agent's copy of it is dropped
 printf 'same\n' >"$agent_clone/same.txt"
 printf 'same\n' >"$git_work/pair/same.txt"
