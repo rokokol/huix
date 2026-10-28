@@ -338,16 +338,6 @@ hl.bind("SUPER + T", hl.dsp.layout("togglesplit"))
 -- old fullscreen action 1 did
 hl.bind("SUPER + F", hl.dsp.window.fullscreen({ mode = "fullscreen" }))
 hl.bind("SUPER + Z", hl.dsp.exec_cmd("pidof waybar && pkill waybar || waybar"))
-hl.bind(
-  "SUPER + U",
-  hl.dsp.exec_cmd(
-    'rofi -modi "ru-en:'
-    .. HUIX.scripts
-    .. "/rofi-libre.sh ru en,en-ru:"
-    .. HUIX.scripts
-    .. '/rofi-libre.sh en ru" -show ru-en'
-  )
-)
 hl.bind("SUPER + B", hl.dsp.exec_cmd(HUIX.scripts .. "/rofi-clipboard.sh"))
 hl.bind("SUPER + N", hl.dsp.exec_cmd(HUIX.scripts .. "/rofi-notify.sh"))
 hl.bind("SUPER + SHIFT + N", hl.dsp.exec_cmd(HUIX.scripts .. "/notify-center.sh dnd toggle"))
