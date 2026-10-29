@@ -449,7 +449,7 @@ in
 
         # Notes
 
-        The vault is at ~/myWiki. Read its instructions before you edit notes
+        The vault is at ~/myWiki. Read ~/myWiki/CLAUDE.md before you edit notes
 
         The English vocabulary is at ~/myWiki/05. Конспекты/14. Английский/Слова.md
 
