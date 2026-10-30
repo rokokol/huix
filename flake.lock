@@ -1482,6 +1482,7 @@
         "skvpn": "skvpn",
         "sops-nix": "sops-nix",
         "telegram-skill": "telegram-skill",
+        "transcribe-cpp": "transcribe-cpp",
         "virtual-media-devices": "virtual-media-devices",
         "which-key-nvim": "which-key-nvim",
         "wl-clipboard-rs": "wl-clipboard-rs",
@@ -1921,6 +1922,23 @@
       "original": {
         "owner": "rokokol",
         "repo": "telegram-skill",
+        "type": "github"
+      }
+    },
+    "transcribe-cpp": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792676080,
+        "narHash": "sha256-t+kTifoU+9NROp6p7SVicqqu0iUum0bLqS9gODZ53UU=",
+        "owner": "handy-computer",
+        "repo": "transcribe.cpp",
+        "rev": "4d7c1ccefd39e5a9ea36cca5f8fefc6dcc14b99b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "handy-computer",
+        "ref": "v0.4.1",
+        "repo": "transcribe.cpp",
         "type": "github"
       }
     },

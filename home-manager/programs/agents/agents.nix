@@ -47,6 +47,14 @@ let
         // lib.optionalAttrs (env != { }) { environment = env; }
     );
 
+  forPi =
+    name: server:
+    lib.hm.mcp.transformMcpServer {
+      inherit server;
+      exclude = [ "enabled" ];
+      extraTransforms = [ (lib.hm.mcp.wrapEnvFilesCommand { inherit pkgs name; }) ];
+    };
+
   lspForClaude = _: server: {
     inherit (server) command args;
     extensionToLanguage = server.extensions;
@@ -94,6 +102,44 @@ let
           _: group: group.skills != { } || group.servers != { } || group.lspServers != { }
         ) groups
       );
+  piPackages = lib.mapAttrs (
+    name: group:
+    let
+      groupSkills = pkgs.linkFarm "${name}-pi-skills" group.skills;
+      manifest = json.generate "${name}-pi-package.json" {
+        name = "@huix/${name}";
+        description = cfg.groups.${name};
+        pi = {
+          skills = [ "./skills" ];
+          extensions = [ "./mcp.ts" ];
+        };
+      };
+      mcp = pkgs.writeText "${name}-pi-mcp.ts" ''
+        import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+
+        export default function (pi: ExtensionAPI) {
+          const servers = ${builtins.toJSON (lib.mapAttrs forPi (removeAttrs group.servers cfg.pi.exclude))};
+          for (const [name, server] of Object.entries(servers)) {
+            pi.registerMcpServer(name, server);
+          }
+        }
+      '';
+    in
+    pkgs.linkFarm "${name}-pi-package" [
+      {
+        name = "package.json";
+        path = manifest;
+      }
+      {
+        name = "skills";
+        path = groupSkills;
+      }
+      {
+        name = "mcp.ts";
+        path = mcp;
+      }
+    ]
+  ) (lib.filterAttrs (_: group: group.skills != { } || group.servers != { }) groups);
 in
 {
   options.rokokol.agents = {
@@ -130,6 +176,19 @@ in
       readOnly = true;
       default = plugins;
       description = "Claude Code plugins generated from the skill and MCP groups";
+    };
+
+    piPackages = lib.mkOption {
+      type = lib.types.attrsOf lib.types.package;
+      readOnly = true;
+      default = piPackages;
+      description = "Pi packages that enable each group's skills and MCP servers together";
+    };
+
+    pi.exclude = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ "opencode" ];
+      description = "MCP servers excluded from Pi";
     };
 
     lspServers = lib.mkOption {

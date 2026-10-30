@@ -23,6 +23,83 @@ pkgs.lib.mapAttrs' (
     namespaces = [ "rokokol" ];
   };
 
+  pi-extensions =
+    let
+      extensions = inputs.self.nixosConfigurations.nixos-pc.pkgs.pi-extensions;
+      test = builtins.path {
+        name = "test-pi-extensions.py";
+        path = ./scripts/tests/test-pi-extensions.py;
+      };
+      hosterTest = ./scripts/tests/test-pi-hoster.ts;
+      hosterExtension = ./home-manager/programs/agents/pi/hoster.ts;
+      modulesExtension = ./home-manager/programs/agents/pi/modules.ts;
+      modulesTest = ./scripts/tests/test-pi-modules.ts;
+      piRoot = "${pkgs.pi-coding-agent}/lib/node_modules/pi-monorepo";
+      tsconfig = (pkgs.formats.json { }).generate "pi-tsconfig.json" {
+        compilerOptions = {
+          noEmit = true;
+          skipLibCheck = true;
+          strict = true;
+          module = "esnext";
+          moduleResolution = "bundler";
+          target = "es2023";
+          types = [ "node" ];
+          typeRoots = [ "${piRoot}/node_modules/@types" ];
+          paths."@earendil-works/pi-coding-agent" = [ "${piRoot}/dist/index.d.ts" ];
+        };
+        files = [
+          hosterExtension
+          hosterTest
+          modulesExtension
+          modulesTest
+        ];
+      };
+    in
+    pkgs.runCommand "pi-extension-tests"
+      {
+        nativeBuildInputs = with pkgs; [
+          nodejs
+          python3
+          typescript
+        ];
+      }
+      ''
+        tsc -p ${tsconfig}
+        python3 -B ${test} \
+          --pi ${pkgs.pi-coding-agent}/bin/pi \
+          --extensions ${extensions}/lib/pi-extensions \
+          --node ${pkgs.nodejs}/bin/node
+        node ${hosterTest} ${hosterExtension} \
+          ${piRoot}
+        node ${modulesTest} ${modulesExtension} ${piRoot}
+        touch "$out"
+      '';
+
+  pi-config = import ./scripts/tests/pi-config.nix {
+    inherit pkgs inputs;
+    inherit (pkgs) lib;
+  };
+
+  hermes-config =
+    let
+      settings = inputs.self.nixosConfigurations.nixos-station.config.services.hermes-agent.settings;
+      settingsFile = (pkgs.formats.json { }).generate "hermes-test-settings.json" settings;
+      merge = pkgs.callPackage "${inputs.hermes-agent}/nix/configMergeScript.nix" { };
+    in
+    pkgs.runCommand "hermes-config-test" { nativeBuildInputs = with pkgs; [ yq-go ]; } ''
+      cat > config.yaml <<'EOF'
+      {"memory": {"nudge_interval": 3, "user_note": "kept"}, "mcp_servers": {"dav": {"command": "changed", "enabled": false}, "personal": {"command": "personal"}}}
+      EOF
+      ${merge} ${settingsFile} config.yaml
+      test "$(yq .memory.nudge_interval config.yaml)" = '${toString settings.memory.nudge_interval}'
+      test "$(yq .memory.user_note config.yaml)" = kept
+      test "$(yq .mcp_servers.dav.command config.yaml)" = '${settings.mcp_servers.dav.command}'
+      test "$(yq .mcp_servers.dav.enabled config.yaml)" = false
+      test "$(yq .mcp_servers.personal.command config.yaml)" = personal
+      test "$(yq .memory.provider config.yaml)" = '${settings.memory.provider}'
+      touch "$out"
+    '';
+
   # The scripts against stubbed commands: every keyword rotate-screen.sh and
   # tablet-mode.sh emit is asserted here, where there is no compositor to ask.
   # make-station-iso.sh runs the real xorriso on a small image
@@ -33,8 +110,7 @@ pkgs.lib.mapAttrs' (
           # sync.sh runs against real repositories made by the tests
           git
           jq
-          # The Hermes scripts read config.yaml as Hermes writes it
-          (python3.withPackages (ps: [ ps.ruamel-yaml ]))
+          python3
           # flock, which alert.sh takes its lock with
           util-linux
           xorriso
@@ -47,7 +123,6 @@ pkgs.lib.mapAttrs' (
       ''
         bash "$scripts/tests/run.sh"
         python3 -B "$scripts/tests/test-hermes-monitor.py"
-        python3 -B "$scripts/tests/test-hermes-seed-config.py"
         touch "$out"
       '';
 

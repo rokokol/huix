@@ -71,13 +71,6 @@ let
   providers = [
     "deepinfra/fp8"
     "inference-net/fp8"
-    "novita/fp8"
-    "morph/fp8"
-    "crusoe/fp8"
-    "nebius/fp8"
-    "siliconflow/fp8"
-    "parasail/fp8"
-    "deepinfra/fp8/flex"
   ];
   routing = {
     order = providers;
@@ -88,69 +81,19 @@ let
     # of keys without zdr, so the main model's requests go without zero data retention
     zdr = true;
   };
-  # The second fallback, on fp8 endpoints that keep no data, cheapest first
-  glm = "z-ai/glm-5.3";
+  # Auxiliary calls use a low-cost fp4 endpoint first, with an fp8 endpoint behind it
+  glm = "z-ai/glm-5.3-flash";
   glmProviders = [
-    "morph/fp8"
-    "sail-research/fp8"
-    "novita/fp8"
-    "tenstorrent/fp8"
-    "siliconflow/fp8"
+    "open-inference/fp4"
+    "gmicloud/fp8"
   ];
   auxiliary = {
     provider = "openrouter";
-    inherit model;
-    extra_body.provider = routing;
-  };
-  # Every start adds a server that the shared registry gained, so a new one needs no second list
-  seedFile = (pkgs.formats.json { }).generate "hermes-seed.json" {
-    mcp_servers = lib.mapAttrs (
-      name: server:
-      server
-      // lib.optionalAttrs (mcpPackages ? ${name}) {
-        command = "/etc/profiles/per-user/${agent.user}/bin/hermes-mcp-${name}";
-        args = [ ];
-      }
-    ) mcpServers;
-  };
-  # Only an empty state takes these; afterwards they live in config.yaml and its backup
-  initialSettings = (pkgs.formats.json { }).generate "hermes-initial-settings.json" {
-    memory = {
-      provider = "builtin";
-      user_char_limit = 24000;
-      memory_char_limit = 16000;
-      nudge_interval = 10;
-      write_approval = false;
+    model = glm;
+    extra_body.provider = routing // {
+      order = glmProviders;
+      only = glmProviders;
     };
-    curator.consolidate = true;
-    display.memory_notifications = "verbose";
-    agent = {
-      reasoning_effort = "medium";
-      max_turns = 60;
-    };
-    # A scheduled report arrives as the agent's answer alone
-    cron.wrap_response = false;
-  };
-  seedScript = builtins.path {
-    name = "hermes-seed-config.py";
-    path = "${inputs.self}/scripts/hermes-seed-config.py";
-  };
-  # Fills an empty state; a state restored from a backup needs none of it
-  bootstrap = pkgs.writeShellApplication {
-    name = "hermes-bootstrap";
-    runtimeInputs = with pkgs; [ systemd ];
-    text = ''
-      exec ${package.hermesVenv}/bin/python3 ${
-        builtins.path {
-          name = "hermes-bootstrap.py";
-          path = "${inputs.self}/scripts/hermes-bootstrap.py";
-        }
-      } \
-        --home ${agent.home}/.hermes \
-        --seed-script ${seedScript} \
-        --initial-settings ${initialSettings} \
-        "$@"
-    '';
   };
   guests = lib.filterAttrs (
     _: host: host.config.rokokol.mya-agent.guest.enable
@@ -242,7 +185,6 @@ in
       linger = true;
       packages = [
         package
-        bootstrap
       ]
       ++ lib.attrValues mcpPackages;
     };
@@ -312,22 +254,30 @@ in
         port = cfg.dashboardPort + 1;
       };
       settings = {
+        mcp_servers = lib.mapAttrs (
+          name: server:
+          server
+          // lib.optionalAttrs (mcpPackages ? ${name}) {
+            command = "/etc/profiles/per-user/${agent.user}/bin/hermes-mcp-${name}";
+            args = [ ];
+          }
+        ) mcpServers;
+        memory = {
+          provider = "builtin";
+          user_char_limit = 24000;
+          memory_char_limit = 16000;
+          nudge_interval = 10;
+          write_approval = false;
+        };
+        curator.consolidate = true;
+        agent.reasoning_effort = "medium";
+        agent.max_turns = 60;
+        cron.wrap_response = false;
         model = {
           provider = "openrouter";
           default = model;
         };
-        # A turn whose model fails moves down this list. Luna is the owner's ChatGPT plan through
-        # Codex, logged in by hand, and it needs the link to OpenAI
-        fallback_providers = [
-          {
-            provider = "openai-codex";
-            model = "gpt-6-luna";
-          }
-          {
-            provider = "openrouter";
-            model = glm;
-          }
-        ];
+        fallback_providers = [ ];
         # Only requests to OpenRouter carry it, and an entry under models replaces the flat
         # endpoints for that model alone
         provider_routing = routing // {
@@ -363,6 +313,7 @@ in
         skills.external_dirs = [ "${skills}" ];
         display = {
           language = "en";
+          memory_notifications = "verbose";
         };
         approvals = {
           mode = "smart";
@@ -447,6 +398,12 @@ in
 
         Ask the owner before you shut the PC down or suspend it — the skill's leave to act on your own does not reach that far
 
+        # Work quality
+
+        Before finishing, check that the result answers the request, that important claims and changes are verified, and that nothing obvious was left incomplete
+
+        Look for simpler or less obvious ways to solve the problem when they materially improve the result; prefer practical improvements that help the owner get more done with less effort, without expanding the task unnecessarily
+
         # Notes
 
         The vault is at ~/myWiki. Read ~/myWiki/CLAUDE.md before you edit notes
@@ -474,8 +431,6 @@ in
       unitConfig.RequiresMountsFor = lib.attrValues agent.directories;
       serviceConfig = sandbox // {
         EnvironmentFile = config.sops.templates."hermes.env".path;
-        # Nix gives only the first value of these settings; later edits belong to Hermes
-        ExecStartPre = "${package.hermesVenv}/bin/python3 ${seedScript} ${seedFile} ${agent.home}/.hermes/config.yaml";
         # Hermes takes SIGINT for a planned stop; on SIGTERM it exits 1 so that a supervisor
         # revives it, and every stop or deploy would then fail the unit and mail an alert
         KillSignal = "SIGINT";

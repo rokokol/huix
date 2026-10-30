@@ -38,7 +38,7 @@ let
     inherit (station.config.rokokol.tailnet-web.sites.radicale) port;
     inherit (station.config.rokokol.radicale) dataDir snapshotDir;
     backend = lib.head station.config.services.radicale.settings.server.hosts;
-    # The config that Hermes start seeded, so the test reads what the agent reads
+    # The config on the mounted state, which the agent reads
     mcpConfig = "${agent.home}/.hermes/config.yaml";
   };
 
@@ -611,10 +611,10 @@ pkgs.testers.runNixOSTest {
         assert json.loads(station.succeed("cat ${station.config.services.mail-agent.configFile}")) == {}
         station.succeed("test \"$(stat -c '%a %U %G' ${station.config.services.mail-agent.configFile})\" = '400 root root'")
 
-    with subtest("the secretary gets communication, huix and research skills without workstation tools"):
+    with subtest("the secretary gets communication, huix, research and Obsidian skills without workstation tools"):
         skills = set(json.loads(station.succeed("cat /etc/test/mya-skills.json")))
-        assert {"calendar", "mail", "telegram", "contributing", "nix-best-practices", "tests", "papers"} <= skills, skills
-        assert not skills & {"3x-ui-admin", "obsidian-cli", "super-productivity", "close-session", "headless-gui"}, skills
+        assert {"calendar", "mail", "telegram", "contributing", "nix-best-practices", "tests", "papers", "obsidian-cli"} <= skills, skills
+        assert not skills & {"3x-ui-admin", "super-productivity", "close-session", "headless-gui"}, skills
 
     with subtest("only the secretary may use the Telegram socket, not its credentials"):
         station.wait_for_unit("tg-agent.socket")
@@ -964,42 +964,36 @@ pkgs.testers.runNixOSTest {
         station.wait_until_succeeds(f"grep -qx fresh {agent_home}/fresh", timeout=timedelta(seconds=30))
         assert station.succeed(f"systemctl show -P ActiveState {agent_unit}").strip() == "active"
 
-    with subtest("hermes-bootstrap gives a fresh state its documents and initial settings"):
+    with subtest("Hermes merges Nix settings without removing user settings"):
         yq = "${lib.getExe pkgs.yq-go}"
         config_yaml = f"{agent_home}/.hermes/config.yaml"
-        # The first start leaves Hermes' own starter SOUL.md, which is no document of the owner's
-        station.succeed(f"grep -q 'You are Hermes Agent' {agent_home}/.hermes/SOUL.md")
-        for name in ["soul", "user", "memory"]:
-            station.succeed(f"runuser -u ${agent.user} -- sh -c 'echo boot-{name} >{agent_home}/boot-{name}.md'")
-        bootstrap = f"runuser -u ${agent.user} -- /etc/profiles/per-user/${agent.user}/bin/hermes-bootstrap --soul {agent_home}/boot-soul.md --user {agent_home}/boot-user.md --memory {agent_home}/boot-memory.md"
-        station.fail(bootstrap)
         station.succeed(f"systemctl stop {agent_unit}")
-        # A stop is planned, so it neither fails the unit nor raises an alert
         assert station.succeed(f"systemctl show -P Result {agent_unit}").strip() == "success"
-        station.succeed(bootstrap)
-        station.succeed(f"grep -qx boot-soul {agent_home}/.hermes/SOUL.md")
-        station.succeed(f"grep -qx boot-user {agent_home}/.hermes/memories/USER.md")
-        station.succeed(f"grep -qx boot-memory {agent_home}/.hermes/memories/MEMORY.md")
+        station.succeed(f"{yq} -i '.memory.nudge_interval = 3 | .memory.user_note = \"kept\" | .mcp_servers.dav.command = \"changed\" | .mcp_servers.dav.enabled = false | .mcp_servers.personal.command = \"personal\"' {config_yaml}")
+        station.succeed("systemctl restart hermes-state.service")
+        assert station.succeed(f"{yq} .memory.nudge_interval {config_yaml}").strip() == "10"
+        assert station.succeed(f"{yq} .memory.user_note {config_yaml}").strip() == "kept"
+        assert station.succeed(f"{yq} .mcp_servers.dav.command {config_yaml}").strip() == "${station.config.services.hermes-agent.settings.mcp_servers.dav.command}"
+        assert station.succeed(f"{yq} .mcp_servers.dav.enabled {config_yaml}").strip() == "false"
+        assert station.succeed(f"{yq} .mcp_servers.personal.command {config_yaml}").strip() == "personal"
+        station.succeed(f"{yq} -i 'del(.mcp_servers.personal, .mcp_servers.dav.enabled, .memory.user_note)' {config_yaml}")
+        station.succeed(f"systemctl start {agent_unit}")
+        station.wait_until_succeeds("curl -sf http://127.0.0.1:${toString station.config.rokokol.mya-agent.hermes.webhookPort}/health", timeout=timedelta(minutes=2))
+
+    with subtest("Hermes starts with the settings declared in Nix"):
         assert station.succeed(f"{yq} .memory.provider {config_yaml}").strip() == "builtin"
         assert station.succeed(f"{yq} .curator.consolidate {config_yaml}").strip() == "true"
         assert station.succeed(f"{yq} .memory.user_char_limit {config_yaml}").strip() == "24000"
         assert station.succeed(f"{yq} .agent.reasoning_effort {config_yaml}").strip() not in {"", "null"}
         assert station.succeed(f"{yq} .cron.wrap_response {config_yaml}").strip() == "false"
         station.succeed(f"{yq} -e .mcp_servers.dav {config_yaml}")
-        # A second run keeps what the owner or Hermes wrote since
-        station.succeed(f"runuser -u ${agent.user} -- sh -c 'echo edited >{agent_home}/.hermes/SOUL.md'")
-        assert "Kept existing document: SOUL.md" in station.succeed(bootstrap)
-        station.succeed(f"grep -qx edited {agent_home}/.hermes/SOUL.md")
-        station.succeed(f"rm {agent_home}/boot-*.md && systemctl start {agent_unit}")
-        station.wait_until_succeeds(
-            "curl -sf http://127.0.0.1:${toString station.config.rokokol.mya-agent.hermes.webhookPort}/health",
-            timeout=timedelta(minutes=2),
-        )
 
     hermes_restic = "RESTIC_PASSWORD_FILE=${station.config.sops.secrets.hermes-restic-password.path} ${lib.getExe pkgs.restic} -r ${restic.dataDir}/station"
 
     with subtest("Hermes state reaches its local restic repository and the portable archive is valid"):
         station.succeed(f"runuser -u ${agent.user} -- sh -c 'echo restore-marker >{agent_home}/.hermes/SOUL.md'")
+        station.succeed(f"runuser -u ${agent.user} -- sh -c 'echo restore-user >{agent_home}/.hermes/memories/USER.md'")
+        station.succeed(f"runuser -u ${agent.user} -- sh -c 'echo restore-memory >{agent_home}/.hermes/memories/MEMORY.md'")
         station.succeed("systemctl start restic-backups-hermes.service")
         station.succeed("test -s /var/cache/hermes-backup/current.zip")
         station.succeed("${lib.getExe pkgs.python3} -c 'import zipfile; z=zipfile.ZipFile(\"/var/cache/hermes-backup/current.zip\"); assert z.testzip() is None; assert any(p.endswith(\"state.db\") for p in z.namelist())'")
@@ -1018,8 +1012,10 @@ pkgs.testers.runNixOSTest {
         # Hermes copies its bundled skills with the store's read-only modes
         station.succeed(f"runuser -u ${agent.user} -- chmod -R u+w {agent_home}/.hermes")
         station.succeed(f"runuser -u ${agent.user} -- env HOME={agent_home} ${lib.getExe station.config.services.hermes-agent.package} import --force {agent_home}/hermes.zip")
-        station.succeed(f"rm {agent_home}/hermes.zip && systemctl start {agent_unit}")
+        station.succeed(f"rm {agent_home}/hermes.zip && systemctl restart hermes-state.service && systemctl start {agent_unit}")
         station.succeed(f"grep -qx restore-marker {agent_home}/.hermes/SOUL.md")
+        station.succeed(f"grep -qx restore-user {agent_home}/.hermes/memories/USER.md")
+        station.succeed(f"grep -qx restore-memory {agent_home}/.hermes/memories/MEMORY.md")
         station.wait_until_succeeds(
             "curl -sf http://127.0.0.1:${toString station.config.rokokol.mya-agent.hermes.webhookPort}/health",
             timeout=timedelta(minutes=2),

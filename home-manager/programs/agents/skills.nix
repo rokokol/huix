@@ -46,6 +46,7 @@ in
     lib.mkIf
       (
         claudeEnabled
+        || config.programs.pi-coding-agent.enable
         || (
           osConfig.services.hermes-agent.enable && osConfig.services.hermes-agent.user == config.home.username
         )

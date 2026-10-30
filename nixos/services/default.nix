@@ -36,6 +36,7 @@
     ./tools/forgejo.nix
     ./tools/mail-agent.nix
     ./tools/paper-search.nix
+    ./tools/pi.nix
     ./tools/radicale.nix
     ./tools/searxng.nix
     ./tools/syncthing.nix

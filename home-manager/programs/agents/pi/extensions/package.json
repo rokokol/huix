@@ -1,0 +1,18 @@
+{
+  "name": "huix-pi-extensions",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@czottmann/pi-automode": "1.17.0",
+    "@mrclrchtr/supi-ask-user": "11.1.0",
+    "@mrclrchtr/supi-cache": "11.1.0",
+    "@narumitw/pi-btw": "0.63.2",
+    "@narumitw/pi-goal": "0.54.13",
+    "@narumitw/pi-usage": "0.68.4",
+    "@nicknisi/pi-heads-up": "0.1.0",
+    "@tintinweb/pi-subagents": "0.22.0",
+    "pi-editor-selection": "0.1.7",
+    "pi-intercom": "0.18.1",
+    "pi-multi-pass": "1.12.0"
+  }
+}

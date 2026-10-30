@@ -205,6 +205,11 @@
       flake = false;
     };
 
+    transcribe-cpp = {
+      url = "github:handy-computer/transcribe.cpp/v0.4.1";
+      flake = false;
+    };
+
     # Every input named skill-NAME is one skill, and home-manager/programs/agents/skills.nix gives
     # each to the agents as NAME. A skill that comes with a service is the service flake's own
     # input instead, as mail-skill, telegram-skill and papers-skill are
@@ -420,6 +425,7 @@
           overlays.blender-mcp
           overlays.audacity-mcp
           overlays.rea
+          overlays.pi-extensions
           overlays.matlab
         ];
       };
@@ -433,6 +439,7 @@
           overlays.rofi
           overlays.blueman
           overlays.kitty
+          overlays.pi-extensions
           overlays.yazi
           overlays.which-key
           overlays.wl-clipboard-rs

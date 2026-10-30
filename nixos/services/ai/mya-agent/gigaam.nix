@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  inputs,
   ...
 }:
 
@@ -10,12 +11,7 @@ let
   transcribeCpp = pkgs.stdenv.mkDerivation {
     pname = "transcribe-cpp";
     version = "0.4.1";
-    src = pkgs.fetchFromGitHub {
-      owner = "handy-computer";
-      repo = "transcribe.cpp";
-      rev = "v0.4.1";
-      hash = "sha256-t+kTifoU+9NROp6p7SVicqqu0iUum0bLqS9gODZ53UU=";
-    };
+    src = inputs.transcribe-cpp;
     nativeBuildInputs = with pkgs; [ cmake ];
     cmakeFlags = [
       "-DTRANSCRIBE_BUILD_TESTS=OFF"
