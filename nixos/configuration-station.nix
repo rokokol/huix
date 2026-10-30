@@ -76,6 +76,8 @@ in
       hermes.homeTopic = 1089068;
       hermes.cronTopic = 1089660;
       hermes.reportsTopic = 1089071;
+      # 3 GB leaves room for an evaluation beside the gateway's own ~700 MB
+      hermes.memoryMax = "3G";
       # About 200 MB at rest, measured in the station test VM
       hermes.dashboardAutoStart = true;
       hermes.backup = {
