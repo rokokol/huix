@@ -457,6 +457,7 @@
           overlays.yazi
           overlays.which-key
           overlays.dav-mcp
+          overlays.hindsight
         ];
       };
 
@@ -473,6 +474,8 @@
       # Built only when asked: `nix flake check` evaluates a package and builds only checks. The
       # VM tests and the image each take minutes and gigabytes, too much for every check run
       packages.${system} = {
+        hindsight-api-slim = inputs.self.nixosConfigurations.nixos-station.pkgs.hindsight-api-slim;
+
         station-boot-test = import ./nixos/station/tests/boot.nix (commonArgs // { inherit pkgs; });
 
         # The installer image without its secrets; scripts/make-station-iso.sh adds them

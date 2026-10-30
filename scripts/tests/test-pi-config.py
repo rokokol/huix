@@ -24,7 +24,7 @@ assert Path(fixture["hoster"]).is_file()
 assert f'{fixture["directory"]}/extensions/modules.ts' in settings["extensions"]
 assert not any("resume" in extension for extension in settings["extensions"])
 assert any(isinstance(package, str) and package.endswith("/@nicknisi/pi-heads-up") for package in settings["packages"])
-assert json.loads(Path(fixture["headsUp"]).read_text())["model"] == "openai-codex/gpt-6.1-sol"
+assert json.loads(Path(fixture["headsUp"]).read_text())["model"] == "openrouter/z-ai/glm-5.3-flash"
 assert not any("questionnaire" in extension for extension in settings["extensions"])
 assert any(isinstance(package, str) and package.endswith("/@mrclrchtr/supi-ask-user") for package in settings["packages"])
 assert f'{fixture["directory"]}/extensions/resume.ts' not in settings["extensions"]

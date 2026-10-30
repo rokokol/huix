@@ -353,6 +353,8 @@ in
       documents."AGENTS.md" = ''
         # Communication
 
+        Before a batch of actions, say out loud what comes next as a short numbered list, marking any item that waits on the owner's answer
+
         Write all notifications, scheduled reports and hook output in English
 
         Ask the owner before you send mail or messages as the owner, or publish under the owner's identity

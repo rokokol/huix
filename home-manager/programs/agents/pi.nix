@@ -180,7 +180,7 @@ in
       file."${cfg.configDir}/extensions/hoster.ts".source = ./pi/hoster.ts;
       file."${cfg.configDir}/extensions/modules.ts".source = ./pi/modules.ts;
       file."${cfg.configDir}/configs/heads-up.json".source = json.generate "pi-heads-up.json" {
-        model = "openai-codex/gpt-6.1-sol";
+        model = "openrouter/z-ai/glm-5.3-flash";
       };
       file."${cfg.configDir}/modules.json".source = json.generate "pi-modules.json" (
         lib.mapAttrs (name: source: {
