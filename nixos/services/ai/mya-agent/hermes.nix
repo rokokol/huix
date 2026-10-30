@@ -289,6 +289,8 @@ in
         curator.consolidate = true;
         agent.reasoning_effort = "medium";
         agent.max_turns = 60;
+        # The main model reads images itself; "auto" would pre-describe them with an auxiliary model
+        agent.image_input_mode = "native";
         cron.wrap_response = false;
         model = {
           provider = "openrouter";
@@ -312,7 +314,6 @@ in
           "curator"
           "background_review"
           "approval"
-          "vision"
           "review"
           "monitor"
           "mcp"
