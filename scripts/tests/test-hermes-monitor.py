@@ -3,6 +3,8 @@ from pathlib import Path
 import sqlite3
 import tempfile
 import unittest
+from types import SimpleNamespace
+from unittest.mock import patch
 from decimal import Decimal
 
 
@@ -14,66 +16,43 @@ monitor = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(monitor)
 
 
-def record(sent):
-    """A sender that keeps the text of each notice"""
-    return lambda text, about=None: sent.append(text)
-
-
 class MonitorTest(unittest.TestCase):
-    def test_threshold_boundaries_and_large_jump(self):
-        step = Decimal("0.50")
-        self.assertIsNone(monitor.crossed_threshold(Decimal("0.49"), 0, step))
-        self.assertEqual(monitor.crossed_threshold(Decimal("0.50"), 0, step), 1)
-        self.assertIsNone(monitor.crossed_threshold(Decimal("0.53"), 1, step))
-        self.assertEqual(monitor.crossed_threshold(Decimal("2.10"), 1, step), 4)
-        self.assertIsNone(monitor.crossed_threshold(Decimal("0.40"), 1, step))
+    def test_collect_keeps_metrics_and_balance_alerts_without_spend_notices(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            credential = root / "credential"
+            credential.write_text("test")
+            args = SimpleNamespace(
+                home=root, state_dir=root, metrics=root / "metrics.prom",
+                key_file=credential, bot_token_file=credential, chat_id_file=credential,
+                api="https://openrouter.invalid", telegram_api="https://telegram.invalid",
+                telegram_thread_id=5, low_balance=Decimal("5"),
+            )
+            sessions = [{"id": "one", "source": "telegram", "cost": Decimal("12"),
+                         "input_tokens": 100, "output_tokens": 10, "estimated": False}]
+            sent = []
+            balance = Decimal("20")
 
-    def test_failed_delivery_does_not_consume_threshold(self):
-        state = {}
-        session = {"id": "one", "cost": Decimal("0.53"), "estimated": False}
+            def request(url, key=None, data=None):
+                if url.endswith("/key"):
+                    return {"data": {"usage": 12}}
+                if url.endswith("/credits"):
+                    return {"data": {"total_credits": balance + 12, "total_usage": 12}}
+                sent.append(monitor.json.loads(data))
+                return {"ok": True, "result": {"message_id": 1}}
 
-        def reject(_text, _about=None):
-            raise RuntimeError("offline")
-
-        with self.assertRaises(RuntimeError):
-            monitor.notify_sessions([session], state, Decimal("0.50"), None, reject)
-        self.assertEqual(state, {})
-        sent = []
-        monitor.notify_sessions([session], state, Decimal("0.50"), None, record(sent))
-        self.assertEqual(len(sent), 1)
-        self.assertIn("Balance unavailable", sent[0])
-        monitor.notify_sessions([session], state, Decimal("0.50"), None, record(sent))
-        self.assertEqual(len(sent), 1)
-
-    def test_notification_has_account_balance_and_estimate_label(self):
-        sent = []
-        monitor.notify_sessions(
-            [{"id": "two", "cost": Decimal("1.02"), "estimated": True}],
-            {},
-            Decimal("0.50"),
-            {"value": Decimal("18.47"), "checked_at": "2026-10-25T12:00:00+00:00"},
-            record(sent),
-        )
-        self.assertEqual(len(sent), 1)
-        self.assertIn("Estimated session spend: $1.02", sent[0])
-        self.assertIn("OpenRouter balance: $18.47", sent[0])
-        self.assertIn("12:00:00", sent[0])
-
-    def test_spend_notice_follows_the_session_into_its_topic(self):
-        def topic(**session):
-            return monitor.notice_topic(session, owner_chat="1", reports=5, cron=6)
-        self.assertEqual(topic(source="telegram", chat_id="1", thread_id="77"), 77)
-        self.assertIsNone(topic(source="telegram", chat_id="1", thread_id=None))
-        self.assertEqual(topic(source="webhook", chat_id=None, thread_id=None), 5)
-        self.assertEqual(topic(source="cron", chat_id=None, thread_id=None), 6)
-        self.assertEqual(topic(source="telegram", chat_id="2", thread_id="77"), 5)
-        self.assertEqual(monitor.notice_topic(None, owner_chat="1", reports=5, cron=6), 5)
-
-    def test_notice_carries_its_session_to_the_sender(self):
-        sent = []
-        session = {"id": "one", "cost": Decimal("0.53"), "estimated": False, "thread_id": "77"}
-        monitor.notify_sessions([session], {}, Decimal("0.50"), None, lambda text, about=None: sent.append(about))
-        self.assertEqual(sent, [session])
+            with patch.object(monitor, "read_sessions", return_value=sessions), \
+                    patch.object(monitor, "request_json", side_effect=request):
+                self.assertEqual(monitor.collect(args), 0)
+                self.assertEqual(sent, [])
+                self.assertIn("hermes_cost_usd 12\n", args.metrics.read_text())
+                balance = Decimal("2")
+                self.assertEqual(monitor.collect(args), 0)
+                self.assertEqual(len(sent), 1)
+                self.assertIn("balance is low", sent[0]["text"])
+                self.assertEqual(sent[0]["message_thread_id"], 5)
+                self.assertEqual(monitor.collect(args), 0)
+                self.assertEqual(len(sent), 1)
 
     def test_read_only_database_groups_compression_but_not_new_sessions(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -129,12 +108,6 @@ class MonitorTest(unittest.TestCase):
             path = Path(directory) / "notifications.json"
             monitor.save_state(path, {"one": 2})
             self.assertEqual(monitor.load_state(path), {"one": 2})
-            sent = []
-            monitor.notify_sessions(
-                [{"id": "one", "cost": Decimal("1.02"), "estimated": False}],
-                monitor.load_state(path), Decimal("0.50"), None, record(sent),
-            )
-            self.assertEqual(sent, [])
 
 
 if __name__ == "__main__":

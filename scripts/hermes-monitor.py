@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Export Hermes usage and OpenRouter budgets, and report session spend thresholds"""
+"""Export Hermes usage and OpenRouter budgets, and report low balances"""
 
 import argparse
 from collections import Counter
 from datetime import datetime, timezone
-from decimal import Decimal, ROUND_FLOOR
+from decimal import Decimal
 import fcntl
 import json
 import os
@@ -19,13 +19,6 @@ def money(value):
     if not result.is_finite() or result < 0:
         raise ValueError("Invalid cost value")
     return result
-
-
-def crossed_threshold(cost, previous, step):
-    if not step.is_finite() or step <= 0:
-        raise ValueError("The notification step must be positive")
-    bucket = int((cost / step).to_integral_value(rounding=ROUND_FLOOR))
-    return bucket if bucket > previous else None
 
 
 def recorded_cost(row):
@@ -105,40 +98,6 @@ def load_state(path):
     return json.loads(path.read_text()) if path.exists() else {}
 
 
-def notice_topic(session, owner_chat, reports, cron):
-    """The topic that hears of a session's spend: where a session of the owner's chat runs, its
-    topic or the chat's root. A cron session records no chat, so it goes to the cron topic, and
-    any other session, and a notice of no session, to the reports topic"""
-    if not session:
-        return reports
-    if session.get("source") == "cron":
-        return cron
-    if session.get("source") == "telegram" and session.get("chat_id") == owner_chat:
-        thread = session.get("thread_id")
-        return int(thread) if thread else None
-    return reports
-
-
-def notify_sessions(sessions, state, step, balance, send, persist=lambda: None):
-    for session in sessions:
-        bucket = crossed_threshold(session["cost"], int(state.get(session["id"], 0)), step)
-        if bucket is None:
-            continue
-        label = "Estimated session spend" if session["estimated"] else "Session spend"
-        text = (
-            f"{label}: ${session['cost']:.2f}\n"
-            f"Threshold reached: ${step * bucket:.2f}\n"
-            f"Session: {session['id']}\n"
-        )
-        if balance is None:
-            text += "OpenRouter: Balance unavailable"
-        else:
-            text += f"OpenRouter balance: ${balance['value']:.2f}\nChecked: {balance['checked_at']}"
-        send(text, session)
-        state[session["id"]] = bucket
-        persist()
-
-
 def request_json(url, key=None, data=None):
     headers = {"Accept": "application/json"}
     if key:
@@ -213,11 +172,10 @@ def collect(args):
     token = args.bot_token_file.read_text().strip()
     chat = args.chat_id_file.read_text().strip()
 
-    def send(text, about=None):
+    def send(text):
         message = {"chat_id": chat, "text": text}
-        topic = notice_topic(about, chat, args.telegram_thread_id, args.cron_thread_id)
-        if topic is not None:
-            message["message_thread_id"] = topic
+        if args.telegram_thread_id is not None:
+            message["message_thread_id"] = args.telegram_thread_id
         reply = request_json(
             args.telegram_api + "/bot" + token + "/sendMessage",
             data=json.dumps(message).encode(),
@@ -227,11 +185,7 @@ def collect(args):
 
     state_path = args.state_dir / "notifications.json"
     state = load_state(state_path)
-    step_key = str(args.spend_step)
-    delivered = state.setdefault("sessions", {}).setdefault(step_key, {})
     persist = lambda: save_state(state_path, state)
-    if sessions is not None:
-        notify_sessions(sessions, delivered, args.spend_step, balance, send, persist)
 
     conditions = {}
     if balance is not None:
@@ -270,15 +224,12 @@ def main():
     parser.add_argument("--key-file", required=True, type=Path)
     parser.add_argument("--bot-token-file", required=True, type=Path)
     parser.add_argument("--chat-id-file", required=True, type=Path)
-    parser.add_argument("--spend-step", default=Decimal("0.50"), type=Decimal)
     parser.add_argument("--low-balance", default=Decimal("5"), type=Decimal)
     parser.add_argument("--api", default="https://openrouter.ai/api/v1")
     parser.add_argument("--telegram-api", default="https://api.telegram.org")
     parser.add_argument("--telegram-thread-id", type=int,
-                        help="Topic for the balance notices and for sessions that run outside the chat")
-    parser.add_argument("--cron-thread-id", type=int, help="Topic for the spend of cron sessions")
+                        help="Topic for balance and budget notices")
     args = parser.parse_args()
-    crossed_threshold(Decimal(0), 0, args.spend_step)
     args.state_dir.mkdir(parents=True, exist_ok=True)
     with (args.state_dir / "lock").open("a") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)

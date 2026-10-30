@@ -11,7 +11,6 @@ let
   agent = config.rokokol.mya-agent;
   cfg = agent.hermes.monitor;
   home = "${config.services.hermes-agent.stateDir}/.hermes";
-  inherit (agent.hermes) cronTopic;
   script = builtins.path {
     name = "hermes-monitor.py";
     path = "${inputs.self}/scripts/hermes-monitor.py";
@@ -19,14 +18,9 @@ let
 in
 {
   options.rokokol.mya-agent.hermes.monitor = {
-    enable = lib.mkEnableOption "Hermes metrics and session spend notifications" // {
+    enable = lib.mkEnableOption "Hermes metrics and balance notifications" // {
       default = agent.enable;
       defaultText = lib.literalExpression "config.rokokol.mya-agent.enable";
-    };
-    spendStep = lib.mkOption {
-      type = lib.types.strMatching "[0-9]+(\\.[0-9]+)?";
-      default = "0.50";
-      description = "USD step between session spend notifications";
     };
     lowBalance = lib.mkOption {
       type = lib.types.strMatching "[0-9]+(\\.[0-9]+)?";
@@ -58,7 +52,7 @@ in
       "L+ ${config.rokokol.node-exporter.textfileDir}/hermes.prom - - - - /run/hermes-monitor/metrics.prom"
     ];
     systemd.services.hermes-monitor = {
-      description = "Collect Hermes usage and report spend thresholds";
+      description = "Collect Hermes usage and report low balances";
       wants = [ "network-online.target" ];
       after = [
         "hermes-agent.service"
@@ -92,8 +86,6 @@ in
             "%d/bot"
             "--chat-id-file"
             "%d/chat"
-            "--spend-step"
-            cfg.spendStep
             "--low-balance"
             cfg.lowBalance
             "--api"
@@ -104,10 +96,6 @@ in
           ++ lib.optionals (agent.hermes.reportsTopic != null) [
             "--telegram-thread-id"
             (toString agent.hermes.reportsTopic)
-          ]
-          ++ lib.optionals (cronTopic != null) [
-            "--cron-thread-id"
-            (toString cronTopic)
           ]
         );
         TimeoutStartSec = 90;
