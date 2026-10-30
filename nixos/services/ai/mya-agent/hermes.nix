@@ -114,6 +114,23 @@ let
         --url http://127.0.0.1:${toString cfg.webhookPort}/webhooks/alerts "$@"
     '';
   };
+  # Hermes ships no OpenRouter STT, so the endpoint rides a command provider over this script
+  sttModel = "microsoft/mai-transcribe-2";
+  sttScript = builtins.path {
+    name = "or-transcribe.py";
+    path = "${inputs.self}/scripts/or-transcribe.py";
+  };
+  stt = pkgs.writeShellApplication {
+    name = "mya-agent-stt";
+    runtimeInputs = with pkgs; [
+      python3
+      ffmpeg-headless
+    ];
+    text = ''
+      # Hermes passes the audio path; the model is pinned here rather than in its config
+      exec python3 ${sttScript} --model ${sttModel} "$@"
+    '';
+  };
   sandbox = {
     ProtectHome = lib.mkForce "tmpfs";
     ProtectSystem = "strict";
@@ -311,6 +328,19 @@ in
           "voice_chat"
         ] (_: auxiliary);
         skills.external_dirs = [ "${skills}" ];
+        # Hermes ships no OpenRouter STT, so the endpoint rides a command provider; "auto" reaches
+        # the script as a language string, and the script sends no hint for it
+        stt = {
+          provider = "openrouter";
+          language = "auto";
+          providers.openrouter = {
+            type = "command";
+            command = "${lib.getExe stt} --language {language} {input_path}";
+            timeout = 900;
+            format = "txt";
+            env_passthrough = [ "OPENROUTER_API_KEY" ];
+          };
+        };
         display = {
           language = "en";
           memory_notifications = "verbose";
