@@ -43,7 +43,11 @@ nix flake update <input>    # one
 
 `nix flake check` evaluates every host configuration — that is where a bad option or a type error surfaces — and realises `checks.<system>.nixvim-init-<host>`, the generated `init.lua`. nixvim runs stylua over that file, so **broken Lua in any nixvim module fails there and nowhere else**: evaluation does not parse it, and the wrapper in the store never loads it (Home Manager writes the config to `~/.config/nvim`, so a bare `nvim` out of the package starts empty). A runtime fault — a `require` of a plugin that is not there, a `setup` that throws — is still only visible on the next real `nvim`
 
+`checks.shell-lint` holds every shell file under `scripts/` to `bash -n`, then `shellcheck -S warning`, then `shfmt -d`. The file list comes from `shfmt -f scripts/` and the style from the repository's `.editorconfig`, which an editor's shfmt reads as well, so a new script joins the gate without an edit to it and no flag is spelled twice
+
 There is no per-module test, and no check builds a host closure: `ollama-cuda` misses every cache and compiles from source, so a hosted runner cannot finish one. The tests that boot a host are `station-boot-test` and `station-install-test`, packages rather than checks, so `nix flake check` evaluates them and never builds them. The first runs the station's own module list and replaces only what a VM cannot have (`nixos/station/tests/fixture-host.nix`); build it after a change to anything the station imports. The second boots the installer image: four VMs where it must refuse, one it installs onto and boots from, and a Ventoy stick; build it after a change under `nixos/station/installer/`, to `disko.nix` or to `scripts/install-station.sh`. The image itself, `station-installer`, is the same kind of package: `nix flake check` never builds its 3 GB
+
+A CI failure whose log names the same `drvPath` that a local build passes is a flake, not a regression: compare `nix eval --raw .#checks.x86_64-linux.<name>.drvPath` with the path in the log, then `gh run rerun <id> --failed`. A check that drives a real `pi` waits for the extension to register rather than reading its state once — `test-pi-hoster.ts` caught Pi's built-in model catalog that way
 
 ## Architecture you must internalize
 
