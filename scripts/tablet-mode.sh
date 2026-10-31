@@ -107,10 +107,12 @@ release_rotation() {
   [ -n "$device" ] || return 0
   evtest --query "$device" EV_SW SW_TABLET_MODE || status=$?
   case "$status" in
-    10) systemctl --user is-active --quiet "$ROTATE_UNIT" ||
-      systemctl --user start "$ROTATE_UNIT" ||
-      fail "the auto-rotate unit did not start"
-      notify "Rotation released (╯°□°）╯︵ ┻━┻" "The screen turns with the sensor again" ;;
+    10)
+      systemctl --user is-active --quiet "$ROTATE_UNIT" ||
+        systemctl --user start "$ROTATE_UNIT" ||
+        fail "the auto-rotate unit did not start"
+      notify "Rotation released (╯°□°）╯︵ ┻━┻" "The screen turns with the sensor again"
+      ;;
     0)
       notify "Rotation released (╯°□°）╯︵ ┻━┻" "The screen turns when the laptop is folded"
       ;;

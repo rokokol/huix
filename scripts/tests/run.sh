@@ -285,7 +285,10 @@ is "an auto-rotate that is off takes no stop" "" "$(grep '^systemctl --user stop
 logged "holding with nothing running still says so" '^notify-send -u low' 'Rotation held'
 
 is "lock status reads the file" "on off" \
-  "$(bash "$tablet" lock status 2>/dev/null) $(rm -f "$HUIX_ROTATION_LOCK"; bash "$tablet" lock status 2>/dev/null)"
+  "$(bash "$tablet" lock status 2>/dev/null) $(
+    rm -f "$HUIX_ROTATION_LOCK"
+    bash "$tablet" lock status 2>/dev/null
+  )"
 
 reset_log
 STUB_EVTEST=10 bash "$tablet" lock off >/dev/null 2>&1
