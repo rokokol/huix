@@ -316,6 +316,10 @@ in
         };
         curator.consolidate = true;
         agent.reasoning_effort = "medium";
+        # the built-in web_search tool goes through the local SearXNG instance
+        web = lib.optionalAttrs config.rokokol.searxng.enable {
+          search_backend = "searxng";
+        };
         agent.max_turns = 60;
         # The main model reads images itself; "auto" would pre-describe them with an auxiliary model
         agent.image_input_mode = "native";
@@ -486,6 +490,9 @@ in
     systemd.services.hermes-agent = {
       environment = lib.mapAttrs (_: toString) home.home.sessionVariables // {
         HERMES_MANAGED = lib.mkForce "false";
+      } // lib.optionalAttrs config.rokokol.searxng.enable {
+        # plugins/web/searxng reads SEARXNG_URL; the port is the one tools/searxng.nix assigns
+        SEARXNG_URL = "http://127.0.0.1:${toString config.rokokol.searxng.port}";
       };
       after = [ "home-manager-${agent.user}.service" ];
       path = [
@@ -508,6 +515,9 @@ in
     systemd.services.hermes-backend = {
       environment = lib.mapAttrs (_: toString) home.home.sessionVariables // {
         HERMES_MANAGED = lib.mkForce "false";
+      } // lib.optionalAttrs config.rokokol.searxng.enable {
+        # plugins/web/searxng reads SEARXNG_URL; the port is the one tools/searxng.nix assigns
+        SEARXNG_URL = "http://127.0.0.1:${toString config.rokokol.searxng.port}";
       };
       wantedBy = lib.mkForce (lib.optional cfg.dashboardAutoStart "multi-user.target");
       after = [ "home-manager-${agent.user}.service" ];
