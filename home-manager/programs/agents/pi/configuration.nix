@@ -46,11 +46,13 @@ in
         hideThinkingBlock = true;
         defaultProvider = "openai-codex";
         defaultModel = "gpt-6.1-sol";
+        # The ring ctrl+p cycles through. A side agent names its model by id, so it does not
+        # have to appear here
         enabledModels = [
-          "opencode-go/*"
-          "openai-codex/*"
-        ]
-        ++ map (model: "openrouter/${model}") (lib.attrNames routes);
+          "opencode-go/deepseek-v4.1-flash"
+          "openai-codex/gpt-6-luna"
+          "openai-codex/gpt-6.1-sol"
+        ];
         terminal.hyperlinks = true;
         terminal.images = "kitty";
         fullscreenCopyOnSelect = true;
