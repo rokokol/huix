@@ -146,7 +146,7 @@ panels.dashboard {
       ];
     })
     (panel {
-      title = "LLM calls";
+      title = "LLM calls per second";
       x = 12;
       y = 27;
       w = 12;
