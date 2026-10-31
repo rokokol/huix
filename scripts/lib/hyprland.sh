@@ -1,4 +1,5 @@
 # Sourced by the scripts that talk to Hyprland; nothing here runs on its own, so no shebang
+# shellcheck shell=bash
 # Needs jq and hyprctl on PATH
 
 # The built-in panel of a laptop, or nothing on a desktop. Matched by the connector name,

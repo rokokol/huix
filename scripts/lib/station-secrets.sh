@@ -1,9 +1,11 @@
 # Sourced by make-station-iso.sh, which puts the station's secrets into its installer image, and
 # by install-station.sh, which takes them out on the station; nothing here runs on its own
+# shellcheck shell=bash
 # Needs bash 3.2 and POSIX tools only
 
 # The directory inside the image and the names of the files in it. Lowercase, because they are
 # names the two scripts share and not variables either one reads from the environment
+# shellcheck disable=SC2034 # both scripts that source this file read it
 secrets_dir_name=station-secrets
 age_key_name=age-key.txt
 tailscale_tar_name=tailscale-state.tar

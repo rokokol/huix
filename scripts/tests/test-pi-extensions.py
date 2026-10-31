@@ -45,18 +45,22 @@ def run(pi, extensions, node):
             cwd=directory, env=env, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
             stderr=subprocess.PIPE, text=True,
         )
+        # Popen types each pipe as optional, since it is set only when its argument is; the
+        # assert proves they are there, which keeps the reader threads free of a None check
+        assert process.stdin and process.stdout and process.stderr, "Pipes were not created"
+        stdin, stdout, stderr_pipe = process.stdin, process.stdout, process.stderr
         events = queue.Queue()
         stderr = []
 
         def read_stdout():
-            for line in process.stdout:
+            for line in stdout:
                 try:
                     events.put(json.loads(line))
                 except ValueError:
                     events.put({"invalid_json": line})
 
         def read_stderr():
-            stderr.extend(process.stderr)
+            stderr.extend(stderr_pipe)
 
         readers = [threading.Thread(target=read_stdout), threading.Thread(target=read_stderr)]
         for reader in readers:

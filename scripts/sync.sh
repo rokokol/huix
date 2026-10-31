@@ -219,7 +219,7 @@ take_agents() {
 # local and serial
 sweep_projects() {
   local repo behind ahead
-  local updated=0 held=0 failed=0
+  local updated=0 held=0 failed_count=0
   local names="" held_names="" failed_names=""
   local -a found=() repos=()
 
@@ -255,7 +255,7 @@ sweep_projects() {
   while IFS= read -r repo; do
     [ -n "$repo" ] || continue
     fetch_failed["$repo"]=1
-    failed=$((failed + 1))
+    failed_count=$((failed_count + 1))
     failed_names="$failed_names $(basename "$repo")"
   done <"$failed_file"
 
@@ -295,8 +295,8 @@ sweep_projects() {
     notify normal "Projects: $held held back (・_・;)" \
       "${held_names# }"$'\n'"diverged, conflicting or dirty — sync them by hand"
 
-  [ "$failed" -gt 0 ] &&
-    notify normal "Projects: $failed fetch failed (╥﹏╥)" \
+  [ "$failed_count" -gt 0 ] &&
+    notify normal "Projects: $failed_count fetch failed (╥﹏╥)" \
       "${failed_names# }"
 
   return 0

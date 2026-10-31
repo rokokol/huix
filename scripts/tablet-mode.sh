@@ -135,9 +135,8 @@ cmd_status() {
 }
 
 osk_start() {
-  local i
   systemctl --user start "$OSK_UNIT" || fail "the keyboard unit did not start"
-  for i in 1 2 3 4 5 6 7 8 9 10; do
+  for _ in 1 2 3 4 5 6 7 8 9 10; do
     pgrep -x "$OSK_PROCESS" >/dev/null && return 0
     sleep 0.2
   done

@@ -899,7 +899,7 @@ for name in tool other; do
   rm -rf "$git_work/pusher"
 done
 
-HUIX=$git_work/huix SYNC_REMOTES= \
+HUIX=$git_work/huix SYNC_REMOTES='' \
   PROJECTS_DIR="$git_work/Projects:$git_work/more:$git_work/none" \
   bash "$sync_sh" --pull-only >/dev/null 2>&1
 is "a colon-separated PROJECTS_DIR succeeds" 0 "$?"
