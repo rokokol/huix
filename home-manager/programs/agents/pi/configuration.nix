@@ -44,8 +44,7 @@ in
         showCacheMissNotices = true;
         hideThinkingBlock = true;
         defaultProvider = "openai-codex";
-        defaultModel = "gpt-6-luna";
-        enabledModels = [ "openai-codex/*" ] ++ map (model: "openrouter/${model}") (lib.attrNames routes);
+        defaultModel = "gpt-6.1-sol";
         terminal.hyperlinks = true;
         terminal.images = "kitty";
         fullscreenCopyOnSelect = true;
