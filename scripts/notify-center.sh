@@ -50,17 +50,17 @@ dnd_active() {
 
 cmd_dnd() {
   case "${1:-}" in
-  on) makoctl mode -a do-not-disturb >/dev/null ;;
-  off) makoctl mode -r do-not-disturb >/dev/null ;;
-  toggle) makoctl mode -t do-not-disturb >/dev/null ;;
-  status)
-    if dnd_active; then printf 'on\n'; else printf 'off\n'; fi
-    return
-    ;;
-  *)
-    notify_error "Usage: dnd toggle|on|off|status"
-    exit 1
-    ;;
+    on) makoctl mode -a do-not-disturb >/dev/null ;;
+    off) makoctl mode -r do-not-disturb >/dev/null ;;
+    toggle) makoctl mode -t do-not-disturb >/dev/null ;;
+    status)
+      if dnd_active; then printf 'on\n'; else printf 'off\n'; fi
+      return
+      ;;
+    *)
+      notify_error "Usage: dnd toggle|on|off|status"
+      exit 1
+      ;;
   esac
   signal_waybar
 }
@@ -140,21 +140,21 @@ cmd_clear() {
 }
 
 case "${1:-}" in
-status) cmd_status ;;
-dnd)
-  shift
-  cmd_dnd "$@"
-  ;;
-clear) cmd_clear ;;
-menu) cmd_menu ;;
-text)
-  shift
-  cmd_text "$@"
-  ;;
-help | -h | --help) usage ;;
-*)
-  usage >&2
-  notify_error "Usage: notify-center.sh status|dnd|clear|menu|text|help"
-  exit 1
-  ;;
+  status) cmd_status ;;
+  dnd)
+    shift
+    cmd_dnd "$@"
+    ;;
+  clear) cmd_clear ;;
+  menu) cmd_menu ;;
+  text)
+    shift
+    cmd_text "$@"
+    ;;
+  help | -h | --help) usage ;;
+  *)
+    usage >&2
+    notify_error "Usage: notify-center.sh status|dnd|clear|menu|text|help"
+    exit 1
+    ;;
 esac

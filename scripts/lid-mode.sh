@@ -113,18 +113,18 @@ cmd_status() {
 }
 
 case "${1:-}" in
-toggle)
-  if is_on; then cmd_off; else cmd_on; fi
-  ;;
-on) cmd_on ;;
-off) cmd_off ;;
-close) cmd_close ;;
-open) dpms on ;;
-status) cmd_status ;;
-help | -h | --help) usage ;;
-*)
-  usage >&2
-  notify_error "Usage: lid-mode.sh toggle|on|off|close|open|status|help"
-  exit 1
-  ;;
+  toggle)
+    if is_on; then cmd_off; else cmd_on; fi
+    ;;
+  on) cmd_on ;;
+  off) cmd_off ;;
+  close) cmd_close ;;
+  open) dpms on ;;
+  status) cmd_status ;;
+  help | -h | --help) usage ;;
+  *)
+    usage >&2
+    notify_error "Usage: lid-mode.sh toggle|on|off|close|open|status|help"
+    exit 1
+    ;;
 esac

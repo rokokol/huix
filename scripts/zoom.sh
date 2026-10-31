@@ -20,10 +20,10 @@ min=1.0
 max=20.0
 
 case "$action" in
-help | -h | --help)
-  usage
-  exit 0
-  ;;
+  help | -h | --help)
+    usage
+    exit 0
+    ;;
 esac
 
 current=$(hyprctl getoption cursor.zoom_factor -j | jq -r '.float')

@@ -64,8 +64,8 @@ print_top() {
 
 # Empty output closes rofi; printing a new list continues the session
 case "${ROFI_INFO:-}" in
-  "")        print_top ;;
-  cmd:dnd)   "$NC" dnd toggle ;;
+  "") print_top ;;
+  cmd:dnd) "$NC" dnd toggle ;;
   cmd:clear) "$NC" clear ;;
-  id:*)      "$NC" text "${ROFI_INFO#id:}" | wl-copy ;;
+  id:*) "$NC" text "${ROFI_INFO#id:}" | wl-copy ;;
 esac

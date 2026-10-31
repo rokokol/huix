@@ -123,25 +123,25 @@ detect_theme_state() {
 # committing the choice to the state file. No notification — this is a "silent" apply
 apply_state() {
   case "$1" in
-  dark)
-    dconf write "$GTK_THEME_KEY" "'${DARK_THEME}'"
-    dconf write "$COLOR_SCHEME_KEY" "'${DARK_SCHEME}'"
-    ddlc-rofi-theme dark
-    set_libadwaita_css "$GTK4_DARK_CSS"
-    set_claude_theme dark
-    save_state "dark"
-    ;;
-  light)
-    dconf write "$GTK_THEME_KEY" "'${LIGHT_THEME}'"
-    dconf write "$COLOR_SCHEME_KEY" "'${LIGHT_SCHEME}'"
-    ddlc-rofi-theme light
-    set_libadwaita_css "$GTK4_LIGHT_CSS"
-    set_claude_theme light
-    save_state "light"
-    ;;
-  *)
-    return 1
-    ;;
+    dark)
+      dconf write "$GTK_THEME_KEY" "'${DARK_THEME}'"
+      dconf write "$COLOR_SCHEME_KEY" "'${DARK_SCHEME}'"
+      ddlc-rofi-theme dark
+      set_libadwaita_css "$GTK4_DARK_CSS"
+      set_claude_theme dark
+      save_state "dark"
+      ;;
+    light)
+      dconf write "$GTK_THEME_KEY" "'${LIGHT_THEME}'"
+      dconf write "$COLOR_SCHEME_KEY" "'${LIGHT_SCHEME}'"
+      ddlc-rofi-theme light
+      set_libadwaita_css "$GTK4_LIGHT_CSS"
+      set_claude_theme light
+      save_state "light"
+      ;;
+    *)
+      return 1
+      ;;
   esac
 }
 
@@ -161,41 +161,41 @@ sync_theme_state() {
   [[ -n "$want" ]] || want=$(detect_theme_state)
 
   case "$want" in
-  dark) apply_state dark ;;
-  light) apply_state light ;;
-  unset) apply_state light ;;
-  *)
-    notify_error "Cannot sync theme state ヽ(ﾟДﾟ)ﾉ"
-    exit 1
-    ;;
+    dark) apply_state dark ;;
+    light) apply_state light ;;
+    unset) apply_state light ;;
+    *)
+      notify_error "Cannot sync theme state ヽ(ﾟДﾟ)ﾉ"
+      exit 1
+      ;;
   esac
 }
 
 case "${1:-}" in
---sync)
-  sync_theme_state
-  exit 0
-  ;;
-help | -h | --help)
-  usage
-  exit 0
-  ;;
+  --sync)
+    sync_theme_state
+    exit 0
+    ;;
+  help | -h | --help)
+    usage
+    exit 0
+    ;;
 esac
 
 # The toggle flips relative to the saved choice, and dconf is not re-queried.
 # detect_theme_state is needed only on the first run, when the state file does not
 # exist yet (unset → as before via sync=light: net result dark)
 case "$(read_state)" in
-dark) current="dark" ;;
-light) current="light" ;;
-*) current="$(detect_theme_state)" ;;
+  dark) current="dark" ;;
+  light) current="light" ;;
+  *) current="$(detect_theme_state)" ;;
 esac
 
 case "$current" in
-dark) set_theme light "Light theme set 🌕" ;;
-light | unset) set_theme dark "Dark theme set 🌑" ;;
-*)
-  notify_error "Cannot determine theme state ヽ(ﾟДﾟ)ﾉ"
-  exit 1
-  ;;
+  dark) set_theme light "Light theme set 🌕" ;;
+  light | unset) set_theme dark "Dark theme set 🌑" ;;
+  *)
+    notify_error "Cannot determine theme state ヽ(ﾟДﾟ)ﾉ"
+    exit 1
+    ;;
 esac

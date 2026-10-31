@@ -216,7 +216,7 @@ raise() {
   local body
   body=$(cat)
   with_lock open_key "$q" "$1" "$2" "$body"
-  if ((opened && !q)); then
+  if ((opened && ! q)); then
     send "$2" "$body" 1
   fi
 }
@@ -224,7 +224,7 @@ raise() {
 clear_key() {
   local closed subject quiet
   with_lock close_key "$1"
-  if ((closed && !quiet)); then
+  if ((closed && ! quiet)); then
     # The subject is a raw header, so it stays ASCII beside what the caller wrote
     send "$subject (resolved)" "The problem under $1 is gone."
   fi

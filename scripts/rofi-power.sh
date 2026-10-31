@@ -43,17 +43,20 @@ fi
 # On selection rofi puts the action in ROFI_INFO. An empty ROFI_INFO is the first
 # call: print the items (visible label + hidden action in info)
 case "${ROFI_INFO:-}" in
-lock)      loginctl lock-session ;;
-screenoff) screen_off & disown ;;
-suspend)   systemctl suspend ;;
-reboot)    systemctl reboot ;;
-logout)    hyprctl dispatch 'hl.dsp.exit()' ;;
-poweroff)  systemctl poweroff ;;
-"")
-  # The mode prints its message, since rofi shows no -mesg while a script mode is open
-  printf '\0message\x1f%s\n' "What are we doing? (⊃‿⊂)"
-  while IFS='|' read -r label action; do
-    printf '%s\0info\x1f%s\n' "$label" "$action"
-  done < <(list_options)
-  ;;
+  lock) loginctl lock-session ;;
+  screenoff)
+    screen_off &
+    disown
+    ;;
+  suspend) systemctl suspend ;;
+  reboot) systemctl reboot ;;
+  logout) hyprctl dispatch 'hl.dsp.exit()' ;;
+  poweroff) systemctl poweroff ;;
+  "")
+    # The mode prints its message, since rofi shows no -mesg while a script mode is open
+    printf '\0message\x1f%s\n' "What are we doing? (⊃‿⊂)"
+    while IFS='|' read -r label action; do
+      printf '%s\0info\x1f%s\n' "$label" "$action"
+    done < <(list_options)
+    ;;
 esac
