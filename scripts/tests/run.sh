@@ -115,7 +115,12 @@ cat >"$work/bin/systemctl" <<'EOF'
 #!/usr/bin/env bash
 printf 'systemctl %s\n' "$*" >>"$STUB_LOG"
 case "$*" in
-  *is-active*) [ "${STUB_ACTIVE:-}" = 1 ] ;;
+  *is-active*)
+    if [[ "$*" == *virt-keyboard* ]]; then
+      [ "${STUB_OSK_ACTIVE:-${STUB_ACTIVE:-}}" = 1 ]
+    else
+      [ "${STUB_ACTIVE:-}" = 1 ]
+    fi ;;
   "show -P ActiveState "*) printf '%s\n' "${STUB_ACTIVE_STATE:-inactive}" ;;
   "show -P Result "*) printf '%s\n' "${STUB_RESULT:-success}" ;;
   "show -P ExecMainStartTimestamp "*) printf '%s\n' "${STUB_STARTED:-}" ;;
@@ -172,6 +177,11 @@ export STUB_MONITORS='[
   {"name":"eDP-1","width":1920,"height":1080,"refreshRate":59.98400,"x":0,"y":0,"scale":1.3333334,"transform":3,"focused":false}
 ]'
 export HUIX_TABLET_SWITCH="Intel Virtual Switches"
+# The rotation lock lives by default in the real runtime directory; the tests point the
+# variable at their own file before anything tablet-mode runs, so no hold from the session
+# the tests happen in is seen
+export HUIX_ROTATION_LOCK=$work/rotation-lock
+rm -f "$HUIX_ROTATION_LOCK"
 
 rotate=$SCRIPTS/rotate-screen.sh
 tablet=$SCRIPTS/tablet-mode.sh
@@ -240,6 +250,9 @@ off_text=$(STUB_ACTIVE=0 bash "$tablet" virt-keyboard status 2>/dev/null | jq -r
 is "the bar button has something to show in the mode" "yes" "$([ -n "$on_text" ] && echo yes)"
 is "the bar button is empty outside the mode, which hides it" "" "$off_text"
 
+button=$(STUB_ACTIVE=0 STUB_OSK_ACTIVE=1 bash "$tablet" virt-keyboard status 2>/dev/null | jq -r .text)
+is "the keyboard button stays while the rotation is held" "yes" "$([ -n "$button" ] && echo yes)"
+
 is "status reads the auto-rotate unit" "on off" "$(STUB_ACTIVE=1 bash "$tablet" status 2>/dev/null) $(STUB_ACTIVE=0 bash "$tablet" status 2>/dev/null)"
 
 reset_log
@@ -256,6 +269,80 @@ STUB_ACTIVE=1 STUB_EVTEST=10 bash "$tablet" sync >/dev/null 2>&1
 logged "sync in the mode restarts auto-rotate so the sensor speaks again after a reload" \
   '^systemctl --user restart' 'huix-auto-rotate'
 not_logged "sync in the mode does not enter it a second time" '^systemctl --user start'
+
+# The rotation lock file is the one HUIX_ROTATION_LOCK names, ours since the tablet section
+
+reset_log
+STUB_ACTIVE=1 bash "$tablet" lock on >/dev/null 2>&1
+is "lock on leaves its file" "yes" "$([ -e "$HUIX_ROTATION_LOCK" ] && echo yes)"
+logged "lock on stops the running auto-rotate" '^systemctl --user stop' 'huix-auto-rotate'
+logged "holding says so in a note" '^notify-send -u low' 'Rotation held'
+is "holding keeps the orientation where it is" "" "$(transforms eDP-1)"
+
+reset_log
+STUB_ACTIVE=0 bash "$tablet" lock on >/dev/null 2>&1
+is "an auto-rotate that is off takes no stop" "" "$(grep '^systemctl --user stop' "$STUB_LOG" || true)"
+logged "holding with nothing running still says so" '^notify-send -u low' 'Rotation held'
+
+is "lock status reads the file" "on off" \
+  "$(bash "$tablet" lock status 2>/dev/null) $(rm -f "$HUIX_ROTATION_LOCK"; bash "$tablet" lock status 2>/dev/null)"
+
+reset_log
+STUB_EVTEST=10 bash "$tablet" lock off >/dev/null 2>&1
+logged "lock off with the switch on resumes the rotation" '^systemctl --user start' 'huix-auto-rotate'
+
+reset_log
+STUB_EVTEST=0 bash "$tablet" lock off >/dev/null 2>&1
+not_logged "lock off with the switch off turns nothing on" '^systemctl --user start'
+
+reset_log
+STUB_EVTEST=10 STUB_ACTIVE=1 bash "$tablet" lock off >/dev/null 2>&1
+not_logged "a released rotation that already runs takes no second start" '^systemctl --user start'
+
+env -u HUIX_TABLET_SWITCH bash "$tablet" lock off >/dev/null 2>&1
+is "unlocking without a switch named is fine" 0 "$?"
+
+bash "$tablet" lock >/dev/null 2>&1
+is "lock without an action is a usage error" 2 "$?"
+
+bash "$tablet" lock nah >/dev/null 2>&1
+is "lock with an unknown action is a usage error" 2 "$?"
+
+reset_log
+STUB_ACTIVE=0 bash "$tablet" lock toggle >/dev/null 2>&1
+is "a toggle without the lock sets it" "yes" "$([ -e "$HUIX_ROTATION_LOCK" ] && echo yes)"
+
+reset_log
+STUB_ACTIVE=0 STUB_EVTEST=0 bash "$tablet" lock toggle >/dev/null 2>&1
+is "a toggle under the lock releases it" "no" "$([ -e "$HUIX_ROTATION_LOCK" ] && echo yes || echo no)"
+
+# In the mode the lock holds through the way in, a reload and the way out
+: >"$HUIX_ROTATION_LOCK"
+reset_log
+HUIX_TABLET_SIGNAL='' STUB_ACTIVE=0 bash "$tablet" on >/dev/null 2>&1
+logged "in the mode without rotation the keyboard still starts" '^systemctl --user start' 'huix-virt-keyboard'
+not_logged "entering the mode under the lock starts no rotation" '^systemctl --user start .*huix-auto-rotate'
+
+: >"$HUIX_ROTATION_LOCK"
+reset_log
+STUB_ACTIVE=0 STUB_EVTEST=10 bash "$tablet" sync >/dev/null 2>&1
+logged "folding under the lock still enters the mode" '^systemctl --user start' 'huix-virt-keyboard'
+not_logged "folding under the lock starts no rotation" '^systemctl --user start .*huix-auto-rotate'
+is "folding under the lock keeps the screen" "" "$(transforms eDP-1)"
+
+: >"$HUIX_ROTATION_LOCK"
+reset_log
+STUB_ACTIVE=1 STUB_EVTEST=10 bash "$tablet" sync >/dev/null 2>&1
+not_logged "a reload under the lock restarts no rotation" '^systemctl --user restart'
+not_logged "a reload under the lock turns the rotation on" '^systemctl --user start'
+
+: >"$HUIX_ROTATION_LOCK"
+reset_log
+STUB_ACTIVE=1 bash "$tablet" off >/dev/null 2>&1
+not_logged "leaving the mode under the lock turns nothing on" '^systemctl --user start'
+is "leaving the mode under the lock keeps the orientation" "" "$(transforms eDP-1)"
+
+rm -f "$HUIX_ROTATION_LOCK"
 
 # wvkbd's own signals: SIGRTMIN toggles, SIGUSR2 shows, SIGUSR1 hides
 reset_log

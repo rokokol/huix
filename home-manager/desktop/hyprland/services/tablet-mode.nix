@@ -51,10 +51,12 @@ in
             (run "${scriptsDir}/rotate-screen.sh next")
           ];
         }
+        # The rotation lock: the mode itself comes on through the switch below, so the
+        # key holds or releases the orientation without folding anything
         {
           _args = [
             "SUPER + SHIFT + M"
-            (run "${scriptsDir}/tablet-mode.sh toggle")
+            (run "${scriptsDir}/tablet-mode.sh lock toggle")
           ];
         }
         # locked: fires with the screen locked too

@@ -10,6 +10,8 @@
     packages.laptop = true;
 
     ghidra.enable = false;
+    # FreeCAD and its freecad-mcp stay on the PC; the umbrella defaults it on here too
+    freecad.enable = false;
     # The panels' tokens live on the PC alone
     skills.exclude = [ "3x-ui-admin" ];
 
