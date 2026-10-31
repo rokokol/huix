@@ -23,6 +23,48 @@ pkgs.lib.mapAttrs' (
     namespaces = [ "rokokol" ];
   };
 
+  # shellcheck and shfmt over every shell file under scripts/, beside nix-lint. shfmt -f names the
+  # files and .editorconfig states the style, so neither is repeated here
+  shell-lint =
+    pkgs.runCommand "shell-lint"
+      {
+        nativeBuildInputs = with pkgs; [
+          shellcheck
+          shfmt
+        ];
+        scripts = builtins.path {
+          name = "huix-scripts";
+          path = ./scripts;
+        };
+        editorconfig = builtins.path {
+          name = "huix-editorconfig";
+          path = ./.editorconfig;
+        };
+      }
+      ''
+        # shfmt reads the nearest .editorconfig, so it has to sit above the scripts, not beside them
+        mkdir tree
+        cp -r "$scripts" tree/scripts
+        cp "$editorconfig" tree/.editorconfig
+        cd tree
+        files=$(shfmt -f scripts)
+        [ -n "$files" ] || {
+          echo "shell-lint: shfmt found no shell file, so the search is broken" >&2
+          exit 1
+        }
+        printf '%s\n' "$files" >list
+        while IFS= read -r file; do bash -n "$file"; done <list
+        # A library is named relative to the script that sources it; only a warning fails the gate,
+        # because shellcheck calls a function reached through a trap never invoked
+        xargs -r shellcheck -S warning -x -P SCRIPTDIR -f gcc <list
+        xargs -r shfmt -d <list >fmt.diff || {
+          cat fmt.diff >&2
+          echo "shell-lint: the files above are not formatted" >&2
+          exit 1
+        }
+        touch "$out"
+      '';
+
   pi-extensions =
     let
       extensions = inputs.self.nixosConfigurations.nixos-pc.pkgs.pi-extensions;

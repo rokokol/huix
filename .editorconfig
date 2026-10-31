@@ -1,0 +1,8 @@
+root = true
+
+# The style shfmt writes, read by the gate and by an editor alike. The depths are named, not
+# matched by *.sh, because shfmt matches a pattern holding a slash against the whole path
+[{scripts/*.sh,scripts/*/*.sh,scripts/*/*/*.sh,scripts/git-hooks/*}]
+indent_style = space
+indent_size = 2
+switch_case_indent = true
