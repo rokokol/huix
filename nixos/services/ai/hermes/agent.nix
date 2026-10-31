@@ -180,7 +180,7 @@ in
     (lib.mkIf (cfg.enable || cfg.guest.enable) {
       # In the user's profile and not only in the unit's PATH: a shell in the session reads the
       # system's environment again, which drops what the unit adds. These are what the shared
-      # skills call: Claude Code reads repositories through git, GitHub through gh
+      # skills call: the agent reads repositories through git, GitHub through gh
       users.users.${cfg.user} = {
         isNormalUser = true;
         inherit (cfg) home;

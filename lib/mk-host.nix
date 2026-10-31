@@ -35,7 +35,6 @@ inputs.nixpkgs.lib.nixosSystem {
           inputs.hyprland-screen-shader.homeModules.default
           inputs.rofi-wooordhunt.homeModules.default
           inputs.ddlc-rofi-theme.homeModules.default
-          inputs.claude-account.homeModules.default
           inputs.virtual-media-devices.homeModules.default
           inputs.papers-skill.homeModules.default
           inputs.archive-mount-yazi.homeModules.default

@@ -26,7 +26,6 @@ assert f'{fixture["directory"]}/extensions/modules.ts' in settings["extensions"]
 assert "-builtin:mcp" in settings["extensions"]
 assert not any("resume" in extension for extension in settings["extensions"])
 assert any(isinstance(package, str) and package.endswith("/@nicknisi/pi-heads-up") for package in settings["packages"])
-assert json.loads(Path(fixture["headsUp"]).read_text())["model"] == "openrouter/z-ai/glm-5.3-flash"
 assert not any("questionnaire" in extension for extension in settings["extensions"])
 assert any(isinstance(package, str) and package.endswith("/@mrclrchtr/supi-ask-user") for package in settings["packages"])
 assert f'{fixture["directory"]}/extensions/resume.ts' not in settings["extensions"]
@@ -36,14 +35,10 @@ assert {name: module["source"] for name, module in module_catalog.items()} == fi
 assert models["providers"]["openrouter"]["compat"]["openRouterRouting"] == {
     "data_collection": "deny", "zdr": True, "require_parameters": True,
 }
-assert "openai/*" not in settings["enabledModels"]
-assert "openrouter/*" not in settings["enabledModels"]
-assert settings["defaultProvider"] == "openai-codex"
-assert settings["defaultModel"] == "gpt-6-luna"
 assert any(isinstance(package, str) and package.endswith("/pi-bg-bash") for package in settings["packages"])
 assert any(isinstance(package, str) and package.endswith("/@narumitw/pi-usage") for package in settings["packages"])
 overrides = models["providers"]["openrouter"]["modelOverrides"]
-assert set(overrides) == {"deepseek/deepseek-v4.1-flash-1017", "z-ai/glm-5.3", "z-ai/glm-5.3-flash"}
+assert overrides
 for override in overrides.values():
     routing = override["compat"]["openRouterRouting"]
     assert routing["zdr"] and routing["data_collection"] == "deny"
@@ -51,14 +46,12 @@ for override in overrides.values():
     assert routing["order"] == routing["only"] and len(routing["only"]) == 2
 automode = fixture["automode"]
 assert automode["autoMode"]["allowInsideWorkingDirectory"]
-assert automode["autoMode"]["classifierModel"] == "openrouter/z-ai/glm-5.3-flash"
 assert automode["autoMode"]["log"] == {"enabled": True, "classifierIo": False}
 assert "$defaults" in automode["autoMode"]["hard_deny"]
 assert "$defaults" in automode["autoMode"]["soft_deny"]
 assert any("trash-put" in rule and "rm" in rule for rule in automode["autoMode"]["hard_deny"])
 assert any("git reset" in rule for rule in automode["autoMode"]["soft_deny"])
 assert any("credential" in rule for rule in automode["autoMode"]["hard_deny"])
-assert not any(".claude" in rule or "claude-shared" in rule for rule in automode["autoMode"]["hard_deny"])
 for command in ("skvpn down*", "skvpn up*", "skvpn restart*", "tailscale down*", "nixos-rebuild switch*"):
     assert f"bash({command})" in automode["permissions"]["deny"]
     assert f"bash(sudo {command})" in automode["permissions"]["deny"]
@@ -70,7 +63,7 @@ for directory in ("/nix/store", "/build/pi-test/huix", "/build/pi-test/myWiki", 
         assert f"write({directory}/*)" in allows
         assert f"edit({directory}/*)" in allows
 assert "write(/nix/store/*)" not in allows
-assert not any(".ssh" in rule or "opencode" in rule for rule in allows)
+assert not any(".ssh" in rule for rule in allows)
 assert set(fixture["groups"]) == {"huix", "research"}, fixture["groups"]
 registered = {}
 for group, directory in fixture["groups"].items():

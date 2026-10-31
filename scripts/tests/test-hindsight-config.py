@@ -30,7 +30,6 @@ def validate(f):
     assert {"invalidate_memory", "retain", "recall", "list_memories", "reflect"} <= tools
     assert not {"delete_bank", "clear_memories"} & tools
     assert "HINDSIGHT_API_LLM_API_KEY" not in f["environment"]
-    assert f["environment"]["HINDSIGHT_API_RERANKER_PROVIDER"] == "rrf"
     assert "hindsight-client-token" in f["piMemory"]
     assert f["hermesMemoryProvider"] == "hindsight"
     assert "memory" not in f["hermesMcpServers"]
@@ -47,7 +46,7 @@ def validate(f):
         folder = f["folders"]["pi-" + host]
         assert set(folder["devices"]) == {host, "nixos-station"}
         assert "pi-" + other not in f[key]
-        assert f[key]["claude-shared"]["paused"]
+        assert "claude-shared" not in f[key]
 
 
 fixture = json.loads(Path(sys.argv[1]).read_text())

@@ -12,6 +12,25 @@ let
   secret = name: config.sops.placeholder.${name};
   secretsFile = ../../../../secrets/hindsight.yaml;
   pgDir = config.services.postgresql.dataDir;
+  bankTemplate = pkgs.writeText "hindsight-bank-template.json" (
+    builtins.toJSON {
+      version = "1";
+      mental_models = [
+        {
+          id = "owner-working-brief";
+          name = "Owner working brief";
+          source_query = "Synthesize a concise working brief for the owner: active projects, systems and services, durable preferences, important decisions, exact paths and commands, and open work. Prefer durable facts over recent chatter.";
+          tags = [ ];
+          max_tokens = 4096;
+          trigger = {
+            mode = "delta";
+            refresh_cron = "0 0 * * *";
+            full_refresh_cron = "0 0 * * 0";
+          };
+        }
+      ];
+    }
+  );
 in
 {
   options.rokokol.hindsight = {
@@ -178,6 +197,24 @@ in
           ProtectHome = true;
           ProtectSystem = "strict";
           RestrictSUIDSGID = true;
+        };
+      };
+      systemd.services.hindsight-bank-template = {
+        description = "Apply the declarative Hindsight bank template";
+        wantedBy = [ "multi-user.target" ];
+        after = [ "hindsight.service" ];
+        partOf = [ "hindsight.service" ];
+        script = ''
+          ${lib.getExe pkgs.curl} --silent --show-error --fail-with-body \
+            --retry 30 --retry-delay 2 --retry-connrefused \
+            -H "Authorization: Bearer $(${pkgs.coreutils}/bin/cat ${config.sops.secrets.hindsight-api-token.path})" \
+            -H "Content-Type: application/json" \
+            --data-binary @${bankTemplate} \
+            "http://127.0.0.1:${toString cfg.port}/v1/default/banks/${cfg.bank}/import"
+        '';
+        serviceConfig = {
+          Type = "oneshot";
+          RemainAfterExit = true;
         };
       };
       rokokol.tailnet-web.sites.hindsight = {

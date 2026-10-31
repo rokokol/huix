@@ -7,12 +7,11 @@
 }:
 
 # The skills of the flake's skill-NAME inputs, each handed to the agents as NAME, for every home
-# that imports this module and runs Claude Code. A skill comes from the store and cannot be
-# written, so the notes and drafts a skill keeps go to the shared Claude Code directory, which
-# Syncthing carries between the hosts. A token stays on its host: each app issues its own
+# that imports this module and runs an agent. A skill comes from the store and cannot be
+# written, so the notes and drafts a skill keeps go to the per-user agent state directory.
+# A token stays on its host: each app issues its own
 let
   cfg = config.rokokol.skills;
-  claudeEnabled = lib.attrByPath [ "rokokol" "claude" "enable" ] false config;
   prefix = "skill-";
   available = lib.mapAttrs' (
     name: input: lib.nameValuePair (lib.removePrefix prefix name) input.outPath
@@ -20,11 +19,7 @@ let
   skills = removeAttrs (
     if cfg.include == null then available else lib.getAttrs cfg.include available
   ) cfg.exclude;
-  stateDir =
-    if claudeEnabled then
-      "${config.programs.claude-account.sharedDir}/skill-state"
-    else
-      "${config.xdg.stateHome}/agent-skills";
+  stateDir = "${config.xdg.stateHome}/agent-skills";
 in
 {
   options.rokokol.skills = {
@@ -45,8 +40,7 @@ in
   config =
     lib.mkIf
       (
-        claudeEnabled
-        || config.programs.pi-coding-agent.enable
+        config.programs.pi-coding-agent.enable
         || (
           osConfig.services.hermes-agent.enable && osConfig.services.hermes-agent.user == config.home.username
         )

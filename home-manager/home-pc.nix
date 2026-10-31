@@ -17,8 +17,6 @@
 
     packages.pc = true;
 
-    opencode.server = true;
-
     hyprland = {
       enable = true;
       primaryMonitor = "DP-1";

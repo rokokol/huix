@@ -122,8 +122,8 @@ function pendingSchemas(node: ResourceNode): boolean {
   return node.enabled && (node.kind === "server" && !node.children.length || node.children.some(pendingSchemas));
 }
 
-type Theme = { fg?: (color: string, text: string) => string; bold?: (text: string) => string };
-type UiHelpers = { matchesKey: (data: string, key: string) => boolean;
+type Theme = { fg?: (color: any, text: string) => string; bold?: (text: string) => string };
+type UiHelpers = { matchesKey: (data: string, key: any) => boolean;
   truncateToWidth: (text: string, width: number) => string;
   height?: () => number;
   theme?: Theme;

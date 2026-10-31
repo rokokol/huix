@@ -114,11 +114,6 @@
       flake = false;
     };
 
-    claude-account = {
-      url = "github:rokokol/claude-account";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     hermes-agent = {
       url = "github:NousResearch/hermes-agent/v0.22.5";
       inputs.nixpkgs.follows = "nixpkgs";

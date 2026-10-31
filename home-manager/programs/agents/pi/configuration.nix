@@ -45,7 +45,11 @@ in
         hideThinkingBlock = true;
         defaultProvider = "openai-codex";
         defaultModel = "gpt-6.1-sol";
-        enabledModels = [ "opencode-go/*" "openai-codex/*" ] ++ map (model: "openrouter/${model}") (lib.attrNames routes);
+        enabledModels = [
+          "opencode-go/*"
+          "openai-codex/*"
+        ]
+        ++ map (model: "openrouter/${model}") (lib.attrNames routes);
         terminal.hyperlinks = true;
         terminal.images = "kitty";
         fullscreenCopyOnSelect = true;

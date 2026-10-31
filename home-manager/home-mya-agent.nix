@@ -22,7 +22,7 @@ in
   ];
   rokokol.matplotlib.enable = true;
 
-  # The huix group without close-session, which keeps Claude Code's memory, and headless-gui,
+  # The huix group without close-session, which keeps the agent's memory, and headless-gui,
   # which needs a GUI the station does not run
   rokokol.skills.include = [
     "ai-commit-trailers"

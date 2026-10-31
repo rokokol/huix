@@ -13,7 +13,14 @@
       "morph/fp8"
     ];
   };
-  memory.model = "z-ai/glm-5.3-flash";
+  memory = {
+    model = "z-ai/glm-5.3-flash";
+    # OpenRouter list prices per token, checked 2026-10-31; update both when the model changes
+    price = {
+      input = 0.0000000163;
+      output = 0.0000001479;
+    };
+  };
   embeddings = {
     model = "qwen/qwen3-embedding-8b";
     dimensions = 1024;

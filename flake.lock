@@ -104,26 +104,6 @@
         "type": "github"
       }
     },
-    "claude-account": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1791206437,
-        "narHash": "sha256-mSa6/K07lx15wHw+Jqv0zuTEOWjH9yhzMM1w104JvBI=",
-        "owner": "rokokol",
-        "repo": "claude-account",
-        "rev": "3e9fcb10baa1a18463d564f18e83094f6e5ed653",
-        "type": "github"
-      },
-      "original": {
-        "owner": "rokokol",
-        "repo": "claude-account",
-        "type": "github"
-      }
-    },
     "compress-yazi": {
       "flake": false,
       "locked": {
@@ -1441,7 +1421,6 @@
         "archive-mount-yazi": "archive-mount-yazi",
         "audacity-mcp": "audacity-mcp",
         "blender-mcp": "blender-mcp",
-        "claude-account": "claude-account",
         "compress-yazi": "compress-yazi",
         "dav-mcp": "dav-mcp",
         "ddlc-hyprlock": "ddlc-hyprlock",

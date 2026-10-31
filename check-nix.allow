@@ -1,0 +1,1 @@
+options-namespaced nixos/station/tests/test-meta.nix the meta option of the NixOS test framework, extended by the two fields it lacks

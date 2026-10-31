@@ -62,23 +62,14 @@ let
     source = inputs.hindsight;
   };
   hmMcp = inputs.home-manager.lib.hm.mcp;
-  mcpServers =
-    lib.mapAttrs (
-      name: server:
-      hmMcp.transformMcpServer {
-        inherit server;
-        exclude = [ "type" ];
-        extraTransforms = [ (hmMcp.wrapEnvFilesCommand { inherit pkgs name; }) ];
-      }
-    ) (lib.filterAttrs (_: server: server.enabled or null != false) home.programs.mcp.servers)
-    // lib.optionalAttrs (config.rokokol.searxng.enable or false) {
-      searxng = {
-        command = "${pkgs.mcp-searxng}/bin/mcp-searxng";
-        env = {
-          SEARXNG_URL = "http://127.0.0.1:${toString config.rokokol.searxng.port}";
-        };
-      };
-    };
+  mcpServers = lib.mapAttrs (
+    name: server:
+    hmMcp.transformMcpServer {
+      inherit server;
+      exclude = [ "type" ];
+      extraTransforms = [ (hmMcp.wrapEnvFilesCommand { inherit pkgs name; }) ];
+    }
+  ) (lib.filterAttrs (_: server: server.enabled or null != false) home.programs.mcp.servers);
   mcpPackages = lib.mapAttrs (
     name: server:
     pkgs.writeShellScriptBin "hermes-mcp-${name}" ''
@@ -474,11 +465,11 @@ in
 
         # Notes
 
-        The vault is at ~/myWiki. Read ~/myWiki/CLAUDE.md before you edit notes
+        The vault is at ~/myWiki. Read the vault's agent instructions before you edit notes
 
         The English vocabulary is at ~/myWiki/05. Конспекты/14. Английский/Слова.md
 
-        Read ~/myWiki/.claude/skills/fsrs-vocabulary/SKILL.md before you add a vocabulary entry
+        Read the vault's fsrs-vocabulary skill before you add a vocabulary entry
 
         # GitHub
 
@@ -488,12 +479,15 @@ in
     };
 
     systemd.services.hermes-agent = {
-      environment = lib.mapAttrs (_: toString) home.home.sessionVariables // {
-        HERMES_MANAGED = lib.mkForce "false";
-      } // lib.optionalAttrs config.rokokol.searxng.enable {
-        # plugins/web/searxng reads SEARXNG_URL; the port is the one tools/searxng.nix assigns
-        SEARXNG_URL = "http://127.0.0.1:${toString config.rokokol.searxng.port}";
-      };
+      environment =
+        lib.mapAttrs (_: toString) home.home.sessionVariables
+        // {
+          HERMES_MANAGED = lib.mkForce "false";
+        }
+        // lib.optionalAttrs config.rokokol.searxng.enable {
+          # plugins/web/searxng reads SEARXNG_URL; the port is the one tools/searxng.nix assigns
+          SEARXNG_URL = "http://127.0.0.1:${toString config.rokokol.searxng.port}";
+        };
       after = [ "home-manager-${agent.user}.service" ];
       path = [
         "/etc/profiles/per-user/${agent.user}"
@@ -513,12 +507,15 @@ in
       };
     };
     systemd.services.hermes-backend = {
-      environment = lib.mapAttrs (_: toString) home.home.sessionVariables // {
-        HERMES_MANAGED = lib.mkForce "false";
-      } // lib.optionalAttrs config.rokokol.searxng.enable {
-        # plugins/web/searxng reads SEARXNG_URL; the port is the one tools/searxng.nix assigns
-        SEARXNG_URL = "http://127.0.0.1:${toString config.rokokol.searxng.port}";
-      };
+      environment =
+        lib.mapAttrs (_: toString) home.home.sessionVariables
+        // {
+          HERMES_MANAGED = lib.mkForce "false";
+        }
+        // lib.optionalAttrs config.rokokol.searxng.enable {
+          # plugins/web/searxng reads SEARXNG_URL; the port is the one tools/searxng.nix assigns
+          SEARXNG_URL = "http://127.0.0.1:${toString config.rokokol.searxng.port}";
+        };
       wantedBy = lib.mkForce (lib.optional cfg.dashboardAutoStart "multi-user.target");
       after = [ "home-manager-${agent.user}.service" ];
       unitConfig.RequiresMountsFor = lib.attrValues agent.directories;

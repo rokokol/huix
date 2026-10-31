@@ -61,6 +61,16 @@ in
               labels.host = config.networking.hostName;
             }
           ];
+        }
+        # Hindsight exposes /metrics without a login on loopback
+        ++ lib.optional (config.rokokol.hindsight.enable or false) {
+          job_name = "hindsight";
+          static_configs = [
+            {
+              targets = [ "127.0.0.1:${toString config.rokokol.hindsight.port}" ];
+              labels.host = config.networking.hostName;
+            }
+          ];
         };
     };
   };

@@ -26,6 +26,8 @@ let
 
   roles = (lib.importJSON inputs.ddlc-themes.lib.roles).dark;
   panels = import ./panels.nix { inherit lib roles datasource; };
+  models = import ../../../../lib/ai-models.nix;
+  inherit (models) memory;
 
   # An age such as 36h and a size such as 10G, as the watchers' options write them, in seconds
   # and bytes, so the dashboard turns red where the watcher alerts
@@ -82,6 +84,14 @@ let
   ]
   ++ lib.optional config.rokokol.mya-agent.hermes.monitor.enable (
     import ./dashboards/hermes.nix { inherit roles panels; }
+  )
+  ++ lib.optional (config.rokokol.hindsight.enable or false) (
+    import ./dashboards/hindsight.nix {
+      inherit roles panels;
+      memoryModel = memory.model;
+      inputPrice = toString memory.price.input;
+      outputPrice = toString memory.price.output;
+    }
   );
 in
 {

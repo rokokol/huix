@@ -803,7 +803,7 @@ pkgs.testers.runNixOSTest {
             timeout=timedelta(minutes=2),
         )
 
-    # Private modes, as Claude Code gives its transcripts
+    # Private modes, as coding agents give their transcripts
     with subtest("what the PC overwrites or deletes stays in a snapshot, readable by the owner"):
         as_syncthing(pc, f"umask 077 && mkdir -p {on_pc}/notes && echo old >{on_pc}/notes/kept.md && echo gone >{on_pc}/notes/gone.md")
         for name, text in [("kept", "old"), ("gone", "gone")]:
@@ -843,7 +843,7 @@ pkgs.testers.runNixOSTest {
         encoded = base64.b64encode(text.encode()).decode()
         station.succeed(f"${agent.notify} --url {webhooks}/test RUN:{encoded}")
 
-    with subtest("Hermes starts without a shared Claude profile and mails root if it fails"):
+    with subtest("Hermes starts without a legacy shared profile and mails root if it fails"):
         station.succeed(f"systemctl show -P OnFailure {agent_unit} | grep -qx 'alert-mail@{agent_unit}.service'")
         station.fail("test -e ${syncthing.shared}/settings.json")
         station.wait_for_unit(agent_unit)
@@ -866,7 +866,7 @@ pkgs.testers.runNixOSTest {
         actual = station.succeed(f"cat {agent_home}/contrib-home").strip()
         assert actual == expected, f"contributing uses {actual}, not {expected} from Home Manager"
 
-    with subtest("Hermes can edit runtime settings without a Claude profile"):
+    with subtest("Hermes can edit runtime settings without a legacy profile"):
         station.succeed("runuser -u ${agent.user} -- ${lib.getExe station.config.services.hermes-agent.package} config set curator.consolidate true")
         station.fail("test -e ${agent.home}/.claude")
 

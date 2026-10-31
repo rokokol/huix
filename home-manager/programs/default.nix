@@ -3,7 +3,7 @@
     ./agents/default.nix
     ./cli/default.nix
     ./creative/default.nix
-    ./language-servers.nix
+    ./lsp.nix
     ./nixvim/default.nix
     ./reversing/default.nix
     ./rofi.nix

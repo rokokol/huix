@@ -108,8 +108,8 @@ pkgs.lib.mapAttrs' (
       test "$(yq .model.default config.yaml)" = '${settings.model.default}'
       test "$(yq '.fallback_providers[0].provider' config.yaml)" = '${(builtins.head settings.fallback_providers).provider}'
       test "$(yq '.fallback_providers[0].model' config.yaml)" = '${(builtins.head settings.fallback_providers).model}'
-      test "$(yq '.auxiliary.title_generation.provider' config.yaml)" = opencode-go
-      test "$(yq '.auxiliary.title_generation.model' config.yaml)" = glm-5.3-flash
+      test "$(yq '.auxiliary.title_generation.provider' config.yaml)" = '${settings.auxiliary.title_generation.provider}'
+      test "$(yq '.auxiliary.title_generation.model' config.yaml)" = '${settings.auxiliary.title_generation.model}'
       test "$(yq '.auxiliary.title_generation.fallback_chain[0].provider' config.yaml)" = openrouter
       test "$(yq '.auxiliary.title_generation.fallback_chain[0].model' config.yaml)" = '${(builtins.head settings.auxiliary.title_generation.fallback_chain).model}'
       touch "$out"

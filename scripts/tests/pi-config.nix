@@ -65,7 +65,6 @@ let
                   command = "disabled-mcp";
                   enabled = false;
                 };
-                opencode.command = "opencode-mcp";
               };
             };
           };
@@ -80,7 +79,6 @@ let
     settings = base.home.file."${directory}/settings.json".source;
     models = base.home.file."${directory}/models.json".source;
     keybindings = base.home.file."${directory}/keybindings.json".source;
-    headsUp = base.home.file."${directory}/configs/heads-up.json".source;
     hoster = base.home.file."${directory}/extensions/hoster.ts".source;
     modules = base.home.file."${directory}/modules.json".source;
     automode = builtins.fromJSON base.home.sessionVariables.PI_AUTOMODE_SETTINGS_JSON;

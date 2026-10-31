@@ -79,7 +79,6 @@ nix shell gitlab:doronbehar/nix-matlab#matlab --command /run/media/rokokol/MATHW
 Куски, которые переросли конфиг и живут своими флейками — huix подключает их входами и держит по одному шву на каждый. Вся семья вместе с самим конфигом помечена топиком [huix](https://github.com/topics/huix)
 
 [![screen-shader](https://img.shields.io/badge/screen--shader-эффекты-FF4088?style=for-the-badge&logo=opengl&logoColor=white)](https://github.com/rokokol/hyprland-screen-shader)
-[![claude-account](https://img.shields.io/badge/claude--account-профили_Claude-D97757?style=for-the-badge&logo=anthropic&logoColor=white)](https://github.com/rokokol/claude-account)
 [![rofi-wooordhunt](https://img.shields.io/badge/rofi--wooordhunt-словарь-F4A100?style=for-the-badge)](https://github.com/rokokol/rofi-wooordhunt)
 [![virtual-media-devices](https://img.shields.io/badge/virtual--media--devices-камера_и_микрофон-2E9E9E?style=for-the-badge&logo=ffmpeg&logoColor=white)](https://github.com/rokokol/virtual-media-devices)
 [![skvpn](https://img.shields.io/badge/skvpn-VPN--клиент-2B5797?style=for-the-badge&logo=python&logoColor=white)](https://github.com/rokokol/skvpn)

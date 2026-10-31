@@ -244,19 +244,10 @@ in
           overrideDevices = false;
           overrideFolders = false;
 
-          settings.folders =
-            lib.mapAttrs (_: folder: {
-              inherit (folder) id path devices;
-              type = "sendreceive";
-            }) (lib.filterAttrs (_: folder: lib.elem config.networking.hostName folder.devices) folders)
-            // {
-              claude-shared = {
-                id = "claude-shared";
-                path = "${homeDir}/.local/share/claude-shared";
-                paused = true;
-                devices = [ ];
-              };
-            };
+          settings.folders = lib.mapAttrs (_: folder: {
+            inherit (folder) id path devices;
+            type = "sendreceive";
+          }) (lib.filterAttrs (_: folder: lib.elem config.networking.hostName folder.devices) folders);
         };
       })
 
@@ -275,7 +266,7 @@ in
         # The editor or the default user, never the owner: whoever writes the folders must not
         # be root through sudo, or the snapshots would be in reach. The owner reads the folders
         # and the snapshots through the group. The files take the default modes, not the peers'
-        # own: a private mode there, as on Claude Code's transcripts, would shut the owner out
+        # own: a private mode there, as on an agent's transcripts, would shut the owner out
         services.syncthing =
           lib.optionalAttrs (cfg.archive.editor != null) {
             user = cfg.archive.editor;
