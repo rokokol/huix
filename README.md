@@ -16,7 +16,7 @@
 [![eval](https://github.com/rokokol/huix/actions/workflows/eval.yml/badge.svg)](https://github.com/rokokol/huix/actions/workflows/eval.yml)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/rokokol/huix)
 
-<a href="https://github.com/rokokol/huix"><img src="https://count.owenewans.org/rokokol/huix?theme=original-new&notitle" alt="Звёзды, PR, issues и коммиты репозитория huix" width="400"/></a>
+<a href="https://github.com/rokokol/huix"><img src="https://count.owenewans.org/rokokol/huix?theme=original-new&notitle" alt="Звёзды, PR, issues и коммиты репозитория huix" width="800"/></a>
 
 </div>
 
