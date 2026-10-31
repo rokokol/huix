@@ -6,7 +6,7 @@ import { pathToFileURL } from "node:url";
 import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import type { ExtensionAPI, ExtensionCommandContext, RpcClient as RpcClientType,
-  RpcExtensionUIRequest, RegisteredCommand } from "@earendil-works/pi-coding-agent";
+  RpcExtensionUIRequest, RegisteredCommand, ExtensionContext } from "@earendil-works/pi-coding-agent";
 
 interface Endpoint {
   tag: string;
@@ -37,6 +37,8 @@ const models: { providers: { openrouter: {
 writeFileSync(modelsFile, JSON.stringify(models));
 let command!: (args: string, context: typeof ctx) => Promise<void>;
 let hook!: TestHook;
+let startup!: (event: unknown, context: ExtensionContext) => void;
+let registered: { models: { id: string }[] };
 let selected: string | undefined;
 const messages: string[] = [];
 let labels: string[] = [];
@@ -70,7 +72,11 @@ function load() {
   extension({ registerCommand: (name: string, definition: RegisteredCommand) => {
     assert.equal(name, "hoster");
     command = async (args, context) => { await definition.handler(args, context as unknown as ExtensionCommandContext); };
+  }, registerProvider: (name: string, provider: typeof registered) => {
+    assert.equal(name, "openrouter");
+    registered = provider;
   }, on: (event: string, handler: TestHook) => {
+    if (event === "session_start") { startup = handler as unknown as typeof startup; return; }
     assert.equal(event, "before_provider_request"); hook = handler;
   } } as unknown as ExtensionAPI);
 }
@@ -81,6 +87,18 @@ const request = () => {
   return result;
 };
 load();
+const registryContext = { ...ctx, modelRegistry: { getAll: () => [
+  { provider: "openrouter", id: model },
+  { provider: "openrouter", id: "unconfigured/model" },
+  { provider: "openai-codex", id: "other" },
+] } } as unknown as ExtensionContext;
+startup({}, registryContext);
+assert.deepEqual(registered!.models.map(model => model.id), [model]);
+writeFileSync(modelsFile, "{}");
+startup({}, registryContext);
+assert.deepEqual(registered!.models, [], "Missing policy must not expose the built-in OpenRouter catalog");
+writeFileSync(modelsFile, JSON.stringify(models));
+startup({}, registryContext);
 selected = "second/fp4";
 assert.equal(metadataRequests, 0, "Do not contact the catalog before the user invokes /hoster");
 await command("", ctx);
@@ -225,6 +243,9 @@ if (process.argv[3]) {
   });
   try {
     await client.start();
+    const available = await client.getAvailableModels();
+    assert.deepEqual(available.filter(candidate => candidate.provider === "openrouter").map(candidate => candidate.id), [model],
+      "OpenRouter's model picker must expose only models with a hoster policy");
     assert((await client.getCommands()).some(command => command.name === "hoster"));
     assert.equal(await client.prompt("/hoster"), "handled");
     assert.equal(await client.prompt("/hoster second/fp4"), "handled");

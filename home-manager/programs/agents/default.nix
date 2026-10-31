@@ -5,7 +5,7 @@
     ./claude.nix
     ./huix/default.nix
     ./opencode.nix
-    ./pi.nix
+    ./pi
     ./remote/default.nix
     ./research/default.nix
     ./skills.nix

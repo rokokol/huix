@@ -35,6 +35,28 @@ export default function hoster(pi: ExtensionAPI) {
     return route;
   }
 
+  pi.on("session_start", (_event, ctx) => {
+    try {
+      const configuration = JSON.parse(readFileSync(join(directory, "models.json"), "utf8"));
+      const provider = configuration.providers?.openrouter;
+      const allowed = Object.keys(provider?.modelOverrides ?? {});
+      for (const id of allowed) policy(id);
+      const models = ctx.modelRegistry.getAll().filter(model =>
+        model.provider === "openrouter" && allowed.includes(model.id));
+      pi.registerProvider("openrouter", {
+        api: "openai-completions",
+        baseUrl: provider?.baseUrl ?? "https://openrouter.ai/api/v1",
+        apiKey: provider?.apiKey,
+        models,
+      });
+      const missing = allowed.filter(id => !models.some(model => model.id === id));
+      if (missing.length) ctx.ui.notify(`Configured OpenRouter models not in catalog: ${missing.join(", ")}`, "warning");
+    } catch (error) {
+      pi.registerProvider("openrouter", { models: [] });
+      ctx.ui.notify(`OpenRouter disabled: ${error}`, "error");
+    }
+  });
+
   function choices(): Record<string, string> {
     try {
       const state = JSON.parse(readFileSync(stateFile, "utf8"));

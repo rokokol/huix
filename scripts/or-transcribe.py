@@ -20,7 +20,6 @@ import urllib.error
 import urllib.request
 
 API = "https://openrouter.ai/api/v1/audio/transcriptions"
-DEFAULT_MODEL = "microsoft/mai-transcribe-2"
 
 
 def log(msg):
@@ -98,9 +97,6 @@ def post(key, model, wav, language, zdr, prompt):
             return data.get("text", ""), (data.get("usage") or {}).get("cost") or 0.0, None
         except urllib.error.HTTPError as e:
             msg = e.read()[:300].decode(errors="replace")
-            if "data policy" in msg and zdr:
-                text, cost, err = post(key, model, wav, language, False, prompt)
-                return text, cost, err or "no-zdr-provider"
             if e.code in (429, 500, 502, 503, 504):
                 time.sleep(2 + 2 * attempt)
                 continue
@@ -137,7 +133,7 @@ def main():
                "With no file it reads the path list from stdin, one per line.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     ap.add_argument("audio", nargs="*", help="audio file(s); anything ffmpeg opens")
-    ap.add_argument("--model", default=DEFAULT_MODEL, help="OpenRouter model id")
+    ap.add_argument("--model", required=True, help="OpenRouter model id")
     ap.add_argument("--language", default="ru",
                     help="ISO-639-1 hint; 'auto' to let the model decide")
     ap.add_argument("--prompt", default="", help="vocabulary/spelling hint passed to the model")

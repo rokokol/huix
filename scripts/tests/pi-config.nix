@@ -14,6 +14,7 @@ let
       extraSpecialArgs = {
         huixDir = "/build/pi-test/huix";
         myWikiDir = "/build/pi-test/myWiki";
+        piSharedDir = "/build/pi-test/.local/share/pi-shared";
         projectsDirs = [ "/build/pi-test/Projects" ];
         osConfig = {
           rokokol.pi.enable = true;
@@ -22,7 +23,7 @@ let
       };
       modules = [
         ../../home-manager/programs/agents/agents.nix
-        ../../home-manager/programs/agents/pi.nix
+        ../../home-manager/programs/agents/pi
         {
           options.rokokol.workstation.enable = lib.mkOption {
             type = lib.types.bool;
@@ -86,6 +87,9 @@ let
     groups = base.rokokol.agents.piPackages;
     activation = pkgs.writeText "pi-settings-activation.sh" base.home.activation.piSettings.data;
     changedActivation = pkgs.writeText "pi-settings-changed.sh" changed.home.activation.piSettings.data;
+    sharedActivation = pkgs.writeText "pi-shared-activation.sh" base.home.activation.piSharedState.data;
+    backupActivation = pkgs.writeText "pi-backup-activation.sh" base.home.activation.piBackupIgnores.data;
+    sharedPackage = base.home.file."/build/pi-test/.local/share/pi-shared/package.json".source;
   };
   test = builtins.path {
     name = "test-pi-config.py";

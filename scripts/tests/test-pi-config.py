@@ -9,7 +9,8 @@ fixture = json.loads(Path(sys.argv[1]).read_text())
 settings = json.loads(Path(fixture["settings"]).read_text())
 models = json.loads(Path(fixture["models"]).read_text())
 keybindings = json.loads(Path(fixture["keybindings"]).read_text())
-assert set(keybindings["tui.editor.deleteWordBackward"]) >= {"ctrl+backspace", "ctrl+h", "ctrl+w", "alt+backspace"}
+assert set(keybindings["tui.editor.deleteWordBackward"]) >= {"ctrl+backspace", "ctrl+w", "alt+backspace"}
+assert "ctrl+h" not in keybindings["tui.editor.deleteWordBackward"]
 assert any(isinstance(package, str) and package.endswith("/pi-editor-selection") for package in settings["packages"])
 assert not settings["enableInstallTelemetry"]
 assert not settings["enableAnalytics"]
@@ -22,6 +23,7 @@ assert settings["terminal"]["hyperlinks"]
 assert f'{fixture["directory"]}/extensions/hoster.ts' in settings["extensions"]
 assert Path(fixture["hoster"]).is_file()
 assert f'{fixture["directory"]}/extensions/modules.ts' in settings["extensions"]
+assert "-builtin:mcp" in settings["extensions"]
 assert not any("resume" in extension for extension in settings["extensions"])
 assert any(isinstance(package, str) and package.endswith("/@nicknisi/pi-heads-up") for package in settings["packages"])
 assert json.loads(Path(fixture["headsUp"]).read_text())["model"] == "openrouter/z-ai/glm-5.3-flash"
@@ -37,7 +39,8 @@ assert models["providers"]["openrouter"]["compat"]["openRouterRouting"] == {
 assert "openai/*" not in settings["enabledModels"]
 assert "openrouter/*" not in settings["enabledModels"]
 assert settings["defaultProvider"] == "openai-codex"
-assert settings["defaultModel"] == "gpt-6.1-sol"
+assert settings["defaultModel"] == "gpt-6-luna"
+assert any(isinstance(package, str) and package.endswith("/pi-bg-bash") for package in settings["packages"])
 assert any(isinstance(package, str) and package.endswith("/@narumitw/pi-usage") for package in settings["packages"])
 overrides = models["providers"]["openrouter"]["modelOverrides"]
 assert set(overrides) == {"deepseek/deepseek-v4.1-flash-1017", "z-ai/glm-5.3", "z-ai/glm-5.3-flash"}
@@ -81,8 +84,10 @@ for group, directory in fixture["groups"].items():
     match = re.search(r"const servers = (.*);", extension)
     assert match, extension
     registered[group] = json.loads(match.group(1))
-assert set(registered["huix"]) == {"local"}, registered
+assert set(registered["huix"]) == {"local", "searxng"}, registered
 assert set(registered["research"]) == {"remote"}, registered
+assert module_catalog["research"]["servers"] == ["remote"]
+assert module_catalog["huix"]["servers"] == ["local", "searxng"]
 assert registered["research"]["remote"]["url"] == "http://127.0.0.1:9/mcp"
 local = registered["huix"]["local"]
 assert "{file:" not in json.dumps(local), local
@@ -119,3 +124,37 @@ activate(changed=True)
 assert json.loads(target.read_text())["theme"] == "dark", "Missing settings were not recreated"
 assert json.loads(backup.read_text()) == {"personal": True}, "Original backup was overwritten"
 print("PASS: mutable settings keep UI edits until Nix changes, with a private first-copy backup")
+
+shared = Path("/build/pi-test/.local/share/pi-shared")
+instructions = Path("/build/pi-test/.config/agents/AGENTS.md")
+instructions.parent.mkdir(parents=True, exist_ok=True)
+instructions.write_text("Synthetic shared instructions\n")
+subprocess.run(["bash", fixture["sharedActivation"]], check=True)
+assert (shared / "AGENTS.md").read_bytes() == instructions.read_bytes()
+assert (shared / "AGENTS.md").stat().st_mode & 0o777 == 0o600
+assert str(shared) in settings["packages"]
+manifest = json.loads(Path(fixture["sharedPackage"]).read_text())
+assert manifest["pi"] == {"agents": ["./agents"], "prompts": ["./prompts"]}
+(shared / "AGENTS.md").write_text("Different shared instructions\n")
+conflict = subprocess.run(["bash", fixture["sharedActivation"]], capture_output=True, text=True)
+assert conflict.returncode != 0 and "differ" in conflict.stderr
+assert instructions.read_text() == "Synthetic shared instructions\n"
+assert (shared / "AGENTS.md").read_text() == "Different shared instructions\n"
+instructions.unlink()
+instructions.symlink_to(shared / "AGENTS.md")
+subprocess.run(["bash", fixture["sharedActivation"]], check=True)
+shared_ignores = (shared / ".stignore-shared").read_text()
+assert "!/AGENTS.md\n" in shared_ignores
+for name in ("settings.json", "models.json", "auth.json", "mcp-auth.json", "resources.json", "sessions"):
+    assert f"!/{name}\n" not in shared_ignores
+ignore_file = target.parent / ".stignore"
+ignore_file.write_text("!auth.json\n")
+subprocess.run(["bash", fixture["backupActivation"]], check=True)
+assert ignore_file.read_text().startswith("#include .stignore-shared\n")
+assert "!auth.json\n" in ignore_file.read_text()
+backup_ignores = (target.parent / ".stignore-shared").read_text()
+assert "!/resources.json\n" in backup_ignores
+assert "!/auth.json\n" not in backup_ignores
+assert "!/mcp-auth.json\n" not in backup_ignores
+assert "!/models.json\n" not in backup_ignores
+print("PASS: shared AGENTS.md preserves both sides on conflict; shared config excludes local state and authentication")

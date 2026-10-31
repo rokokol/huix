@@ -46,6 +46,9 @@ pkgs.lib.mapAttrs' (
           types = [ "node" ];
           typeRoots = [ "${piRoot}/node_modules/@types" ];
           paths."@earendil-works/pi-coding-agent" = [ "${piRoot}/dist/index.d.ts" ];
+          paths."@earendil-works/pi-tui" = [
+            "${piRoot}/node_modules/@earendil-works/pi-tui/dist/index.d.ts"
+          ];
         };
         files = [
           hosterExtension
@@ -80,6 +83,10 @@ pkgs.lib.mapAttrs' (
     inherit (pkgs) lib;
   };
 
+  hindsight-config = import ./scripts/tests/hindsight-config.nix {
+    inherit pkgs inputs rokokolName;
+  };
+
   hermes-config =
     let
       settings = inputs.self.nixosConfigurations.nixos-station.config.services.hermes-agent.settings;
@@ -97,6 +104,14 @@ pkgs.lib.mapAttrs' (
       test "$(yq .mcp_servers.dav.enabled config.yaml)" = false
       test "$(yq .mcp_servers.personal.command config.yaml)" = personal
       test "$(yq .memory.provider config.yaml)" = '${settings.memory.provider}'
+      test "$(yq .model.provider config.yaml)" = '${settings.model.provider}'
+      test "$(yq .model.default config.yaml)" = '${settings.model.default}'
+      test "$(yq '.fallback_providers[0].provider' config.yaml)" = '${(builtins.head settings.fallback_providers).provider}'
+      test "$(yq '.fallback_providers[0].model' config.yaml)" = '${(builtins.head settings.fallback_providers).model}'
+      test "$(yq '.auxiliary.title_generation.provider' config.yaml)" = opencode-go
+      test "$(yq '.auxiliary.title_generation.model' config.yaml)" = glm-5.3-flash
+      test "$(yq '.auxiliary.title_generation.fallback_chain[0].provider' config.yaml)" = openrouter
+      test "$(yq '.auxiliary.title_generation.fallback_chain[0].model' config.yaml)" = '${(builtins.head settings.auxiliary.title_generation.fallback_chain).model}'
       touch "$out"
     '';
 

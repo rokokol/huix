@@ -171,6 +171,14 @@ in
       description = "Claude Code plugin group for each MCP server, with huix as the default";
     };
 
+    moduleParents = lib.mkOption {
+      type = lib.types.attrsOf (lib.types.enum groupNames);
+      default = {
+        deep-research = "research";
+      };
+      description = "Pi modules nested under another module, by child module name";
+    };
+
     claudePlugins = lib.mkOption {
       type = lib.types.attrsOf lib.types.package;
       readOnly = true;

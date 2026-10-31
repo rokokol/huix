@@ -9,7 +9,7 @@ metadata:
 
 Пакеты пользователя `mya` — и агента на станции, и гостевого аккаунта на ПК и ноутбуке — задаются в двух местах:
 
-- базовый список в `nixos/services/ai/mya-agent/agent.nix` — общий для `cfg.enable` и `cfg.guest.enable`;
+- базовый список в `nixos/services/ai/hermes/agent.nix` — общий для `cfg.enable` и `cfg.guest.enable`;
 - список `rokokol.mya-agent.packages` и `pythonPackages` в `nixos/configuration-station.nix` — только станция, тот же механизм, через который подключены ffmpeg и Python.
 
 Оба списка попадают в `users.users.mya.packages`. `home-manager/home-mya-agent.nix` — это Home Manager-слой (скиллы, MCP, SSH, git, каталоги), а не место для команд агента; `home.packages` там не используется.
