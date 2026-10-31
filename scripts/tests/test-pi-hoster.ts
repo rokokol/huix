@@ -243,8 +243,17 @@ if (process.argv[3]) {
   });
   try {
     await client.start();
-    const available = await client.getAvailableModels();
-    assert.deepEqual(available.filter(candidate => candidate.provider === "openrouter").map(candidate => candidate.id), [model],
+    // The provider is registered from the extension's session_start, which can land after
+    // start() returns; without the wait the assertion reads Pi's built-in catalog instead
+    const picker = async () => (await client.getAvailableModels())
+      .filter(candidate => candidate.provider === "openrouter").map(candidate => candidate.id);
+    const deadline = Date.now() + 10_000;
+    let available = await picker();
+    while (available.length !== 1 && Date.now() < deadline) {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      available = await picker();
+    }
+    assert.deepEqual(available, [model],
       "OpenRouter's model picker must expose only models with a hoster policy");
     assert((await client.getCommands()).some(command => command.name === "hoster"));
     assert.equal(await client.prompt("/hoster"), "handled");
