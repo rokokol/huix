@@ -9,6 +9,7 @@
 }:
 let
   cfg = config.programs.pi-coding-agent;
+  models = import ../../../../lib/ai-models.nix;
   writeDirectories = [
     huixDir
     myWikiDir
@@ -48,8 +49,10 @@ in
     home.sessionVariables.PI_AUTOMODE_SETTINGS_JSON = builtins.toJSON {
       autoMode = {
         allowInsideWorkingDirectory = true;
-        classifierModel = "openrouter/z-ai/glm-5.3-flash";
+        classifierModel = models.side.piModel;
         classifierReasoningLevel = "low";
+        # The verdict needs room of its own: a reasoning model spends the stage budget first
+        fastClassifierMaxTokens = 2048;
         soft_deny = [
           "$defaults"
           "Commands that discard uncommitted work, including git checkout, git restore, git reset, git clean, git branch -D, a force push or rm -rf in a working tree, need approval for the specific loss. Run git status first. Prefer stash and trash-put over irreversible operations"

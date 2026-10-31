@@ -83,14 +83,14 @@ let
   aiModels = import ../../../../lib/ai-models.nix;
   routes = aiModels.chat;
   providers = routes.${fallbackModel};
-  glm = "z-ai/glm-5.3-flash";
   auxiliary = {
     provider = "opencode-go";
+    # The Go subscription names this model under its own bare id
     model = "glm-5.3-flash";
     fallback_chain = [
       {
         provider = "openrouter";
-        model = glm;
+        model = aiModels.side.model;
       }
     ];
   };

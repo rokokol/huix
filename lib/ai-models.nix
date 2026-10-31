@@ -1,3 +1,7 @@
+let
+  # One cheap model serves every background job, so a change of it is a change in one line
+  background = "z-ai/glm-5.3-flash";
+in
 {
   chat = {
     "deepseek/deepseek-v4.1-flash-1017" = [
@@ -8,18 +12,23 @@
       "morph/fp8"
       "sail-research/fp8"
     ];
-    "z-ai/glm-5.3-flash" = [
+    ${background} = [
       "near-ai/fp8"
       "morph/fp8"
     ];
   };
   memory = {
-    model = "z-ai/glm-5.3-flash";
+    model = background;
     # OpenRouter list prices per token, checked 2026-10-31; update both when the model changes
     price = {
       input = 0.0000000163;
       output = 0.0000001479;
     };
+  };
+  side = {
+    model = background;
+    # pi addresses a model as provider/id, and both side agents take this one
+    piModel = "openrouter/${background}";
   };
   embeddings = {
     model = "qwen/qwen3-embedding-8b";

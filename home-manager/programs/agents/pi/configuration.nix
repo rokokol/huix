@@ -14,7 +14,8 @@ let
     builtins.readFile ./extensions/package.json
   )).dependencies;
   json = pkgs.formats.json { };
-  routes = (import ../../../../lib/ai-models.nix).chat;
+  models = import ../../../../lib/ai-models.nix;
+  routes = models.chat;
   routing = {
     zdr = true;
     data_collection = "deny";
@@ -105,7 +106,7 @@ in
       file."${cfg.configDir}/extensions/hoster.ts".source = ./hoster.ts;
       file."${cfg.configDir}/extensions/modules.ts".source = ./modules.ts;
       file."${cfg.configDir}/configs/heads-up.json".source = json.generate "pi-heads-up.json" {
-        model = "openrouter/z-ai/glm-5.3-flash";
+        model = models.side.piModel;
       };
       file."${cfg.configDir}/modules.json".source = json.generate "pi-modules.json" (
         lib.mapAttrs (
