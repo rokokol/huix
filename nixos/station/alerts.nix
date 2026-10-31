@@ -33,9 +33,13 @@ in
     "btrbk-radicale"
     "btrbk-restic"
     "btrbk-hermes"
+    "btrbk-hindsight"
     "btrbk-syncthing"
     "btrfs-scrub@"
     "hermes-agent"
+    "hindsight"
+    "postgresql"
+    "postgresqlBackup-hindsight"
     "forgejo"
     "forgejo-dump"
     "forgejo-mirrors"
@@ -84,7 +88,7 @@ in
         pkgs.replaceVars
           (builtins.path {
             name = "station-health-skill.md";
-            path = "${inputs.self}/nixos/services/ai/mya-agent/skills/station-health/SKILL.md";
+            path = "${inputs.self}/nixos/services/ai/hermes/skills/station-health/SKILL.md";
           })
           {
             prometheus = "http://127.0.0.1:${toString config.services.prometheus.port}";

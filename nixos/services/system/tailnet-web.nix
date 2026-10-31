@@ -1,4 +1,9 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 # Web services of this host, published to the tailnet with one port each. nginx is the one
 # listener: a backend binds to loopback or a socket, and a site here forwards a port to it. The
@@ -9,6 +14,12 @@
 # no enable option: a service that declares a site is published, and its own option gates it
 let
   cfg = config.rokokol.tailnet-web;
+  # nixpkgs' nginx is built without libxcrypt, so crypt_r is absent and every bcrypt login
+  # (the restic htpasswd this host shares) is a 500 (nixpkgs#579793). Put the library back
+  inherit (pkgs) libxcrypt;
+  nginx = pkgs.nginx.overrideAttrs (old: {
+    buildInputs = (old.buildInputs or [ ]) ++ [ libxcrypt ];
+  });
   ports = lib.mapAttrsToList (_: site: site.port) cfg.sites;
   lanSites = lib.filterAttrs (_: site: site.lan) cfg.sites;
 
@@ -123,6 +134,7 @@ in
     };
 
     services.nginx = {
+      package = nginx;
       enable = true;
       virtualHosts = lib.mapAttrs' (
         name: site:

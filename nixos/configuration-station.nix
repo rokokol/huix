@@ -13,6 +13,15 @@ in
   system.stateVersion = "26.11";
 
   rokokol = {
+    hindsight = {
+      enable = true;
+      dataDir = "${backup}/hindsight/postgresql";
+      backup = {
+        mountPoint = backup;
+        dumpDir = "${backup}/hindsight/dumps";
+        snapshotDir = "${backup}/snapshots/hindsight";
+      };
+    };
     restic-server = {
       enable = true;
       mountPoint = backup;
@@ -24,6 +33,9 @@ in
       mountPoint = backup;
       dataDir = "${backup}/radicale";
       snapshotDir = "${backup}/snapshots/radicale";
+    };
+    searxng = {
+      enable = true;
     };
     syncthing = {
       # Made by the station's Syncthing at its first start; its key in sops keeps it

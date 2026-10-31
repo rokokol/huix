@@ -4,6 +4,7 @@
   pkgs,
   inputs,
   myWikiDir,
+  piSharedDir,
   rokokolName,
   ...
 }:
@@ -44,26 +45,44 @@ let
   # Every host has every folder; `phone` adds the phone to it
   folders =
     lib.mapAttrs
-      (_: folder: folder // { devices = lib.attrNames peers ++ lib.optional folder.phone "phone"; })
-      {
-        # `preserve` is how long the archive keeps the folder's snapshots, as btrbk's
-        # snapshot_preserve: one a day for 30 days, then one a week for 13 weeks
-        myWiki = {
-          id = "3heyc-wgheb";
-          path = myWikiDir;
-          phone = true;
-          preserve = "30d 13w";
-        };
-
-        # Claude Code shared state (chats, memory, plugins), no account cookies. Its transcripts
-        # grow all day, so the archive keeps them for less
-        claude-shared = {
-          id = "claude-shared";
-          path = "${homeDir}/.local/share/claude-shared";
-          phone = false;
-          preserve = "30d";
-        };
-      };
+      (
+        _: folder:
+        folder
+        // {
+          devices = folder.devices or (lib.attrNames peers ++ lib.optional folder.phone "phone");
+        }
+      )
+      (
+        {
+          # `preserve` is how long the archive keeps the folder's snapshots, as btrbk's
+          # snapshot_preserve: one a day for 30 days, then one a week for 13 weeks
+          myWiki = {
+            id = "3heyc-wgheb";
+            path = myWikiDir;
+            phone = true;
+            preserve = "30d 13w";
+          };
+          pi-shared = {
+            id = "pi-shared";
+            path = piSharedDir;
+            phone = false;
+            preserve = "30d";
+          };
+        }
+        // lib.mapAttrs' (
+          name: host:
+          lib.nameValuePair "pi-${name}" {
+            id = "pi-${name}";
+            path = host.home-manager.users.${rokokolName}.programs.pi-coding-agent.configDir;
+            phone = false;
+            preserve = "30d";
+            devices = [
+              name
+            ]
+            ++ lib.attrNames (lib.filterAttrs (_: peerHost: peerHost.rokokol.syncthing.archive.enable) peers);
+          }
+        ) (lib.filterAttrs (_: host: host.rokokol.pi.enable) peers)
+      );
 
   # Every unit carries them, as restic-server.nix explains for its own
   mountGuard = {
@@ -225,10 +244,19 @@ in
           overrideDevices = false;
           overrideFolders = false;
 
-          settings.folders = lib.mapAttrs (_: folder: {
-            inherit (folder) id path devices;
-            type = "sendreceive";
-          }) folders;
+          settings.folders =
+            lib.mapAttrs (_: folder: {
+              inherit (folder) id path devices;
+              type = "sendreceive";
+            }) (lib.filterAttrs (_: folder: lib.elem config.networking.hostName folder.devices) folders)
+            // {
+              claude-shared = {
+                id = "claude-shared";
+                path = "${homeDir}/.local/share/claude-shared";
+                paused = true;
+                devices = [ ];
+              };
+            };
         };
       })
 

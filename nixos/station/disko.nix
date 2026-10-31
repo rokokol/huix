@@ -83,6 +83,7 @@
               ++ config.rokokol.restic-server.subvolumes
               ++ config.rokokol.radicale.subvolumes
               ++ config.rokokol.mya-agent.hermes.backup.subvolumes
+              ++ config.rokokol.hindsight.backup.subvolumes
             ) (_: { });
             mountOptions = [
               "nofail"
