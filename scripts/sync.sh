@@ -307,23 +307,23 @@ PROJECTS=yes
 TAKE=yes
 while :; do
   case "${1:-}" in
-  -h | --help)
-    usage
-    exit 0
-    ;;
-  --pull-only)
-    MODE=pull
-    shift
-    ;;
-  --no-projects)
-    PROJECTS=no
-    shift
-    ;;
-  --no-take)
-    TAKE=no
-    shift
-    ;;
-  *) break ;;
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    --pull-only)
+      MODE=pull
+      shift
+      ;;
+    --no-projects)
+      PROJECTS=no
+      shift
+      ;;
+    --no-take)
+      TAKE=no
+      shift
+      ;;
+    *) break ;;
   esac
 done
 MESSAGE="$*"

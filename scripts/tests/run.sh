@@ -759,7 +759,10 @@ is "an unknown subcommand is a usage error" 2 "$?"
 WAKE_PC_MAC_FILE='' bash "$wake" send >/dev/null 2>&1
 is "without the host's settings it is a usage error" 2 "$?"
 
-is "help answers without the host's settings" 0 "$(env -u WAKE_PC_BROADCAST bash "$wake" help >/dev/null 2>&1; echo $?)"
+is "help answers without the host's settings" 0 "$(
+  env -u WAKE_PC_BROADCAST bash "$wake" help >/dev/null 2>&1
+  echo $?
+)"
 
 # Waking waits on the tailnet. tailscale answers a ping from the STUB_PC_UP_AT-th call on, and
 # never when that is 0; sleep only records the wait it was asked for
