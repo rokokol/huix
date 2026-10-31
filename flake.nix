@@ -125,6 +125,13 @@
       inputs.home-manager.follows = "home-manager";
     };
 
+    # The upstream repository carries no flake, only the plugin and its generated client.
+    # The lock pins the commit; this URL only names where updates come from
+    hindsight = {
+      url = "github:vectorize-io/hindsight";
+      flake = false;
+    };
+
     rofi-wooordhunt = {
       url = "github:rokokol/rofi-wooordhunt";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -345,6 +352,7 @@
       huixDir = "/home/${rokokolName}/huix";
       # Same on every host on purpose: absolute paths into the vault travel through Syncthing
       myWikiDir = "/home/${rokokolName}/myWiki";
+      piSharedDir = "/home/${rokokolName}/.local/share/pi-shared";
       # Read by two modules that never meet: the XDG bookmark p opens the first segment, and the
       # sync unit's sweep walks every segment, joined by colons into PROJECTS_DIR
       projectsDirs = [ "/home/${rokokolName}/Projects" ];
@@ -370,6 +378,7 @@
           inputs
           myWikiDir
           palette
+          piSharedDir
           projectsDirs
           rokokolEmail
           rokokolName

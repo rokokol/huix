@@ -86,7 +86,7 @@ in
         skillGroups.power = "remote";
         skills.power = builtins.path {
           name = "power-plugin";
-          path = "${inputs.self}/nixos/services/ai/mya-agent/skills/power";
+          path = "${inputs.self}/nixos/services/ai/hermes/skills/power";
         };
       };
     })

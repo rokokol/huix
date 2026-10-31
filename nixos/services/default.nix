@@ -2,7 +2,9 @@
 
 {
   imports = [
-    ./ai/mya-agent
+    ./ai/hermes
+    ./ai/hindsight
+    ./ai/pi
     ./ai/ollama.nix
     ./desktop/amnezia-vpn.nix
     ./desktop/file-manager.nix
@@ -36,7 +38,6 @@
     ./tools/forgejo.nix
     ./tools/mail-agent.nix
     ./tools/paper-search.nix
-    ./tools/pi.nix
     ./tools/radicale.nix
     ./tools/searxng.nix
     ./tools/syncthing.nix

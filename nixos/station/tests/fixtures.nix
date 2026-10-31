@@ -41,6 +41,9 @@ pkgs.runCommand "station-boot-test-fixtures"
       printf 'grafana-secret-key: %s\n' 0123456789abcdef0123456789abcdef
       printf 'telegram-bot-token: %s\n' 123456789:test-token
       printf 'openrouter-api-key: test\n'
+      printf 'opencode-go-mya-key: test\n'
+      printf 'searxng-secret-key: test\n'
+      printf 'api-token: synthetic-hindsight-token\n'
       printf 'hermes-webhook-secret: test-webhook-secret\n'
       printf 'hermes-dashboard-password: test-dashboard-password\n'
       printf 'hermes-dashboard-secret: test-dashboard-secret-long-enough-0123456789\n'

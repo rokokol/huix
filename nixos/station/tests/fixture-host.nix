@@ -8,6 +8,8 @@
   systemd.network.networks."10-lan".matchConfig.PermanentMACAddress = lib.mkForce stationMac;
 
   sops.defaultSopsFile = lib.mkForce "${fixtures}/station.yaml";
+  sops.secrets.hindsight-api-token.sopsFile = lib.mkForce "${fixtures}/station.yaml";
+  sops.secrets.hindsight-client-token.sopsFile = lib.mkForce "${fixtures}/station.yaml";
   sops.secrets.mail-agent.sopsFile = lib.mkForce "${fixtures}/mail-agent.yaml";
   sops.secrets.telegram-api-id.sopsFile = lib.mkForce "${fixtures}/telegram-agent.yaml";
   sops.secrets.telegram-api-hash.sopsFile = lib.mkForce "${fixtures}/telegram-agent.yaml";

@@ -8,7 +8,7 @@ Rules for this file: one entry per workaround, and every entry must carry a **me
 
 ## Upstream Nix recipes use deprecated nixpkgs attributes
 
-**Where:** `overlays/matlab.nix` and the package override in `nixos/services/ai/mya-agent/hermes.nix`
+**Where:** `overlays/matlab.nix` and the package override in `nixos/services/ai/hermes/hermes.nix`
 
 **Symptom it prevents:** evaluation emits Xorg package-set deprecation warnings for MATLAB and a `stdenv.isLinux` warning for Hermes
 
@@ -29,7 +29,7 @@ Each command that succeeds without its deprecation warning permits removal of th
 
 ## Hermes Node needs RPATH before the ELF interpreter
 
-**Where:** `nixos/services/ai/mya-agent/hermes.nix`, in the Linux override of the upstream Node package
+**Where:** `nixos/services/ai/hermes/hermes.nix`, in the Linux override of the upstream Node package
 
 **Symptom it prevents:** Node exits with SIGSEGV before it can print its version. The TUI build fails at `npm config set offline true`
 
@@ -51,7 +51,7 @@ SIGSEGV -> keep the override. A different failure -> investigate it. Success -> 
 
 ## Hermes bundled skills keep the Nix store's dates and modes
 
-**Where:** `backupPrepareCommand` in `nixos/services/ai/mya-agent/backup.nix`, the restore steps in `nixos/services/ai/mya-agent/README.md`, and the restore subtest of `nixos/station/tests/boot.nix`
+**Where:** `backupPrepareCommand` in `nixos/services/ai/hermes/backup.nix`, the restore steps in `nixos/services/ai/hermes/README.md`, and the restore subtest of `nixos/station/tests/boot.nix`
 
 **Symptom it prevents:** `hermes backup` reports "ZIP does not support timestamps before 1980" for every bundled skill and exits 1, so the nightly restic backup fails. `hermes import` over a started state reports "Permission denied" for the same files and exits 1
 
@@ -62,6 +62,28 @@ SIGSEGV -> keep the override. A different failure -> investigate it. Success -> 
 **Removal check:** in a Hermes state whose bundled skills came from the store, run `hermes backup --output OUT --keep 0` without the date step, and `hermes import --force OUT` over a started state without the `chmod`. Both exit 0 -> remove both steps
 
 **Upstream:** the copy that keeps the store's metadata is [NousResearch/hermes-agent#101226](https://github.com/NousResearch/hermes-agent/issues/101226), with fixes in [#110270](https://github.com/NousResearch/hermes-agent/pull/110270) and [#101300](https://github.com/NousResearch/hermes-agent/pull/101300). The backup that refuses a pre-1980 date on any file is fixed in [#136372](https://github.com/NousResearch/hermes-agent/pull/136372)
+
+---
+
+## Hindsight uses a compatible MCP Python SDK
+
+**Where:** `overlays/hindsight.nix`, used by the shared Hindsight package
+
+**Symptom it prevents:** building the stock Hindsight package fails because `fastmcp-slim` is marked broken with MCP SDK 2
+
+**Why it happens:** nixpkgs selects MCP SDK 2 by default, while its FastMCP recipe requires the older SDK API
+
+**Why this works:** a private Python scope selects nixpkgs' `mcp_1` for Hindsight and its dependencies. It changes no Hindsight source and leaves other Python consumers unchanged. The resulting package builds and passes local API startup and authenticated MCP initialization
+
+**Removal check:** build the unmodified package from the locked input
+
+```sh
+nix build --impure --no-link --expr 'let f = builtins.getFlake (toString ./.); in f.inputs.nixpkgs.legacyPackages.x86_64-linux.hindsight-api-slim'
+```
+
+Broken FastMCP -> keep the scope. Another error -> investigate it. A clean build followed by API startup and authenticated MCP initialization -> remove the override
+
+**Upstream:** the incompatibility is declared by nixpkgs' FastMCP recipe; no separate issue filed
 
 ---
 
@@ -462,3 +484,31 @@ grep epcgResourceData "$(nix build --no-link --print-out-paths --inputs-from . n
 The value is an absolute path -> keep the override. The value is `"Epson_201310w.1.data"` -> use `pkgs.epson_201310w` directly. The `--replace-fail` of the override then also breaks the build
 
 **Upstream:** [NixOS/nixpkgs#568735](https://github.com/NixOS/nixpkgs/pull/568735) (open)
+
+## nginx is built without libxcrypt, so bcrypt htpasswd logins 500
+
+**Where:** `nixos/services/system/tailnet-web.nix`
+
+**Symptom it prevents:** any nginx `auth_basic` site whose htpasswd uses bcrypt (the restic-server htpasswd shared by the pushgateway) answers a correct password with HTTP 500 instead of 200, because nginx hands bcrypt hashes to libc `crypt()` and nixpkgs' nginx is built without libxcrypt
+
+**Why it happens:** upstream nixpkgs#579793 — nginx's `buildInputs` omits `libxcrypt`, so `ngx_libc_crypt` returns `NGX_ERROR`, which `auth_basic` turns into 500
+
+**Why this works:** `pkgs.nginx.overrideAttrs` adds `pkgs.libxcrypt` to `buildInputs`, restoring `crypt_r()` for bcrypt
+
+**Regression:** NixOS/nixpkgs#577746 (commit `6fc36d97`, merged 2026-10-25) made `perl` conditional, dropping the transitive `libxcrypt` that nginx relied on for `crypt_r()`. Fixed upstream by NixOS/nixpkgs#580128 (commit `218990a1`, merged 2026-10-29) which explicitly adds `libxcrypt` to `buildInputs`
+
+**Removal check:** `nix eval --json .#nixosConfigurations.nixos-station.pkgs.nginx.buildInputs | grep -q libxcrypt` — if stock nginx already contains `libxcrypt`, remove the override
+
+## Hermes' Hindsight memory provider is not in nixpkgs
+
+**Where:** `flake.nix` (the `hindsight` input), `nixos/services/ai/hermes/hindsight-plugin.nix`, `nixos/services/ai/hermes/hermes.nix`
+
+**Symptom it prevents:** Hermes cannot use its native Hindsight memory provider. Upstream ships the provider as a catalog plugin (`hermes plugins install hindsight`) that Hermes installs into `$HERMES_HOME/plugins` and whose Python client it resolves at runtime; nixpkgs packages only the `hindsight-api-slim` server
+
+**Why it happens:** the provider and its generated `hindsight-client` live in the Vectorize monorepo, and neither is a nixpkgs package. Installing them through Hermes' own plugin manager would write into the immutable Home Manager generation and depend on an impure network fetch at runtime
+
+**Why this works:** the pinned upstream checkout is a non-flake input, so `flake.lock` owns the commit; `hindsight-plugin.nix` builds the provider as a `hermes_agent.memory_providers` entry-point package and the client from that one checkout, and the Hermes module hands them to `extraPythonPackages`
+
+**Removal check:** `nix eval --json .#nixosConfigurations.nixos-station.pkgs --apply 'p: (p ? hermes-plugin-hindsight) && (p.python3Packages ? hindsight-client)' | grep -qx true` — if both are packaged in nixpkgs, drop the input, the package file, and the `extraPythonPackages` entries
+
+**Upstream:** [vectorize-io/hindsight#6245](https://github.com/vectorize-io/hindsight/issues/6245) (packaging request, open)

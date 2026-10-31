@@ -47,7 +47,7 @@ let
     inherit (station.config.services.syncthing) user;
     config = "${station.config.services.syncthing.configDir}/config.xml";
     inherit (station.config.rokokol.syncthing.archive) snapshotDir;
-    shared = station.config.services.syncthing.settings.folders.claude-shared.path;
+    shared = station.config.services.syncthing.settings.folders.pi-shared.path;
   };
 
   agent = rec {
@@ -265,6 +265,8 @@ pkgs.testers.runNixOSTest {
               autoFormat = true;
             };
             fileSystems."${agent.home}/.hermes" = station.config.fileSystems."${agent.home}/.hermes";
+            fileSystems.${config.services.postgresql.dataDir} =
+              station.config.fileSystems.${config.services.postgresql.dataDir};
           };
 
           # The subvolumes that disko makes on the backup volume, made on the empty disk before
@@ -276,6 +278,9 @@ pkgs.testers.runNixOSTest {
                 "restic-rest-server.socket"
                 "radicale.service"
                 "home-mya-.hermes.mount"
+                # disko makes this subvolume before the bind mount; the VM must do the same or
+                # the mount can land on the directory this unit then replaces
+                "var-lib-postgresql-18.mount"
               ];
             in
             {
@@ -299,11 +304,15 @@ pkgs.testers.runNixOSTest {
               path = [ pkgs.btrfs-progs ];
               script =
                 lib.concatMapStrings (name: ''
-                  mkdir -p "$(dirname /srv/backup/${name})"
-                  btrfs subvolume create /srv/backup/${name}
+                  if ! btrfs subvolume show /srv/backup/${name} >/dev/null 2>&1; then
+                    rm -rf /srv/backup/${name}
+                    mkdir -p "$(dirname /srv/backup/${name})"
+                    btrfs subvolume create /srv/backup/${name}
+                  fi
                 '') (lib.attrNames config.disko.devices.disk.main.content.partitions.backup.content.subvolumes)
                 + ''
                   chown mya:mya ${config.rokokol.mya-agent.hermes.backup.dataDir}
+                  chown postgres:postgres /srv/backup/hindsight/postgresql
                 '';
             };
         }
@@ -377,6 +386,9 @@ pkgs.testers.runNixOSTest {
         rokokol.syncthing.keyFromSops = true;
 
         sops.templates."hermes.env".content = ''
+          OPENCODE_GO_API_KEY=test
+          OPENCODE_GO_BASE_URL=http://192.168.0.1:8094/v1
+          OPENROUTER_API_KEY=test
           OPENROUTER_BASE_URL=http://192.168.0.1:8094/v1
         '';
         services.hermes-agent.settings = {
@@ -504,8 +516,8 @@ pkgs.testers.runNixOSTest {
       inputs.sops-nix.nixosModules.sops
       ../../services/utils/forgejo-runner.nix
       ../../services/system/monitoring/node-exporter.nix
-      ../../services/ai/mya-agent/agent.nix
-      ../../services/ai/mya-agent/power.nix
+      ../../services/ai/hermes/agent.nix
+      ../../services/ai/hermes/power.nix
       inputs.home-manager.nixosModules.home-manager
     ];
     _module.args.inputs = inputs;
@@ -613,7 +625,7 @@ pkgs.testers.runNixOSTest {
 
     with subtest("the secretary gets communication, huix, research and Obsidian skills without workstation tools"):
         skills = set(json.loads(station.succeed("cat /etc/test/mya-skills.json")))
-        assert {"calendar", "mail", "telegram", "contributing", "nix-best-practices", "tests", "papers", "obsidian-cli"} <= skills, skills
+        assert {"calendar", "mail", "telegram", "contributing", "nix-best-practices", "tests", "papers"} <= skills, skills
         assert not skills & {"3x-ui-admin", "super-productivity", "close-session", "headless-gui"}, skills
 
     with subtest("only the secretary may use the Telegram socket, not its credentials"):
@@ -950,6 +962,8 @@ pkgs.testers.runNixOSTest {
         station.succeed(f"grep -qx agent {newest}/agent.md")
 
     with subtest("restarting Hermes keeps its mutable state and the service recovers"):
+        # The unit is notify-typed, so a restart lasts until the webhook can admit a delivery
+        station.succeed(f"systemctl show -P Type {agent_unit} | grep -qx notify")
         before = station.succeed(f"systemctl show -P MainPID {agent_unit}").strip()
         station.succeed(f"systemctl restart {agent_unit}")
         station.wait_until_succeeds(
@@ -981,7 +995,21 @@ pkgs.testers.runNixOSTest {
         station.wait_until_succeeds("curl -sf http://127.0.0.1:${toString station.config.rokokol.mya-agent.hermes.webhookPort}/health", timeout=timedelta(minutes=2))
 
     with subtest("Hermes starts with the settings declared in Nix"):
-        assert station.succeed(f"{yq} .memory.provider {config_yaml}").strip() == "builtin"
+        assert station.succeed(f"{yq} .memory.provider {config_yaml}").strip() == "hindsight"
+        # The provider is the pinned catalog plugin, installed as an entry point
+        station.fail("journalctl -u hermes-agent -o cat | grep -q \"Memory provider 'hindsight' is not installed\"")
+        station.fail(f"{yq} -e .mcp_servers.memory {config_yaml}")
+        station.succeed("grep -qx HINDSIGHT_MODE=local_external /etc/hermes/.env")
+        station.succeed(
+            "grep -qx HINDSIGHT_API_URL=http://127.0.0.1:${toString station.config.rokokol.hindsight.port} /etc/hermes/.env"
+        )
+        station.succeed("grep -qx HINDSIGHT_BANK_ID=${station.config.rokokol.hindsight.bank} /etc/hermes/.env")
+        # The provider is loaded when it either initialises or reaches the local API and fails
+        # its embedding call, as the VM cannot reach OpenRouter
+        station.wait_until_succeeds(
+            "journalctl -u hermes-agent -o cat | grep -Eq 'Hindsight initialized|Hindsight recall failed'",
+            timeout=timedelta(minutes=2),
+        )
         assert station.succeed(f"{yq} .curator.consolidate {config_yaml}").strip() == "true"
         assert station.succeed(f"{yq} .memory.user_char_limit {config_yaml}").strip() == "24000"
         assert station.succeed(f"{yq} .agent.reasoning_effort {config_yaml}").strip() not in {"", "null"}

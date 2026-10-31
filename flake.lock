@@ -495,6 +495,22 @@
         "type": "github"
       }
     },
+    "hindsight": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1793403641,
+        "narHash": "sha256-n0Lw139EWCaa2G9pcRj4hrOxKEqC/TA3pDcE0G+L8CM=",
+        "owner": "vectorize-io",
+        "repo": "hindsight",
+        "rev": "bc5ea195a0fed1346ff171a5780bbb72a38c89c8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "vectorize-io",
+        "repo": "hindsight",
+        "type": "github"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -1440,6 +1456,7 @@
         "freesmlauncher": "freesmlauncher",
         "gruvbox-gtk-theme": "gruvbox-gtk-theme",
         "hermes-agent": "hermes-agent",
+        "hindsight": "hindsight",
         "home-manager": "home-manager",
         "hyprgrass": "hyprgrass",
         "hyprland": "hyprland",

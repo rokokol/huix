@@ -11,6 +11,10 @@ let
   agent = config.rokokol.mya-agent;
   cfg = agent.hermes;
   home = config.home-manager.users.${agent.user};
+  # Hermes reports READY once its adapters are connected, then feeds WATCHDOG=1 at half this
+  # interval. Thirty seconds is our choice, not an upstream default (Hermes ships 0, meaning
+  # off): a 15s heartbeat rides out a normal burst, while a stuck event loop is restarted
+  watchdogSeconds = 30;
   # Replace the upstream all group without a second package recipe
   package = inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.default.override {
     # See WORKAROUNDS.md: upstream Nix recipes use deprecated nixpkgs attributes
@@ -52,48 +56,52 @@ let
       };
   };
   skills = pkgs.linkFarm "hermes-external-skills" home.rokokol.agents.skills;
+  # Hindsight is a catalog plugin with its own generated client; both come from one pinned checkout
+  hindsight = pkgs.callPackage ./hindsight-plugin.nix {
+    inherit (package) python;
+    source = inputs.hindsight;
+  };
   hmMcp = inputs.home-manager.lib.hm.mcp;
-  mcpServers = lib.mapAttrs (
-    name: server:
-    hmMcp.transformMcpServer {
-      inherit server;
-      exclude = [ "type" ];
-      extraTransforms = [ (hmMcp.wrapEnvFilesCommand { inherit pkgs name; }) ];
-    }
-  ) (lib.filterAttrs (_: server: server.enabled or null != false) home.programs.mcp.servers);
+  mcpServers =
+    lib.mapAttrs (
+      name: server:
+      hmMcp.transformMcpServer {
+        inherit server;
+        exclude = [ "type" ];
+        extraTransforms = [ (hmMcp.wrapEnvFilesCommand { inherit pkgs name; }) ];
+      }
+    ) (lib.filterAttrs (_: server: server.enabled or null != false) home.programs.mcp.servers)
+    // lib.optionalAttrs (config.rokokol.searxng.enable or false) {
+      searxng = {
+        command = "${pkgs.mcp-searxng}/bin/mcp-searxng";
+        env = {
+          SEARXNG_URL = "http://127.0.0.1:${toString config.rokokol.searxng.port}";
+        };
+      };
+    };
   mcpPackages = lib.mapAttrs (
     name: server:
     pkgs.writeShellScriptBin "hermes-mcp-${name}" ''
       exec ${lib.escapeShellArgs ([ (toString server.command) ] ++ (server.args or [ ]))} "$@"
     ''
   ) (lib.filterAttrs (_: server: server ? command) mcpServers);
-  model = "deepseek/deepseek-v4.1-flash-1017";
-  providers = [
-    "deepinfra/fp8"
-    "inference-net/fp8"
-  ];
-  routing = {
-    order = providers;
-    only = providers;
-    data_collection = "deny";
-    require_parameters = true;
-    # Only the auxiliary calls send it: Hermes builds the main agent's routing from a fixed list
-    # of keys without zdr, so the main model's requests go without zero data retention
-    zdr = true;
-  };
-  # Auxiliary calls use a low-cost fp4 endpoint first, with an fp8 endpoint behind it
+  # The Go subscription serves the model under its bare id; OpenRouter keeps the dated snapshot
+  # as the fallback route
+  model = "deepseek-v4.1-flash";
+  fallbackModel = "deepseek/deepseek-v4.1-flash-1017";
+  aiModels = import ../../../../lib/ai-models.nix;
+  routes = aiModels.chat;
+  providers = routes.${fallbackModel};
   glm = "z-ai/glm-5.3-flash";
-  glmProviders = [
-    "open-inference/fp4"
-    "gmicloud/fp8"
-  ];
   auxiliary = {
-    provider = "openrouter";
-    model = glm;
-    extra_body.provider = routing // {
-      order = glmProviders;
-      only = glmProviders;
-    };
+    provider = "opencode-go";
+    model = "glm-5.3-flash";
+    fallback_chain = [
+      {
+        provider = "openrouter";
+        model = glm;
+      }
+    ];
   };
   guests = lib.filterAttrs (
     _: host: host.config.rokokol.mya-agent.guest.enable
@@ -115,7 +123,7 @@ let
     '';
   };
   # Hermes ships no OpenRouter STT, so the endpoint rides a command provider over this script
-  sttModel = "microsoft/mai-transcribe-2";
+  sttModel = aiModels.stt.model;
   sttScript = builtins.path {
     name = "or-transcribe.py";
     path = "${inputs.self}/scripts/or-transcribe.py";
@@ -208,6 +216,7 @@ in
 
     sops.secrets = lib.genAttrs [
       "openrouter-api-key"
+      "opencode-go-mya-key"
       "telegram-bot-token"
       "telegram-owner-chat-id"
       "hermes-webhook-secret"
@@ -222,6 +231,7 @@ in
         "hermes-backend.service"
       ];
       content = ''
+        OPENCODE_GO_API_KEY=${secret "opencode-go-mya-key"}
         OPENROUTER_API_KEY=${secret "openrouter-api-key"}
         TELEGRAM_BOT_TOKEN=${secret "telegram-bot-token"}
         TELEGRAM_ALLOWED_USERS=${secret "telegram-owner-chat-id"}
@@ -231,6 +241,13 @@ in
         HERMES_DASHBOARD_BASIC_AUTH_SECRET=${secret "hermes-dashboard-secret"}
         HERMES_MANAGED=false
         HERMES_DASHBOARD_BASIC_AUTH_USERNAME=rokokol
+      ''
+      + lib.optionalString (config.rokokol.hindsight.enable or false) ''
+        HINDSIGHT_MODE=local_external
+        HINDSIGHT_API_URL=http://127.0.0.1:${toString config.rokokol.hindsight.port}
+        HINDSIGHT_API_KEY=${secret "hindsight-api-token"}
+        HINDSIGHT_BANK_ID=${config.rokokol.hindsight.bank}
+        HINDSIGHT_RECALL_SYNC=true
       ''
       + lib.optionalString (cfg.homeTopic != null) ''
         TELEGRAM_HOME_CHANNEL_THREAD_ID=${toString cfg.homeTopic}
@@ -264,13 +281,22 @@ in
         "messaging"
         "otlp"
       ];
+      extraPythonPackages = [
+        hindsight.aiohttpRetry
+        hindsight.client
+        hindsight.provider
+      ];
       hermesHomeFiles.".managed" = "false";
       backend = {
-        mode = "dashboard";
+        mode = "serve";
         host = "127.0.0.1";
         port = cfg.dashboardPort + 1;
       };
       settings = {
+        # Type=notify below waits for Hermes to report READY, which happens only after every
+        # adapter has connected and the webhook can admit a delivery. Without it systemd calls
+        # the unit started while /health already answers but the gateway still refuses pushes
+        gateway.systemd_watchdog_seconds = watchdogSeconds;
         mcp_servers = lib.mapAttrs (
           name: server:
           server
@@ -280,7 +306,9 @@ in
           }
         ) mcpServers;
         memory = {
-          provider = "builtin";
+          # The catalog plugin below speaks the Hindsight HTTP API directly; its tools are
+          # hindsight_recall, hindsight_retain and hindsight_reflect rather than the MCP set
+          provider = "hindsight";
           user_char_limit = 24000;
           memory_char_limit = 16000;
           nudge_interval = 10;
@@ -293,17 +321,20 @@ in
         agent.image_input_mode = "native";
         cron.wrap_response = false;
         model = {
-          provider = "openrouter";
+          provider = "opencode-go";
           default = model;
         };
-        fallback_providers = [ ];
-        # Only requests to OpenRouter carry it, and an entry under models replaces the flat
-        # endpoints for that model alone
-        provider_routing = routing // {
-          models.${glm} = {
-            order = glmProviders;
-            only = glmProviders;
-          };
+        fallback_providers = [
+          {
+            provider = "openrouter";
+            model = fallbackModel;
+          }
+        ];
+        provider_routing = {
+          order = providers;
+          only = providers;
+          data_collection = "deny";
+          require_parameters = true;
         };
         # A planned stop lets a running turn finish this long before interrupting it, which
         # pauses its session until /discard; it stays under systemd's default stop timeout of 90
@@ -464,6 +495,11 @@ in
       unitConfig.RequiresMountsFor = lib.attrValues agent.directories;
       serviceConfig = sandbox // {
         EnvironmentFile = config.sops.templates."hermes.env".path;
+        # READY=1 comes after the adapters connect, so a restart is not called finished while the
+        # webhook still answers 503; the watchdog then proves the event loop keeps running
+        Type = "notify";
+        NotifyAccess = "main";
+        WatchdogSec = "${toString watchdogSeconds}s";
         # Hermes takes SIGINT for a planned stop; on SIGTERM it exits 1 so that a supervisor
         # revives it, and every stop or deploy would then fail the unit and mail an alert
         KillSignal = "SIGINT";
