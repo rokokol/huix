@@ -19,3 +19,13 @@ python3 -c "import json;print([k for k in json.load(open('flake.lock'))['nodes']
 ```
 
 Anything but `['ddlc-palette']` means a parent is missing its `follows`
+
+## Hindsight recall stays on RRF because the account enforces ZDR
+
+**Where:** `lib/ai-models.nix` (`reranker.provider = "rrf"`) and `nixos/services/ai/hindsight/service.nix`
+
+**Why it differs from the obvious route:** the obvious route is a hosted cross-encoder. The OpenRouter account's ZDR guardrail excludes every external rerank endpoint — a live request returns `404 zdr-violation-by-guardrail` for Voyage 2.5-lite, Voyage 3/3-lite, Cohere v3.5, Cohere 4 Pro and Cohere 4 Fast. Hindsight's OpenRouter reranker client sends only model, query and documents, so it cannot ask for a per-request exception with `provider.zdr`. A direct Voyage key with an account opt-out would leave the OpenRouter-only constraint; a local reranker needs its model and runtime packaged. RRF is the only path that keeps the shared Hindsight bank, the account ZDR guardrail and an OpenRouter-only client
+
+**What returning to the obvious route breaks:** any external reranker with the guardrail on makes recall fail with a 404 instead of returning memories; removing the guardrail sends the query and every candidate memory to a provider that may retain them. The Voyage model, 100-candidate cap and 512-token candidate cap stay in `lib/ai-models.nix` as inactive values for a future ZDR-capable endpoint
+
+**Revisit when:** OpenRouter exposes a ZDR rerank endpoint, Hindsight learns to send `provider.zdr` on the rerank request and such an endpoint exists, or a local reranker is packaged; then restore `provider = "openrouter"` or the local provider and delete this entry
