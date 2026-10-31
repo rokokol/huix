@@ -138,6 +138,7 @@ instructions.symlink_to(shared / "AGENTS.md")
 subprocess.run(["bash", fixture["sharedActivation"]], check=True)
 shared_ignores = (shared / ".stignore-shared").read_text()
 assert "!/AGENTS.md\n" in shared_ignores
+assert "!/skill-state/**\n" in shared_ignores
 for name in ("settings.json", "models.json", "auth.json", "mcp-auth.json", "resources.json", "sessions"):
     assert f"!/{name}\n" not in shared_ignores
 ignore_file = target.parent / ".stignore"

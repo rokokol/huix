@@ -81,6 +81,16 @@ in
       description = "Skills every agent of this user loads, as directories with a SKILL.md, by name";
     };
 
+    skillState = lib.mkOption {
+      type = lib.types.str;
+      default = "${config.xdg.stateHome}/agent-skills";
+      defaultText = lib.literalExpression ''"''${config.xdg.stateHome}/agent-skills"'';
+      description = ''
+        Where the skills keep what they write: drafts, what was sent, and the notes a permission
+        rests on. A home whose directory is carried between hosts points it at that directory
+      '';
+    };
+
     skillGroups = lib.mkOption {
       type = lib.types.attrsOf (lib.types.enum groupNames);
       default = { };

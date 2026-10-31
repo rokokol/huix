@@ -8,8 +8,8 @@
 
 # The skills of the flake's skill-NAME inputs, each handed to the agents as NAME, for every home
 # that imports this module and runs an agent. A skill comes from the store and cannot be
-# written, so the notes and drafts a skill keeps go to the per-user agent state directory.
-# A token stays on its host: each app issues its own
+# written, so the notes and drafts a skill keeps go to `rokokol.agents.skillState`. A token stays
+# on its host: each app issues its own
 let
   cfg = config.rokokol.skills;
   prefix = "skill-";
@@ -19,7 +19,6 @@ let
   skills = removeAttrs (
     if cfg.include == null then available else lib.getAttrs cfg.include available
   ) cfg.exclude;
-  stateDir = "${config.xdg.stateHome}/agent-skills";
 in
 {
   options.rokokol.skills = {
@@ -57,10 +56,10 @@ in
 
         home.sessionVariables =
           lib.optionalAttrs (skills ? contributing) {
-            CONTRIB_HOME = "${stateDir}/contributing";
+            CONTRIB_HOME = "${config.rokokol.agents.skillState}/contributing";
           }
           // lib.optionalAttrs (skills ? super-productivity) {
-            SP_HOME = "${stateDir}/super-productivity";
+            SP_HOME = "${config.rokokol.agents.skillState}/super-productivity";
             SP_TOKEN_FILE = "${config.xdg.configHome}/super-productivity-skill/secrets/token";
           };
       };

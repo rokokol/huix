@@ -17,12 +17,17 @@ let
     !/prompts/**
     !/preferences
     !/preferences/**
+    !/skill-state
+    !/skill-state/**
     **
   '';
 in
 {
   config = lib.mkIf config.rokokol.pi.enable {
     programs.pi-coding-agent.settings.packages = [ piSharedDir ];
+    # The skill state rides the same folder, so the owner's drafts and standing permissions
+    # follow the owner from host to host; an agent's own home keeps its state to itself
+    rokokol.agents.skillState = "${piSharedDir}/skill-state";
     home.file = {
       ${instructions}.source = config.lib.file.mkOutOfStoreSymlink sharedInstructions;
       "${piSharedDir}/package.json".source = (pkgs.formats.json { }).generate "pi-shared-package.json" {
@@ -36,7 +41,7 @@ in
     home.activation.piSharedState = lib.hm.dag.entryBetween [ "linkGeneration" ] [ "writeBoundary" ] ''
       ${pkgs.coreutils}/bin/install -d -m 0700 ${lib.escapeShellArg piSharedDir} \
         ${lib.escapeShellArg "${piSharedDir}/agents"} ${lib.escapeShellArg "${piSharedDir}/prompts"} \
-        ${lib.escapeShellArg "${piSharedDir}/preferences"}
+        ${lib.escapeShellArg "${piSharedDir}/preferences"} ${lib.escapeShellArg "${piSharedDir}/skill-state"}
       original=${lib.escapeShellArg instructions}
       shared=${lib.escapeShellArg sharedInstructions}
       if [ -f "$original" ]; then
