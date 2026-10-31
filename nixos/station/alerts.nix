@@ -38,6 +38,7 @@ in
     "btrfs-scrub@"
     "hermes-agent"
     "hindsight"
+    "hindsight-storage"
     "postgresql"
     "postgresqlBackup-hindsight"
     "forgejo"

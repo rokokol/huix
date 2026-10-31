@@ -220,7 +220,9 @@ in
 
         # OnFailure=alert-mail@%n.service in a unit opens its problem, which is sent once. A failure
         # while the problem is open only updates it, and alert-reconcile closes it once the unit
-        # recovers. While an alert waits for the relay, a new failure of the same unit joins it
+        # recovers. A unit left inactive by a failed dependency has Result=success but never ran,
+        # and alert-reconcile keeps its problem open. While an alert waits for the relay, a new
+        # failure of the same unit joins it
         systemd.services."alert-mail@" = {
           description = "Raise an alert that %i failed";
 

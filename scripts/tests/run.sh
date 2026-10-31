@@ -118,6 +118,7 @@ case "$*" in
   *is-active*) [ "${STUB_ACTIVE:-}" = 1 ] ;;
   "show -P ActiveState "*) printf '%s\n' "${STUB_ACTIVE_STATE:-inactive}" ;;
   "show -P Result "*) printf '%s\n' "${STUB_RESULT:-success}" ;;
+  "show -P ExecMainStartTimestamp "*) printf '%s\n' "${STUB_STARTED:-}" ;;
 esac
 EOF
 cat >"$work/bin/evtest" <<'EOF'
@@ -606,13 +607,22 @@ is "the journal keeps each change of a problem" \
   "OPEN unit:beat.service|UPDATE unit:beat.service|OPEN reboot|RESOLVED reboot|RESOLVED unit:beat.service" \
   "$(tr '\t\n' ' |' <<<"$journal" | sed 's/|$//')"
 
-# reconcile asks systemd about each open unit, through the systemctl stub
-for case in "failed exit-code open" "active success resolved" "inactive success resolved" "inactive exit-code open"; do
-  read -r state result verdict <<<"$case"
+# reconcile asks systemd about each open unit, through the systemctl stub. A dash means the
+# unit never started: a failed dependency leaves it inactive with Result=success, and that is
+# not a recovery
+for case in \
+  "failed exit-code - open" \
+  "active success - resolved" \
+  "inactive success - open" \
+  "inactive success started resolved" \
+  "inactive exit-code - open"; do
+  read -r state result started verdict <<<"$case"
+  [ "$started" = - ] && started=
   raise unit:x.service "x.service failed"
-  STUB_ACTIVE_STATE=$state STUB_RESULT=$result bash "$alert" reconcile >/dev/null 2>&1
+  STUB_ACTIVE_STATE=$state STUB_RESULT=$result STUB_STARTED=$started \
+    bash "$alert" reconcile >/dev/null 2>&1
   if [ -n "$(listed)" ]; then got=open; else got=resolved; fi
-  is "reconcile: a unit $state with result $result is $verdict" "$verdict" "$got"
+  is "reconcile: a unit $state with result $result and start '$started' is $verdict" "$verdict" "$got"
   bash "$alert" clear unit:x.service >/dev/null 2>&1
 done
 
