@@ -2,7 +2,8 @@
 
 # The station booted in a VM beside a router and the PC, on demand and not in the flake's
 # checks: `nix build .#station-boot-test -L`. The station runs its own module list. Only what a
-# VM cannot have is replaced: the disk layout, the card's MAC, smartd, and the secrets
+# VM cannot have is replaced: the disk layout, the card's MAC, smartd, the secrets, and the
+# Hindsight bank template, whose import reaches for the models a VM has none of
 let
   station = inputs.self.nixosConfigurations.nixos-station;
   inherit (pkgs) lib;
@@ -372,6 +373,11 @@ pkgs.testers.runNixOSTest {
         );
 
         rokokol.alert-mail.telegram.api = "http://192.168.0.1:${toString telegramPort}";
+
+        # An import embeds the template's mental models and refreshes them through OpenRouter, so
+        # in a VM it can only fail. What the template holds is the host's own syntax against a
+        # live API, which this test is the wrong place to prove
+        systemd.services.hindsight-bank-template.wantedBy = lib.mkForce [ ];
 
         # A unit that fails each time it runs and raises an alert as every watched unit does
         systemd.services.alert-probe = {
