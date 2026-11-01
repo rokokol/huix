@@ -58,6 +58,7 @@ in
         fullscreenCopyOnSelect = true;
         extensions = [
           "-builtin:mcp"
+          "${cfg.configDir}/extensions/diff-highlight.ts"
           "${cfg.configDir}/extensions/hoster.ts"
           "${cfg.configDir}/extensions/modules.ts"
           "${cfg.configDir}/extensions/quiet-tools.ts"
@@ -106,6 +107,7 @@ in
         busyDelivery = "human-first";
       };
       file."${cfg.configDir}/agents/explore.md".source = ./agents/explore.md;
+      file."${cfg.configDir}/extensions/diff-highlight.ts".source = ./diff-highlight.ts;
       file."${cfg.configDir}/extensions/hoster.ts".source = ./hoster.ts;
       file."${cfg.configDir}/extensions/modules.ts".source = ./modules.ts;
       file."${cfg.configDir}/extensions/quiet-tools.ts".source = ./quiet-tools.ts;
