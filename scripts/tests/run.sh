@@ -717,6 +717,15 @@ for case in \
   bash "$alert" clear unit:x.service >/dev/null 2>&1
 done
 
+# reset-failed erases Result, the timestamps and the exit code at once, so the problem has to
+# remember the failure it opened with: that record is what closes such a unit afterwards
+STUB_RESULT=exit-code raise unit:x.service "x.service failed"
+STUB_ACTIVE_STATE=inactive STUB_RESULT=success STUB_STARTED='' \
+  bash "$alert" reconcile >/dev/null 2>&1
+if [ -n "$(listed)" ]; then got=open; else got=resolved; fi
+is "reconcile: a unit whose own failure reset-failed wiped is resolved" resolved "$got"
+bash "$alert" clear unit:x.service >/dev/null 2>&1
+
 # The reboot is due when the booted kernel is not the current one
 mkdir -p "$work/booted" "$work/current-old" "$work/current-new"
 printf 'kernel-1\n' >"$work/k1"

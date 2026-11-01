@@ -27,8 +27,10 @@ the agent. A problem raised again while open only updates its body. KEY names on
 is a file name: letters, digits and . _ : @ - only. A KEY of the form unit:NAME is closed by
 reconcile once systemd reports NAME active, or inactive with the result success after it
 started. A unit that never started because a dependency failed is inactive with the result
-success as well, and stays open. The reboot problem is open while the kernel, initrd or modules
-of the current system differ from the booted one
+success as well, and stays open. A unit that did fail on its own is closed by the reconcile
+even after a reset-failed wiped the properties that said so, because the problem records that
+failure when it opens. The reboot problem is open while the kernel, initrd or modules of the
+current system differ from the booted one
 
 sync reads FILE, one cause a line: a CAUSE made of the same characters as a KEY, a tab, and
 its SUBJECT. Each cause is a problem under SOURCE:CAUSE, opened and sent once; each problem
@@ -178,6 +180,8 @@ telegram() {
 # open_key QUIET KEY SUBJECT BODY — sets $opened to 1 when the problem is new
 open_key() {
   local dir=$state/open/$2
+  local unit=${2#unit:}
+  local result=""
   opened=0
   if [ -d "$dir" ]; then
     journal UPDATE "$2" "$3"
@@ -187,6 +191,13 @@ open_key() {
     [ "$1" = 1 ] && : >"$dir/quiet"
     opened=1
     journal OPEN "$2" "$3"
+  fi
+  # A dependency failure leaves Result=success and no start, while a unit that failed on its own
+  # leaves anything else. reset-failed wipes Result, the timestamps and the exit code together,
+  # so this record is the only thing that outlives the wipe and still tells the two apart
+  [ "$unit" = "$2" ] || result=$(systemctl show -P Result "$unit" 2>/dev/null || true)
+  if [ -n "$result" ] && [ "$result" != success ]; then
+    : >"$dir/ran"
   fi
   printf '%s\n' "$3" >"$dir/subject"
   printf '%s\n' "$4" >"$dir/body"
@@ -298,10 +309,12 @@ cmd_reconcile() {
     active=$(systemctl show -P ActiveState "$unit" || true)
     result=$(systemctl show -P Result "$unit" || true)
     # A dependency failure leaves the unit inactive with Result=success although it never ran.
-    # ExecMainStartTimestamp separates that from a unit that started and ended cleanly
+    # ExecMainStartTimestamp separates that from a unit that started and ended cleanly, and the
+    # record open_key wrote stands for it once reset-failed has wiped the timestamp
     started=$(systemctl show -P ExecMainStartTimestamp "$unit" || true)
     if [ "$active" = active ] ||
-      { [ "$active" = inactive ] && [ "$result" = success ] && [ -n "$started" ]; }; then
+      { [ "$active" = inactive ] && [ "$result" = success ] &&
+        { [ -n "$started" ] || [ -e "$dir/ran" ]; }; }; then
       clear_key "$key"
     fi
   done
