@@ -43,6 +43,12 @@ in
       };
 
       settings = {
+        # Kitty's own shortcuts move off ctrl+shift, which the applications in it need:
+        # `ctrl+shift+b` was `move_window_backward` and never reached pi, and `ctrl+shift+t`
+        # opened a tab instead of reaching whatever wanted the key. The copy and paste
+        # bindings above are explicit, so they stay where they are
+        kitty_mod = "ctrl+alt";
+
         notify_on_cmd_finish = "unfocused 1.0";
 
         linux_display_server = "wayland";
