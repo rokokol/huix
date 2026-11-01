@@ -216,6 +216,11 @@ in
         after = [ "hindsight.service" ];
         partOf = [ "hindsight.service" ];
         script = ''
+          # An import needs the models, which a starting API does not have yet: after= orders the
+          # unit against the start job, not against the port, and a cold boot here took 98 seconds
+          ${lib.getExe pkgs.curl} --silent --show-error --fail --retry 300 --retry-delay 2 \
+            --retry-all-errors --retry-max-time 600 \
+            "http://127.0.0.1:${toString cfg.port}/health" >/dev/null
           ${lib.getExe pkgs.curl} --silent --show-error --fail-with-body \
             --retry 30 --retry-delay 2 --retry-connrefused \
             -H "Authorization: Bearer $(${pkgs.coreutils}/bin/cat ${config.sops.secrets.hindsight-api-token.path})" \
@@ -226,6 +231,9 @@ in
         serviceConfig = {
           Type = "oneshot";
           RemainAfterExit = true;
+          # The readiness wait above is bounded here, so a database that never comes up fails the
+          # unit instead of holding it forever
+          TimeoutStartSec = "15min";
         };
       };
       rokokol.tailnet-web.sites.hindsight = {
