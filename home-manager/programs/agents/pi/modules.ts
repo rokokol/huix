@@ -16,6 +16,14 @@ type Cache = { skills: Record<string, SkillEntry>; tools: Record<string, Record<
 export type ResourceNode = { id: string; name: string; kind: "module" | "skill" | "server" | "tool" | "separator";
   enabled: boolean; tokens: number; children: ResourceNode[]; skill?: SkillEntry; server?: string; tool?: string; mode?: McpExposure; file?: string };
 
+// A memory mode switch disables every tool its mode omits, so the synthesized working brief is read
+// in both: one keypress into the smaller mode must not cost the standing summary a recall answers
+const memoryTools: Record<"read" | "normal", string[]> = {
+  read: ["recall", "get_mental_model"],
+  normal: ["recall", "retain", "invalidate_memory", "get_mental_model"],
+};
+const memoryToolEnabled = (mode: string, tool: string | undefined) => memoryTools[mode === "read" ? "read" : "normal"].includes(tool ?? "");
+
 export const estimatedTokens = (text: string) => Math.ceil([...text].length / 4);
 const canonical = (path: string) => { try { return realpathSync(path); } catch { return path; } };
 const readJson = <T>(path: string, fallback?: T): T => {
@@ -249,7 +257,7 @@ export function resourceTree(nodes: ResourceNode[], done: (apply: boolean) => vo
         const read = helpers.matchesKey(data, "ctrl+r");
         node.enabled = true;
         for (const child of node.children) {
-          child.enabled = read ? child.tool === "recall" : ["recall", "retain", "invalidate_memory"].includes(child.tool ?? "");
+          child.enabled = memoryToolEnabled(read ? "read" : "normal", child.tool);
           if (child.enabled) child.mode = "direct";
         }
       }
@@ -483,7 +491,7 @@ export function setupModules(pi: ExtensionAPI, helpers?: UiHelpers, nativeMcp?: 
             if (!memory) throw new Error("Memory MCP is not configured");
             memory.enabled = true;
             for (const child of memory.children) {
-              child.enabled = words[1] === "read" ? child.tool === "recall" : ["recall", "retain", "invalidate_memory"].includes(child.tool ?? "");
+              child.enabled = memoryToolEnabled(words[1], child.tool);
               if (child.enabled) child.mode = "direct";
             }
           } else {

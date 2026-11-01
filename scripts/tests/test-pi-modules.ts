@@ -114,31 +114,33 @@ assert.equal(updatedFileConfig.mcpServers.external.enabled, false);
 assert.deepEqual(updatedFileConfig.mcpServers.external.headers, fileConfig.mcpServers.external.headers);
 assert.equal(updatedFileConfig.other, "preserved");
 assert.equal(reloads, 4, "File-defined MCP changes use one guarded reload");
+const memoryToolTokens = 100;
 const memoryNodes = [{ id: "server:memory", name: "memory", kind: "server", server: "memory", enabled: true, tokens: 10,
-  children: ["retain", "recall", "invalidate_memory", "reflect"].map(tool => ({
+  children: ["retain", "recall", "get_mental_model", "invalidate_memory", "reflect"].map(tool => ({
     id: `tool:memory/${tool}`, name: tool, kind: "tool", server: "memory", tool,
-    enabled: tool !== "reflect", mode: tool === "reflect" ? "hidden" : "direct", tokens: 100, children: [],
+    enabled: tool !== "reflect", mode: tool === "reflect" ? "hidden" : "direct", tokens: memoryToolTokens, children: [],
   })) }];
 const memoryUi = resources.resourceTree(memoryNodes, () => {}, {
   matchesKey: (key: string, expected: string) => key === expected,
   truncateToWidth: (text: string, width: number) => text.slice(0, width),
 });
 memoryUi.handleInput("ctrl+r");
-assert.deepEqual(memoryNodes[0].children.filter(tool => tool.enabled).map(tool => tool.tool), ["recall"]);
+assert.deepEqual(memoryNodes[0].children.filter(tool => tool.enabled).map(tool => tool.tool), ["recall", "get_mental_model"]);
 memoryUi.handleInput("ctrl+w");
-assert.deepEqual(memoryNodes[0].children.filter(tool => tool.enabled).map(tool => tool.tool), ["retain", "recall", "invalidate_memory"]);
+assert.deepEqual(memoryNodes[0].children.filter(tool => tool.enabled).map(tool => tool.tool), ["retain", "recall", "get_mental_model", "invalidate_memory"]);
 memoryUi.handleInput("right");
 memoryUi.handleInput("down");
 memoryUi.handleInput("ctrl+e");
 assert.equal(memoryNodes[0].children[0].mode, "deferred");
 assert.equal(resources.nodeTokens(memoryNodes[0].children[0]), 0, "Deferred schemas do not count as directly declared initial tools");
-assert.equal(resources.nodeSchemaTokens(memoryNodes[0]), 300, "Tool schema sizes survive a non-direct exposure");
+const declaredSchemas = memoryNodes[0].children.filter(tool => tool.enabled).length * memoryToolTokens;
+assert.equal(resources.nodeSchemaTokens(memoryNodes[0]), declaredSchemas, "Tool schema sizes survive a non-direct exposure");
 assert(memoryUi.render(100).some((line: string) => line.includes("retain") && line.includes("schema")),
   "A deferred tool shows its schema size instead of a bare zero");
 memoryNodes[0].enabled = false;
 assert.equal(resources.nodeSchemaTokens(memoryNodes[0]), 0, "A disabled MCP contributes no schema inventory");
 memoryNodes[0].enabled = true;
-assert.equal(resources.nodeSchemaTokens(memoryNodes[0]), 300, "Re-enabling the MCP restores its schema inventory");
+assert.equal(resources.nodeSchemaTokens(memoryNodes[0]), declaredSchemas, "Re-enabling the MCP restores its schema inventory");
 const mcpNodes = [{ id: "module:mcp", name: "mcp", kind: "module", enabled: true, tokens: 0, children: [
   { id: "server:audacity", name: "audacity", kind: "server", server: "audacity", enabled: true, tokens: 1, children: [
     { id: "tool:audacity/read", name: "read", kind: "tool", server: "audacity", tool: "read", enabled: true, mode: "direct", tokens: 10, children: [] },

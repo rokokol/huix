@@ -178,7 +178,7 @@ in
           HINDSIGHT_API_DB_POOL_MIN_SIZE = "1";
           HINDSIGHT_API_DB_POOL_MAX_SIZE = "5";
           HINDSIGHT_API_TENANT_EXTENSION = "hindsight_api.extensions.builtin.tenant:ApiKeyTenantExtension";
-          HINDSIGHT_API_MCP_ENABLED_TOOLS = "retain,sync_retain,recall,invalidate_memory,get_operation,list_operations,list_memories,get_memory,list_documents,get_document,delete_document,reflect";
+          HINDSIGHT_API_MCP_ENABLED_TOOLS = "retain,sync_retain,recall,get_mental_model,invalidate_memory,get_operation,list_operations,list_memories,get_memory,list_documents,get_document,delete_document,reflect";
           DO_NOT_TRACK = "1";
           HF_HUB_OFFLINE = "1";
         };

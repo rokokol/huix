@@ -27,10 +27,11 @@ def validate(f):
     assert f["dumpDir"] in f["backupPaths"]
     assert "postgresqlBackup-hindsight.service" in f["backupRequires"]
     tools = set(f["environment"]["HINDSIGHT_API_MCP_ENABLED_TOOLS"].split(","))
-    assert {"invalidate_memory", "retain", "recall", "list_memories", "reflect"} <= tools
+    assert {"invalidate_memory", "retain", "recall", "get_mental_model", "list_memories", "reflect"} <= tools
     assert not {"delete_bank", "clear_memories"} & tools
     assert "HINDSIGHT_API_LLM_API_KEY" not in f["environment"]
     assert "hindsight-client-token" in f["piMemory"]
+    assert 'get_mental_model: "direct"' in f["piMemory"]
     assert f["hermesMemoryProvider"] == "hindsight"
     assert "memory" not in f["hermesMcpServers"]
     assert any(name.startswith("python3.14-hindsight-client-") for name in f["hermesPythonPackages"])
