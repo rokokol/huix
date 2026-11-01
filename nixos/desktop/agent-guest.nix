@@ -30,4 +30,10 @@ in
         ] (share true);
     };
   };
+
+  # Documents, Downloads and Projects are made by xdg-user-dirs and Pocket has nothing that would
+  # make it, while the guest's mount needs it to exist; tmpfiles makes it before that mount starts
+  config.systemd.tmpfiles.rules = lib.mkIf config.rokokol.workstation.enable [
+    "d ${home}/Pocket 0755 ${rokokolName} ${config.users.users.${rokokolName}.group} -"
+  ];
 }
