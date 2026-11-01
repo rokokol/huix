@@ -214,11 +214,27 @@ const batchRoot = mkdtempSync(join(tmpdir(), "pi-resource-batch-"));
 const batchGroup = join(batchRoot, "creative");
 mkdirSync(join(batchGroup, "skills/fixture"), { recursive: true });
 writeFileSync(join(batchGroup, "skills/fixture/SKILL.md"), "---\nname: fixture\ndescription: Synthetic batch skill\n---\nFixture\n");
-writeFileSync(join(batchRoot, "modules.json"), JSON.stringify({ creative: { source: batchGroup } }));
+const archivalGroup = join(batchRoot, "archival");
+mkdirSync(join(archivalGroup, "skills/stale"), { recursive: true });
+writeFileSync(join(archivalGroup, "skills/stale/SKILL.md"), "---\nname: stale\ndescription: Synthetic archival skill\n---\nStale\n");
+writeFileSync(join(batchRoot, "modules.json"), JSON.stringify({ creative: { source: batchGroup }, archival: { source: archivalGroup } }));
 const batchSettings = join(batchRoot, "settings.json");
 const batchPackage = { source: batchGroup, skills: ["+skills/fixture/SKILL.md"], extensions: ["./mcp.ts"] };
 const helpers = { matchesKey: (key: string, expected: string) => key === expected,
   truncateToWidth: (text: string, width: number) => text.slice(0, width) };
+// Discovery only adds to the cache, so only a render can drop what no source names any more
+const cachedSkill = (name: string, extra: Record<string, unknown>) => ({ name, description: `Synthetic ${name}`,
+  path: `/fixture/skills/${name}/SKILL.md`, ...extra });
+writeFileSync(join(batchRoot, "resources-cache.json"), JSON.stringify({ tools: {}, skills: {
+  "ungrouped/dead-skill": cachedSkill("dead-skill", { packageSource: "/nix/store/dead-package", packageRoot: "/nix/store/dead-package" }),
+  "ungrouped/live-skill": cachedSkill("live-skill", { packageSource: batchGroup, packageRoot: batchGroup }),
+  "ungrouped/user-skill": cachedSkill("user-skill", {}),
+  "ungrouped/remembered-skill": cachedSkill("remembered-skill", { packageSource: "/nix/store/remembered-package", packageRoot: "/nix/store/remembered-package" }),
+  "ghost/dead-module": cachedSkill("dead-module", { module: "ghost", packageSource: "/nix/store/dead-package", packageRoot: "/nix/store/dead-package" }),
+  "archival/renamed-skill": cachedSkill("renamed-skill", { module: "archival", packageSource: "/nix/store/old-archival", packageRoot: "/nix/store/old-archival" }),
+} }));
+writeFileSync(join(batchRoot, "resources.json"), JSON.stringify({ servers: {},
+  disabledSkills: ["ungrouped/dead-skill", "ungrouped/live-skill"] }));
 let batchCommand!: RegisteredCommand;
 let batchReloads = 0;
 let confirms = 0;
@@ -237,7 +253,8 @@ resources.setupModules({ getCommands: () => [], getMcpServers: () => [], registe
   batchCommand = definition;
 } }, helpers);
 try {
-  writeFileSync(batchSettings, JSON.stringify({ packages: [], huixDisabledModules: { creative: batchPackage } }));
+  writeFileSync(batchSettings, JSON.stringify({ packages: [],
+    huixDisabledModules: { creative: batchPackage, remembered: "/nix/store/remembered-package" } }));
   await batchCommand.handler("", batchContext);
   let value = JSON.parse(readFileSync(batchSettings, "utf8"));
   assert.equal(batchReloads, 1, JSON.stringify(batchNotices));
@@ -251,6 +268,16 @@ try {
   assert.deepEqual(value.packages, []);
   assert(value.huixDisabledModules.creative.skills.includes("+skills/fixture/SKILL.md"), "Batch disable must remember skill edits before removing module");
   assert.equal(confirms, 2);
+  const prunedSkills = Object.keys(JSON.parse(readFileSync(join(batchRoot, "resources-cache.json"), "utf8")).skills);
+  assert(!prunedSkills.includes("ungrouped/dead-skill"), "A skill whose package left the settings must not stay cached: " + prunedSkills.join(", "));
+  assert(!prunedSkills.includes("ghost/dead-module"), "A skill of a module that left the catalog must not stay cached either");
+  assert(!prunedSkills.includes("archival/renamed-skill"), "A skill renamed inside a live module leaves a stale entry that must go too");
+  assert(prunedSkills.includes("ungrouped/live-skill"), "A skill of a live package must stay");
+  assert(prunedSkills.includes("ungrouped/remembered-skill"), "A module switched off is remembered, so its skills must stay");
+  assert(prunedSkills.includes("ungrouped/user-skill"), "A skill with no package source belongs to the user and must stay");
+  assert(prunedSkills.includes("creative/fixture") && prunedSkills.includes("archival/stale"), "Catalog groups are rescanned on every render and must stay");
+  assert.deepEqual(JSON.parse(readFileSync(join(batchRoot, "resources.json"), "utf8")).disabledSkills,
+    ["ungrouped/live-skill"], "Only the dropped keys leave the disabled list");
 } finally {
   process.env.PI_CODING_AGENT_DIR = root;
 }

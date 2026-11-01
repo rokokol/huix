@@ -396,6 +396,20 @@ export function setupModules(pi: ExtensionAPI, helpers?: UiHelpers, nativeMcp?: 
       const group = Object.entries(groups).find(([, value]) => value.servers?.includes(name))?.[0];
       (group ? groupNodes.get(group)!.children : ungrouped).push(node);
     }
+    // Discovery only adds to the cache, so a package that leaves the settings keeps its skills
+    // listed for ever. A catalog group names the source it rescans, so both lists are live sources
+    const liveSources = new Set([...settings.packages.map(sourceOf),
+      ...Object.values(settings.huixDisabledModules ?? {}).map(sourceOf),
+      ...Object.values(groups).map(group => group.source)].map(canonical));
+    // A skill without a package source is the user's own, so no package can prove it gone
+    const pruned = Object.keys(cache.skills).filter(key => cache.skills[key].packageSource !== undefined &&
+      !liveSources.has(canonical(cache.skills[key].packageSource)));
+    for (const key of pruned) delete cache.skills[key];
+    if (pruned.length) {
+      // The preference would otherwise keep a key for every skill that ever left
+      preferences.disabledSkills = preferences.disabledSkills.filter(key => !pruned.includes(key));
+      saveJson(preferencesPath, preferences);
+    }
     saveJson(cachePath, cache);
     return [...roots, { id: "ungrouped", name: "Ungrouped", kind: "separator", enabled: true, tokens: 0, children: [] }, ...ungrouped];
   };
