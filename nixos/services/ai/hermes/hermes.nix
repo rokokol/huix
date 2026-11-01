@@ -370,6 +370,13 @@ in
           only = providers;
           data_collection = "deny";
           require_parameters = true;
+          # Per-model host order, straight from lib/ai-models.nix: without this block the
+          # models the owner does not chat with fall back to the global order above, and a
+          # model's own cheapest host is never reached. One map, no second copy to drift.
+          models = lib.mapAttrs (_: order: {
+            inherit order;
+            only = order;
+          }) routes;
         };
         # A planned stop lets a running turn finish this long before interrupting it, which
         # pauses its session until /discard; it stays under systemd's default stop timeout of 90

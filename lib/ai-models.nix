@@ -4,6 +4,8 @@ let
 in
 {
   chat = {
+    # Host order per model, primary first. This map is the single source: the Hermes
+    # module derives provider_routing from it, and pi's hoster guard reads it directly.
     "deepseek/deepseek-v4.1-flash" = [
       "morph/fp8"
       "deepinfra/fp8"
@@ -12,6 +14,9 @@ in
       "morph/fp8"
       "sail-research/fp8"
     ];
+    # near-ai leads on the cache-read price ($0.012/M against $0.02 at open-inference),
+    # and a recall-heavy day is ~97% cache, so it is the cheapest fp8 host by $0.27/day;
+    # open-inference is fp4 and dearer on that profile, darkbloom is fp4 alone.
     ${background} = [
       "near-ai/fp8"
       "morph/fp8"
