@@ -186,8 +186,6 @@ rec {
       sortDesc ? null,
       # false for a value that is a fact rather than good or bad
       coloured ? true,
-      # A count needs 0: without it Grafana pads the whole number to three significant digits
-      decimals ? null,
     }:
     {
       type = "table";
@@ -215,8 +213,7 @@ rec {
           thresholds = thresholdSteps thresholds dangerBelow;
           # Grafana's own minimum, 150px, leaves no room for the value in a narrow panel
           custom.minWidth = 60;
-        }
-        // lib.optionalAttrs (decimals != null) { inherit decimals; };
+        };
         overrides = [
           {
             matcher = {
