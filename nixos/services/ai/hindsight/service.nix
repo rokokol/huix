@@ -48,6 +48,17 @@ in
       default = 8788;
       description = "Authenticated API port on the tailnet";
     };
+    # The dashboard draws the ceiling as a threshold, so the number lives here and nowhere else
+    poolMin = lib.mkOption {
+      type = lib.types.ints.positive;
+      default = 1;
+      description = "Connections the database pool keeps open";
+    };
+    poolMax = lib.mkOption {
+      type = lib.types.ints.positive;
+      default = 5;
+      description = "Ceiling on the connections of the database pool";
+    };
     bank = lib.mkOption {
       type = lib.types.str;
       default = "shared";
@@ -175,8 +186,8 @@ in
           HINDSIGHT_API_RERANKER_OPENROUTER_MODEL = models.reranker.model;
           HINDSIGHT_API_RERANKER_MAX_CANDIDATES_MID = toString models.reranker.maxCandidates;
           HINDSIGHT_API_RERANKER_MAX_TOKENS_PER_CANDIDATE = toString models.reranker.maxTokensPerCandidate;
-          HINDSIGHT_API_DB_POOL_MIN_SIZE = "1";
-          HINDSIGHT_API_DB_POOL_MAX_SIZE = "5";
+          HINDSIGHT_API_DB_POOL_MIN_SIZE = toString cfg.poolMin;
+          HINDSIGHT_API_DB_POOL_MAX_SIZE = toString cfg.poolMax;
           HINDSIGHT_API_TENANT_EXTENSION = "hindsight_api.extensions.builtin.tenant:ApiKeyTenantExtension";
           HINDSIGHT_API_MCP_ENABLED_TOOLS = "retain,sync_retain,recall,get_mental_model,invalidate_memory,get_operation,list_operations,list_memories,get_memory,list_documents,get_document,delete_document,reflect";
           DO_NOT_TRACK = "1";

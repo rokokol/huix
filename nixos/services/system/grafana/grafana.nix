@@ -91,6 +91,7 @@ let
       memoryModel = memory.model;
       inputPrice = toString memory.price.input;
       outputPrice = toString memory.price.output;
+      poolMax = config.rokokol.hindsight.poolMax;
     }
   );
 in

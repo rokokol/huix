@@ -4,6 +4,7 @@
   memoryModel,
   inputPrice,
   outputPrice,
+  poolMax,
 }:
 
 let
@@ -64,10 +65,15 @@ panels.dashboard {
       y = 1;
       w = 8;
       unit = "short";
+      # The pool holds its ceiling open whatever the load: idle equals size minus what is in
+      # use, so those two lines said one thing twice. The ceiling stays, as the threshold, and
+      # the axis is pinned to it so that the line is always in view
+      min = 0;
+      max = poolMax;
+      thresholds = poolMax;
       queries = [
-        (query "A" roles.series-1 "hindsight_db_pool_size" "size")
-        (query "B" roles.series-3 "hindsight_db_pool_idle" "idle")
-        (query "C" roles.series-4 "hindsight_db_pool_waiting" "waiting")
+        (query "A" roles.series-1 "sum(hindsight_db_pool_size) - sum(hindsight_db_pool_idle)" "active")
+        (query "B" roles.series-3 "sum(hindsight_db_pool_waiting)" "waiting")
       ];
     })
     (row "Operations" null 9)
@@ -76,13 +82,13 @@ panels.dashboard {
       x = 0;
       y = 10;
       w = 12;
-      expr = "sum by (operation, success) (hindsight_operation_operations_total)";
+      expr = "round(sum by (operation, success) (increase(hindsight_operation_operations_total[$__range])))";
       unit = "short";
       labels = [
         "operation"
         "success"
       ];
-      valueName = "Count";
+      valueName = "Operations";
       sortDesc = true;
       coloured = false;
     })
@@ -177,7 +183,7 @@ panels.dashboard {
       x = 0;
       y = 44;
       w = 24;
-      expr = "sum by (operation) (increase(hindsight_operation_operations_total[7d]))";
+      expr = "round(sum by (operation) (increase(hindsight_operation_operations_total[7d])))";
       unit = "short";
       labels = [ "operation" ];
       valueName = "Updates";
