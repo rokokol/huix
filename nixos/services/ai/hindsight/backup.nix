@@ -61,6 +61,11 @@ in
       pgdumpOptions = "--format=custom --compress=0 --no-owner --no-acl";
       startAt = "*-*-* 02:30:00";
     };
+    # The dump has no timer of its own: btrbk and restic both require it before they run, so a
+    # third nightly run only rewrote hindsight.sql.zstd half an hour before the snapshot took it
+    # and pushed the previous copy out of hindsight.prev.sql.zstd. The NixOS option takes no null,
+    # so the timer the module generates is left unstarted instead.
+    systemd.timers.postgresqlBackup-hindsight.wantedBy = lib.mkForce [ ];
     systemd.services.postgresqlBackup-hindsight = {
       unitConfig = guard;
       serviceConfig.UMask = "0077";
