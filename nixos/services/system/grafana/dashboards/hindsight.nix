@@ -89,6 +89,7 @@ panels.dashboard {
         "success"
       ];
       valueName = "Operations";
+      decimals = 0;
       sortDesc = true;
       coloured = false;
     })
@@ -187,6 +188,7 @@ panels.dashboard {
       unit = "short";
       labels = [ "operation" ];
       valueName = "Updates";
+      decimals = 0;
       sortDesc = true;
       coloured = false;
     })
