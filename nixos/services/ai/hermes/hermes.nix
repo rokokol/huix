@@ -76,10 +76,9 @@ let
       exec ${lib.escapeShellArgs ([ (toString server.command) ] ++ (server.args or [ ]))} "$@"
     ''
   ) (lib.filterAttrs (_: server: server ? command) mcpServers);
-  # The Go subscription serves the model under its bare id; OpenRouter keeps the dated snapshot
-  # as the fallback route
+  # The Go subscription serves the model under its bare id; OpenRouter names it by vendor slug
   model = "deepseek-v4.1-flash";
-  fallbackModel = "deepseek/deepseek-v4.1-flash-1017";
+  fallbackModel = "deepseek/deepseek-v4.1-flash";
   aiModels = import ../../../../lib/ai-models.nix;
   routes = aiModels.chat;
   providers = routes.${fallbackModel};

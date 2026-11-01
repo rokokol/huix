@@ -4,9 +4,9 @@ let
 in
 {
   chat = {
-    "deepseek/deepseek-v4.1-flash-1017" = [
-      "deepinfra/fp8"
+    "deepseek/deepseek-v4.1-flash" = [
       "morph/fp8"
+      "deepinfra/fp8"
     ];
     "z-ai/glm-5.3" = [
       "morph/fp8"
