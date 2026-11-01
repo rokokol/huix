@@ -92,16 +92,32 @@ panels.dashboard {
       sortDesc = true;
       coloured = false;
     })
+    # A ratio of two rates is NaN where the window holds no operation, and NaN is a hole in the
+    # graph, so the window is an hour: a hole then means what it says, that no operation ran
     (panel {
-      title = "Operation duration";
+      title = "Operation duration, median";
       x = 12;
       y = 10;
-      w = 12;
+      w = 6;
       unit = "s";
       shaded = true;
       queries = [
         (query "A" roles.series-1
-          "sum by (operation) (rate(hindsight_operation_duration_seconds_sum[5m])) / sum by (operation) (rate(hindsight_operation_duration_seconds_count[5m]))"
+          "histogram_quantile(0.5, sum by (le, operation) (rate(hindsight_operation_duration_seconds_bucket[1h])))"
+          "{{operation}}"
+        )
+      ];
+    })
+    (panel {
+      title = "Operation duration, 95th percentile";
+      x = 18;
+      y = 10;
+      w = 6;
+      unit = "s";
+      shaded = true;
+      queries = [
+        (query "A" roles.series-1
+          "histogram_quantile(0.95, sum by (le, operation) (rate(hindsight_operation_duration_seconds_bucket[1h])))"
           "{{operation}}"
         )
       ];
