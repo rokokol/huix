@@ -103,6 +103,7 @@ cat >"$work/bin/hyprctl" <<'EOF'
 printf 'hyprctl %s\n' "$*" >>"$STUB_LOG"
 case "$1 $2" in
   "monitors -j") printf '%s\n' "$STUB_MONITORS" ;;
+  "devices -j") cat "$STUB_DEVICES_FILE" 2>/dev/null ;;
   "eval "*) printf 'ok\n' ;;
 esac
 EOF
@@ -1427,6 +1428,59 @@ OPEN_WITH_TYPE=x bash "$open_with" list some >/dev/null 2>&1
 is "an unknown mode is a usage error" 2 "$?"
 bash "$open_with" list all >/dev/null 2>&1
 is "list outside rofi is a usage error" 2 "$?"
+
+# --- touchscreen.sh, against a device list and a state directory made here ---
+touchscreen=$SCRIPTS/touchscreen.sh
+# The first touch device is the one the script switches, whatever its name is. The list is a
+# file because the stub reads it straight, as hyprctl's own output would be read
+devices=$work/devices.json
+printf '%s\n' '{"touch": [{"name": "some-touchscreen"}, {"name": "second-touchscreen"}]}' >"$devices"
+no_devices=$work/no-devices.json
+printf '%s\n' '{"touch": []}' >"$no_devices"
+export STUB_DEVICES_FILE=$devices
+# The state file lives under XDG_STATE_HOME, so the run keeps its own and the real one alone
+export XDG_STATE_HOME=$work/state
+rm -rf "$XDG_STATE_HOME"
+
+is "status before anything is off" "on" "$(bash "$touchscreen" status)"
+
+reset_log
+bash "$touchscreen" off >/dev/null 2>&1
+logged "off switches the first touch device off" 'hl\.device' '"some-touchscreen"' 'enabled = false'
+not_logged "off leaves the other touch devices alone" 'second-touchscreen'
+is "off is remembered" "off" "$(cat "$XDG_STATE_HOME/huix/touchscreen")"
+is "status reads the state that off wrote" "off" "$(bash "$touchscreen" status)"
+
+reset_log
+bash "$touchscreen" toggle >/dev/null 2>&1
+logged "toggle from off switches it back on" 'hl\.device' 'enabled = true'
+is "toggle records the new state" "on" "$(bash "$touchscreen" status)"
+
+reset_log
+bash "$touchscreen" apply >/dev/null 2>&1
+logged "apply of a state that is on re-applies it" 'hl\.device' 'enabled = true'
+
+bash "$touchscreen" off >/dev/null 2>&1
+reset_log
+bash "$touchscreen" apply >/dev/null 2>&1
+logged "apply of a state that is off puts it back" 'hl\.device' 'enabled = false'
+
+rm -rf "$XDG_STATE_HOME"
+reset_log
+bash "$touchscreen" apply >/dev/null 2>&1
+is "apply with nothing remembered is not an error" 0 "$?"
+not_logged "apply with nothing remembered touches no device" 'hl\.device'
+
+reset_log
+STUB_DEVICES_FILE=$no_devices bash "$touchscreen" off >/dev/null 2>&1
+is "off without a touchscreen is a failure" 1 "$?"
+logged "the failure is shown, not only printed" '^notify-send -u critical'
+
+STUB_DEVICES_FILE=$no_devices bash "$touchscreen" apply >/dev/null 2>&1
+is "apply without a touchscreen stays quiet" 0 "$?"
+
+bash "$touchscreen" nonsense >/dev/null 2>&1
+is "an unknown subcommand is a usage error" 2 "$?"
 
 if ((failures)); then
   printf 'run.sh: %d test(s) failed\n' "$failures" >&2

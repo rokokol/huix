@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  huixDir,
   ...
 }:
 
@@ -11,9 +12,16 @@
 # themselves, and a wheel sent under the fingers only fought them. A right click is not
 # among the gestures either, and the applications answer a long press with their own
 # context menu
+# The switch that turns the device off by hand belongs here too, since this module owns the
+# touchscreen: nothing touches the panel and it reports contacts with no coordinates all the
+# same, and Hyprland warps the pointer to each of them (scripts/touchscreen.sh says the rest)
 let
   cfg = config.rokokol.hyprland;
   inherit (lib.generators) mkLuaInline;
+  toLua = lib.generators.toLua { };
+  touchscreen = "${huixDir}/scripts/touchscreen.sh";
+  run = arg: mkLuaInline "hl.dsp.exec_cmd(${toLua "${touchscreen} ${arg}"})";
+  applyState = mkLuaInline "function() hl.exec_cmd(${toLua "${touchscreen} apply"}) end";
   edge = origin: direction: action: {
     pattern = {
       kind = "edge";
@@ -110,6 +118,36 @@ in
             };
             action = "cursor_zoom";
             mode = "live";
+          }
+        ];
+
+        bind = [
+          # The touchscreen reports contacts with no coordinates at all when nothing touches
+          # it, and Hyprland takes the pointer — with follow_mouse the focus — to each of them.
+          # The noise comes and goes and the gestures are worth keeping otherwise, so the
+          # device is switched off by hand when it starts (see the script's own header)
+          {
+            _args = [
+              "SUPER + SHIFT + T"
+              (run "toggle")
+            ];
+          }
+        ];
+
+        # A config reload enables every input device again, and the compositor's start
+        # follows a session that may have left the touchscreen off
+        on = [
+          {
+            _args = [
+              "hyprland.start"
+              applyState
+            ];
+          }
+          {
+            _args = [
+              "config.reloaded"
+              applyState
+            ];
           }
         ];
 
