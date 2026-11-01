@@ -16,6 +16,22 @@ pkgs.lib.mapAttrs' (
   pkgs.lib.nameValuePair "nixvim-init-${name}"
     cfg.config.home-manager.users.${rokokolName}.programs.nixvim.build.initFile
 ) inputs.self.nixosConfigurations
+# Home Manager writes a session variable as export NAME="value" and escapes nothing in the value,
+# so a quote or backtick leaves a file bash cannot parse and every variable after the broken line
+# is lost at each login, while the build stays green. bash -n over the file is the whole test
+// pkgs.lib.mapAttrs' (
+  name: cfg:
+  pkgs.lib.nameValuePair "hm-session-vars-${name}" (
+    pkgs.runCommand "hm-session-vars-${name}"
+      {
+        package = cfg.config.home-manager.users.${rokokolName}.home.sessionVariablesPackage;
+      }
+      ''
+        bash -n "$package/etc/profile.d/hm-session-vars.sh"
+        touch "$out"
+      ''
+  )
+) inputs.self.nixosConfigurations
 // {
   nix-lint = inputs.skill-nix-best-practices.lib.mkCheck {
     inherit pkgs;
