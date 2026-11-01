@@ -94,6 +94,22 @@ let
       }
     ];
   };
+  # Hindsight plugin tuning, written to $HERMES_HOME/hindsight/config.json below. That file, once
+  # present, is the plugin's only source for `mode` and `recall_sync` (no env fallback), so both are
+  # repeated here at the values the environment carries. The two knobs worth Nix are the injection
+  # cap and the relevance floor: measured on 2026-11-01, a recall returned 15-38 facts and always
+  # filled the 4096-token budget, median semantic score 0.547, and off-topic turns injected the
+  # same volume as on-topic ones
+  hindsightSettings = {
+    mode = "local_external";
+    bank_id = config.rokokol.hindsight.bank;
+    recall_budget = "mid";
+    recall_sync = true;
+    recall_max_tokens = 2000;
+    recall_min_scores = {
+      semantic = 0.5;
+    };
+  };
   guests = lib.filterAttrs (
     _: host: host.config.rokokol.mya-agent.guest.enable
   ) inputs.self.nixosConfigurations;
@@ -253,6 +269,31 @@ in
         {
           curator.prune_builtins = false;
         };
+
+    # The plugin's settings live in $HERMES_HOME/hindsight/config.json and, once that file exists,
+    # the environment no longer feeds it at all. Nix writes the file so a rebuild re-asserts the
+    # recall cap and the relevance floor instead of leaving them to a hand edit that the next setup
+    # run would silently keep or lose
+    systemd.services.hermes-hindsight-settings = lib.mkIf (config.rokokol.hindsight.enable or false) {
+      description = "Write the Hindsight plugin settings file";
+      requiredBy = [ "hermes-agent.service" ];
+      before = [ "hermes-agent.service" ];
+      unitConfig = {
+        RequiresMountsFor = [ "${agent.home}/.hermes" ];
+        ConditionPathIsMountPoint = "${agent.home}/.hermes";
+      };
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+      };
+      script = ''
+        install -d -m 0700 -o ${agent.user} -g ${agent.user} ${agent.home}/.hermes/hindsight
+        printf '%s\n' '${builtins.toJSON hindsightSettings}' \
+          > ${agent.home}/.hermes/hindsight/config.json
+        chown ${agent.user}:${agent.user} ${agent.home}/.hermes/hindsight/config.json
+        chmod 0600 ${agent.home}/.hermes/hindsight/config.json
+      '';
+    };
 
     services.hermes-agent = {
       enable = true;
@@ -474,6 +515,10 @@ in
         # GitHub
 
         gh uses a local proxy. The proxy holds the tokens. Leave notifications unread unless the owner asks otherwise
+
+        # Memory
+
+        The Hindsight bank keeps a synthesized working brief, owner-working-brief. Read it with `~/.hermes/scripts/hindsight-brief.sh` when the owner's standing state, projects, paths or open work matter
 
       '';
     };
