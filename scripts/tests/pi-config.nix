@@ -81,7 +81,6 @@ let
     keybindings = base.home.file."${directory}/keybindings.json".source;
     hoster = base.home.file."${directory}/extensions/hoster.ts".source;
     modules = base.home.file."${directory}/modules.json".source;
-    automode = builtins.fromJSON base.home.sessionVariables.PI_AUTOMODE_SETTINGS_JSON;
     groups = base.rokokol.agents.piPackages;
     activation = pkgs.writeText "pi-settings-activation.sh" base.home.activation.piSettings.data;
     changedActivation = pkgs.writeText "pi-settings-changed.sh" changed.home.activation.piSettings.data;

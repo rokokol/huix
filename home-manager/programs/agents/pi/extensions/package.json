@@ -3,7 +3,6 @@
   "version": "0.0.0",
   "private": true,
   "dependencies": {
-    "@czottmann/pi-automode": "1.17.0",
     "@juicesharp/rpiv-todo": "2.15.0",
     "@mrclrchtr/supi-ask-user": "11.1.0",
     "@mrclrchtr/supi-cache": "11.1.0",

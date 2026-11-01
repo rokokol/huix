@@ -10,7 +10,7 @@ import time
 
 
 COMMANDS = {
-    "agents", "intercom", "subs", "automode",
+    "agents", "intercom", "subs",
     "btw", "goal", "supi-cache-history", "usage", "heads-up", "bg", "todos",
 }
 
