@@ -1218,6 +1218,9 @@ pkgs.testers.runNixOSTest {
         },
         "mail": set(),
         "vpn": set(),
+        # A VM runs too briefly for Hindsight to have finished an operation, so no panel here
+        # has to show a series, but a query of the dashboard that Prometheus refuses fails
+        "hindsight": set(),
     }
     for uid, full in filled.items():
       with subtest(f"the {uid} dashboard is there for a viewer, and each of its queries runs in Prometheus"):
