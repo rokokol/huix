@@ -26,9 +26,10 @@ in
     };
   };
   side = {
+    # Hermes reaches this model through OpenRouter, whose routing this flake configures
     model = background;
-    # pi addresses a model as provider/id, and both side agents take this one
-    piModel = "openrouter/${background}";
+    # The pi side agents go through opencode-go, which names a model without its vendor
+    piModel = "opencode-go/glm-5.3-flash";
   };
   embeddings = {
     model = "qwen/qwen3-embedding-8b";
