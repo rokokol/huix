@@ -75,6 +75,7 @@ pkgs.lib.mapAttrs' (
       hosterTest = ./scripts/tests/test-pi-hoster.ts;
       hosterExtension = ./home-manager/programs/agents/pi/hoster.ts;
       modulesExtension = ./home-manager/programs/agents/pi/modules.ts;
+      memoryExtension = ./home-manager/programs/agents/pi/memory.ts;
       modulesTest = ./scripts/tests/test-pi-modules.ts;
       piRoot = "${pkgs.pi-coding-agent}/lib/node_modules/pi-monorepo";
       tsconfig = (pkgs.formats.json { }).generate "pi-tsconfig.json" {
@@ -97,6 +98,7 @@ pkgs.lib.mapAttrs' (
           hosterTest
           modulesExtension
           modulesTest
+          memoryExtension
         ];
       };
     in
