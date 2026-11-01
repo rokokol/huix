@@ -23,6 +23,7 @@ assert settings["terminal"]["hyperlinks"]
 assert f'{fixture["directory"]}/extensions/hoster.ts' in settings["extensions"]
 assert Path(fixture["hoster"]).is_file()
 assert f'{fixture["directory"]}/extensions/modules.ts' in settings["extensions"]
+assert f'{fixture["directory"]}/extensions/quiet-tools.ts' in settings["extensions"]
 assert "-builtin:mcp" in settings["extensions"]
 assert not any("resume" in extension for extension in settings["extensions"])
 assert any(isinstance(package, str) and package.endswith("/@nicknisi/pi-heads-up") for package in settings["packages"])

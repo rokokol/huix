@@ -60,6 +60,7 @@ in
           "-builtin:mcp"
           "${cfg.configDir}/extensions/hoster.ts"
           "${cfg.configDir}/extensions/modules.ts"
+          "${cfg.configDir}/extensions/quiet-tools.ts"
         ];
       };
       models.providers.openrouter = {
@@ -107,6 +108,7 @@ in
       file."${cfg.configDir}/agents/explore.md".source = ./agents/explore.md;
       file."${cfg.configDir}/extensions/hoster.ts".source = ./hoster.ts;
       file."${cfg.configDir}/extensions/modules.ts".source = ./modules.ts;
+      file."${cfg.configDir}/extensions/quiet-tools.ts".source = ./quiet-tools.ts;
       file."${cfg.configDir}/configs/heads-up.json".source = json.generate "pi-heads-up.json" {
         model = models.side.piModel;
       };

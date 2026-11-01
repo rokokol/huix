@@ -76,6 +76,8 @@ pkgs.lib.mapAttrs' (
       hosterExtension = ./home-manager/programs/agents/pi/hoster.ts;
       modulesExtension = ./home-manager/programs/agents/pi/modules.ts;
       memoryExtension = ./home-manager/programs/agents/pi/memory.ts;
+      quietToolsExtension = ./home-manager/programs/agents/pi/quiet-tools.ts;
+      quietToolsTest = ./scripts/tests/test-pi-quiet-tools.ts;
       modulesTest = ./scripts/tests/test-pi-modules.ts;
       piRoot = "${pkgs.pi-coding-agent}/lib/node_modules/pi-monorepo";
       tsconfig = (pkgs.formats.json { }).generate "pi-tsconfig.json" {
@@ -99,6 +101,8 @@ pkgs.lib.mapAttrs' (
           modulesExtension
           modulesTest
           memoryExtension
+          quietToolsExtension
+          quietToolsTest
         ];
       };
     in
@@ -119,6 +123,7 @@ pkgs.lib.mapAttrs' (
         node ${hosterTest} ${hosterExtension} \
           ${piRoot}
         node ${modulesTest} ${modulesExtension} ${piRoot}
+        node ${quietToolsTest} ${quietToolsExtension} ${piRoot}
         touch "$out"
       '';
 
