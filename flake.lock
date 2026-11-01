@@ -1798,11 +1798,11 @@
     "skill-tests": {
       "flake": false,
       "locked": {
-        "lastModified": 1793223512,
-        "narHash": "sha256-2Fnwmm5Lj2Z1ZgacOk+F4imGeGG5IxY0AJ83Lc4asPs=",
+        "lastModified": 1793565114,
+        "narHash": "sha256-OJonXr0mfw5QS0rTnUaee1Q6DHQrpGmuwuAyfHDgo/o=",
         "owner": "rokokol",
         "repo": "tests-skill",
-        "rev": "3dd93f8f99d4611269847cf5e3020d32d5f8ab25",
+        "rev": "b0b69f7ef8a529ac4e70dc2b44feb89b76ada93c",
         "type": "github"
       },
       "original": {
