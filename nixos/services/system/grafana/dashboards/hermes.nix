@@ -162,5 +162,61 @@ panels.dashboard {
         (query "A" roles.series-1 "time() - hermes_collect_timestamp_seconds" "hermes-monitor")
       ];
     })
+    # Pushed by the cron scripts themselves through the station's pushgateway: the Go
+    # allowance windows come from opencode-go-usage, the per-day model costs from
+    # model-price-watch. Both are no_agent crons, so nothing here costs a token.
+    (row "Cron reports" null 43)
+    (panel {
+      title = "OpenCode Go windows";
+      x = 0;
+      y = 44;
+      w = 8;
+      unit = "percent";
+      max = 100;
+      queries = [
+        (query "A" roles.series-1 "mya_go_window_percent{window=\"5h\"}" "5 hours")
+        (query "B" roles.series-3 "mya_go_window_percent{window=\"week\"}" "week")
+        (query "C" roles.series-4 "mya_go_window_percent{window=\"month\"}" "month")
+      ];
+    })
+    (panel {
+      title = "Hermes spend on Go this month";
+      x = 8;
+      y = 44;
+      w = 8;
+      unit = "currencyUSD";
+      decimals = 2;
+      queries = [
+        (query "A" roles.series-1 "mya_go_hermes_month_usd" "total")
+        (query "B" roles.series-3 "mya_go_hermes_month_usd_by_model" "{{model}}")
+      ];
+    })
+    (panel {
+      title = "Model price per day";
+      x = 16;
+      y = 44;
+      w = 8;
+      unit = "currencyUSD";
+      decimals = 2;
+      queries = [ (query "A" roles.series-1 "mya_price_usd_per_day" "{{model}} at {{host}}") ];
+    })
+    (panel {
+      title = "Cheapest host per model";
+      x = 0;
+      y = 52;
+      w = 12;
+      unit = "currencyUSD";
+      decimals = 2;
+      shaded = true;
+      queries = [ (query "A" roles.series-1 "mya_price_cheapest_usd_per_day" "{{model}} at {{host}}") ];
+    })
+    (panel {
+      title = "Time since the last price watch";
+      x = 12;
+      y = 52;
+      w = 12;
+      unit = "s";
+      queries = [ (query "A" roles.series-1 "time() - mya_price_last_run" "model-price-watch") ];
+    })
   ];
 }
