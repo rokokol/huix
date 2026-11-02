@@ -47,8 +47,8 @@ pkgs.runCommand "station-boot-test-fixtures"
       printf 'hermes-webhook-secret: test-webhook-secret\n'
       printf 'hermes-dashboard-password: test-dashboard-password\n'
       printf 'hermes-dashboard-secret: test-dashboard-secret-long-enough-0123456789\n'
-      printf 'hermes-restic-password: test\n'
-      printf 'hermes-restic-rest-password: test\n'
+      printf 'station-restic-password: test\n'
+      printf 'station-restic-rest-password: test\n'
       printf 'github-token: %s\n' github_pat_test
       printf 'github-token-classic: %s\n' ghp_test
       printf 'telegram-owner-chat-id: "%s"\n' '${telegramOwner}'

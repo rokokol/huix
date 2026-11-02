@@ -5,14 +5,12 @@
   ...
 }:
 
-# Hermes makes consistent SQLite copies; restic stores the resulting portable archive
+# Hermes makes consistent SQLite copies, and the station's own restic backup takes the archive
 let
   agent = config.rokokol.mya-agent;
   cfg = agent.hermes.backup;
   onVolume = lib.removePrefix "${cfg.mountPoint}/";
   cache = "/var/cache/hermes-backup";
-  # The repository's user on the station's own restic server, which takes its repository at /<user>/
-  resticUser = "station";
   package = config.services.hermes-agent.package;
   guard = {
     RequiresMountsFor = [ cfg.dataDir ];
@@ -61,15 +59,6 @@ in
         message = "Hermes state and snapshots must be under the backup mountpoint";
       }
     ];
-    # The station itself backs up here, and it pushes no node metrics
-    rokokol.restic-server.localUsers = [ resticUser ];
-    sops.secrets.hermes-restic-password = { };
-    sops.secrets.hermes-restic-rest-password = { };
-    sops.templates."hermes-restic.env".content = ''
-      RESTIC_REST_USERNAME=${resticUser}
-      RESTIC_REST_PASSWORD=${config.sops.placeholder.hermes-restic-rest-password}
-    '';
-
     fileSystems."${agent.home}/.hermes" = {
       device = cfg.dataDir;
       fsType = "none";
@@ -126,23 +115,13 @@ in
     };
     systemd.services.btrbk-hermes.unitConfig = guard;
 
-    services.restic.backups.hermes = {
-      repository = "rest:http://127.0.0.1:${toString config.rokokol.restic-server.port}/${resticUser}/";
-      passwordFile = config.sops.secrets.hermes-restic-password.path;
-      environmentFile = config.sops.templates."hermes-restic.env".path;
-      initialize = true;
-      paths = [ "${cache}/current.zip" ];
-      timerConfig = {
-        OnCalendar = "*-*-* 03:30:00";
-        Persistent = true;
-      };
-      pruneOpts = [
-        "--keep-daily 1"
-        "--keep-weekly 1"
-        "--keep-monthly 1"
-      ];
-      # See WORKAROUNDS.md: files copied out of the Nix store carry a date that ZIP cannot hold
-      backupPrepareCommand = ''
+    # The archive is built here rather than in restic's prepare hook: the hook holds one command,
+    # and the station's single backup serves four sources. See WORKAROUNDS.md for the 1980 step
+    systemd.services.hermes-backup-zip = {
+      description = "Portable archive of the Hermes state";
+      unitConfig = guard;
+      serviceConfig.Type = "oneshot";
+      script = ''
         ${pkgs.findutils}/bin/find ${agent.home}/.hermes ! -newermt 1980-01-02 \
           -exec ${pkgs.coreutils}/bin/touch -h -d 1980-01-02 {} +
         ${pkgs.util-linux}/bin/runuser -u ${agent.user} -- \
@@ -151,10 +130,9 @@ in
         test -s ${cache}/current.zip
       '';
     };
-    systemd.services.restic-backups-hermes = {
-      after = [ "restic-rest-server.socket" ];
-      requires = [ "restic-rest-server.socket" ];
-      unitConfig = guard;
-    };
+
+    services.restic.backups.station.paths = [ "${cache}/current.zip" ];
+    systemd.services.restic-backups-station.requires = [ "hermes-backup-zip.service" ];
+    systemd.services.restic-backups-station.after = [ "hermes-backup-zip.service" ];
   };
 }

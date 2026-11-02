@@ -50,6 +50,24 @@ in
       description = "File with the first password of the owner's account, readable by forgejo alone";
     };
 
+    backup = {
+      mountPoint = lib.mkOption {
+        type = lib.types.path;
+        example = "/srv/backup";
+        description = "Mountpoint of the filesystem that holds the dump; the nightly dump does not run without it";
+      };
+
+      dumpDir = lib.mkOption {
+        type = lib.types.path;
+        example = "/srv/backup/forgejo-dump";
+        description = ''
+          Directory of the nightly dump, which the station's restic backup reads. The dump holds
+          the whole forge in one archive, so it costs its size on every snapshot, and the four
+          that the policy keeps cost that much again
+        '';
+      };
+    };
+
     runners = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [ ];
@@ -72,8 +90,16 @@ in
   config = lib.mkIf cfg.enable {
     services.forgejo = {
       enable = true;
-      # A dump each night; the module removes the ones older than four weeks
-      dump.enable = true;
+      # The dump is the backup of the forge: the station's restic backup reads this directory,
+      # and the timer runs an hour before that backup, so the archive taken is of the same night
+      dump = {
+        enable = true;
+        backupDir = cfg.backup.dumpDir;
+        # Three days, not the module's four weeks: at a gigabyte a dump that would fill the
+        # volume, and two days would still lose the archive after two failed nights
+        age = "3d";
+        interval = "02:45";
+      };
 
       settings = {
         server = {
@@ -170,5 +196,20 @@ in
         test -s ${cfg.initialPasswordFile}
       '';
     };
+
+    # The dump lands on the backup volume, and a missing mount would leave it on the root
+    # filesystem and hide it from the backup. The directory is made here rather than by a
+    # tmpfiles rule, which runs before the volume is mounted
+    systemd.services.forgejo-dump.unitConfig = {
+      RequiresMountsFor = [ cfg.backup.dumpDir ];
+      ConditionPathIsMountPoint = cfg.backup.mountPoint;
+    };
+    systemd.services.forgejo-dump.serviceConfig.ExecStartPre = [
+      "+${pkgs.coreutils}/bin/install -d -m 0750 -o ${forgejo.user} -g ${forgejo.group} ${cfg.backup.dumpDir}"
+    ];
+
+    services.restic.backups.station.paths = [ cfg.backup.dumpDir ];
+    systemd.services.restic-backups-station.requires = [ "forgejo-dump.service" ];
+    systemd.services.restic-backups-station.after = [ "forgejo-dump.service" ];
   };
 }

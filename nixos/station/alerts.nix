@@ -30,7 +30,6 @@ in
 {
   systemd.services = onFailure [
     "backup-heartbeat"
-    "btrbk-radicale"
     "btrbk-restic"
     "btrbk-hermes"
     "btrbk-hindsight"
@@ -52,6 +51,7 @@ in
     "pushgateway"
     "radicale"
     "restic-rest-server"
+    "restic-backups-station"
     "restic-backups-hermes"
     "smartd"
     "syncthing"

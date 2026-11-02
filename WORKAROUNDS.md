@@ -51,7 +51,7 @@ SIGSEGV -> keep the override. A different failure -> investigate it. Success -> 
 
 ## Hermes bundled skills keep the Nix store's dates and modes
 
-**Where:** `backupPrepareCommand` in `nixos/services/ai/hermes/backup.nix`, the restore steps in `nixos/services/ai/hermes/README.md`, and the restore subtest of `nixos/station/tests/boot.nix`
+**Where:** `hermes-backup-zip.service` in `nixos/services/ai/hermes/backup.nix`, the restore steps in `nixos/services/ai/hermes/README.md`, and the restore subtest of `nixos/station/tests/boot.nix`
 
 **Symptom it prevents:** `hermes backup` reports "ZIP does not support timestamps before 1980" for every bundled skill and exits 1, so the nightly restic backup fails. `hermes import` over a started state reports "Permission denied" for the same files and exits 1
 

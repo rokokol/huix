@@ -20,8 +20,8 @@ let
     inherit (station.services.postgresqlBackup) location pgdumpOptions;
     dumpDir = cfg.backup.dumpDir;
     mountPoint = cfg.backup.mountPoint;
-    backupPaths = station.services.restic.backups.hermes.paths;
-    backupRequires = station.systemd.services.restic-backups-hermes.requires;
+    backupPaths = station.services.restic.backups.station.paths;
+    backupRequires = station.systemd.services.restic-backups-station.requires;
     folders = station.services.syncthing.settings.folders;
     pcFolders = pc.services.syncthing.settings.folders;
     laptopFolders = laptop.services.syncthing.settings.folders;

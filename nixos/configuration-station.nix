@@ -32,7 +32,6 @@ in
       enable = true;
       mountPoint = backup;
       dataDir = "${backup}/radicale";
-      snapshotDir = "${backup}/snapshots/radicale";
     };
     searxng = {
       enable = true;
@@ -123,6 +122,10 @@ in
       enable = true;
       # The PC runs the CI jobs, through rokokol.forgejo-runner
       runners = [ "nixos-pc" ];
+      backup = {
+        mountPoint = backup;
+        dumpDir = "${backup}/forgejo-dump";
+      };
     };
     forgejo-mirrors = {
       enable = true;

@@ -77,7 +77,8 @@
             type = "btrfs";
             extraArgs = [ "-f" ];
             mountpoint = "/srv/backup";
-            # Unmounted: only btrbk needs them to be subvolumes, to snapshot each one
+            # Unmounted: btrbk snapshots the ones it covers, and every one keeps its data on the
+            # backup volume rather than on the root filesystem
             subvolumes = lib.genAttrs (
               config.rokokol.syncthing.archive.subvolumes
               ++ config.rokokol.restic-server.subvolumes

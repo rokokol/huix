@@ -21,7 +21,7 @@ let
   logins = [ cfg.owner ] ++ cfg.sharedWith;
   # nixos/services/tools/dav-mcp.nix gives the same secret to the login's own client
   passwordOf = login: "radicale-password-${login}";
-  # btrbk and the disk layout name a subvolume by its path inside the volume
+  # The disk layout names a subvolume by its path inside the volume
   onVolume = lib.removePrefix "${cfg.mountPoint}/";
   mountGuard = {
     RequiresMountsFor = [ cfg.dataDir ];
@@ -29,7 +29,7 @@ let
   };
 
   # The disk layout makes dataDir as root's and has no option for an owner. A missing dataDir
-  # fails here instead of turning into a plain directory that btrbk cannot snapshot
+  # fails here instead of turning into a plain directory that the backup would miss
   prepare = pkgs.writeShellScript "radicale-prepare" ''
     set -eu
     PATH=${pkgs.coreutils}/bin
@@ -48,7 +48,7 @@ let
 in
 {
   options.rokokol.radicale = {
-    enable = lib.mkEnableOption "the Radicale CalDAV server, with snapshots of its calendars";
+    enable = lib.mkEnableOption "the Radicale CalDAV server";
 
     dataDir = lib.mkOption {
       type = lib.types.path;
@@ -60,21 +60,6 @@ in
       type = lib.types.path;
       example = "/srv/backup";
       description = "Mountpoint of the filesystem with `dataDir`; the server does not start without it";
-    };
-
-    snapshotDir = lib.mkOption {
-      type = lib.types.path;
-      example = "/srv/backup/snapshots/radicale";
-      description = "Subvolume of the read-only snapshots of `dataDir`, on the same filesystem";
-    };
-
-    preserve = lib.mkOption {
-      type = lib.types.str;
-      default = "14d";
-      description = ''
-        How long the snapshots of `dataDir` are kept, as btrbk's snapshot_preserve. It is how
-        long an event that a client deleted can still be restored
-      '';
     };
 
     owner = lib.mkOption {
@@ -112,11 +97,8 @@ in
     subvolumes = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       readOnly = true;
-      default = map onVolume [
-        cfg.dataDir
-        cfg.snapshotDir
-      ];
-      defaultText = lib.literalMD "`dataDir` and `snapshotDir`";
+      default = map onVolume [ cfg.dataDir ];
+      defaultText = lib.literalMD "`dataDir`";
       description = "Subvolumes of the backup filesystem, as paths inside `mountPoint`, for the disk layout to make";
     };
   };
@@ -124,12 +106,11 @@ in
   config = lib.mkIf cfg.enable {
     assertions = [
       {
-        # btrbk snapshots a subvolume, and the volume's top is not one it can name
+        # A subvolume lies inside the volume, and `mountPoint` is not one it can name
         assertion = lib.all (dir: lib.hasPrefix "${cfg.mountPoint}/" dir) [
           cfg.dataDir
-          cfg.snapshotDir
         ];
-        message = "rokokol.radicale.dataDir and snapshotDir must be under rokokol.radicale.mountPoint";
+        message = "rokokol.radicale.dataDir must be under rokokol.radicale.mountPoint";
       }
       {
         assertion = !lib.elem cfg.owner cfg.sharedWith;
@@ -193,27 +174,6 @@ in
       serviceConfig.ExecStartPre = [ "+${prepare}" ];
     };
 
-    # Every 15 minutes when a calendar changed, and each one is kept for a day before `preserve`
-    # thins them out. Syncthing's archive in syncthing.nix does the same
-    services.btrbk.instances.radicale = {
-      onCalendar = "*:0/15";
-      settings = {
-        timestamp_format = "long";
-        snapshot_create = "onchange";
-        snapshot_preserve_min = "1d";
-        volume.${cfg.mountPoint} = {
-          snapshot_dir = onVolume cfg.snapshotDir;
-          subvolume.${onVolume cfg.dataDir}.snapshot_preserve = cfg.preserve;
-        };
-      };
-    };
-
-    systemd.services.btrbk-radicale.unitConfig = {
-      RequiresMountsFor = [
-        cfg.dataDir
-        cfg.snapshotDir
-      ];
-      ConditionPathIsMountPoint = cfg.mountPoint;
-    };
+    services.restic.backups.station.paths = [ cfg.dataDir ];
   };
 }

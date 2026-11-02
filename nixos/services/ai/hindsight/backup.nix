@@ -93,8 +93,8 @@ in
       requires = [ "postgresqlBackup-hindsight.service" ];
       after = [ "postgresqlBackup-hindsight.service" ];
     };
-    services.restic.backups.hermes.paths = [ backup.dumpDir ];
-    systemd.services.restic-backups-hermes = {
+    services.restic.backups.station.paths = [ backup.dumpDir ];
+    systemd.services.restic-backups-station = {
       requires = [ "postgresqlBackup-hindsight.service" ];
       after = [ "postgresqlBackup-hindsight.service" ];
     };

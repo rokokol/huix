@@ -37,7 +37,7 @@ let
 
   radicale = {
     inherit (station.config.rokokol.tailnet-web.sites.radicale) port;
-    inherit (station.config.rokokol.radicale) dataDir snapshotDir;
+    inherit (station.config.rokokol.radicale) dataDir;
     backend = lib.head station.config.services.radicale.settings.server.hosts;
     # The config on the mounted state, which the agent reads
     mcpConfig = "${agent.home}/.hermes/config.yaml";
@@ -289,7 +289,6 @@ pkgs.testers.runNixOSTest {
               before = users ++ [
                 "btrbk-syncthing.service"
                 "btrbk-restic.service"
-                "btrbk-radicale.service"
               ];
               unitConfig = {
                 RequiresMountsFor = [ "/srv/backup" ];
@@ -1022,19 +1021,19 @@ pkgs.testers.runNixOSTest {
         assert station.succeed(f"{yq} .cron.wrap_response {config_yaml}").strip() == "false"
         station.succeed(f"{yq} -e .mcp_servers.dav {config_yaml}")
 
-    hermes_restic = "RESTIC_PASSWORD_FILE=${station.config.sops.secrets.hermes-restic-password.path} ${lib.getExe pkgs.restic} -r ${restic.dataDir}/station"
+    station_restic = "RESTIC_PASSWORD_FILE=${station.config.sops.secrets.station-restic-password.path} ${lib.getExe pkgs.restic} -r ${restic.dataDir}/station"
 
     with subtest("Hermes state reaches its local restic repository and the portable archive is valid"):
         station.succeed(f"runuser -u ${agent.user} -- sh -c 'echo restore-marker >{agent_home}/.hermes/SOUL.md'")
         station.succeed(f"runuser -u ${agent.user} -- sh -c 'echo restore-user >{agent_home}/.hermes/memories/USER.md'")
         station.succeed(f"runuser -u ${agent.user} -- sh -c 'echo restore-memory >{agent_home}/.hermes/memories/MEMORY.md'")
-        station.succeed("systemctl start restic-backups-hermes.service")
+        station.succeed("systemctl start restic-backups-station.service")
         station.succeed("test -s /var/cache/hermes-backup/current.zip")
         station.succeed("${lib.getExe pkgs.python3} -c 'import zipfile; z=zipfile.ZipFile(\"/var/cache/hermes-backup/current.zip\"); assert z.testzip() is None; assert any(p.endswith(\"state.db\") for p in z.namelist())'")
-        station.succeed(f"{hermes_restic} snapshots --json | ${lib.getExe pkgs.jq} -e 'length > 0'")
+        station.succeed(f"{station_restic} snapshots --json | ${lib.getExe pkgs.jq} -e 'length > 0'")
 
     with subtest("a new machine gets the whole Hermes state back from restic"):
-        station.succeed(f"{hermes_restic} restore latest --target /root/restore")
+        station.succeed(f"{station_restic} restore latest --target /root/restore")
         station.succeed(f"install -m 0600 -o ${agent.user} -g ${agent.user} /root/restore/var/cache/hermes-backup/current.zip {agent_home}/hermes.zip")
         # An empty state that activation and the first start fill, as after an install
         station.succeed(f"systemctl stop {agent_unit}")
@@ -1152,8 +1151,8 @@ pkgs.testers.runNixOSTest {
         )
         assert "Task from the agent" in report, f"the owner sees no task of the agent: {report}"
 
-    with subtest("a snapshot keeps an event that a client deleted"):
-        station.succeed("systemctl show -P OnFailure btrbk-radicale.service | grep -qx 'alert-mail@btrbk-radicale.service.service'")
+    with subtest("a restic snapshot keeps an event that a client deleted"):
+        station.succeed("systemctl show -P OnFailure restic-backups-station.service | grep -qx 'alert-mail@restic-backups-station.service.service'")
         event = "\r\n".join([
             "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//test//EN",
             "BEGIN:VEVENT", "UID:kept", "DTSTAMP:20261020T090000Z", "DTSTART:20261021T090000Z",
@@ -1162,13 +1161,12 @@ pkgs.testers.runNixOSTest {
         station.succeed(f"printf '%s' {shlex.quote(event)} >/tmp/kept.ics")
         code = station.succeed(f"{dav} -u rokokol:test -T /tmp/kept.ics -H 'Content-Type: text/calendar' {calendars}/rokokol/schedule/kept.ics")
         assert code == "201", f"the owner got {code} adding an event"
-        station.succeed(f"{btrfs} filesystem sync /srv/backup")
-        assert run_to_end("btrbk-radicale.service") == "success", "btrbk failed"
-        taken = station.succeed("ls -d ${radicale.snapshotDir}/radicale.* | sort").split()[-1]
+        station.succeed("systemctl start restic-backups-station.service")
         code = station.succeed(f"{dav} -u mya:test -X DELETE {calendars}/mya/schedule/kept.ics")
         assert code in ("200", "204"), f"the agent got {code} deleting the event"
         station.fail("test -e ${radicale.dataDir}/collection-root/rokokol/schedule/kept.ics")
-        station.succeed(f"grep -q 'Kept event' {taken}/collection-root/rokokol/schedule/kept.ics")
+        station.succeed(f"{station_restic} restore latest --target /root/radicale-restore")
+        station.succeed("grep -q 'Kept event' /root/radicale-restore${radicale.dataDir}/collection-root/rokokol/schedule/kept.ics")
         station.succeed("rm /tmp/kept.ics")
 
     with subtest("Grafana shows Prometheus to anyone on the tailnet or the LAN, and only the admin may change it"):

@@ -51,6 +51,13 @@ in
       description = "Users of the htpasswd that back up from this host, so no node push is expected of them";
     };
 
+    localUserName = lib.mkOption {
+      type = lib.types.str;
+      default = "station";
+      readOnly = true;
+      description = "The htpasswd account this host pushes its own state under, and so the repository's directory";
+    };
+
     snapshotDir = lib.mkOption {
       type = lib.types.path;
       example = "/srv/backup/snapshots/restic";
@@ -59,10 +66,11 @@ in
 
     preserve = lib.mkOption {
       type = lib.types.str;
-      default = "14d";
+      default = "3d 1m";
       description = ''
-        How long the snapshots of `dataDir` are kept, as btrbk's snapshot_preserve. It is how
-        long a backup that a node deleted can still be restored
+        How long the snapshots of `dataDir` are kept, as btrbk's snapshot_preserve: three daily
+        and one monthly. It is how long a backup that a node deleted can still be restored. The
+        node's own `restic forget` policy is the other half and lives in the node's config
       '';
     };
 
@@ -165,6 +173,43 @@ in
         cfg.snapshotDir
       ];
       ConditionPathIsMountPoint = cfg.mountPoint;
+    };
+
+    # This host's own state, pushed into its own server: the databases and their dumps, which
+    # are not the synced file tree that btrbk covers. One backup and one policy, because
+    # `restic forget` over the whole repository would otherwise take the snapshots of every
+    # other backup in it. A module that owns a source adds its path here and runs its dump
+    # before this unit
+    services.restic.backups.station = {
+      repository = "rest:http://127.0.0.1:${toString cfg.port}/station/";
+      passwordFile = config.sops.secrets."station-restic-password".path;
+      environmentFile = config.sops.templates."station-restic.env".path;
+      initialize = true;
+      timerConfig = {
+        OnCalendar = "*-*-* 03:30:00";
+        Persistent = true;
+      };
+      pruneOpts = [
+        "--keep-daily 3"
+        "--keep-monthly 1"
+        "--group-by host"
+      ];
+    };
+
+    # The station is one of the server's own accounts, so it pushes like every node does, and
+    # the server holds no key of its own repository
+    rokokol.restic-server.localUsers = [ "station" ];
+    sops.secrets."station-restic-password" = { };
+    sops.secrets."station-restic-rest-password" = { };
+    sops.templates."station-restic.env".content = ''
+      RESTIC_REST_USERNAME=${cfg.localUserName}
+      RESTIC_REST_PASSWORD=${config.sops.placeholder."station-restic-rest-password"}
+    '';
+
+    systemd.services.restic-backups-station = {
+      after = [ "${unit}.socket" ];
+      requires = [ "${unit}.socket" ];
+      unitConfig = mountGuard;
     };
   };
 }
