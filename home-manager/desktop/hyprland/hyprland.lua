@@ -633,12 +633,15 @@ hl.window_rule({
 })
 
 -- pin-screen.sh: the window class starts with desktop-pin, matched by prefix
--- floating + on top; the script sets the exact geometry via hyprctl
+-- floating, pinned and without border or rounding, so the shot covers the selected
+-- rectangle pixel for pixel; swayimg sets the geometry itself, from --position/--size
 hl.window_rule({
   name = "float-desktop-pin",
   match = { class = "^(desktop-pin).*$" },
   float = true,
   pin = true,
+  border_size = 0,
+  rounding = 0,
 })
 
 -- Wayland gives the compositor no "this is a dialog" hint (match.modal reads the

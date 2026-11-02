@@ -2,13 +2,19 @@
 
 # Pins a selected region above all windows: a grim screenshot into swayimg, class
 # desktop-pin, with float rules in hyprland.lua
-# Position via hyprctl, not swayimg flags: swayimg 5.4 ignores --position and --size on
-# a Hyprland fractional scale
+# Geometry comes from swayimg's own --position/--size: on Hyprland they become a window
+# rule applied when the window maps, so nothing has to move the window afterwards
 
 GEOM=$(slurp -b ffffff66 -w 1 -f "%x %y %w %h")
 [ -z "$GEOM" ] && exit 0
 
 read -r X Y W H <<<"$GEOM"
+
+# That rule moves a window relative to its own monitor, while slurp reports global
+# coordinates: subtract the origin of the monitor the window will map on, which is the
+# focused one, as hyprland picks the focused monitor for a new window
+FOCUS=$(hyprctl monitors -j | jq -r '.[] | select(.focused) | "\(.x) \(.y)"')
+read -r MONX MONY <<<"${FOCUS:-0 0}"
 
 FILE="/tmp/pin_$(date +%s).png"
 grim -g "$X,$Y ${W}x${H}" "$FILE"
@@ -19,23 +25,9 @@ grim -g "$X,$Y ${W}x${H}" "$FILE"
   # fractional monitor scale rounding otherwise leaves a thin empty margin at the edge
   LC_NUMERIC=C swayimg \
     --appid="desktop-pin" \
+    --position="$((X - MONX)),$((Y - MONY))" \
     --size="$W,$H" \
-    -e 'swayimg.viewer.set_default_scale("fill")' \
-    "$FILE" &
-  SWPID=$!
-
-  # Wait until the window maps and set the exact geometry (slurp coordinates and
-  # movewindowpixel/resizewindowpixel are in logical pixels, they match)
-  for _ in $(seq 1 100); do
-    ADDR=$(hyprctl clients -j | jq -r ".[] | select(.pid==$SWPID) | .address")
-    [ -n "$ADDR" ] && break
-    sleep 0.02
-  done
-  if [ -n "$ADDR" ]; then
-    hyprctl --batch \
-      "dispatch resizewindowpixel exact $W $H,address:$ADDR; dispatch movewindowpixel exact $X $Y,address:$ADDR"
-  fi
-
-  wait "$SWPID"
+    -e 'swayimg.viewer.default_scale = "fill"' \
+    "$FILE"
   rm -f "$FILE"
 )
