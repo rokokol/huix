@@ -60,4 +60,12 @@
       options = "--delete-older-than 7d";
     };
   };
+
+  # journald's default cap is 10% of the filesystem, 4G on the station's 40G root, and the
+  # station held a gigabyte of it on a disk with 2G free. It rotates and deletes the oldest
+  # files by itself, so no unit and no timer is needed beside this
+  services.journald.settings.Journal = {
+    SystemMaxUse = "500M";
+    SystemMaxFileSize = "50M";
+  };
 }
