@@ -24,12 +24,13 @@ let
     + " + sum(increase(hindsight_llm_tokens_thoughts_tokens_total{model=\"${memoryModel}\"}[${window}])) * ${outputPrice}"
     + ")";
 
-  # Both operation tables read the same counter and differ only in their window
+  # A result that never happened still has a zero series, and a row of zero is noise: the filter
+  # drops those rows. Both tables read the same counter and differ only in their window
   operations =
     window:
     "round(sum by (operation, success) (increase(hindsight_operation_operations_total["
     + window
-    + "])))";
+    + "]))) > 0";
 
   upDown = {
     "0" = {
