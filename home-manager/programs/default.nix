@@ -7,6 +7,7 @@
     ./nixvim/default.nix
     ./reversing/default.nix
     ./rofi.nix
+    ./swayimg.nix
     ./term/default.nix
     ./thunar.nix
     ./virtual-mic.nix

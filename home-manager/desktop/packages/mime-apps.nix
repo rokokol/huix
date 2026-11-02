@@ -5,7 +5,7 @@
   ...
 }:
 
-# The handlers of the apps packages.nix installs. A key that ends in `*` takes every
+# The handlers of the apps the desktop layer installs. A key that ends in `*` takes every
 # type shared-mime-info knows under that prefix, and an exact key overrides it, so a type that
 # shared-mime-info renames is never left out. checks.nix refuses a key that is only an alias
 let
