@@ -16,6 +16,13 @@
   config = lib.mkIf config.rokokol.swayimg.enable {
     home.packages = with pkgs; [ swayimg ];
 
+    # Every image type; mime-apps.nix overrides the layered formats and the books with
+    # exact keys, which win over this prefix
+    xdg.mimeApps = {
+      enable = true;
+      defaultApplications."image/*" = "swayimg.desktop";
+    };
+
     home.file.".config/swayimg/init.lua".text = ''
       swayimg.mode = "viewer"
       swayimg.viewer.default_scale = "fit"

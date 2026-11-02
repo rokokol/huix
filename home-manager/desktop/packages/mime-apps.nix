@@ -21,7 +21,6 @@ lib.mkIf config.rokokol.workstation.enable {
       {
         "audio/*" = celluloid;
         "video/*" = celluloid;
-        "image/*" = "swayimg.desktop";
 
         "application/epub+zip" = evince;
         "application/pdf" = evince;
