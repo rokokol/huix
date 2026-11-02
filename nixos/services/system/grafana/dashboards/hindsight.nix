@@ -24,6 +24,13 @@ let
     + " + sum(increase(hindsight_llm_tokens_thoughts_tokens_total{model=\"${memoryModel}\"}[${window}])) * ${outputPrice}"
     + ")";
 
+  # Both operation tables read the same counter and differ only in their window
+  operations =
+    window:
+    "round(sum by (operation, success) (increase(hindsight_operation_operations_total["
+    + window
+    + "])))";
+
   upDown = {
     "0" = {
       text = "down";
@@ -82,7 +89,7 @@ panels.dashboard {
       x = 0;
       y = 10;
       w = 12;
-      expr = "round(sum by (operation, success) (increase(hindsight_operation_operations_total[$__range])))";
+      expr = operations "$__range";
       unit = "short";
       labels = [
         "operation"
@@ -195,14 +202,18 @@ panels.dashboard {
     })
     (row "Last 7 days" null 43)
     (table {
-      title = "Memory updates in the last 7 days";
+      title = "Memory operations in the last 7 days";
       x = 0;
       y = 44;
       w = 24;
-      expr = "round(sum by (operation) (increase(hindsight_operation_operations_total[7d])))";
+      # The window is fixed on purpose: the dashboard opens on a day, and this row is a week
+      expr = operations "7d";
       unit = "short";
-      labels = [ "operation" ];
-      valueName = "Updates";
+      labels = [
+        "operation"
+        "success"
+      ];
+      valueName = "Operations";
       sortDesc = true;
       coloured = false;
     })
