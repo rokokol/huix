@@ -1,7 +1,11 @@
--- The pure half of main.lua, run by plain Lua with yazi's globals stubbed out: `lua test.lua`
--- from this directory, or the yazi-plugin-tests flake check
+-- The pure half of main.lua and the one decision its entry point makes, run by plain Lua with
+-- yazi's globals stubbed out: `lua test.lua` from this directory, or the yazi-plugin-tests
+-- flake check
+local plugin_state = { bin = "/wl" }
+local calls, notified = {}, {}
 ya = {
-	sync = function(fn) return fn end,
+	-- The plugin's own state table, which yazi hands back to every `ya.sync` body
+	sync = function(fn) return function(...) return fn(plugin_state, ...) end end,
 	percent_decode = function(s)
 		return (s:gsub("%%(%x%x)", function(h) return string.char(tonumber(h, 16)) end))
 	end,
@@ -11,6 +15,30 @@ ya = {
 		return (s:gsub('[%c "#%%<>?%[\\%]^`{|}\128-\255]', function(c) return string.format("%%%02X", c:byte()) end))
 	end,
 }
+
+-- What export reaches for: every command it runs is recorded, and a notice is kept instead of
+-- shown. The display answers the socket question in the export section below
+Command = setmetatable({ PIPED = 1 }, {
+	__call = function(_, cmd)
+		local call = {}
+		function call:arg() return self end
+		function call:stdout() return self end
+		function call:stderr() return self end
+		function call:output()
+			calls[#calls + 1] = cmd
+			return { status = { success = true }, stdout = "", stderr = "" }
+		end
+		return call
+	end,
+})
+ya.notify = function(msg) notified[#notified + 1] = msg end
+fs = { cha = function() return nil end }
+Url = function(path) return path end
+cx = { yanked = { { path = "/tmp/a.txt" } }, active = { current = { cwd = "/tmp" } } }
+os.getenv = function(name)
+	return ({ WAYLAND_DISPLAY = "wayland-1", XDG_RUNTIME_DIR = "/tmp" })[name]
+end
+
 local clipboard = dofile("main.lua")
 
 local failed = 0
@@ -83,6 +111,32 @@ expect("two pictures", clipboard.picture(2, "image/png"), nil)
 expect("a raw photo", clipboard.picture(1, "image/x-canon-cr2"), nil)
 expect("a song", clipboard.picture(1, "audio/mpeg"), nil)
 expect("no type", clipboard.picture(1, nil), nil)
+
+-- A Wayland display names its socket either under XDG_RUNTIME_DIR or by an absolute path, and
+-- a session without a Wayland display has no socket at all
+local dir = "/run/user/1000"
+expect("named socket", clipboard.socket(dir, "wayland-1"), "/run/user/1000/wayland-1")
+expect("absolute socket", clipboard.socket(dir, "/tmp/x/wayland-9"), "/tmp/x/wayland-9")
+expect("no display", clipboard.socket(dir, nil), nil)
+expect("empty display", clipboard.socket(dir, ""), nil)
+expect("no runtime", clipboard.socket(nil, "wayland-1"), nil)
+expect("empty runtime", clipboard.socket("", "wayland-1"), nil)
+
+-- export asks wl-copy only when a Wayland socket answers, and stays silent when none does
+local function export_with(socket)
+	calls, notified = {}, {}
+	fs.cha = function() return socket end
+	clipboard:entry({ args = { "export" } })
+end
+export_with(nil)
+expect("no socket, no wl-copy", #calls, 0)
+expect("no socket, no notice", #notified, 0)
+export_with(true)
+expect("socket, wl-copy", calls[#calls], "/wl/wl-copy")
+expect("socket, no notice", #notified, 0)
+for _, name in ipairs { "gnome", "uris", "text" } do
+	os.remove("/tmp/yazi-clipboard-" .. name)
+end
 
 if failed > 0 then
 	io.stderr:write(failed .. " failed\n")

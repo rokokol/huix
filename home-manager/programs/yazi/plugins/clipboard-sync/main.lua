@@ -3,8 +3,10 @@
 -- into the current folder, and with `--force` overwrites a file of the same name instead of
 -- picking a free one. Files are copied, or moved when they were cut, as yazi tasks; an image
 -- or a text becomes a file of its own. yazi's built-in `clipboard` reads files through the
--- terminal on kitty's paste and only copies them; this one works in any terminal. `files`,
--- `offers`, `same`, `pick` and `picture` are pure and are what test.lua checks
+-- terminal on kitty's paste and only copies them; this one works in any terminal. A session with
+-- no Wayland display has no clipboard for another program to read, so `export` leaves the yank
+-- to yazi there rather than asking wl-copy and reporting its failure. `files`, `offers`, `same`,
+-- `pick`, `picture` and `socket` are pure and are what test.lua checks
 local M = {}
 
 local GNOME = "x-special/gnome-copied-files"
@@ -84,6 +86,21 @@ local PICTURES = { ["image/png"] = true, ["image/jpeg"] = true, ["image/gif"] = 
 -- The type to offer a yank's contents in beside its files: only for one picture
 function M.picture(count, mime) return count == 1 and PICTURES[mime] and mime or nil end
 
+-- The socket a Wayland display names: a bare name sits under XDG_RUNTIME_DIR, while a path is
+-- used as written. Nothing means no Wayland session
+function M.socket(runtime, display)
+  if not display or display == "" then
+    return nil
+  end
+  if display:sub(1, 1) == "/" then
+    return display
+  end
+  if not runtime or runtime == "" then
+    return nil
+  end
+  return runtime .. "/" .. display
+end
+
 function M:setup(opts) self.bin = (opts or {}).wl_clipboard end
 
 local state = ya.sync(function(self) return self.bin, self.exported end)
@@ -113,6 +130,13 @@ end
 
 local function paste_type(bin, mime) return run(bin .. "/wl-paste", { "--no-newline", "--type", mime }) end
 
+-- Whether this session can reach a clipboard of its own. A workstation reached over SSH has no
+-- Wayland display, so wl-copy would fail there and the yank stays yazi's own
+local function wayland()
+  local socket = M.socket(os.getenv("XDG_RUNTIME_DIR"), os.getenv("WAYLAND_DISPLAY"))
+  return socket ~= nil and fs.cha(Url(socket)) ~= nil
+end
+
 local function write(path, text)
   local file = io.open(path, "w")
   if file then
@@ -130,6 +154,10 @@ local function export()
     if exported and paste_type(bin, URIS) == exported then
       run(bin .. "/wl-copy", { "--clear" })
     end
+    return set_exported(nil)
+  end
+
+  if not wayland() then
     return set_exported(nil)
   end
 
