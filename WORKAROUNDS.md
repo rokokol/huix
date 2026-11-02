@@ -512,3 +512,27 @@ The value is an absolute path -> keep the override. The value is `"Epson_201310w
 **Removal check:** `nix eval --json .#nixosConfigurations.nixos-station.pkgs --apply 'p: (p ? hermes-plugin-hindsight) && (p.python3Packages ? hindsight-client)' | grep -qx true` — if both are packaged in nixpkgs, drop the input, the package file, and the `extraPythonPackages` entries
 
 **Upstream:** [vectorize-io/hindsight#6245](https://github.com/vectorize-io/hindsight/issues/6245) (packaging request, open)
+
+---
+
+## Linux 6.18.58 stops reporting the lid switch
+
+**Where:** `boot.kernelPackages` in `nixos/configuration-laptop.nix`, on `nixos-laptop` only. Every other host keeps the kernel that nixpkgs chooses by default
+
+**Symptom it prevents:** closing the lid does nothing. `systemd-logind` never logs `Lid closed.`, so the machine does not suspend. Hyprland's `switch:on:Lid Switch` bind never fires either, so the lid-mode blanking is dead as well. `SUPER+SHIFT+A` still starts and stops `huix-lid-inhibit`, which makes the failure read as a stuck inhibitor
+
+**Why it happens:** from 6.18.58 the `acpi-button` driver registers on the platform bus instead of the ACPI bus. Nothing else in the module changed: the strings, the DMI quirks, `lid_init_state` and `lid_report_interval` are identical, and both versions install a notify handler. On this Fujitsu LIFEBOOK T939 the platform-driver version never emits `SW_LID`. The firmware is not at fault. `/proc/acpi/button/lid/LID/state` still turns `closed` on a real lid close, and the input device still advertises `SW_LID`. logind holds that device open, and no process holds an `EVIOCGRAB` on it. The power button keeps arriving through the same module's fixed-event path, which is why only the lid fails
+
+**Why this works:** 6.12 is LTS and its `acpi-button` is still the ACPI driver — `__acpi_bus_register_driver` and `acpi_button_add`, the shape 6.18.55 had. Everything above the kernel stays as designed: logind suspends on the lid, and the lid-mode bind blanks the internal panel
+
+**Rejected alternative:** a userspace poller over `/proc/acpi/button/lid/*/state` that suspends or blanks by itself. The firmware state does flip, so it would work. It copies logind, however, and it has to take over the lid-mode blanking too, because Hyprland's switch binds receive nothing either. It would also outlive the defect in the tree
+
+**Removal check:** remove the pin, rebuild, reboot into the default kernel and close the lid once
+
+```sh
+journalctl -b -u systemd-logind --no-pager | grep -F 'Lid closed.'
+```
+
+A line means the default kernel reports the lid again, and the pin can go. No line after a real lid close means keep it
+
+**Upstream:** not reported yet
