@@ -15,6 +15,10 @@
   system.stateVersion = "25.11";
   services.ollama.package = pkgs.stable.ollama-cuda;
 
+  # Linux 6.18.58 and newer never report a power button press on this machine, so the power key
+  # reaches neither logind nor Hyprland (see WORKAROUNDS.md)
+  boot.kernelPackages = pkgs.linuxPackages_6_12;
+
   services.flatpak.packages = [
     "com.google.Chrome"
     "ru.linux_gaming.PortProton"
