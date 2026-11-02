@@ -44,35 +44,35 @@
     # swayimg 5.x switched to a Lua config (init.lua); the old INI ~/.config/swayimg/config
     # is no longer read, so both the info overlay and the bindings are set here
     home.file.".config/swayimg/init.lua".text = ''
-      swayimg.set_mode("viewer")
-      swayimg.viewer.set_default_scale("fit")
+      swayimg.mode = "viewer"
+      swayimg.viewer.default_scale = "fit"
       -- Transparent, blurred background derived from the image itself (as in older
       -- versions), not a black fill. "auto" = extend/mirror by aspect ratio.
       swayimg.viewer.set_window_background("auto")
 
       -- No text overlay by default: empty schemes for all corners.
-      swayimg.viewer.set_text("topleft", {})
-      swayimg.viewer.set_text("topright", {})
-      swayimg.viewer.set_text("bottomleft", {})
-      swayimg.viewer.set_text("bottomright", {})
-      swayimg.text.set_timeout(0) -- if info is toggled on by hand, it stays until toggled off
+      local no_text = { topleft = {}, topright = {}, bottomleft = {}, bottomright = {} }
+      swayimg.viewer.text = no_text
+      swayimg.text.timeout = 0 -- if info is toggled on by hand, it stays until toggled off
 
       -- Info toggle on a key (the former `i`): show/hide the image summary.
       local info_on = false
       local function toggle_info()
         if info_on then
-          swayimg.viewer.set_text("topleft", {})
-          swayimg.text.hide()
+          swayimg.viewer.text = no_text
+          swayimg.text.visible = false
           info_on = false
         else
-          swayimg.viewer.set_text("topleft", {
-            "File: {name}",
-            "Format: {format}",
-            "Size: {frame.width}x{frame.height}",
-            "File size: {sizehr}",
-            "Image: {list.index} of {list.total}",
-          })
-          swayimg.text.show()
+          swayimg.viewer.text = {
+            topleft = {
+              "File: {name}",
+              "Format: {format}",
+              "Size: {frame.width}x{frame.height}",
+              "File size: {sizehr}",
+              "Image: {list.index} of {list.total}",
+            },
+          }
+          swayimg.text.visible = true
           info_on = true
         end
       end
@@ -111,18 +111,13 @@
       for key, fn in pairs(keymap) do swayimg.viewer.on_key(key, fn) end
 
       -- The stock wheel bindings move the image against the wheel (up moves it up),
-      -- so the signs are reversed here to make the wheel scroll the view like a page
-      local function pan(dx, dy)
-        return function()
-          local pos = swayimg.viewer.get_position()
-          swayimg.viewer.set_abs_position(pos.x + dx, pos.y + dy)
-        end
-      end
+      -- so the signs are reversed here to make the wheel scroll the view like a page.
+      -- swayimg 5.7 replaced the per-button wheel binds with one scroll handler
       local step = 10
-      swayimg.viewer.on_mouse("ScrollUp", pan(0, step))
-      swayimg.viewer.on_mouse("ScrollDown", pan(0, -step))
-      swayimg.viewer.on_mouse("ScrollLeft", pan(step, 0))
-      swayimg.viewer.on_mouse("ScrollRight", pan(-step, 0))
+      swayimg.viewer.on_scroll(function(_, dx, dy)
+        local pos = swayimg.viewer.get_position()
+        swayimg.viewer.set_abs_position(pos.x - dx * step, pos.y - dy * step)
+      end)
     '';
   };
 }
