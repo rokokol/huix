@@ -23,10 +23,6 @@ in
       type = lib.types.str;
       description = "Subvolume holding consistent PostgreSQL dumps";
     };
-    snapshotDir = lib.mkOption {
-      type = lib.types.str;
-      description = "Directory of PostgreSQL dump snapshots";
-    };
     subvolumes = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       readOnly = true;
@@ -34,10 +30,9 @@ in
         map onVolume [
           cfg.dataDir
           backup.dumpDir
-          backup.snapshotDir
         ]
       );
-      defaultText = lib.literalMD "Hindsight data, dump and snapshot subvolumes when enabled";
+      defaultText = lib.literalMD "Hindsight data and dump subvolumes when enabled";
       description = "Subvolumes for the disk layout to create";
     };
   };
@@ -48,9 +43,8 @@ in
         assertion = lib.all (lib.hasPrefix "${backup.mountPoint}/") [
           cfg.dataDir
           backup.dumpDir
-          backup.snapshotDir
         ];
-        message = "Hindsight data, dumps and snapshots must be under the backup mountpoint";
+        message = "Hindsight data and dumps must be under the backup mountpoint";
       }
     ];
     services.postgresqlBackup = {
@@ -75,23 +69,6 @@ in
         "+${pkgs.coreutils}/bin/install -d -m 700 -o postgres -g postgres ${backup.dumpDir}"
         "+${pkgs.btrfs-progs}/bin/btrfs subvolume show ${backup.dumpDir}"
       ];
-    };
-    services.btrbk.instances.hindsight = {
-      onCalendar = "*-*-* 03:00:00";
-      settings = {
-        timestamp_format = "long";
-        snapshot_create = "onchange";
-        snapshot_preserve_min = "1d";
-        volume.${backup.mountPoint} = {
-          snapshot_dir = onVolume backup.snapshotDir;
-          subvolume.${onVolume backup.dumpDir}.snapshot_preserve = "14d 8w";
-        };
-      };
-    };
-    systemd.services.btrbk-hindsight = {
-      unitConfig = guard;
-      requires = [ "postgresqlBackup-hindsight.service" ];
-      after = [ "postgresqlBackup-hindsight.service" ];
     };
     services.restic.backups.station.paths = [ backup.dumpDir ];
     systemd.services.restic-backups-station = {

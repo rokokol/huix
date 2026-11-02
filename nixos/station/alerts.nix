@@ -31,8 +31,6 @@ in
   systemd.services = onFailure [
     "backup-heartbeat"
     "btrbk-restic"
-    "btrbk-hermes"
-    "btrbk-hindsight"
     "btrbk-syncthing"
     "btrfs-scrub@"
     "hermes-agent"
@@ -52,7 +50,6 @@ in
     "radicale"
     "restic-rest-server"
     "restic-backups-station"
-    "restic-backups-hermes"
     "smartd"
     "syncthing"
     "tailscaled"

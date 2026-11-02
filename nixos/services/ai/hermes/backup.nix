@@ -31,20 +31,11 @@ in
       type = lib.types.str;
       description = "Subvolume that holds the mutable Hermes home";
     };
-    snapshotDir = lib.mkOption {
-      type = lib.types.str;
-      description = "Directory of Hermes state snapshots on the backup volume";
-    };
     subvolumes = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       readOnly = true;
-      default = lib.optionals cfg.enable (
-        map onVolume [
-          cfg.dataDir
-          cfg.snapshotDir
-        ]
-      );
-      defaultText = lib.literalMD "The state and snapshot subvolumes when the backup is enabled";
+      default = lib.optionals cfg.enable (map onVolume [ cfg.dataDir ]);
+      defaultText = lib.literalMD "The state subvolume when the backup is enabled";
       description = "Subvolumes for the disk layout to create";
     };
   };
@@ -52,11 +43,8 @@ in
   config = lib.mkIf cfg.enable {
     assertions = [
       {
-        assertion = lib.all (path: lib.hasPrefix "${cfg.mountPoint}/" path) [
-          cfg.dataDir
-          cfg.snapshotDir
-        ];
-        message = "Hermes state and snapshots must be under the backup mountpoint";
+        assertion = lib.hasPrefix "${cfg.mountPoint}/" cfg.dataDir;
+        message = "Hermes state must be under the backup mountpoint";
       }
     ];
     fileSystems."${agent.home}/.hermes" = {
@@ -100,20 +88,6 @@ in
       '';
     };
     systemd.tmpfiles.rules = [ "d ${cache} 0700 ${agent.user} ${agent.user} -" ];
-
-    services.btrbk.instances.hermes = {
-      onCalendar = "daily";
-      settings = {
-        timestamp_format = "long";
-        snapshot_create = "onchange";
-        snapshot_preserve_min = "1d";
-        volume.${cfg.mountPoint} = {
-          snapshot_dir = onVolume cfg.snapshotDir;
-          subvolume.${onVolume cfg.dataDir}.snapshot_preserve = "14d";
-        };
-      };
-    };
-    systemd.services.btrbk-hermes.unitConfig = guard;
 
     # The archive is built here rather than in restic's prepare hook: the hook holds one command,
     # and the station's single backup serves four sources. See WORKAROUNDS.md for the 1980 step

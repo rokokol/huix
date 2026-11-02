@@ -19,7 +19,6 @@ in
       backup = {
         mountPoint = backup;
         dumpDir = "${backup}/hindsight/dumps";
-        snapshotDir = "${backup}/snapshots/hindsight";
       };
     };
     restic-server = {
@@ -94,7 +93,6 @@ in
       hermes.backup = {
         mountPoint = backup;
         dataDir = "${backup}/hermes";
-        snapshotDir = "${backup}/snapshots/hermes";
       };
     };
 
