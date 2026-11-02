@@ -24,6 +24,10 @@ It is not my artwork and it is not the greeter cursor — that one is cut from t
 
 `nixos/fonts/doki.otf`, `doki-patched.ttf`, `doki-nerd-font-mono-regular.otf` — Doki, a font by 538Fonts from 2015, and variants of it patched here. It is free for personal use only and is not part of the game
 
+## DeepWiki badge
+
+`assets/ask-deepwiki.svg` is DeepWiki's own "Ask DeepWiki" badge, copied once from `https://deepwiki.com/badge.svg` and served from this repository because GitHub's camo proxy can no longer fetch that URL: deepwiki.com now answers a non-browser request with a Vercel bot challenge, so the badge rendered as a broken image. It is their artwork, it links to their page, and nothing is claimed about it
+
 ## Mya
 
 `assets/mya-logo.png`, the picture of Mya in the agent's README, is my own drawing

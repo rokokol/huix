@@ -535,4 +535,4 @@ journalctl -b -u systemd-logind --no-pager | grep -F 'Lid closed.'
 
 A line means the default kernel reports the lid again, and the pin can go. No line after a real lid close means keep it
 
-**Upstream:** not reported yet
+**Upstream:** reported to both lists on 2 Nov 2026 — [linux-acpi](https://marc.info/?l=linux-acpi&m=179362955890475&w=2), [linux-input](https://marc.info/?l=linux-input&m=179362970090829&w=2), message-id `010601a19ca3de07-739bccf6-3a29-486f-b31e-1c928fe27e10-000000@ap-northeast-1.amazonses.com`. No reply in either thread yet

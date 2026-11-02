@@ -319,7 +319,10 @@ in
       ];
       hermesHomeFiles.".managed" = "false";
       backend = {
-        mode = "serve";
+        # "dashboard" is "serve" plus the browser admin panel on the same port: the tailnet
+        # site in rokokol.tailnet-web forwards the dashboard port here, and a headless backend
+        # answers every UI route with "web UI disabled — use `hermes dashboard`"
+        mode = "dashboard";
         host = "127.0.0.1";
         port = cfg.dashboardPort + 1;
       };
