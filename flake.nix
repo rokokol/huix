@@ -364,11 +364,21 @@
       whichKeyDelay = 200;
       # Degrees Celsius of the CPU from which waybar and the station's dashboard both show alarm
       criticalTemperature = 80;
+      # The labels a workflow asks for by name, and the image the job then runs in: the PC's runner
+      # declares them at its startup, and the station registers a runner under the same names
+      forgejoRunner = {
+        image = "data.forgejo.org/oci/node:22-bookworm";
+        labels = [
+          "docker"
+          "ubuntu-latest"
+        ];
+      };
 
       commonArgs = {
         inherit
           base16
           criticalTemperature
+          forgejoRunner
           huixDir
           inputs
           myWikiDir

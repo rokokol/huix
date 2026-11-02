@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  forgejoRunner,
   rokokolEmail,
   rokokolName,
   ...
@@ -143,7 +144,9 @@ in
     );
 
     # Registration under a known secret is idempotent, so the runner needs no token copied out
-    # of the web page. The wrapper runs `forgejo`, whose admin tools live under forgejo-cli
+    # of the web page. The wrapper runs `forgejo`, whose admin tools live under forgejo-cli. The
+    # labels go with it because the command writes them even over an existing runner, while the
+    # flag's empty default would store `[""]`, a label no job asks for
     systemd.services.forgejo-runners = lib.mkIf (cfg.runners != [ ]) {
       description = "Register the Forgejo Actions runners";
       requires = [ "forgejo.service" ];
@@ -158,6 +161,7 @@ in
       };
       script = lib.concatMapStrings (name: ''
         forgejo-cli forgejo-cli actions register --name ${name} \
+          --labels ${lib.concatStringsSep "," forgejoRunner.labels} \
           --secret-file ${config.sops.templates.${runnerSecret name}.path}
       '') cfg.runners;
     };

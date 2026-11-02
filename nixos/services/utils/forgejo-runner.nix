@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  forgejoRunner,
   inputs,
   utils,
   ...
@@ -37,10 +38,7 @@ in
 
     labels = lib.mkOption {
       type = lib.types.listOf (lib.types.strMatching "[^:]+:docker://.+");
-      default = [
-        "docker:docker://data.forgejo.org/oci/node:22-bookworm"
-        "ubuntu-latest:docker://data.forgejo.org/oci/node:22-bookworm"
-      ];
+      default = map (label: "${label}:docker://${forgejoRunner.image}") forgejoRunner.labels;
       description = "Labels the runner takes jobs for, each mapped to the image the job runs in";
     };
 
