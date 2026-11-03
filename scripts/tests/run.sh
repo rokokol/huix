@@ -653,6 +653,8 @@ raise unit:beat.service "beat.service failed"
 is "a new problem is raised" 0 "$alert_status"
 logged "a new problem is mailed" '^mail ' 'Subject: beat\.service failed'
 logged "a new problem goes to Telegram" '^curl ' 'telegram\.test/botbot-token/sendMessage' 'chat_id=42' 'beat\.service failed'
+not_logged "without a topic id the alert goes to the chat itself" 'message_thread_id='
+logged "the agent is told the owner already has the alert" '^notify ' 'the owner has this in Telegram'
 logged "a new problem goes to the agent" '^notify ' 'beat\.service failed'
 logged "the agent is asked to look into a new problem" '^notify ' 'beat\.service failed' 'station-health'
 is "the problem is open" "unit:beat.service" "$(listed)"
@@ -697,6 +699,11 @@ journal=$(cut -f2,3 "$ALERT_STATE/journal")
 is "the journal keeps each change of a problem" \
   "OPEN unit:beat.service|UPDATE unit:beat.service|OPEN reboot|RESOLVED reboot|RESOLVED unit:beat.service" \
   "$(tr '\t\n' ' |' <<<"$journal" | sed 's/|$//')"
+
+reset_log
+ALERT_TELEGRAM_THREAD=7 raise unit:topic.service "topic.service failed"
+logged "a topic id puts the alert in that topic" '^curl ' 'message_thread_id=7'
+bash "$alert" clear unit:topic.service >/dev/null 2>&1
 
 # reconcile asks systemd about each open unit, through the systemctl stub. A start counts only
 # when it is not older than the moment the problem opened, less the minute the alert pipeline may

@@ -112,7 +112,11 @@ in
     # The agent draws charts and pages in the DDLC faces
     fonts.enable = true;
     backup-heartbeat.enable = true;
-    alert-mail.enable = true;
+    # Alerts arrive where the agent reports what it found, so the two sit in one topic
+    alert-mail = {
+      enable = true;
+      telegram.threadId = config.rokokol.mya-agent.hermes.reportsTopic;
+    };
     prometheus.enable = true;
     grafana.enable = true;
     pushgateway.enable = true;

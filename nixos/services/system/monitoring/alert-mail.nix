@@ -79,6 +79,9 @@ let
         export ALERT_TELEGRAM_API=${lib.optionalString cfg.telegram.enable cfg.telegram.api}
         export ALERT_TELEGRAM_TOKEN=${telegramSecret "telegram-bot-token"}
         export ALERT_TELEGRAM_CHAT=${telegramSecret "telegram-owner-chat-id"}
+        export ALERT_TELEGRAM_THREAD=${
+          lib.optionalString (cfg.telegram.threadId != null) (toString cfg.telegram.threadId)
+        }
         export ALERT_NOTIFY=${lib.optionalString (cfg.notify != null) cfg.notify}
         export ALERT_METRICS=${config.rokokol.node-exporter.textfileDir}/alerts.prom
         ${extra}
@@ -156,6 +159,17 @@ in
         type = lib.types.str;
         default = "https://api.telegram.org";
         description = "Base URL of the Telegram Bot API";
+      };
+
+      threadId = lib.mkOption {
+        type = lib.types.nullOr lib.types.int;
+        default = null;
+        description = ''
+          Topic of the forum in the owner's chat that carries the alerts, passed as the Bot API's
+          `message_thread_id`, which the API accepts for forum supergroups alone. A message sent
+          without it reaches the chat's General topic, while the agent's own replies go to the
+          topic its gateway is configured with
+        '';
       };
     };
 

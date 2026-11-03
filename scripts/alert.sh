@@ -47,6 +47,7 @@ Environment:
   ALERT_TELEGRAM_API   the Bot API base URL; empty means no Telegram
   ALERT_TELEGRAM_TOKEN, ALERT_TELEGRAM_CHAT  files with the bot's token and the owner's chat id;
                        while either cannot be read, only the mail goes
+  ALERT_TELEGRAM_THREAD  the forum topic to post into; empty posts to the chat's General topic
   ALERT_NOTIFY         the command that hands one line of text to the agent; empty means none
   ALERT_METRICS        a file for the open problems as Prometheus text; empty means none
   ALERT_SPAWN          the command that starts "deliver FILE" apart, given FILE; empty means
@@ -138,9 +139,13 @@ deliver_now() {
   local subject=$1 body=$2 ask=$3 note
   telegram "$subject" "$body" &
   if [ -n "${ALERT_NOTIFY:-}" ]; then
-    note=$subject
+    # The owner already has the alert in Telegram, so the agent reports what it found rather than
+    # repeating the message
+    note="$subject — the owner has this in Telegram"
     if [ "$ask" = 1 ]; then
-      note+=" — look into it with the station-health skill and tell the owner what you found"
+      note+="; look into it with the station-health skill and tell the owner what you found"
+    else
+      note+="; say more only if you know more"
     fi
     "$ALERT_NOTIFY" "$note" || printf 'alert.sh: the agent did not take: %s\n' "$subject" >&2
   fi
@@ -159,16 +164,24 @@ deliver_now() {
 # telegram SUBJECT BODY
 telegram() {
   local subject=$1 body=$2 token chat answer
+  local -a args
   if [ -n "${ALERT_TELEGRAM_API:-}" ]; then
     if token=$(cat -- "${ALERT_TELEGRAM_TOKEN:-}" 2>/dev/null) &&
       chat=$(cat -- "${ALERT_TELEGRAM_CHAT:-}" 2>/dev/null); then
       # Telegram refuses a text over 4096 characters. Its answer to a refusal says why, as in
-      # a chat that never started the bot, and holds no token
+      # a chat that never started the bot, and holds no token. A forum needs the topic's thread,
+      # or the message lands in the General topic instead of the one the owner reads
       answer=$(mktemp)
+      args=(
+        --data-urlencode "chat_id=$chat"
+        --data-urlencode "text=$(printf '%s%s' "$subject" "${body:+$'\n\n'$body}" | head -c 4000)"
+      )
+      if [ -n "${ALERT_TELEGRAM_THREAD:-}" ]; then
+        args+=(--data-urlencode "message_thread_id=$ALERT_TELEGRAM_THREAD")
+      fi
       curl --silent --show-error --fail-with-body --max-time 30 \
         --retry 5 --retry-all-errors --retry-max-time 600 -o "$answer" \
-        --data-urlencode "chat_id=$chat" \
-        --data-urlencode "text=$(printf '%s%s' "$subject" "${body:+$'\n\n'$body}" | head -c 4000)" \
+        "${args[@]}" \
         "$ALERT_TELEGRAM_API/bot$token/sendMessage" ||
         printf 'alert.sh: Telegram did not take: %s (%s)\n' "$subject" "$(cat -- "$answer")" >&2
       rm -f -- "$answer"
