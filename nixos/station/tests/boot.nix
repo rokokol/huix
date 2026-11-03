@@ -1031,6 +1031,15 @@ pkgs.testers.runNixOSTest {
         station.succeed("test -s /var/cache/hermes-backup/current.zip")
         station.succeed("${lib.getExe pkgs.python3} -c 'import zipfile; z=zipfile.ZipFile(\"/var/cache/hermes-backup/current.zip\"); assert z.testzip() is None; assert any(p.endswith(\"state.db\") for p in z.namelist())'")
         station.succeed(f"{station_restic} snapshots --json | ${lib.getExe pkgs.jq} -e 'length > 0'")
+        # The archive is built from a snapshot, and the snapshot must not outlive the run
+        assert "hermes-snapshot" not in station.succeed(f"{btrfs} subvolume list /srv/backup")
+        # Wanted, not required: a broken archive must not cost the other three sources
+        assert "hermes-backup-zip.service" in station.succeed(
+            "systemctl show -P Wants restic-backups-station.service"
+        )
+        assert "hermes-backup-zip.service" not in station.succeed(
+            "systemctl show -P Requires restic-backups-station.service"
+        )
 
     with subtest("a new machine gets the whole Hermes state back from restic"):
         station.succeed(f"{station_restic} restore latest --target /root/restore")

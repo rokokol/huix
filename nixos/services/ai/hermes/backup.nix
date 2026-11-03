@@ -11,6 +11,8 @@ let
   cfg = agent.hermes.backup;
   onVolume = lib.removePrefix "${cfg.mountPoint}/";
   cache = "/var/cache/hermes-backup";
+  # A writable snapshot beside the subvolume, outside the snapshot directory btrbk owns
+  snapshot = "${cfg.mountPoint}/hermes-snapshot";
   package = config.services.hermes-agent.package;
   guard = {
     RequiresMountsFor = [ cfg.dataDir ];
@@ -95,18 +97,26 @@ in
       description = "Portable archive of the Hermes state";
       unitConfig = guard;
       serviceConfig.Type = "oneshot";
+      # The walk reads a snapshot: the agent prunes its own cron output and the handoffs of finished
+      # workers as it works, so a file the walk listed could vanish before the archive reached it
       script = ''
-        ${pkgs.findutils}/bin/find ${agent.home}/.hermes ! -newermt 1980-01-02 \
+        set -eu
+        ${pkgs.btrfs-progs}/bin/btrfs subvolume delete "${snapshot}" 2>/dev/null || true
+        ${pkgs.btrfs-progs}/bin/btrfs subvolume snapshot ${cfg.dataDir} "${snapshot}"
+        trap '${pkgs.btrfs-progs}/bin/btrfs subvolume delete "${snapshot}"' EXIT
+        ${pkgs.findutils}/bin/find "${snapshot}" ! -newermt 1980-01-02 \
           -exec ${pkgs.coreutils}/bin/touch -h -d 1980-01-02 {} +
         ${pkgs.util-linux}/bin/runuser -u ${agent.user} -- \
-          ${pkgs.coreutils}/bin/env HOME=${agent.home} HERMES_HOME=${agent.home}/.hermes \
+          ${pkgs.coreutils}/bin/env HOME=${agent.home} HERMES_HOME="${snapshot}" \
           ${lib.getExe package} backup --output ${cache}/current.zip --keep 0
         test -s ${cache}/current.zip
       '';
     };
 
     services.restic.backups.station.paths = [ "${cache}/current.zip" ];
-    systemd.services.restic-backups-station.requires = [ "hermes-backup-zip.service" ];
+    # Wanted, not required: a broken archive must not cost the snapshot of the other three
+    # sources, and its own failure reaches the owner through OnFailure
+    systemd.services.restic-backups-station.wants = [ "hermes-backup-zip.service" ];
     systemd.services.restic-backups-station.after = [ "hermes-backup-zip.service" ];
   };
 }
