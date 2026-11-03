@@ -62,10 +62,10 @@ in
   systemd.sockets = onFailure [ "restic-rest-server" ];
 
   # Telegram is the channel that does not pass through the mail node, so an alert about that
-  # node still arrives. The agent gets each alert too, to act on it at once
+  # node still arrives. The agent gets nothing on its own: the owner asks it to read an alert
+  # when he wants that, and `mya-agent-notify` stays the way to hand it one statement
   rokokol.alert-mail = {
     telegram.enable = true;
-    inherit (config.rokokol.mya-agent) notify;
     # Each repository, each node and each problem a node reports is an alert of its own, so a
     # second silent node is sent even while the first is still open
     sources = {
