@@ -537,3 +537,25 @@ journalctl -b -u systemd-logind --no-pager | grep -F 'Lid closed.'
 A counter above zero in `ff_pwr_btn` together with the power menu opening means the default kernel handles the button; a `Lid closed.` line after a real lid close means it reports the lid. Both, and the pins can go. Either missing, and that host keeps its pin
 
 **Upstream:** the lid was reported to both lists on 2 Nov 2026 — [linux-acpi](https://marc.info/?l=linux-acpi&m=179362955890475&w=2), [linux-input](https://marc.info/?l=linux-input&m=179362970090829&w=2), message-id `010601a19ca3de07-739bccf6-3a29-486f-b31e-1c928fe27e10-000000@ap-northeast-1.amazonses.com`. No reply in either thread yet. The power button is the same defect seen from the other side: 7.0 and later hand the fixed devices to `acpi_default_enumeration()` in `acpi_bus_scan_fixed()`, which gives the platform driver a device to bind, but 6.18.59 has no such call and no 6.18.y carries one yet. The power button itself is not reported yet
+
+---
+
+## Forgejo's dump directory lives on a filesystem that mounts after tmpfiles
+
+**Where:** `nixos/services/tools/forgejo.nix` — the `forgejo-dump-dir` unit, and the ordering it puts on `forgejo.service` and `forgejo-dump.service`
+
+**Symptom it prevents:** `forgejo.service` never starts, with `Failed to set up mount namespacing: /srv/backup/forgejo-dump: No such file or directory`, and `forgejo-dump.service` dies at `Changing to the requested working directory failed`
+
+**Why it happens:** the upstream module declares the dump directory as a `systemd.tmpfiles` rule, and `/srv/backup` is a filesystem of its own that mounts later: on the station tmpfiles runs at 3 s and the volume mounts at 16 s, so the rule makes the directory on the root filesystem and the mount then hides it. The upstream dump unit also sets `WorkingDirectory=` to that directory, and systemd changes into it before it runs any command of the unit, so an `ExecStartPre=` cannot create it. A boot that mounts the volume early hides the defect, which is why the station kept working while a fresh volume does not
+
+**Why this works:** `forgejo-dump-dir` waits for the volume with `RequiresMountsFor=`, makes the directory, and stands `before` both units that need it, each of which `wants` it. `forgejo.service` requires the same mount, so it waits for the volume instead of failing on its namespace, and the unit condition skips the work when the volume is absent rather than making the directory on the root filesystem
+
+**Removal check:** delete the unit and its `RequiresMountsFor`, `wants` and `before` lines, then build the test that boots a fresh volume
+
+```sh
+nix build .#station-boot-test -L
+```
+
+The run passes only when the upstream module creates the dump directory itself, and then the workaround is gone. A failure naming `forgejo-dump.service` or the mount namespace means it is still needed
+
+**Upstream:** [NixOS/nixpkgs#582601](https://github.com/NixOS/nixpkgs/pull/582601) makes `services.forgejo.dump` create its own directory

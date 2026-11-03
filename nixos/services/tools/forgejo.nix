@@ -201,16 +201,37 @@ in
       '';
     };
 
-    # The dump lands on the backup volume, and a missing mount would leave it on the root
-    # filesystem and hide it from the backup. The directory is made here rather than by a
-    # tmpfiles rule, which runs before the volume is mounted
-    systemd.services.forgejo-dump.unitConfig = {
-      RequiresMountsFor = [ cfg.backup.dumpDir ];
-      ConditionPathIsMountPoint = cfg.backup.mountPoint;
+    # The volume mounts after tmpfiles, whose rule for this directory makes it on the root
+    # filesystem, where the mount then hides it: Forgejo finds no directory to bind into its own
+    # mount namespace and never starts, and the dump has no working directory. This unit makes it
+    # once the volume is there, and every unit that needs the directory waits for that
+    systemd.services.forgejo-dump-dir = {
+      description = "Create the directory of the Forgejo dump";
+      unitConfig = {
+        RequiresMountsFor = [ cfg.backup.dumpDir ];
+        ConditionPathIsMountPoint = cfg.backup.mountPoint;
+      };
+      before = [
+        "forgejo.service"
+        "forgejo-dump.service"
+      ];
+      serviceConfig.Type = "oneshot";
+      script = ''
+        ${pkgs.coreutils}/bin/install -d -m 0750 -o ${forgejo.user} -g ${forgejo.group} ${cfg.backup.dumpDir}
+      '';
     };
-    systemd.services.forgejo-dump.serviceConfig.ExecStartPre = [
-      "+${pkgs.coreutils}/bin/install -d -m 0750 -o ${forgejo.user} -g ${forgejo.group} ${cfg.backup.dumpDir}"
-    ];
+    systemd.services.forgejo = {
+      wants = [ "forgejo-dump-dir.service" ];
+      after = [ "forgejo-dump-dir.service" ];
+    };
+    systemd.services.forgejo.unitConfig.RequiresMountsFor = [ cfg.backup.dumpDir ];
+    systemd.services.forgejo-dump = {
+      wants = [ "forgejo-dump-dir.service" ];
+      unitConfig = {
+        RequiresMountsFor = [ cfg.backup.dumpDir ];
+        ConditionPathIsMountPoint = cfg.backup.mountPoint;
+      };
+    };
 
     services.restic.backups.station.paths = [ cfg.backup.dumpDir ];
     systemd.services.restic-backups-station.requires = [ "forgejo-dump.service" ];
