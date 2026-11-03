@@ -974,11 +974,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1793214114,
-        "narHash": "sha256-Z5laveDun1qb4URiMwF/BFn7DdvqLuDl3Y+IQHJqsds=",
+        "lastModified": 1793696250,
+        "narHash": "sha256-U3vhPumU5A7Uygnd3NLqIJPjeS6xjxo9v290XFSGHDc=",
         "owner": "rokokol",
         "repo": "mail-skill",
-        "rev": "53a35b2dc8ef28c82d833e1352cb97fdf67a95db",
+        "rev": "61713bd4d7fc509a69652864b0021d20768ae037",
         "type": "github"
       },
       "original": {
@@ -1908,11 +1908,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1793538192,
-        "narHash": "sha256-Afi+r5mdS98z+7kAhWPYEXoF86yRiHE/4iBPngrcok0=",
+        "lastModified": 1793697049,
+        "narHash": "sha256-u5Wh9pegE9VBeveRu8T8TrfcB7Cu+oFypyAIZQ/laHE=",
         "owner": "rokokol",
         "repo": "telegram-skill",
-        "rev": "3cfc727df985ccad995550f953198f72c19ec18a",
+        "rev": "babde22cd4dba3e332eaeefa3b1b64e29e9e4534",
         "type": "github"
       },
       "original": {
