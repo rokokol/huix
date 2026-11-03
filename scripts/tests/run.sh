@@ -698,9 +698,8 @@ is "the journal keeps each change of a problem" \
   "OPEN unit:beat.service|UPDATE unit:beat.service|OPEN reboot|RESOLVED reboot|RESOLVED unit:beat.service" \
   "$(tr '\t\n' ' |' <<<"$journal" | sed 's/|$//')"
 
-# reconcile asks systemd about each open unit, through the systemctl stub. A dash means the
-# unit never started: a failed dependency leaves it inactive with Result=success, and that is
-# not a recovery
+# reconcile asks systemd about each open unit, through the systemctl stub. The problem opens with
+# no start recorded here, so an answer that carries one is a start newer than the problem
 for case in \
   "failed exit-code - open" \
   "active success - resolved" \
@@ -717,9 +716,21 @@ for case in \
   bash "$alert" clear unit:x.service >/dev/null 2>&1
 done
 
-# reset-failed erases Result, the timestamps and the exit code at once, so the problem has to
-# remember the failure it opened with: that record is what closes such a unit afterwards
-STUB_RESULT=exit-code raise unit:x.service "x.service failed"
+# A unit that a failed dependency left inactive keeps the start of its last success, so a
+# timestamp that merely exists proves nothing: only a start newer than the one recorded when the
+# problem opened is a recovery. The station's nightly backup closed its own alert five minutes
+# after it opened through the other reading
+STUB_STARTED='Mon 2026-11-02 13:11:33 MSK' raise unit:stale.service "stale.service failed"
+STUB_ACTIVE_STATE=inactive STUB_RESULT=success STUB_STARTED='Mon 2026-11-02 13:11:33 MSK' \
+  bash "$alert" reconcile >/dev/null 2>&1
+is "reconcile: the start the problem opened with does not close it" "unit:stale.service" "$(listed)"
+STUB_ACTIVE_STATE=inactive STUB_RESULT=success STUB_STARTED='Tue 2026-11-03 03:41:07 MSK' \
+  bash "$alert" reconcile >/dev/null 2>&1
+is "reconcile: a start after the problem opened closes it" "" "$(listed)"
+
+# reset-failed erases Result, the timestamps and the exit code at once, so the problem remembers
+# the start it opened with: the wiped timestamp no longer matches that record, and it closes
+STUB_RESULT=exit-code STUB_STARTED='Mon 2026-11-02 13:11:33 MSK' raise unit:x.service "x.service failed"
 STUB_ACTIVE_STATE=inactive STUB_RESULT=success STUB_STARTED='' \
   bash "$alert" reconcile >/dev/null 2>&1
 if [ -n "$(listed)" ]; then got=open; else got=resolved; fi
