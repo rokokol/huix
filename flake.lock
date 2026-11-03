@@ -1618,11 +1618,11 @@
     "skill-contributing": {
       "flake": false,
       "locked": {
-        "lastModified": 1792740280,
-        "narHash": "sha256-ejNrsrOna0i2Rcv6azGpcJKUPx+F5xHJTqqnJwmxrOA=",
+        "lastModified": 1793701969,
+        "narHash": "sha256-KJ+eGEvT+J/vEYX05PH/NZjfnzuOzRJI5sE5t/s/shI=",
         "owner": "rokokol",
         "repo": "contributing-skill",
-        "rev": "a1ea0c25a2cfa40160616dc39f2974d020ab9c7b",
+        "rev": "f5c313d4fd4f81ae8c711f45c5e6ed5f52ac186f",
         "type": "github"
       },
       "original": {
