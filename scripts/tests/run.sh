@@ -124,7 +124,7 @@ case "$*" in
     fi ;;
   "show -P ActiveState "*) printf '%s\n' "${STUB_ACTIVE_STATE:-inactive}" ;;
   "show -P Result "*) printf '%s\n' "${STUB_RESULT:-success}" ;;
-  "show -P ExecMainStartTimestamp "*) printf '%s\n' "${STUB_STARTED:-}" ;;
+  "show --timestamp=unix -P ExecMainStartTimestamp "*) printf '@%s\n' "${STUB_STARTED:-}" ;;
 esac
 EOF
 cat >"$work/bin/evtest" <<'EOF'
@@ -698,17 +698,27 @@ is "the journal keeps each change of a problem" \
   "OPEN unit:beat.service|UPDATE unit:beat.service|OPEN reboot|RESOLVED reboot|RESOLVED unit:beat.service" \
   "$(tr '\t\n' ' |' <<<"$journal" | sed 's/|$//')"
 
-# reconcile asks systemd about each open unit, through the systemctl stub. The problem opens with
-# no start recorded here, so an answer that carries one is a start newer than the problem
+# reconcile asks systemd about each open unit, through the systemctl stub. A start counts only
+# when it is not older than the moment the problem opened, less the minute the alert pipeline may
+# take, so a dash is a unit that never started, old a start of a previous day, and recent one that
+# landed while the alert was still on its way
 for case in \
   "failed exit-code - open" \
   "active success - resolved" \
   "inactive success - open" \
-  "inactive success started resolved" \
+  "inactive success old open" \
+  "inactive success recent resolved" \
+  "inactive success new resolved" \
   "inactive exit-code - open"; do
   read -r state result started verdict <<<"$case"
-  [ "$started" = - ] && started=
   raise unit:x.service "x.service failed"
+  since_epoch=$(cat -- "$ALERT_STATE/open/unit:x.service/since")
+  case $started in
+    -) started= ;;
+    old) started=$((since_epoch - 86400)) ;;
+    recent) started=$((since_epoch - 5)) ;;
+    new) started=$((since_epoch + 60)) ;;
+  esac
   STUB_ACTIVE_STATE=$state STUB_RESULT=$result STUB_STARTED=$started \
     bash "$alert" reconcile >/dev/null 2>&1
   if [ -n "$(listed)" ]; then got=open; else got=resolved; fi
@@ -716,21 +726,21 @@ for case in \
   bash "$alert" clear unit:x.service >/dev/null 2>&1
 done
 
-# A unit that a failed dependency left inactive keeps the start of its last success, so a
-# timestamp that merely exists proves nothing: only a start newer than the one recorded when the
-# problem opened is a recovery. The station's nightly backup closed its own alert five minutes
-# after it opened through the other reading
-STUB_STARTED='Mon 2026-11-02 13:11:33 MSK' raise unit:stale.service "stale.service failed"
-STUB_ACTIVE_STATE=inactive STUB_RESULT=success STUB_STARTED='Mon 2026-11-02 13:11:33 MSK' \
+# The station's nightly backup closed its own alert five minutes after it opened: a failed
+# dependency left its unit inactive with the start of the previous night, and a start that merely
+# exists proved nothing. Only a start after the problem opened is a recovery
+raise unit:stale.service "stale.service failed"
+since_epoch=$(cat -- "$ALERT_STATE/open/unit:stale.service/since")
+STUB_ACTIVE_STATE=inactive STUB_RESULT=success STUB_STARTED=$((since_epoch - 86400)) \
   bash "$alert" reconcile >/dev/null 2>&1
-is "reconcile: the start the problem opened with does not close it" "unit:stale.service" "$(listed)"
-STUB_ACTIVE_STATE=inactive STUB_RESULT=success STUB_STARTED='Tue 2026-11-03 03:41:07 MSK' \
+is "reconcile: the start of the last success does not close the problem" "unit:stale.service" "$(listed)"
+STUB_ACTIVE_STATE=inactive STUB_RESULT=success STUB_STARTED=$((since_epoch - 5)) \
   bash "$alert" reconcile >/dev/null 2>&1
-is "reconcile: a start after the problem opened closes it" "" "$(listed)"
+is "reconcile: a recovery the alert pipeline was slower than closes it" "" "$(listed)"
 
 # reset-failed erases Result, the timestamps and the exit code at once, so the problem remembers
-# the start it opened with: the wiped timestamp no longer matches that record, and it closes
-STUB_RESULT=exit-code STUB_STARTED='Mon 2026-11-02 13:11:33 MSK' raise unit:x.service "x.service failed"
+# that the unit had failed: that record is what closes such a unit afterwards
+STUB_RESULT=exit-code raise unit:x.service "x.service failed"
 STUB_ACTIVE_STATE=inactive STUB_RESULT=success STUB_STARTED='' \
   bash "$alert" reconcile >/dev/null 2>&1
 if [ -n "$(listed)" ]; then got=open; else got=resolved; fi

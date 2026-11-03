@@ -26,11 +26,12 @@ A problem that opens or closes is mailed to root, sent to the owner's Telegram a
 the agent. A problem raised again while open only updates its body. KEY names one problem and
 is a file name: letters, digits and . _ : @ - only. A KEY of the form unit:NAME is closed by
 reconcile once systemd reports NAME active, or inactive with the result success after a start
-newer than the one recorded when the problem opened. A unit that a failed dependency left
-inactive keeps the start of its last success, and that stale value does not close the problem. A
-unit that did fail on its own closes after a reset-failed wiped the properties that said so,
-because its wiped timestamp no longer matches the record. The reboot problem is open while the
-kernel, initrd or modules of the current system differ from the booted one
+since the problem opened, allowing a minute for the alert to reach the registry. A unit that a
+failed dependency left inactive keeps the start of its last success, and that stale start predates
+the problem and does not close it. A unit that did fail on its own closes after a reset-failed
+wiped the properties that said so, because the problem recorded that failure when it opened. The
+reboot problem is open while the kernel, initrd or modules of the current system differ from the
+booted one
 
 sync reads FILE, one cause a line: a CAUSE made of the same characters as a KEY, a tab, and
 its SUBJECT. Each cause is a problem under SOURCE:CAUSE, opened and sent once; each problem
@@ -181,6 +182,7 @@ telegram() {
 open_key() {
   local dir=$state/open/$2
   local unit=${2#unit:}
+  local result=""
   opened=0
   if [ -d "$dir" ]; then
     journal UPDATE "$2" "$3"
@@ -191,11 +193,13 @@ open_key() {
     opened=1
     journal OPEN "$2" "$3"
   fi
-  # A unit that a failed dependency left inactive keeps the start of its last success, so
-  # reconcile compares the current start against the one recorded here instead of asking whether
-  # a start exists at all. The record also outlives the reset-failed that wipes the properties
+  # A unit that failed on its own leaves a Result other than success, and reset-failed wipes that
+  # together with the timestamps and the exit code, so the problem keeps the fact of the failure
   if [ "$unit" != "$2" ]; then
-    systemctl show -P ExecMainStartTimestamp "$unit" 2>/dev/null >"$dir/started" || true
+    result=$(systemctl show -P Result "$unit" 2>/dev/null || true)
+    if [ -n "$result" ] && [ "$result" != success ]; then
+      : >"$dir/ran"
+    fi
   fi
   printf '%s\n' "$3" >"$dir/subject"
   printf '%s\n' "$4" >"$dir/body"
@@ -292,7 +296,7 @@ cmd_sync() {
 cmd_reconcile() {
   (($# == 0)) || die "reconcile takes nothing"
   setup
-  local dir key unit active result started recorded file
+  local dir key unit active result started since floor file
   # A message whose delivery a reboot cut short is handed on again
   if [ -n "${ALERT_SPAWN:-}" ]; then
     for file in "$state/outbox"/*; do
@@ -306,13 +310,17 @@ cmd_reconcile() {
     unit=${key#unit:}
     active=$(systemctl show -P ActiveState "$unit" || true)
     result=$(systemctl show -P Result "$unit" || true)
-    # A dependency failure leaves the unit inactive with Result=success and the start of its last
-    # success, so a start closes the problem only when it is not the one the problem opened with
-    started=$(systemctl show -P ExecMainStartTimestamp "$unit" || true)
-    recorded=$(cat -- "$dir/started" 2>/dev/null || true)
+    # A failed dependency leaves the unit inactive with the start of its last success, which
+    # predates the problem, while the record of its own failure stands for the reset-failed case
+    started=$(systemctl show --timestamp=unix -P ExecMainStartTimestamp "$unit" || true)
+    started=${started#@}
+    since=$(cat -- "$dir/since" 2>/dev/null || echo 0)
+    # The alert unit starts with the failure but writes the problem a moment later, so a run that
+    # recovered in that moment still belongs to the recovery
+    floor=$((since - 60))
     if [ "$active" = active ] ||
       { [ "$active" = inactive ] && [ "$result" = success ] &&
-        [ "$started" != "$recorded" ]; }; then
+        { { [ -n "$started" ] && [ "$started" -ge "$floor" ]; } || [ -e "$dir/ran" ]; }; }; then
       clear_key "$key"
     fi
   done
