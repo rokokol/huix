@@ -34,12 +34,12 @@ let
   prediction =
     series: "predict_linear((${series})[${limits.history}:10m], ${toString limits.forecastSeconds})";
   # A line through two points is not a trend, so the forecast waits for about two days of samples,
-  # which a node that pushes every quarter hour reaches with 190 of them. The second window opens
-  # a week back and is three hours wide, because a range selector leaves out a sample on its start
+  # which a node that pushes every quarter hour reaches with 190 of them. The window ends an hour
+  # back: a workstation that sleeps every night loses a quarter of a week to that, and pinning the
+  # depth to one clock hour would blank its forecast for the same hours every morning
   readySamples = 190;
-  historyReady = series: ''
-    (count_over_time((${series})[${limits.history}:10m]) >= ${toString readySamples})
-    and present_over_time((${series})[3h:10m] offset 165h)'';
+  historyReady =
+    series: "count_over_time((${series})[${limits.history}:10m] offset 1h) >= ${toString readySamples}";
   forecast = series: "(${prediction series}) and (${historyReady series})";
   station = ''host="${stationHost}"'';
   cpuTemperature = selector: ''
