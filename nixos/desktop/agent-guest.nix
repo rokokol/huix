@@ -16,6 +16,8 @@ let
 in
 {
   config.rokokol.mya-agent = lib.mkIf config.rokokol.workstation.enable {
+    # The optical drive is root:cdrom 0660, and an SSH session has no seat, so logind grants no ACL
+    extraGroups = [ "cdrom" ];
     # The agent runs the heavy plots here and sends the pictures to the station
     pythonPackages = ps: [ ps.matplotlib ];
     guest = {

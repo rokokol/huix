@@ -168,6 +168,7 @@ panels.dashboard {
     (row "Cron reports" null 43)
     (panel {
       title = "OpenCode Go windows";
+      description = "Share of each allowance window already spent on the Go plan: the rolling 5 hours, the week and the month. 100 % means the window is used up, and the allowance is shared by every host that uses the key, not just Hermes";
       x = 0;
       y = 44;
       w = 8;
@@ -181,6 +182,7 @@ panels.dashboard {
     })
     (panel {
       title = "Hermes spend on Go this month";
+      description = "USD Hermes itself recorded against the Go plan this month, from state.db, as a total and per model. Whatever the account windows show beyond this figure is spent by other hosts";
       x = 8;
       y = 44;
       w = 8;
@@ -193,6 +195,7 @@ panels.dashboard {
     })
     (panel {
       title = "Model price per day";
+      description = "What one day of his real token profile costs on the host each model is routed to: 3.9M input, 98M cache reads and 505k output tokens. A flat line means the price did not move";
       x = 16;
       y = 44;
       w = 8;
@@ -202,6 +205,7 @@ panels.dashboard {
     })
     (panel {
       title = "Cheapest host per model";
+      description = "The cheapest other host carrying the same model, priced on the same daily profile. The gap against the host he pays is what a re-route would save; an fp4 host trades precision for the lower price";
       x = 0;
       y = 52;
       w = 12;
@@ -212,6 +216,7 @@ panels.dashboard {
     })
     (panel {
       title = "Time since the last price watch";
+      description = "Seconds since model-price-watch last pushed its numbers. The cron ticks every 15 minutes, so anything above about 20 minutes means the watcher stopped rather than that nothing changed";
       x = 12;
       y = 52;
       w = 12;

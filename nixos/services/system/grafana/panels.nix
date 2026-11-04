@@ -77,6 +77,8 @@ rec {
       thresholds ? null,
       dangerBelow ? false,
       decimals ? null,
+      # Shown as the panel's ⓘ tooltip: a series name alone does not say what is measured
+      description ? null,
     }:
     {
       type = "timeseries";
@@ -118,7 +120,10 @@ rec {
         };
         tooltip.mode = "multi";
       };
-    };
+    }
+    # Grafana draws the ⓘ only when the key is present, so an absent description must stay
+    # absent rather than become an empty string
+    // lib.optionalAttrs (description != null) { inherit description; };
 
   # The state of each series over time, as a band: a value maps to a word and a colour
   states =
