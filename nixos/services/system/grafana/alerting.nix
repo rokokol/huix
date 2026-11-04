@@ -25,7 +25,7 @@ let
     inherit (definition)
       uid
       title
-      hold
+      for
       ;
     condition = "B";
     # A host that went away is not a hot disk: the push watch names a silent node, and the rule

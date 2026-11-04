@@ -54,12 +54,14 @@ let
   media = "smartctl_device_media_errors";
   btrfs = "node_btrfs_device_errors_total";
   growth = series: "(${series} - min_over_time(${series}[24h])) > bool 0";
-  rule = uid: title: expr: hold: dashboard: {
+  # Grafana names the pending period `for`, and the field carries that name so that the
+  # provisioning reads as Grafana's own file
+  rule = uid: title: expr: for: dashboard: {
     inherit
       uid
       title
       expr
-      hold
+      for
       dashboard
       ;
   };

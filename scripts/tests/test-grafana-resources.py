@@ -120,7 +120,7 @@ def check_formulas(root):
         rules_path = root / f"{uid}.rules.json"
         rules_path.write_text(json.dumps({"groups": [{
             "name": uid,
-            "rules": [{"alert": uid, "expr": f"({rule['expr']}) > 0", "for": rule["hold"]}],
+            "rules": [{"alert": uid, "expr": f"({rule['expr']}) > 0", "for": rule["for"]}],
         }]}))
         subprocess.run(["promtool", "check", "rules", str(rules_path)], check=True)
         specification = root / f"{uid}.tests.json"
@@ -187,6 +187,10 @@ def check_runtime(root):
     for group in provision["rules"]["groups"]:
         group["interval"] = "10s"
         for rule in group["rules"]:
+            # The fast run below drops the pending period, so the provisioned one is checked first
+            assert rule["for"] == RULES[rule["uid"]]["for"], (
+                f"{rule['uid']} carries {rule.get('for')} instead of its pending period"
+            )
             rule["for"] = "0s"
     receiver = provision["contactPoints"]["contactPoints"][0]["receivers"][0]
     receiver["settings"]["url"] = f"http://127.0.0.1:{bridge_port}/alerts"
