@@ -81,6 +81,47 @@ pkgs.lib.mapAttrs' (
         touch "$out"
       '';
 
+  grafana-resources =
+    let
+      station = inputs.self.nixosConfigurations.nixos-station.config;
+      alerting = station.services.grafana.provision.alerting;
+      specification = pkgs.writeText "grafana-resources.json" (
+        builtins.toJSON {
+          station = station.networking.hostName;
+          datasource =
+            (builtins.head station.services.grafana.provision.datasources.settings.datasources).uid;
+          definitions = { inherit (station.rokokol.grafana.resourcePolicy) limits rules; };
+          provisioning = {
+            rules = alerting.rules.settings;
+            contactPoints = alerting.contactPoints.settings;
+            policies = alerting.policies.settings;
+          };
+        }
+      );
+    in
+    pkgs.runCommand "grafana-resources"
+      {
+        # promtool sits in the cli output of the Prometheus package, the server in the default one
+        nativeBuildInputs = with pkgs; [
+          grafana
+          prometheus
+          prometheus.cli
+          python3
+        ];
+        GRAFANA_HOME = "${pkgs.grafana}/share/grafana";
+        GRAFANA_PASSWORD = "fixture-password";
+        GRAFANA_PLUGINS = station.services.grafana.settings.paths.plugins;
+        scripts = builtins.path {
+          name = "grafana-alert-tests";
+          path = ./scripts;
+        };
+      }
+      ''
+        python3 -B "$scripts/tests/test-grafana-alerts.py"
+        python3 -B "$scripts/tests/test-grafana-resources.py" ${specification}
+        touch "$out"
+      '';
+
   pi-extensions =
     let
       extensions = inputs.self.nixosConfigurations.nixos-pc.pkgs.pi-extensions;

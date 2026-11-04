@@ -5,6 +5,7 @@
   maxConntrackUsed,
   maxStuckSockets,
   maxPushSilence,
+  resources,
 }:
 
 # The dashboard of the VPN nodes, from what they push to the Pushgateway: their health, then the
@@ -130,7 +131,7 @@ panels.dashboard {
       max = 1;
       shaded = true;
       thresholds = maxDiskUsed;
-      queries = [ (query "A" roles.series-1 "vpn_disk_used_ratio{${node}}" "{{instance}}") ];
+      queries = [ (query "A" roles.series-1 (resources.freshDisk "vpn" node) "{{instance}}") ];
     })
     (panel {
       title = "Connection tracking table used";
@@ -353,5 +354,21 @@ panels.dashboard {
           title = "Up";
           x = 12;
         }
+      ]
+  ++ [
+    (row "Capacity" null 86)
+    (panel {
+      title = "Disk use in seven days";
+      description = "Linear forecast from seven days of measurements the node actually made. The red line marks a full disk, and a gap a history too short to forecast";
+      x = 0;
+      y = 87;
+      w = 24;
+      unit = "percentunit";
+      thresholds = 1;
+      shaded = true;
+      queries = [
+        (query "A" roles.series-1 (resources.forecast (resources.freshDisk "vpn" node)) "{{instance}}")
       ];
+    })
+  ];
 }

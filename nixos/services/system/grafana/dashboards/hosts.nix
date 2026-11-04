@@ -1,7 +1,7 @@
 {
   roles,
   panels,
-  criticalTemperature,
+  resources,
 }:
 
 # The dashboard of the hosts: a row of each host with its CPU, memory, swap traffic, CPU
@@ -18,15 +18,6 @@ let
   on = selector: ''host="''$${selector}"'';
   host = on "host";
   gpu = on "gpu_host";
-
-  # The CPU's chips, by driver: k10temp on AMD, coretemp on Intel. Their highest sensor stands
-  # for the CPU, since one host labels a package sensor and another only its cores
-  cpuTemperature = ''
-    max by (host) (
-      node_hwmon_temp_celsius{${host}}
-      * on (host, chip) group_left ()
-      node_hwmon_chip_names{${host}, chip_name=~"coretemp|k10temp"}
-    )'';
 
   # Disk file systems once each: btrfs mounts one volume at several points
   disks = metric: ''max by (host, device) (${metric}{${host}, fstype=~"btrfs|ext4|xfs|vfat"})'';
@@ -94,11 +85,12 @@ panels.dashboard {
       y = 9;
       w = 12;
       unit = "celsius";
-      thresholds = criticalTemperature;
-      queries = [ (query "A" roles.series-1 cpuTemperature "CPU") ];
+      thresholds = resources.limits.cpuTemperature;
+      queries = [ (query "A" roles.series-1 (resources.cpuTemperature host) "CPU") ];
     })
     (panel {
       title = "Disks";
+      thresholds = 100 * resources.limits.diskUsed;
       x = 12;
       y = 9;
       w = 12;
@@ -113,11 +105,24 @@ panels.dashboard {
         )
       ];
     })
-    (row "GPU of $gpu_host" "gpu_host" 17)
+    (panel {
+      title = "Disk use in seven days";
+      description = "Linear forecast from the last seven days. The red line marks a full disk, and a gap a history too short to forecast";
+      x = 0;
+      y = 17;
+      w = 24;
+      unit = "percentunit";
+      thresholds = 1;
+      shaded = true;
+      queries = [
+        (query "A" roles.series-1 (resources.forecast (resources.diskUsed host)) "{{device}}")
+      ];
+    })
+    (row "GPU of $gpu_host" "gpu_host" 25)
     (panel {
       title = "GPU load";
       x = 0;
-      y = 18;
+      y = 26;
       w = 8;
       unit = "percentunit";
       min = 0;
@@ -127,7 +132,7 @@ panels.dashboard {
     (panel {
       title = "GPU memory";
       x = 8;
-      y = 18;
+      y = 26;
       w = 8;
       unit = "bytes";
       min = 0;
@@ -139,7 +144,7 @@ panels.dashboard {
     (panel {
       title = "GPU temperature and power";
       x = 16;
-      y = 18;
+      y = 26;
       w = 8;
       unit = "short";
       min = 0;

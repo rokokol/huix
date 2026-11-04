@@ -14,6 +14,7 @@ Every source here is read-only for you. Never restart, reset or clear anything w
 - The body of a problem, with the unit's status and its last journal lines when it is a unit, is `@alertState@/open/<key>/body`
 - The history of every problem is `@alertState@/journal`: time, `OPEN`, `UPDATE` or `RESOLVED`, key, subject, separated by tabs. A problem that opens and closes again and again is the thing to report, even when nothing is open now
 - A key `backup:<cause>` is one backup repository that is stale or missing, or the backup space running low; `node:<node>-<cause>` is a node that went silent or a problem the node reports of itself, in its own words. Each closes by itself once its cause is gone
+- A key `grafana:<fingerprint>` is a condition Grafana evaluates itself: heat, a disk near full or filling within a week, a failed SMART check, or new sector, media and Btrfs errors. Each closes by itself when the condition ends, and the subject names the host and the measured value
 - A key `unit:<name>` is a failed unit: read `systemctl status <name>`, the body, and `journalctl -u <name> -n 200` when the body's lines are too few. The reboot key is quiet: it means a new kernel waits for a reboot, which only the owner decides
 
 ## Metrics

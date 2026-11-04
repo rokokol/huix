@@ -6,6 +6,7 @@
   minBackupFree,
   maxPushSilence,
   syncthingHosts,
+  resources,
 }:
 
 # The dashboard of the watchers: what is open and which watched unit failed, how fresh the
@@ -141,15 +142,14 @@ panels.dashboard {
     })
     (panel {
       title = "Disk temperature";
+      thresholds = resources.limits.diskTemperature;
       x = 6;
       y = 19;
       w = 6;
       unit = "celsius";
       shaded = true;
       queries = [
-        (query "A" roles.series-1 ''smartctl_device_temperature{${host}, temperature_type="current"}''
-          "{{host}} {{device}}"
-        )
+        (query "A" roles.series-1 (resources.diskTemperature host) "{{host}} {{device}}")
       ];
     })
     (panel {

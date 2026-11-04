@@ -5,6 +5,7 @@
   minCertificateLife,
   maxDiskUsed,
   maxQuotaUsed,
+  resources,
 }:
 
 # The dashboard of the mail node, from what it pushes to the Pushgateway: the mail that flows
@@ -167,7 +168,7 @@ panels.dashboard {
       min = 0;
       max = 1;
       thresholds = maxDiskUsed;
-      queries = [ (query "A" roles.series-1 "mail_disk_used_ratio{${node}}" "{{instance}}") ];
+      queries = [ (query "A" roles.series-1 (resources.freshDisk "mail" node) "{{instance}}") ];
     })
     (panel {
       title = "Mailbox quota used";
@@ -324,5 +325,20 @@ panels.dashboard {
 
     (row "Who knocks" null 66)
   ]
-  ++ panels.attackers "mail" node 67;
+  ++ panels.attackers "mail" node 67
+  ++ [
+    (row "Capacity" null 75)
+    (panel {
+      title = "Disk use in seven days";
+      description = "Linear forecast from seven days of measurements the node actually made. The red line marks a full disk, and a gap a history too short to forecast";
+      x = 0;
+      y = 76;
+      w = 24;
+      unit = "percentunit";
+      thresholds = 1;
+      queries = [
+        (query "A" roles.series-1 (resources.forecast (resources.freshDisk "mail" node)) "{{instance}}")
+      ];
+    })
+  ];
 }

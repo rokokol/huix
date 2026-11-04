@@ -51,15 +51,21 @@ let
   };
 
   maxBackupAge = seconds config.rokokol.backup-heartbeat.maxAge;
+  resources = import ./resources.nix {
+    inherit lib criticalTemperature;
+    stationHost = hostName;
+    maxPushSilence = seconds config.rokokol.pushgateway.maxSilence;
+  };
 
   dashboards = [
-    (import ./dashboards/hosts.nix { inherit roles panels criticalTemperature; })
+    (import ./dashboards/hosts.nix { inherit roles panels resources; })
     (import ./dashboards/guards.nix {
       inherit
         lib
         roles
         panels
         maxBackupAge
+        resources
         ;
       minBackupFree = bytes config.rokokol.backup-heartbeat.minFree;
       maxPushSilence = seconds config.rokokol.pushgateway.maxSilence;
@@ -68,15 +74,22 @@ let
     # The mail node owns these numbers and its report names a problem at each of them. They
     # are written here once, since that node's configuration is not part of this flake
     (import ./dashboards/mail.nix {
-      inherit roles panels maxBackupAge;
+      inherit
+        roles
+        panels
+        maxBackupAge
+        resources
+        ;
       minCertificateLife = seconds "14d";
+      # The node reports the disk itself at this ratio, so the panel marks its threshold
       maxDiskUsed = 0.85;
       maxQuotaUsed = 0.9;
     })
     # The same for the VPN nodes: the disk and the sockets come from their list of open
     # problems, the connection tracking table from their self-check
     (import ./dashboards/vpn.nix {
-      inherit roles panels;
+      inherit roles panels resources;
+      # The nodes report the disk themselves at this ratio
       maxDiskUsed = 0.85;
       maxConntrackUsed = 0.8;
       maxStuckSockets = 200;
@@ -99,8 +112,18 @@ let
   );
 in
 {
+  imports = [ (import ./alerting.nix { inherit resources datasource; }) ];
+
   options.rokokol.grafana = {
     enable = lib.mkEnableOption "Grafana over the Prometheus of this host";
+
+    resourcePolicy = lib.mkOption {
+      type = lib.types.raw;
+      readOnly = true;
+      internal = true;
+      default = resources;
+      description = "Resource thresholds, queries and rules for dashboards and checks";
+    };
 
     dashboardTitles = lib.mkOption {
       type = lib.types.listOf lib.types.str;
