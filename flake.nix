@@ -371,6 +371,7 @@
         labels = [
           "docker"
           "ubuntu-latest"
+          "nixos-pc"
         ];
       };
 
