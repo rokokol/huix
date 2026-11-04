@@ -430,6 +430,22 @@
         "type": "github"
       }
     },
+    "geo-sleuth": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1793703143,
+        "narHash": "sha256-xUavJk4qYlJoRUFY0IlxqDm5YIYcHIqpATBr+Xh2Yeg=",
+        "owner": "Oldcircle",
+        "repo": "geo-sleuth",
+        "rev": "c77224317b76dc85f9b79a698123e6b22b1c0e46",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Oldcircle",
+        "repo": "geo-sleuth",
+        "type": "github"
+      }
+    },
     "gruvbox-gtk-theme": {
       "flake": false,
       "locked": {
@@ -1433,6 +1449,7 @@
         "ex-ussr-kinship-research": "ex-ussr-kinship-research",
         "freecad-mcp": "freecad-mcp",
         "freesmlauncher": "freesmlauncher",
+        "geo-sleuth": "geo-sleuth",
         "gruvbox-gtk-theme": "gruvbox-gtk-theme",
         "hermes-agent": "hermes-agent",
         "hindsight": "hindsight",

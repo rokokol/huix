@@ -202,6 +202,11 @@
       flake = false;
     };
 
+    geo-sleuth = {
+      url = "github:Oldcircle/geo-sleuth";
+      flake = false;
+    };
+
     ex-ussr-kinship-research = {
       url = "github:DenisSergeevitch/ex-ussr-kinship-research";
       flake = false;
