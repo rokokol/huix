@@ -1239,6 +1239,12 @@ pkgs.testers.runNixOSTest {
       with subtest(f"the {uid} dashboard is there for a viewer, and each of its queries runs in Prometheus"):
         with open(f"${grafana.dashboards}/{uid}.json") as listing:
             dashboard = json.load(listing)
+        if uid == "vpn":
+            expressions = [t["expr"] for p in dashboard["panels"] for t in p.get("targets", [])]
+            for metric in ("x_ui_panel_up", "x_ui_xray_up", "x_ui_online_clients"):
+                matches = [expr for expr in expressions if metric in expr]
+                assert matches, f"VPN dashboard lacks {metric}"
+                assert all("push_time_seconds" in expr for expr in matches), f"{metric} ignores push freshness"
         code = station.succeed(
             "curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:${toString grafana.backendPort}/api/dashboards/uid/"
             + dashboard["uid"]

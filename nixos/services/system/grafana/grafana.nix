@@ -80,6 +80,7 @@ let
       maxDiskUsed = 0.85;
       maxConntrackUsed = 0.8;
       maxStuckSockets = 200;
+      maxPushSilence = seconds config.rokokol.pushgateway.maxSilence;
     })
   ]
   ++ lib.optional config.rokokol.mya-agent.hermes.monitor.enable (
