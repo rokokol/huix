@@ -93,6 +93,9 @@ let
   '';
 in
 {
+  # The Firefox DevTools MCP attaches only to a browser started with Marionette, and the Zen
+  # module has no option for launch arguments. Wrapping the finished package adds both flags to
+  # every launch path, the desktop entry and xdg-open included
   options.programs.zen-browser.finalPackage = lib.mkOption {
     apply =
       package:
