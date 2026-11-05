@@ -183,6 +183,10 @@ def check_runtime(root):
     provisioning = root / "provisioning"
     (provisioning / "alerting").mkdir(parents=True)
     (provisioning / "datasources").mkdir()
+    # Grafana reads every provisioning directory it knows and logs an error for each absent one,
+    # so the ones this test fills nothing into exist all the same
+    (provisioning / "dashboards").mkdir()
+    (provisioning / "plugins").mkdir()
     provision = copy.deepcopy(POLICY["provisioning"])
     for group in provision["rules"]["groups"]:
         group["interval"] = "10s"
@@ -222,6 +226,12 @@ check_for_plugin_updates = false
 url = http://127.0.0.1:1
 [unified_alerting]
 min_interval = 10s
+[database]
+# Every rule evaluates here every 10 s, where the station's own rules run every minute, so the
+# readers and the rule state writer meet far more often than they do in place. WAL stops a
+# reader from blocking the writer, which is the only thing this compression makes collide; the
+# retry settings stay at their defaults, so a lock that survives is still an error
+wal = true
 [plugins]
 preinstall_disabled = true
 public_key_retrieval_disabled = true
