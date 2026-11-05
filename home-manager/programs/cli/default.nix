@@ -8,5 +8,6 @@
     ./matplotlib.nix
     ./ssh.nix
     ./direnv.nix
+    ./drive-backup.nix
   ];
 }

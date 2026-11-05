@@ -494,6 +494,8 @@
       # Built only when asked: `nix flake check` evaluates a package and builds only checks. The
       # VM tests and the image each take minutes and gigabytes, too much for every check run
       packages.${system} = {
+        drive-backup = pkgs.callPackage ./lib/drive-backup-package.nix { inherit inputs; };
+
         hindsight-api-slim = inputs.self.nixosConfigurations.nixos-station.pkgs.hindsight-api-slim;
 
         station-boot-test = import ./nixos/station/tests/boot.nix (commonArgs // { inherit pkgs; });
@@ -515,6 +517,12 @@
       # `nix run .#check-nix -- -N rokokol` — the whole checker, pinned by flake.lock rather
       # than looked up at the moment a job runs
       apps.${system} = {
+        drive-backup = {
+          type = "app";
+          program = nixpkgs.lib.getExe inputs.self.packages.${system}.drive-backup;
+          meta.description = "Store a verified cold archive on Google Drive";
+        };
+
         check-nix = {
           type = "app";
           program = nixpkgs.lib.getExe inputs.skill-nix-best-practices.packages.${system}.check-nix;

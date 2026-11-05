@@ -1695,6 +1695,18 @@ pkgs.testers.runNixOSTest {
         assert run_to_end(watch) == "success"
         station.wait_until_succeeds("! alert list | grep '^node:pc-probe'", timeout=timedelta(minutes=1))
 
+    with subtest("every encrypted repository reaches the cloud mirror and restores without the server"):
+        station.succeed(f"echo cloud-marker >/tmp/node-file && {restic} init && {restic} backup /tmp/node-file")
+        station.succeed("systemctl start restic-cloud.service")
+        station.succeed("systemctl start restic-cloud-heartbeat.service")
+        mirror = "/var/lib/restic-cloud/mirror"
+        station.succeed(f"RESTIC_PASSWORD=node ${lib.getExe pkgs.restic} -r {mirror}/pc check --read-data")
+        station.succeed(f"RESTIC_PASSWORD=node ${lib.getExe pkgs.restic} -r {mirror}/pc restore latest --target /tmp/cloud-restore")
+        station.succeed("grep -qx cloud-marker /tmp/cloud-restore/tmp/node-file")
+        station.succeed(f"RESTIC_PASSWORD_FILE=${station.config.sops.secrets.station-restic-password.path} ${lib.getExe pkgs.restic} -r {mirror}/station check --read-data")
+        station.succeed("systemctl show -P OnFailure restic-cloud.service | grep -qx 'alert-mail@restic-cloud.service.service'")
+        station.succeed("systemctl show -P OnFailure restic-cloud-heartbeat.service | grep -qx 'alert-mail@restic-cloud-heartbeat.service.service'")
+
     with subtest("the backup volume is btrfs, mounted with the host's options"):
         station.succeed("findmnt -no FSTYPE /srv/backup | grep -qx btrfs")
         station.succeed("findmnt -no OPTIONS /srv/backup | tr , '\\n' | grep -qx noatime")

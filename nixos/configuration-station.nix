@@ -21,6 +21,10 @@ in
         dumpDir = "${backup}/hindsight/dumps";
       };
     };
+    drive-backup = {
+      enable = true;
+      cloud.enable = true;
+    };
     restic-server = {
       enable = true;
       mountPoint = backup;

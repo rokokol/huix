@@ -81,6 +81,31 @@ pkgs.lib.mapAttrs' (
         touch "$out"
       '';
 
+  drive-backup =
+    let
+      python = pkgs.python3.withPackages (ps: [ ps.pathspec ]);
+    in
+    pkgs.runCommand "drive-backup-tests"
+      {
+        nativeBuildInputs = [
+          python
+        ]
+        ++ (with pkgs; [
+          git
+          rclone
+          zstd
+        ]);
+        scripts = builtins.path {
+          name = "drive-backup-tests";
+          path = ./scripts;
+        };
+      }
+      ''
+        python3 -B "$scripts/tests/test-drive-backup.py"
+        python3 -B "$scripts/tests/test-restic-cloud.py"
+        touch "$out"
+      '';
+
   grafana-resources =
     let
       station = inputs.self.nixosConfigurations.nixos-station.config;

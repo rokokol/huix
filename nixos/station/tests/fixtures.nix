@@ -60,6 +60,9 @@ pkgs.runCommand "station-boot-test-fixtures"
     # No mailbox connects to a real server from a test VM
     printf 'config: "{}"\n' >mail-agent.yaml
     printf 'telegram-api-id: "12345"\ntelegram-api-hash: test\n' >telegram-agent.yaml
+    printf '%s\n' '{"installed":{"client_id":"fixture","client_secret":"fixture","redirect_uris":["http://localhost"]}}' >drive-backup.json
+    sops --encrypt --age "$(age-keygen -y $out/key.txt)" \
+      --input-type json --output-type json drive-backup.json >"$out/drive-backup.json"
     for name in station mail-agent telegram-agent; do
       sops --encrypt --age "$(age-keygen -y $out/key.txt)" \
         --input-type yaml --output-type yaml "$name.yaml" >"$out/$name.yaml"

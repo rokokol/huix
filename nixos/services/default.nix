@@ -34,6 +34,7 @@
     ./system/tailscale.nix
     ./system/zram.nix
     ./tools/dav-mcp.nix
+    ./tools/drive-backup.nix
     ./tools/forgejo-mirrors.nix
     ./tools/forgejo.nix
     ./tools/mail-agent.nix

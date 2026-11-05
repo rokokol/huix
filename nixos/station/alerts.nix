@@ -53,6 +53,8 @@ in
     "radicale"
     "restic-rest-server"
     "restic-backups-station"
+    "restic-cloud"
+    "restic-cloud-heartbeat"
     "smartd"
     "syncthing"
     "tailscaled"
