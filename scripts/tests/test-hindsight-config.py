@@ -44,12 +44,20 @@ def validate(f):
     ):
         assert f"{name}={f['placeholders']['hindsight']}" in template, name
     assert f["placeholders"]["hindsight"] != f["placeholders"]["agents"]
-    assert "openrouter-hindsight-api-key" in f["spendMonitor"]["LoadCredential"]
-    assert any("hindsight-spend.prom" in rule for rule in f["textfileRules"])
+    credentials = " ".join(f["monitor"]["LoadCredential"])
+    assert "openrouter-hindsight-api-key" in credentials
+    assert "hindsight-api-token" in credentials
+    assert any(
+        "hindsight.prom" in rule and "hindsight-spend" not in rule for rule in f["textfileRules"]
+    )
     # The only call counter of the API records LLM scopes: a query that filters it by
     # scope="rerank" matches nothing, and the panel stays empty without an error
     expressions = f["dashboardExpressions"]
     assert any("hindsight_spend_key_usage_usd" in expr for expr in expressions)
+    # The rerank split needs both halves: the phase histogram counts the recalls, and only the
+    # trace counter says which of them paid for a model call
+    assert any("hindsight_rerank_paid_calls_total" in expr for expr in expressions)
+    assert any("phase=\"reranking\"" in expr for expr in expressions)
     for expr in expressions:
         if "hindsight_llm_calls_total" in expr:
             assert 'scope="rerank"' not in expr, expr
@@ -89,6 +97,8 @@ for name, mutate in [
         'sum by (success) (rate(hindsight_llm_calls_total{scope="rerank"}[5m]))')),
     ("a spend panel that reads tokens", lambda f: f.update(
         dashboardExpressions=[e for e in f["dashboardExpressions"] if "hindsight_spend_key" not in e])),
+    ("a coverage table without the paid calls", lambda f: f.update(
+        dashboardExpressions=[e for e in f["dashboardExpressions"] if "hindsight_rerank_paid_calls_total" not in e])),
 ]:
     broken = copy.deepcopy(fixture)
     mutate(broken)
@@ -97,4 +107,4 @@ for name, mutate in [
     except AssertionError:
         continue
     raise AssertionError("Undetected defect: " + name)
-print("PASS: memory auth boundaries, socket URL, UTF-8, completed dumps, per-host pi backup isolation, one Hindsight key for every model, a reranked chain with its fallback and a spend panel of a series that exists; 10 planted defects rejected")
+print("PASS: memory auth boundaries, socket URL, UTF-8, completed dumps, per-host pi backup isolation, one Hindsight key for every model, a reranked chain with its fallback, a spend panel of a series that exists and a rerank split of both halves; 11 planted defects rejected")

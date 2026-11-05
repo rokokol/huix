@@ -269,7 +269,7 @@ pkgs.lib.mapAttrs' (
       ''
         bash "$scripts/tests/run.sh"
         python3 -B "$scripts/tests/test-hermes-monitor.py"
-        python3 -B "$scripts/tests/test-hindsight-spend-monitor.py"
+        python3 -B "$scripts/tests/test-hindsight-monitor.py"
         touch "$out"
       '';
 

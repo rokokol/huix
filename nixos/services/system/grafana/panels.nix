@@ -77,7 +77,7 @@ rec {
       thresholds ? null,
       dangerBelow ? false,
       decimals ? null,
-      # Shown as the panel's ⓘ tooltip: a series name alone does not say what is measured
+      # Shown as the panel's info tooltip: a series name alone does not say what is measured
       description ? null,
     }:
     {
@@ -121,8 +121,8 @@ rec {
         tooltip.mode = "multi";
       };
     }
-    # Grafana draws the ⓘ only when the key is present, so an absent description must stay
-    # absent rather than become an empty string
+    # Grafana draws the info icon only when the key is present, so an absent description must
+    # stay absent rather than become an empty string
     // lib.optionalAttrs (description != null) { inherit description; };
 
   # The state of each series over time, as a band: a value maps to a word and a colour
@@ -179,19 +179,42 @@ rec {
       y,
       w,
       h ? 8,
-      expr,
+      expr ? null,
+      # Several expressions become one column each: with `instant = false` Grafana answers a
+      # range query with a row per step, which turns a per-day figure into a per-day table
+      queries ? null,
       unit,
       thresholds ? null,
       dangerBelow ? false,
       # The labels shown beside the value, by name; every other label is hidden
-      labels,
+      labels ? [ ],
       # The heading of the value's column
       valueName ? "Value",
       # true for the largest value first, false for the smallest, null for the labels' order
       sortDesc ? null,
       # false for a value that is a fact rather than good or bad
       coloured ? true,
+      instant ? true,
+      # The smallest step the datasource may take, so a range table groups by a whole day
+      interval ? null,
+      # Shown as the panel's info tooltip: a series name alone does not say what is measured
+      description ? null,
     }:
+    let
+      single = [ (query "A" roles.series-1 expr "").target ];
+      targets = map (
+        target:
+        target
+        // {
+          inherit instant;
+          format = "table";
+        }
+        // lib.optionalAttrs (interval != null) { inherit interval; }
+      ) (if queries != null then map (q: q.target) queries else single);
+      # A row of labels is what the filters and the value column address; a table of several
+      # expressions keeps the series names instead
+      byValue = labels != [ ];
+    in
     {
       type = "table";
       inherit title;
@@ -204,63 +227,54 @@ rec {
           h
           ;
       };
-      targets = [
-        (
-          (query "A" roles.series-1 expr "").target
-          // {
-            instant = true;
-            format = "table";
-          }
-        )
-      ];
+      inherit targets;
       fieldConfig = {
         defaults = {
           thresholds = thresholdSteps thresholds dangerBelow;
           # Grafana's own minimum, 150px, leaves no room for the value in a narrow panel
           custom.minWidth = 60;
         };
-        overrides = [
-          {
-            matcher = {
-              id = "byName";
-              options = "Value";
-            };
-            # The value alone is coloured: a label is text, which no threshold reaches, so it
-            # would take the base colour
-            properties = [
-              {
-                id = "unit";
-                value = unit;
-              }
-              {
-                id = "displayName";
-                value = valueName;
-              }
-            ]
-            ++ lib.optional coloured {
-              id = "custom.cellOptions";
-              value.type = "color-text";
-            };
-          }
-        ];
+        overrides = lib.optional byValue {
+          matcher = {
+            id = "byName";
+            options = "Value";
+          };
+          # The value alone is coloured: a label is text, which no threshold reaches, so it
+          # would take the base colour
+          properties = [
+            {
+              id = "unit";
+              value = unit;
+            }
+            {
+              id = "displayName";
+              value = valueName;
+            }
+          ]
+          ++ lib.optional coloured {
+            id = "custom.cellOptions";
+            value.type = "color-text";
+          };
+        };
       };
-      transformations = [
-        {
-          id = "organize";
-          options.includeByName = lib.genAttrs (labels ++ [ "Value" ]) (_: true);
-        }
-      ];
+      transformations = lib.optional byValue {
+        id = "organize";
+        options.includeByName = lib.genAttrs (labels ++ [ "Value" ]) (_: true);
+      };
       options = {
         showHeader = true;
       }
-      // lib.optionalAttrs (sortDesc != null) {
+      // lib.optionalAttrs (sortDesc != null && byValue) {
         sortBy = [
           {
             displayName = valueName;
             desc = sortDesc;
           }
         ];
-      };
+      }
+      # Grafana draws the info icon only when the key is present, so an absent description must
+      # stay absent rather than become an empty string
+      // lib.optionalAttrs (description != null) { inherit description; };
     };
 
   # The current value of each series as a bar, the largest first

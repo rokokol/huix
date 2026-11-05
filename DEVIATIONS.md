@@ -32,4 +32,4 @@ Anything but `['ddlc-palette']` means a parent is missing its `follows`
 
 **Rejected alternative:** keeping the estimate and a price table beside the model name. It reads as exact while it ignores cache discounts, embeddings and rerank, and it charges the wrong model the moment `memory.model` moves
 
-**Enforcement:** `scripts/tests/test-hindsight-config.py` requires all three model keys of `hindsight.env` to carry one placeholder other than the agents' key, and `scripts/tests/test-hindsight-spend-monitor.py` pins what the counter exports
+**Enforcement:** `scripts/tests/test-hindsight-config.py` requires all three model keys of `hindsight.env` to carry one placeholder other than the agents' key, and `scripts/tests/test-hindsight-monitor.py` pins what the counter exports, including a day that grows and a trace read that fails

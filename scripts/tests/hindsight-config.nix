@@ -30,7 +30,7 @@ let
       agents = station.sops.placeholder."openrouter-api-key";
       hindsight = station.sops.placeholder."openrouter-hindsight-api-key";
     };
-    spendMonitor = station.systemd.services.hindsight-spend-monitor.serviceConfig;
+    monitor = station.systemd.services.hindsight-monitor.serviceConfig;
     textfileRules = station.systemd.tmpfiles.rules;
     initdbArgs = station.services.postgresql.initdbArgs;
     enableTCPIP = station.services.postgresql.enableTCPIP;
