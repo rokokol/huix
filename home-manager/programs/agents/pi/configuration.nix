@@ -45,13 +45,13 @@ in
         showCacheMissNotices = true;
         hideThinkingBlock = true;
         defaultProvider = "openai-codex";
-        defaultModel = "gpt-6.1-sol";
+        defaultModel = "gpt-6.1-terra";
         # The ring ctrl+p cycles through. A side agent names its model by id, so it does not
         # have to appear here
         enabledModels = [
           "opencode-go/deepseek-v4.1-flash"
           "openai-codex/gpt-6-luna"
-          "openai-codex/gpt-6.1-sol"
+          "openai-codex/gpt-6.1-terra"
         ];
         terminal.hyperlinks = true;
         terminal.images = "kitty";
