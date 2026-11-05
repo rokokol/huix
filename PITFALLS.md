@@ -24,3 +24,24 @@ Both answer `{"prompt": "0", "completion": "0"}` for the model and for its Firew
 **Mechanism:** `prompt` and `completion` are chat-completion prices. A rerank endpoint bills input tokens alone and states what it charged in `usage.cost` of the response, which neither catalog field carries. Hindsight then reads `results[].index` and `relevance_score` out of that response and drops `usage`, so the one exact number the provider sends reaches neither Prometheus nor the `llm_requests` table
 
 **Safe route:** take the cost from the response or from the counter of the key that pays, never from the catalog. `GET /key` reports it exactly, which is what Hindsight's own key exists for — see `DEVIATIONS.md`, "Hindsight spends an OpenRouter key of its own". The same response also shows why tokens cannot stand in for money here: an embedding or rerank call bills input tokens alone, while its `llm_tokens_output_tokens_total` stays empty, so a panel that multiplies stored tokens by a price undercounts precisely the calls whose price is hardest to know
+
+---
+
+## Hindsight's call counter records chat alone
+
+**Where it bites:** any panel or query that counts model calls of Hindsight — `nixos/services/system/grafana/dashboards/hindsight.nix`
+
+**Reproduction:** on Hindsight 1.1.0, run one recall of the shared bank and read the service's own metrics
+
+```sh
+curl -s http://127.0.0.1:8888/metrics | grep 'hindsight_llm_calls_total'
+curl -s http://127.0.0.1:8888/metrics | grep 'phase="reranking"' | grep count
+```
+
+`hindsight_llm_calls_total` lists the chat and reflect scopes only and never carries `scope="rerank"`, however many recalls run, while the reranking phase counter rises by one per recall and takes seconds of wall time
+
+**Misleading result:** the panel draws no line and reports no error. Prometheus accepts a selector that matches nothing, so a wrong label reads as "no reranking happened"
+
+**Mechanism:** the cross-encoder traces its call through `trace_model_call` with `RERANK_SCOPE`, and that row lands in the bank's `llm_requests` table. The `hindsight_llm_calls_total` and `hindsight_llm_duration_seconds` counters are fed from the chat path alone, so the rerank call and the usage the provider returns reach neither
+
+**Safe route:** count rerank work from `hindsight_recall_phase_duration_seconds{phase="reranking"}`, and read the money from the key. `scripts/tests/test-hindsight-config.py` refuses a dashboard query that filters the call counter by the rerank scope, so the mistake fails the check rather than a panel that looks quiet

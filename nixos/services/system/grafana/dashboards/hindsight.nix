@@ -184,28 +184,35 @@ panels.dashboard {
       ];
     })
     (panel {
-      title = "Rerank calls by result";
+      title = "Recalls that reach reranking";
       x = 0;
       y = 35;
       w = 12;
       unit = "short";
       shaded = true;
-      # Only a cross-encoder traces this scope, and a recall that fell back to the fusion
-      # reranker adds nothing, so the line counts the paid calls rather than every recall
+      # The cross-encoder has no counter of its own: the only call counter records LLM scopes,
+      # so a recall is counted here as it enters the stage, whether a model answers it or the
+      # fusion fallback does
       queries = [
-        (query "A" roles.series-1 "sum by (success) (rate(hindsight_llm_calls_total{scope=\"rerank\"}[5m]))"
-          "{{success}}"
+        (query "A" roles.series-1
+          "sum(rate(hindsight_recall_phase_duration_seconds_count{phase=\"reranking\"}[5m]))"
+          "recalls/s"
         )
       ];
     })
-    (states {
-      title = "Spend counter";
+    (panel {
+      title = "Rerank stage, 95th percentile";
       x = 12;
       y = 35;
       w = 12;
-      expr = "max(hindsight_spend_collect_success)";
-      legend = "Hindsight key";
-      mappings = upDown;
+      unit = "s";
+      shaded = true;
+      queries = [
+        (query "A" roles.series-1
+          "histogram_quantile(0.95, sum by (le) (rate(hindsight_recall_phase_duration_seconds_bucket{phase=\"reranking\"}[1h])))"
+          "p95"
+        )
+      ];
     })
     (row "Spend" null 43)
     (panel {
@@ -237,11 +244,34 @@ panels.dashboard {
         (query "C" roles.series-4 "hindsight_spend_key_usage_monthly_usd" "Current UTC month")
       ];
     })
-    (row "Last 7 days" null 52)
+    (states {
+      title = "Spend counter";
+      x = 0;
+      y = 52;
+      w = 8;
+      expr = "max(hindsight_spend_collect_success)";
+      legend = "Hindsight key";
+      mappings = upDown;
+    })
+    (panel {
+      title = "Key limit";
+      x = 8;
+      y = 52;
+      w = 16;
+      unit = "currencyUSD";
+      decimals = 2;
+      # The key carries a limit of its own, and the series is absent while no limit is set
+      description = "The spending limit OpenRouter holds on the key, and what is left of it";
+      queries = [
+        (query "A" roles.series-1 "hindsight_spend_key_limit_usd" "Limit")
+        (query "B" roles.series-3 "hindsight_spend_key_limit_remaining_usd" "Remaining")
+      ];
+    })
+    (row "Last 7 days" null 60)
     (table {
       title = "Memory operations in the last 7 days";
       x = 0;
-      y = 53;
+      y = 61;
       w = 24;
       # The window is fixed on purpose: the dashboard opens on a day, and this row is a week
       expr = operations "7d";

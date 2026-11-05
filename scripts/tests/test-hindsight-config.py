@@ -46,6 +46,13 @@ def validate(f):
     assert f["placeholders"]["hindsight"] != f["placeholders"]["agents"]
     assert "openrouter-hindsight-api-key" in f["spendMonitor"]["LoadCredential"]
     assert any("hindsight-spend.prom" in rule for rule in f["textfileRules"])
+    # The only call counter of the API records LLM scopes: a query that filters it by
+    # scope="rerank" matches nothing, and the panel stays empty without an error
+    expressions = f["dashboardExpressions"]
+    assert any("hindsight_spend_key_usage_usd" in expr for expr in expressions)
+    for expr in expressions:
+        if "hindsight_llm_calls_total" in expr:
+            assert 'scope="rerank"' not in expr, expr
     assert "hindsight-client-token" in f["piMemory"]
     assert 'get_mental_model: "direct"' in f["piMemory"]
     assert f["hermesMemoryProvider"] == "hindsight"
@@ -78,6 +85,10 @@ for name, mutate in [
     ("no fallback when the rerank host overloads", lambda f: f["environment"].pop("HINDSIGHT_API_RERANKER_1_PROVIDER")),
     ("the cross-encoder switched off", lambda f: f["environment"].update(HINDSIGHT_API_RERANKER_PROVIDER="rrf")),
     ("a spend counter nothing exports", lambda f: f.update(textfileRules=[])),
+    ("a panel of a counter that has no rerank scope", lambda f: f["dashboardExpressions"].append(
+        'sum by (success) (rate(hindsight_llm_calls_total{scope="rerank"}[5m]))')),
+    ("a spend panel that reads tokens", lambda f: f.update(
+        dashboardExpressions=[e for e in f["dashboardExpressions"] if "hindsight_spend_key" not in e])),
 ]:
     broken = copy.deepcopy(fixture)
     mutate(broken)
@@ -86,4 +97,4 @@ for name, mutate in [
     except AssertionError:
         continue
     raise AssertionError("Undetected defect: " + name)
-print("PASS: memory auth boundaries, socket URL, UTF-8, completed dumps, per-host pi backup isolation, one Hindsight key for every model and a reranked chain with its fallback; 8 planted defects rejected")
+print("PASS: memory auth boundaries, socket URL, UTF-8, completed dumps, per-host pi backup isolation, one Hindsight key for every model, a reranked chain with its fallback and a spend panel of a series that exists; 10 planted defects rejected")
