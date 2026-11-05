@@ -381,7 +381,7 @@ export function setupModules(pi: ExtensionAPI, helpers?: UiHelpers, nativeMcp?: 
     }
     const registered = new Map(pi.getMcpServers().map(server => [server.name, server]));
     const files = fileServers(ctx);
-    const servers = new Set([...registered.keys(), ...files.keys(), ...Object.keys(cache.tools), ...Object.values(groups).flatMap(group => group.servers ?? [])]);
+    const servers = new Set([...registered.keys(), ...files.keys(), ...Object.values(groups).flatMap(group => group.servers ?? [])]);
     for (const name of servers) {
       const file = files.get(name)?.file;
       const original = files.get(name)?.config ?? registered.get(name)?.config;

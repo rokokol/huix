@@ -10,7 +10,10 @@ import type { ExtensionAPI, ExtensionCommandContext, RegisteredCommand, RpcClien
 const root = mkdtempSync(join(tmpdir(), "pi-modules-"));
 process.env.PI_CODING_AGENT_DIR = root;
 const source = "/nix/store/fixture-creative-pi-package";
-writeFileSync(join(root, "modules.json"), JSON.stringify({ creative: { source, description: "Creative tools" } }));
+writeFileSync(join(root, "modules.json"), JSON.stringify({ creative: { source, description: "Creative tools", servers: ["fixture"] } }));
+writeFileSync(join(root, "resources-cache.json"), JSON.stringify({ skills: {}, tools: {
+  removed: { old: { name: "old", tokens: 10 } }, fixture: { present: { name: "present", tokens: 10 } },
+} }));
 const settingsFile = join(root, "settings.json");
 const original = { theme: "system", enabledModels: ["openai-codex/*"],
   packages: ["/nix/store/automode", { source, skills: ["+skills/audio"], extensions: ["./mcp.ts"] }],
@@ -49,6 +52,9 @@ await command.handler("automode off", ctx);
 assert.equal(reloads, 2, "Safety extensions are outside the switchable module catalog");
 await command.handler("", ctx);
 assert(notices.at(-1)?.includes("[x] creative"), "Enabled modules use a checked box");
+assert(!notices.at(-1)?.includes("removed — MCP"), "Cached tools must not revive an unconfigured server");
+assert(notices.at(-1)?.includes("fixture — MCP"), "A catalog server remains visible with cached tools");
+assert(notices.at(-1)?.includes("present"), "A configured server retains its cached tools");
 assert.equal(reloads, 2, "Cancelling the menu must not change anything");
 await command.handler("creative off", ctx);
 assert.equal(reloads, 3);
