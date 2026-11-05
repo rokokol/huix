@@ -103,10 +103,6 @@ let
     import ./dashboards/hindsight.nix {
       inherit roles panels;
       memoryModel = memory.model;
-      # A price per token is around 1e-8, and toString writes it as 0.000000, so the panel
-      # would multiply by zero; toJSON keeps the exponent, which PromQL reads as a number
-      inputPrice = builtins.toJSON memory.price.input;
-      outputPrice = builtins.toJSON memory.price.output;
       poolMax = config.rokokol.hindsight.poolMax;
     }
   );

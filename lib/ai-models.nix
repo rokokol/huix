@@ -24,11 +24,6 @@ in
   };
   memory = {
     model = background;
-    # OpenRouter list prices per token, checked 2026-10-31; update both when the model changes
-    price = {
-      input = 0.0000000163;
-      output = 0.0000001479;
-    };
   };
   side = {
     # Hermes reaches this model through OpenRouter, whose routing this flake configures
@@ -42,11 +37,12 @@ in
   };
   stt.model = "microsoft/mai-transcribe-2";
   reranker = {
-    # OpenRouter's ZDR guardrail excludes every external rerank endpoint, so keep the
-    # fusion-only reranker until a ZDR-capable one exists (local, or the guardrail changes)
-    provider = "rrf";
-    # Kept for the switch back once an endpoint passes the guardrail
-    model = "voyageai/rerank-2.5-lite";
+    # The one rerank model in OpenRouter's ZDR catalog, served by Fireworks alone
+    provider = "openrouter";
+    model = "qwen/qwen3-reranker-8b";
+    # Fireworks answers 503 under load, so the chain ends in the fusion-only reranker: a
+    # recall then ranks worse rather than failing
+    fallback = "rrf";
     maxCandidates = 100;
     maxTokensPerCandidate = 512;
   };

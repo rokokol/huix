@@ -41,6 +41,7 @@ pkgs.runCommand "station-boot-test-fixtures"
       printf 'grafana-secret-key: %s\n' 0123456789abcdef0123456789abcdef
       printf 'telegram-bot-token: %s\n' 123456789:test-token
       printf 'openrouter-api-key: test\n'
+      printf 'openrouter-hindsight-api-key: test\n'
       printf 'opencode-go-mya-key: test\n'
       printf 'searxng-secret-key: test\n'
       printf 'api-token: synthetic-hindsight-token\n'

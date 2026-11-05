@@ -1,6 +1,6 @@
 # Workarounds
 
-Things in this repo that exist **only** because something upstream is broken or missing. Each entry says what to run to find out whether it is still needed, and what makes it removable. Nothing here is a design decision: a permanent choice that differs from the obvious arrangement belongs in `DEVIATIONS.md`
+Things in this repo that exist **only** because something upstream is broken or missing. Each entry says what to run to find out whether it is still needed, and what makes it removable. Nothing here is a design decision: a permanent choice that differs from the obvious arrangement belongs in `DEVIATIONS.md`, and a trap that reports a plausible success in `PITFALLS.md`
 
 Rules for this file: one entry per workaround, and every entry must carry a **mechanical** removal check (a command whose output decides it), never a date
 

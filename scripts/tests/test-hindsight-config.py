@@ -30,6 +30,22 @@ def validate(f):
     assert {"invalidate_memory", "retain", "recall", "get_mental_model", "list_memories", "reflect"} <= tools
     assert not {"delete_bank", "clear_memories"} & tools
     assert "HINDSIGHT_API_LLM_API_KEY" not in f["environment"]
+    env = f["environment"]
+    assert env.get("HINDSIGHT_API_RERANKER_PROVIDER") == "openrouter"
+    assert env.get("HINDSIGHT_API_RERANKER_OPENROUTER_MODEL") == "qwen/qwen3-reranker-8b"
+    assert env.get("HINDSIGHT_API_RERANKER_1_PROVIDER") == "rrf"
+    # Every model of Hindsight spends on one key of its own, and the dashboard reads that key's
+    # counter; a model left on the agents' key would spend outside the number the panels show
+    template = f["envTemplate"]
+    for name in (
+        "HINDSIGHT_API_LLM_API_KEY",
+        "HINDSIGHT_API_EMBEDDINGS_OPENAI_API_KEY",
+        "HINDSIGHT_API_RERANKER_OPENROUTER_API_KEY",
+    ):
+        assert f"{name}={f['placeholders']['hindsight']}" in template, name
+    assert f["placeholders"]["hindsight"] != f["placeholders"]["agents"]
+    assert "openrouter-hindsight-api-key" in f["spendMonitor"]["LoadCredential"]
+    assert any("hindsight-spend.prom" in rule for rule in f["textfileRules"])
     assert "hindsight-client-token" in f["piMemory"]
     assert 'get_mental_model: "direct"' in f["piMemory"]
     assert f["hermesMemoryProvider"] == "hindsight"
@@ -57,6 +73,11 @@ for name, mutate in [
     ("empty database authority", lambda f: f["environment"].update(HINDSIGHT_API_DATABASE_URL="postgresql:///hindsight?host=/run/postgresql")),
     ("missing dump dependency", lambda f: f.update(backupRequires=[])),
     ("cross-host state sharing", lambda f: f["folders"]["pi-nixos-pc"]["devices"].append("nixos-laptop")),
+    ("a model spending on the agents' key", lambda f: f.update(
+        envTemplate=f["envTemplate"].replace(f["placeholders"]["hindsight"], f["placeholders"]["agents"], 1))),
+    ("no fallback when the rerank host overloads", lambda f: f["environment"].pop("HINDSIGHT_API_RERANKER_1_PROVIDER")),
+    ("the cross-encoder switched off", lambda f: f["environment"].update(HINDSIGHT_API_RERANKER_PROVIDER="rrf")),
+    ("a spend counter nothing exports", lambda f: f.update(textfileRules=[])),
 ]:
     broken = copy.deepcopy(fixture)
     mutate(broken)
@@ -65,4 +86,4 @@ for name, mutate in [
     except AssertionError:
         continue
     raise AssertionError("Undetected defect: " + name)
-print("PASS: memory auth boundaries, socket URL, UTF-8, completed dumps and per-host pi backup isolation; 4 planted defects rejected")
+print("PASS: memory auth boundaries, socket URL, UTF-8, completed dumps, per-host pi backup isolation, one Hindsight key for every model and a reranked chain with its fallback; 8 planted defects rejected")

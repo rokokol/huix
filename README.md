@@ -12,6 +12,7 @@
 [![assets](https://img.shields.io/badge/assets-third--party-FF80C0?style=flat)](ASSETS.md)
 [![workarounds](https://img.shields.io/badge/docs-workarounds-555?style=flat)](WORKAROUNDS.md)
 [![deviations](https://img.shields.io/badge/docs-deviations-555?style=flat)](DEVIATIONS.md)
+[![pitfalls](https://img.shields.io/badge/docs-pitfalls-555?style=flat)](PITFALLS.md)
 [![license](https://img.shields.io/badge/license-MIT-3DA639?style=flat)](LICENSE)
 [![eval](https://github.com/rokokol/huix/actions/workflows/eval.yml/badge.svg)](https://github.com/rokokol/huix/actions/workflows/eval.yml)
 [![Ask DeepWiki](./assets/ask-deepwiki.svg)](https://deepwiki.com/rokokol/huix)

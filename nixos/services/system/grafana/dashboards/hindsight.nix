@@ -2,8 +2,6 @@
   roles,
   panels,
   memoryModel,
-  inputPrice,
-  outputPrice,
   poolMax,
 }:
 
@@ -16,13 +14,9 @@ let
     table
     ;
 
-  spend =
-    window:
-    "("
-    + "sum(increase(hindsight_llm_tokens_input_tokens_total{model=\"${memoryModel}\"}[${window}])) * ${inputPrice}"
-    + " + sum(increase(hindsight_llm_tokens_output_tokens_total{model=\"${memoryModel}\"}[${window}])) * ${outputPrice}"
-    + " + sum(increase(hindsight_llm_tokens_thoughts_tokens_total{model=\"${memoryModel}\"}[${window}])) * ${outputPrice}"
-    + ")";
+  # The key's counter is cumulative, and delta reads it as the spend of a window rather than as
+  # a rate, so a provider's own figure needs no price and no token count
+  spend = window: "delta(hindsight_spend_key_usage_usd[" + window + "])";
 
   # A result that never happened still has a zero series, and a row of zero is noise: the filter
   # drops those rows. Both tables read the same counter and differ only in their window
@@ -153,7 +147,7 @@ panels.dashboard {
         )
       ];
     })
-    (row "LLM usage and estimated spend" null 26)
+    (row "LLM usage" null 26)
     (panel {
       title = "Tokens";
       x = 0;
@@ -190,22 +184,64 @@ panels.dashboard {
       ];
     })
     (panel {
-      title = "Estimated spend";
+      title = "Rerank calls by result";
       x = 0;
       y = 35;
       w = 12;
+      unit = "short";
+      shaded = true;
+      # Only a cross-encoder traces this scope, and a recall that fell back to the fusion
+      # reranker adds nothing, so the line counts the paid calls rather than every recall
+      queries = [
+        (query "A" roles.series-1 "sum by (success) (rate(hindsight_llm_calls_total{scope=\"rerank\"}[5m]))"
+          "{{success}}"
+        )
+      ];
+    })
+    (states {
+      title = "Spend counter";
+      x = 12;
+      y = 35;
+      w = 12;
+      expr = "max(hindsight_spend_collect_success)";
+      legend = "Hindsight key";
+      mappings = upDown;
+    })
+    (row "Spend" null 43)
+    (panel {
+      title = "Spend";
+      x = 0;
+      y = 44;
+      w = 12;
       unit = "currencyUSD";
       decimals = 4;
+      # The provider's own number for the key every Hindsight model shares, so it covers chat,
+      # embeddings and rerank together and needs no price kept beside the model
+      description = "What OpenRouter billed the key of every Hindsight model, read from its counter rather than estimated from tokens";
       queries = [
         (query "A" roles.series-1 (spend "24h") "Last 24h")
         (query "B" roles.series-3 (spend "24h" + " * 30") "30-day projection")
       ];
     })
-    (row "Last 7 days" null 43)
+    (panel {
+      title = "Spend by OpenRouter period";
+      x = 12;
+      y = 44;
+      w = 12;
+      unit = "currencyUSD";
+      decimals = 4;
+      description = "The periods OpenRouter totals itself, so each one starts again when it ends";
+      queries = [
+        (query "A" roles.series-1 "hindsight_spend_key_usage_daily_usd" "Current UTC day")
+        (query "B" roles.series-3 "hindsight_spend_key_usage_weekly_usd" "Current UTC week")
+        (query "C" roles.series-4 "hindsight_spend_key_usage_monthly_usd" "Current UTC month")
+      ];
+    })
+    (row "Last 7 days" null 52)
     (table {
       title = "Memory operations in the last 7 days";
       x = 0;
-      y = 44;
+      y = 53;
       w = 24;
       # The window is fixed on purpose: the dashboard opens on a day, and this row is a week
       expr = operations "7d";

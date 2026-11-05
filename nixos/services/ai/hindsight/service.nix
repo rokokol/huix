@@ -85,6 +85,9 @@ in
         group = "hindsight";
       };
       sops.secrets.openrouter-api-key = { };
+      # Hindsight keeps a key of its own so that the dashboard reads its spend instead of
+      # inferring it; see DEVIATIONS.md, "Hindsight spends an OpenRouter key of its own"
+      sops.secrets.openrouter-hindsight-api-key = { };
       sops.secrets.hindsight-api-token = {
         sopsFile = secretsFile;
         key = "api-token";
@@ -92,11 +95,11 @@ in
       sops.templates."hindsight.env" = {
         owner = "hindsight";
         content = ''
-          HINDSIGHT_API_LLM_API_KEY=${secret "openrouter-api-key"}
-          HINDSIGHT_API_EMBEDDINGS_OPENAI_API_KEY=${secret "openrouter-api-key"}
+          HINDSIGHT_API_LLM_API_KEY=${secret "openrouter-hindsight-api-key"}
+          HINDSIGHT_API_EMBEDDINGS_OPENAI_API_KEY=${secret "openrouter-hindsight-api-key"}
           HINDSIGHT_API_TENANT_API_KEY=${secret "hindsight-api-token"}
           HINDSIGHT_API_MCP_AUTH_TOKEN=${secret "hindsight-api-token"}
-          HINDSIGHT_API_RERANKER_OPENROUTER_API_KEY=${secret "openrouter-api-key"}
+          HINDSIGHT_API_RERANKER_OPENROUTER_API_KEY=${secret "openrouter-hindsight-api-key"}
         '';
       };
       services.postgresql = {
@@ -184,6 +187,8 @@ in
           HINDSIGHT_API_EMBEDDINGS_OPENAI_DIMENSIONS = toString models.embeddings.dimensions;
           HINDSIGHT_API_RERANKER_PROVIDER = models.reranker.provider;
           HINDSIGHT_API_RERANKER_OPENROUTER_MODEL = models.reranker.model;
+          # The chain walks its indexes in order and ends at the first one that is absent
+          HINDSIGHT_API_RERANKER_1_PROVIDER = models.reranker.fallback;
           HINDSIGHT_API_RERANKER_MAX_CANDIDATES_MID = toString models.reranker.maxCandidates;
           HINDSIGHT_API_RERANKER_MAX_TOKENS_PER_CANDIDATE = toString models.reranker.maxTokensPerCandidate;
           HINDSIGHT_API_DB_POOL_MIN_SIZE = toString cfg.poolMin;
