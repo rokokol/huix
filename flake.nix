@@ -7,6 +7,11 @@
     # Deliberately without nixpkgs.follows: nixvim pins its own nixpkgs and warns if you override it
     nixvim.url = "github:nix-community/nixvim";
 
+    kitsune = {
+      url = "github:junyeong-nero/kitsune/v0.7.3";
+      flake = false;
+    };
+
     zen-browser = {
       url = "github:0xc000022070/zen-browser-flake";
       inputs.nixpkgs.follows = "nixpkgs";
