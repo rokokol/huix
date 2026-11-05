@@ -559,3 +559,23 @@ nix build .#station-boot-test -L
 The run passes only when the upstream module creates the dump directory itself, and then the workaround is gone. A failure naming `forgejo-dump.service` or the mount namespace means it is still needed
 
 **Upstream:** [NixOS/nixpkgs#582601](https://github.com/NixOS/nixpkgs/pull/582601) makes `services.forgejo.dump` create its own directory
+
+---
+
+## Zen starts with Marionette so the Firefox DevTools MCP can attach
+
+**Where:** `home-manager/programs/zen.nix` — the `programs.zen-browser.finalPackage` override in the `let` block of the `apply` function, and the `programs.mcp.servers.firefox-devtools` entry beside it
+
+**Symptom it prevents:** `firefox-devtools-mcp --connect-existing` needs the browser to have been started with `--marionette --remote-debugging-port`, and `zen-browser-flake` exposes no option for extra launch arguments: `env`, `extraPrefs`, `extraPrefsFiles`, `icon`, `nixGL`, `unwrappedPackage`, `darwin.packageMode` and `policies` are all it has. Running `zen-beta` again with those flags while a profile is open only hands the URI to the running instance and starts no automation server
+
+**Why this works:** the Home Manager Zen module's `package` is assembled from the flake's own package and then wrapped by the Firefox wrapper, so neither a second package in `home.packages` nor `extraPrefs` can reach the command line. `finalPackage` is the option holding that finished result, and its `apply` function runs over the value the module computed. `symlinkJoin` keeps the wrapped package intact — policies, desktop file and launcher included — and `wrapProgram` adds the two flags, so every launch path, the desktop entry and `xdg-open` alike, starts the automation servers. `check-nix.allow` records this one extension of an option outside the `rokokol` namespace
+
+**Removal check:** ask the flake whether it grew an option for launch arguments
+
+```sh
+rg -n 'extraArg|launchArg|marionette' /nix/store/*-source/hm-module/package.nix
+```
+
+A match means the override can become that option. No match, and the wrapper stays. The MCP itself then needs only the ports the browser opened; both listen on `127.0.0.1` alone, and `packages.firefox-devtools-mcp` in nixpkgs already carries geckodriver
+
+**Upstream:** `zen-browser-flake` has no issue filed for extra launch arguments; the Firefox wrapper it builds on takes them, and the Zen module does not pass them through
