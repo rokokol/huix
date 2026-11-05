@@ -151,7 +151,10 @@ in
       enable = true;
       # Even the Prometheus data source is a plugin, which Grafana would download from grafana.com
       # on each start, unpinned. Plugins from the store turn that installer off
-      declarativePlugins = with pkgs.grafanaPlugins; [ prometheus ];
+      declarativePlugins = with pkgs.grafanaPlugins; [
+        prometheus
+        grafana-metricsdrilldown-app
+      ];
       settings = {
         server = {
           http_addr = "127.0.0.1";
