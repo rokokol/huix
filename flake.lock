@@ -967,23 +967,6 @@
         "type": "github"
       }
     },
-    "kitsune": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1793874716,
-        "narHash": "sha256-O4NIqR3Vqy4S4++0LaGVbSxFMHAMCJY3/6pdF5Hd5Ow=",
-        "owner": "junyeong-nero",
-        "repo": "kitsune",
-        "rev": "adcd51178d676a403d140277ae46c72a53d0cd19",
-        "type": "github"
-      },
-      "original": {
-        "owner": "junyeong-nero",
-        "ref": "v0.7.3",
-        "repo": "kitsune",
-        "type": "github"
-      }
-    },
     "libnbtplusplus": {
       "flake": false,
       "locked": {
@@ -1476,7 +1459,6 @@
         "hyprland-plugins": "hyprland-plugins",
         "hyprland-screen-shader": "hyprland-screen-shader",
         "kdenlive-mcp": "kdenlive-mcp",
-        "kitsune": "kitsune",
         "mail-skill": "mail-skill",
         "nix-flatpak": "nix-flatpak",
         "nix-matlab": "nix-matlab",

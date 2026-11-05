@@ -93,6 +93,23 @@ let
   '';
 in
 {
+  options.programs.zen-browser.finalPackage = lib.mkOption {
+    apply =
+      package:
+      if package == null then
+        null
+      else
+        pkgs.symlinkJoin {
+          name = "zen-browser-with-marionette";
+          paths = [ package ];
+          nativeBuildInputs = with pkgs; [ makeWrapper ];
+          postBuild = ''
+            wrapProgram "$out/bin/zen-beta" --add-flags "--marionette --remote-debugging-port"
+          '';
+          inherit (package) meta;
+        };
+  };
+
   options.rokokol.zen = {
     enable = lib.mkEnableOption "the Zen browser" // {
       default = config.rokokol.workstation.enable;
@@ -287,6 +304,15 @@ in
           };
         };
       };
+    };
+
+    programs.mcp.servers.firefox-devtools = {
+      command = lib.getExe pkgs.firefox-devtools-mcp;
+      args = [
+        "--connect-existing"
+        "--tool-preset"
+        "slim"
+      ];
     };
 
     xdg.mimeApps = {
