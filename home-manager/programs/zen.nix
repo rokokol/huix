@@ -200,6 +200,15 @@ in
               definedAliases = [ "@gh" ];
             };
 
+            "Ozon" = {
+              urls = [ { template = "https://www.ozon.ru/search/?text={searchTerms}"; } ];
+              icon = "https://www.ozon.ru/favicon.ico";
+              definedAliases = [
+                "ozon"
+                "z"
+              ];
+            };
+
             "WolframAlpha" = {
               urls = [ { template = "https://www.wolframalpha.com/input/?i={searchTerms}"; } ];
               icon = "https://icons.duckduckgo.com/ip3/wolframalpha.com.ico";
