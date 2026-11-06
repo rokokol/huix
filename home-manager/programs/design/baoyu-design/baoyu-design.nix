@@ -31,7 +31,7 @@ in
 
     rokokol.agents = {
       inherit skills;
-      skillGroups = lib.mapAttrs (_: _: "creative") skills;
+      skillGroups = lib.mapAttrs (_: _: "design") skills;
     };
   };
 }
