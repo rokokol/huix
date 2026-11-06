@@ -291,7 +291,7 @@ panels.dashboard {
         label_replace(hindsight_spend_key_usage_usd, "item", "Spent", "__name__", ".*")
         or label_replace(hindsight_spend_key_limit_remaining_usd, "item", "Available", "__name__", ".*")
         or label_replace(hindsight_spend_key_limit_usd, "item", "Limit", "__name__", ".*")
-        or label_replace(delta(hindsight_spend_key_usage_usd[24h]) * 30, "item", "30-day projection", "instance", ".*")
+        or label_replace(delta(hindsight_spend_key_usage_usd[24h]) * 30, "item", "30 days at this pace", "instance", ".*")
       '';
       labels = [ "item" ];
       valueName = "USD";
