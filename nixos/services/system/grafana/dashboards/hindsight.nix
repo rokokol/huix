@@ -18,19 +18,6 @@ let
   # a rate, so a provider's own figure needs no price and no token count
   spend = window: "delta(hindsight_spend_key_usage_usd[" + window + "])";
 
-  # A recall enters the reranking stage whether a model answers it or the fusion fallback does,
-  # and only a model call leaves a trace row: the two counts differ by the recalls that fell back
-  rerankWindow = "1d";
-  rerankAttempts =
-    "sum(increase(hindsight_recall_phase_duration_seconds_count{phase=\"reranking\"}["
-    + rerankWindow
-    + "]))";
-  rerankPaid = "sum(increase(hindsight_rerank_paid_calls_total[" + rerankWindow + "]))";
-  # Which share of the recalls a model answered, so a day of fallbacks reads at a glance
-  rerankShare = "100 * " + rerankPaid + " / " + rerankAttempts;
-  # A recall that reached the stage without a trace row fell back to the fusion order
-  rerankFellBack = "(" + rerankAttempts + " - " + rerankPaid + ")";
-
   # A result that never happened still has a zero series, and a row of zero is noise: the filter
   # drops those rows. Both tables read the same counter and differ only in their window
   operations =
@@ -197,15 +184,12 @@ panels.dashboard {
       ];
     })
     (panel {
-      title = "Recalls that reach reranking";
+      title = "Completed reranking phases";
       x = 0;
       y = 35;
       w = 12;
       unit = "short";
       shaded = true;
-      # The cross-encoder has no counter of its own: the only call counter records LLM scopes,
-      # so a recall is counted here as it enters the stage, whether a model answers it or the
-      # fusion fallback does
       queries = [
         (query "A" roles.series-1
           "sum(rate(hindsight_recall_phase_duration_seconds_count{phase=\"reranking\"}[5m]))"
@@ -214,7 +198,7 @@ panels.dashboard {
       ];
     })
     (panel {
-      title = "Rerank stage, 95th percentile";
+      title = "Reranking phase, p95";
       x = 12;
       y = 35;
       w = 12;
@@ -227,23 +211,34 @@ panels.dashboard {
         )
       ];
     })
-    (row "Rerank coverage" null 43)
-    # One row per day, so a day the provider failed stands out instead of hiding inside an average
+    (row "Rerank model calls" null 43)
     (table {
-      title = "Rerank coverage per rolling 24 hours";
+      title = "Observed rerank model calls over 24 hours";
       x = 0;
       y = 44;
-      w = 24;
+      w = 12;
       unit = "short";
-      instant = false;
-      interval = rerankWindow;
-      description = "A recall pays for a rerank when a model call leaves a trace row; the rest either fell back to the fusion order or failed";
-      queries = [
-        (query "A" roles.series-1 rerankPaid "Paid")
-        (query "B" roles.series-3 rerankFellBack "Fell back")
-        (query "C" roles.series-4 rerankAttempts "Recalls")
-        (query "D" roles.series-5 rerankShare "Paid, %")
-      ];
+      expr = ''label_replace(sum(increase(hindsight_rerank_model_calls_total[1d])), "item", "Model calls", "__name__", ".*")'';
+      labels = [ "item" ];
+      valueName = "Calls";
+      coloured = false;
+      description = "Estimated increase in recorded model calls for the shared bank, including errors; this does not measure paid calls or fallback";
+    })
+    (table {
+      title = "Average model and phase latency";
+      x = 12;
+      y = 44;
+      w = 12;
+      unit = "s";
+      expr = ''
+        label_replace(sum(increase(hindsight_recall_phase_duration_seconds_sum{phase="generate_query_embedding"}[$__range])) / sum(increase(hindsight_recall_phase_duration_seconds_count{phase="generate_query_embedding"}[$__range])), "item", "Query embedding phase", "__name__", ".*")
+        or label_replace(sum(increase(hindsight_recall_phase_duration_seconds_sum{phase="reranking"}[$__range])) / sum(increase(hindsight_recall_phase_duration_seconds_count{phase="reranking"}[$__range])), "item", "Reranking phase", "__name__", ".*")
+        or label_replace(sum(increase(hindsight_llm_duration_seconds_sum{model="${memoryModel}"}[$__range])) / sum(increase(hindsight_llm_duration_seconds_count{model="${memoryModel}"}[$__range])), "item", "Memory LLM calls", "__name__", ".*")
+      '';
+      labels = [ "item" ];
+      valueName = "Average";
+      coloured = false;
+      description = "Average over the selected range. Query embedding includes temporal analysis; reranking includes candidate preparation and fallback. LLM counts model calls";
     })
     (row "Spend" null 52)
     (panel {

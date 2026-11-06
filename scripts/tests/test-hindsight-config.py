@@ -31,8 +31,9 @@ def validate(f):
     assert not {"delete_bank", "clear_memories"} & tools
     assert "HINDSIGHT_API_LLM_API_KEY" not in f["environment"]
     env = f["environment"]
+    assert json.loads(env["HINDSIGHT_API_EMBEDDINGS_OPENAI_EXTRA_BODY"])["provider"]["data_collection"] == "deny"
     assert env.get("HINDSIGHT_API_RERANKER_PROVIDER") == "openrouter"
-    assert env.get("HINDSIGHT_API_RERANKER_OPENROUTER_MODEL") == "qwen/qwen3-reranker-8b"
+    assert env.get("HINDSIGHT_API_RERANKER_OPENROUTER_MODEL") == "mongodb/rerank-3"
     assert env.get("HINDSIGHT_API_RERANKER_1_PROVIDER") == "rrf"
     # Every model of Hindsight spends on one key of its own, and the dashboard reads that key's
     # counter; a model left on the agents' key would spend outside the number the panels show
@@ -54,6 +55,12 @@ def validate(f):
     # scope="rerank" matches nothing, and the panel stays empty without an error
     expressions = f["dashboardExpressions"]
     assert any("hindsight_spend_key_usage_usd" in expr for expr in expressions)
+    latency_panel = f["latencyPanel"]
+    assert latency_panel["type"] == "table"
+    latency_query = latency_panel["targets"][0]["expr"]
+    for metric in ("generate_query_embedding", "reranking", "hindsight_llm_duration_seconds_sum", "hindsight_llm_duration_seconds_count"):
+        assert metric in latency_query, metric
+    assert "$__range" in latency_query
     balance_panel = f["keyBalancePanel"]
     assert balance_panel["type"] == "table"
     balance_query = balance_panel["targets"][0]["expr"]
@@ -63,9 +70,8 @@ def validate(f):
         "hindsight_spend_key_limit_usd",
     ):
         assert metric in balance_query, metric
-    # The rerank split needs both halves: the phase histogram counts the recalls, and only the
-    # trace counter says which of them paid for a model call
-    assert any("hindsight_rerank_paid_calls_total" in expr for expr in expressions)
+    assert any("hindsight_rerank_model_calls_total" in expr for expr in expressions)
+    assert not any("hindsight_rerank_paid_calls_total" in expr for expr in expressions)
     assert any("phase=\"reranking\"" in expr for expr in expressions)
     for expr in expressions:
         if "hindsight_llm_calls_total" in expr:
@@ -100,17 +106,21 @@ for name, mutate in [
     ("a model spending on the agents' key", lambda f: f.update(
         envTemplate=f["envTemplate"].replace(f["placeholders"]["hindsight"], f["placeholders"]["agents"], 1))),
     ("no fallback when the rerank host overloads", lambda f: f["environment"].pop("HINDSIGHT_API_RERANKER_1_PROVIDER")),
+    ("embedding data collection allowed", lambda f: f["environment"].update(
+        HINDSIGHT_API_EMBEDDINGS_OPENAI_EXTRA_BODY='{"provider":{"data_collection":"allow"}}')),
     ("the cross-encoder switched off", lambda f: f["environment"].update(HINDSIGHT_API_RERANKER_PROVIDER="rrf")),
     ("a spend counter nothing exports", lambda f: f.update(textfileRules=[])),
     ("a panel of a counter that has no rerank scope", lambda f: f["dashboardExpressions"].append(
         'sum by (success) (rate(hindsight_llm_calls_total{scope="rerank"}[5m]))')),
     ("a spend panel that reads tokens", lambda f: f.update(
         dashboardExpressions=[e for e in f["dashboardExpressions"] if "hindsight_spend_key" not in e])),
+    ("a latency table without LLM counts", lambda f: f["latencyPanel"]["targets"][0].update(
+        expr=f["latencyPanel"]["targets"][0]["expr"].replace("hindsight_llm_duration_seconds_count", "missing_metric"))),
     ("a key balance table without remaining credit", lambda f: f["keyBalancePanel"]["targets"][0].update(
         expr=f["keyBalancePanel"]["targets"][0]["expr"].replace(
             "hindsight_spend_key_limit_remaining_usd", "missing_metric"))),
-    ("a coverage table without the paid calls", lambda f: f.update(
-        dashboardExpressions=[e for e in f["dashboardExpressions"] if "hindsight_rerank_paid_calls_total" not in e])),
+    ("a model call panel without trace counts", lambda f: f.update(
+        dashboardExpressions=[e for e in f["dashboardExpressions"] if "hindsight_rerank_model_calls_total" not in e])),
 ]:
     broken = copy.deepcopy(fixture)
     mutate(broken)
@@ -119,4 +129,4 @@ for name, mutate in [
     except AssertionError:
         continue
     raise AssertionError("Undetected defect: " + name)
-print("PASS: memory auth boundaries, socket URL, UTF-8, completed dumps, per-host pi backup isolation, one Hindsight key for every model, a reranked chain with its fallback, a key balance table with its three values, a spend panel of a series that exists and a rerank split of both halves; 12 planted defects rejected")
+print("PASS: memory auth boundaries, socket URL, UTF-8, completed dumps, per-host pi backup isolation, one Hindsight key for every model, a reranked chain with its fallback, a key balance table with its three values, a spend panel of a series that exists and a rerank trace counter; 14 planted defects rejected")

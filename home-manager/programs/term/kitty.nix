@@ -11,8 +11,13 @@ in
 {
   imports = [ inputs.ddlc-themes.homeModules.default ];
 
-  options.rokokol.kitty.enable = lib.mkEnableOption "the kitty terminal" // {
-    default = config.rokokol.workstation.enable;
+  options.rokokol.kitty = {
+    enable = lib.mkEnableOption "the kitty terminal" // {
+      default = config.rokokol.workstation.enable;
+    };
+    snow.enable = lib.mkEnableOption "snow in the kitty terminal" // {
+      default = true;
+    };
   };
 
   config = lib.mkIf config.rokokol.kitty.enable {
@@ -24,6 +29,36 @@ in
     xdg.configFile = {
       "kitty/dark-theme.auto.conf".source = kitty.dark;
       "kitty/light-theme.auto.conf".source = kitty.light;
+    }
+    // lib.optionalAttrs config.rokokol.kitty.snow.enable {
+      "kitty/shaders/edge-snow.pipeline".text = ''
+        startgroup
+            animation_start os-window-focus-in
+            animation_stop never
+            animation_step 50
+            shaders edge-snow
+        endgroup
+      '';
+      "kitty/shaders/edge-snow.slang".text = ''
+        #language slang 2026
+        import kitty_custom_shader_types;
+        #define vec2 float2
+        #define fract frac
+        ${builtins.readFile ../../../assets/snow-core.glsl}
+
+        public float4 fragment_main(float4 color, KittyTextures t, KittyCustomShaderData d) {
+            float2 uv = t.pos - d.central_area.xy;
+            if (any(uv < 0.0) || any(uv > d.central_area.zw)) return color;
+            float2 size = d.central_area.zw * float2(d.viewport_size_pixels);
+            float2 p = uv * float2(d.viewport_size_pixels);
+            float edge = 1.0 - smoothstep(24.0, 80.0, size.y - p.y);
+            if (edge <= 0.0 && p.y > 10.0) return color;
+            float background = 1.0 - smoothstep(0.01, 0.04, length(color.rgb - d.active_window_background.rgb));
+            float flakes = snow_flakes(p, d.timestamp) * edge * 0.4;
+            float settled = snow_bank(p) * 0.35;
+            return float4(lerp(color.rgb, d.foreground.rgb, max(flakes, settled) * background), color.a);
+        }
+      '';
     };
 
     programs.kitty = {
@@ -52,6 +87,7 @@ in
         notify_on_cmd_finish = "unfocused 1.0";
 
         linux_display_server = "wayland";
+        custom_shaders = lib.mkIf config.rokokol.kitty.snow.enable "edge-snow";
 
         window_padding_width = 12;
         hide_window_decorations = "yes";

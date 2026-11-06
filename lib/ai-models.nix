@@ -37,11 +37,9 @@ in
   };
   stt.model = "microsoft/mai-transcribe-2";
   reranker = {
-    # The one rerank model in OpenRouter's ZDR catalog, served by Fireworks alone
     provider = "openrouter";
-    model = "qwen/qwen3-reranker-8b";
-    # Fireworks answers 503 under load, so the chain ends in the fusion-only reranker: a
-    # recall then ranks worse rather than failing
+    model = "mongodb/rerank-3";
+    # A provider failure falls back to fusion so that recall still returns results
     fallback = "rrf";
     maxCandidates = 100;
     maxTokensPerCandidate = 512;

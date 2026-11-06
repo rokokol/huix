@@ -185,6 +185,9 @@ in
           HINDSIGHT_API_EMBEDDINGS_OPENAI_BASE_URL = "https://openrouter.ai/api/v1";
           HINDSIGHT_API_EMBEDDINGS_OPENAI_MODEL = models.embeddings.model;
           HINDSIGHT_API_EMBEDDINGS_OPENAI_DIMENSIONS = toString models.embeddings.dimensions;
+          HINDSIGHT_API_EMBEDDINGS_OPENAI_EXTRA_BODY = builtins.toJSON {
+            provider.data_collection = "deny";
+          };
           HINDSIGHT_API_RERANKER_PROVIDER = models.reranker.provider;
           HINDSIGHT_API_RERANKER_OPENROUTER_MODEL = models.reranker.model;
           # The chain walks its indexes in order and ends at the first one that is absent

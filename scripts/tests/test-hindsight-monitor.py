@@ -5,6 +5,7 @@ import tempfile
 import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
+from urllib.error import HTTPError, URLError
 
 
 spec = importlib.util.spec_from_file_location(
@@ -64,7 +65,7 @@ class MonitorTest(unittest.TestCase):
             self.assertIn("hindsight_spend_key_usage_usd 0.000032\n", text)
             # An absent field stays absent rather than becoming a zero the dashboard believes
             self.assertNotIn("limit", text)
-            self.assertIn("hindsight_rerank_paid_calls_total 2\n", text)
+            self.assertIn("hindsight_rerank_model_calls_total 2\n", text)
             self.assertIn("hindsight_spend_collect_success 1\n", text)
             self.assertIn("hindsight_rerank_calls_collect_success 1\n", text)
 
@@ -83,7 +84,7 @@ class MonitorTest(unittest.TestCase):
                 with patch.object(monitor, "request_json", side_effect=[spend, traces]):
                     self.assertEqual(monitor.collect(args), 0)
                 text = args.metrics.read_text()
-                self.assertIn(f"hindsight_rerank_paid_calls_total {expected}\n", text)
+                self.assertIn(f"hindsight_rerank_model_calls_total {expected}\n", text)
 
     def test_a_failed_trace_read_keeps_the_last_total(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -97,9 +98,33 @@ class MonitorTest(unittest.TestCase):
             ):
                 self.assertEqual(monitor.collect(args), 1)
             text = args.metrics.read_text()
-            self.assertIn("hindsight_rerank_paid_calls_total 4\n", text)
+            self.assertIn("hindsight_rerank_model_calls_total 4\n", text)
             self.assertIn("hindsight_rerank_calls_collect_success 0\n", text)
             self.assertIn("hindsight_spend_collect_success 1\n", text)
+
+    def test_trace_request_waits_for_a_refused_connection(self):
+        with patch.object(monitor, "request_json", side_effect=[
+            URLError(ConnectionRefusedError()), trace_payload(("2026-11-05", 4))
+        ]) as request, patch.object(monitor.time, "sleep") as sleep:
+            self.assertEqual(monitor.request_traces("http://localhost", "token"), trace_payload(("2026-11-05", 4)))
+        self.assertEqual(request.call_count, 2)
+        sleep.assert_called_once()
+
+    def test_trace_request_stops_when_wait_budget_is_exhausted(self):
+        error = URLError(ConnectionRefusedError())
+        with patch.object(monitor, "request_json", side_effect=error) as request, patch.object(monitor.time, "sleep") as sleep:
+            with self.assertRaises(URLError):
+                monitor.request_traces("http://localhost", "token")
+        self.assertEqual(request.call_count, 37)
+        self.assertEqual(sleep.call_count, 36)
+
+    def test_trace_request_does_not_retry_authorization_errors(self):
+        error = HTTPError("http://localhost", 401, "unauthorized", {}, None)
+        with patch.object(monitor, "request_json", side_effect=error) as request, patch.object(monitor.time, "sleep") as sleep:
+            with self.assertRaises(HTTPError):
+                monitor.request_traces("http://localhost", "token")
+        self.assertEqual(request.call_count, 1)
+        sleep.assert_not_called()
 
     def test_a_failed_spend_read_still_reports_the_calls(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -110,7 +135,7 @@ class MonitorTest(unittest.TestCase):
                 self.assertEqual(monitor.collect(args), 1)
             text = args.metrics.read_text()
             self.assertIn("hindsight_spend_collect_success 0\n", text)
-            self.assertIn("hindsight_rerank_paid_calls_total 4\n", text)
+            self.assertIn("hindsight_rerank_model_calls_total 4\n", text)
 
 
 if __name__ == "__main__":

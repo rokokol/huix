@@ -27,6 +27,9 @@ let
     keyBalancePanel = builtins.head (
       builtins.filter (panel: (panel.title or null) == "OpenRouter key balance") dashboard.panels
     );
+    latencyPanel = builtins.head (
+      builtins.filter (panel: (panel.title or null) == "Average model and phase latency") dashboard.panels
+    );
     environment = station.systemd.services.hindsight.environment;
     envTemplate = station.sops.templates."hindsight.env".content;
     placeholders = {

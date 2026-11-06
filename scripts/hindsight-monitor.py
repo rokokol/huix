@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Export the OpenRouter spend of Hindsight's key and how many recalls paid for a rerank"""
+"""Export the OpenRouter spend of Hindsight's key and observed rerank model calls"""
 
 import argparse
 from datetime import datetime, timedelta, timezone
@@ -9,6 +9,8 @@ import json
 import os
 from pathlib import Path
 import sys
+import time
+import urllib.error
 import urllib.request
 
 # The fields of GET /key, and the metric each becomes. Hindsight runs every model on this key,
@@ -33,6 +35,17 @@ def request_json(url, key):
     )
     with urllib.request.urlopen(request, timeout=15) as response:
         return json.loads(response.read(), parse_float=Decimal)
+
+
+def request_traces(url, token):
+    for _ in range(36):
+        try:
+            return request_json(url, token)
+        except urllib.error.URLError as error:
+            if not isinstance(error.reason, ConnectionRefusedError):
+                raise
+            time.sleep(2)
+    return request_json(url, token)
 
 
 def atomic_write(path, text):
@@ -88,7 +101,7 @@ def collect(args):
     state = load_state(state_path)
     try:
         token = args.token_file.read_text().strip()
-        stats = request_json(
+        stats = request_traces(
             f"{args.api_hindsight}/v1/default/banks/{args.bank}/llm-requests/stats"
             "?call_type=rerank&period=1d",
             token,
@@ -101,9 +114,9 @@ def collect(args):
     # The last total stands when the read fails: a counter that falls back to zero would read as
     # a provider reset and the day's increase would be wrong
     total = sum(state.get("days", {}).values())
-    lines.append("# HELP hindsight_rerank_paid_calls_total Recalls that paid for a rerank call\n")
-    lines.append("# TYPE hindsight_rerank_paid_calls_total counter\n")
-    lines.append(f"hindsight_rerank_paid_calls_total {total}\n")
+    lines.append("# HELP hindsight_rerank_model_calls_total Observed rerank model calls, including errors\n")
+    lines.append("# TYPE hindsight_rerank_model_calls_total counter\n")
+    lines.append(f"hindsight_rerank_model_calls_total {total}\n")
     lines.append(f"hindsight_rerank_calls_collect_success {int(calls_read)}\n")
 
     lines.append(

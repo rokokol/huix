@@ -87,6 +87,29 @@ Broken FastMCP -> keep the scope. Another error -> investigate it. A clean build
 
 ---
 
+## Hindsight embeddings need account-level privacy controls
+
+**Where:** `nixos/services/ai/hindsight/service.nix` and the OpenRouter privacy settings for the station's Hindsight key
+
+**Symptom it prevents:** embedding requests can reach a provider outside the intended data policy when the account settings do not enforce it
+
+**Why it happens:** the packaged Hindsight server does not read `HINDSIGHT_API_EMBEDDINGS_OPENAI_EXTRA_BODY`. Its embedding requests omit the configured provider policy. The LLM extra body does not apply to embeddings
+
+**Why this works:** OpenRouter account settings filter embedding providers before routing. The configured extra body takes effect only when the server package supports it. The reranker still needs its own account-level policy
+
+**Removal check:** inspect the source of the server package
+
+```sh
+src=$(nix eval --raw .#nixosConfigurations.nixos-station.pkgs.hindsight-api-slim.src.outPath)
+grep -n 'ENV_EMBEDDINGS_OPENAI_EXTRA_BODY' "$src/hindsight-api-slim/hindsight_api/config.py"
+```
+
+No match -> keep the account-level control. A match -> verify a real embedding request carries the policy before changing the account setting. Check the reranker policy separately
+
+**Upstream:** [vectorize-io/hindsight#6227](https://github.com/vectorize-io/hindsight/pull/6227) merged the option
+
+---
+
 ## NixOS MCP uses the MCP 1 Python SDK
 
 **Where:** `home-manager/programs/agents/research/docs-mcp.nix`, on hosts with `rokokol.docs-mcp.enable`

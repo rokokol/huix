@@ -9,8 +9,8 @@
 # Hindsight runs every model on a key of its own, and that key's counter is what the provider
 # billed — so the dashboard reads the spend instead of inferring it from tokens, which Hindsight
 # records for neither an embedding nor a rerank (DEVIATIONS.md, "Hindsight spends an OpenRouter
-# key of its own"). The same unit counts the recalls that paid for a rerank: the trace table has
-# the number and the only call counter omits the rerank scope (PITFALLS.md, "Hindsight's call
+# key of its own"). The same unit counts observed model calls from the trace table, including
+# errors, because the call counter omits the rerank scope (PITFALLS.md, "Hindsight's call
 # counter records chat alone"). Both reach Grafana through the textfile directory that the
 # station's node_exporter serves. It is not part of the Hermes monitor: Hindsight spends whether
 # or not the agent runs
@@ -30,7 +30,7 @@ in
       "L+ ${config.rokokol.node-exporter.textfileDir}/hindsight.prom - - - - ${metrics}"
     ];
     systemd.services.hindsight-monitor = {
-      description = "Export Hindsight's spend and its paid rerank calls";
+      description = "Export Hindsight's spend and observed rerank calls";
       wants = [ "network-online.target" ];
       after = [
         "hindsight.service"
@@ -62,7 +62,7 @@ in
           "--api-hindsight"
           "http://127.0.0.1:${toString cfg.port}"
         ];
-        TimeoutStartSec = 60;
+        TimeoutStartSec = 120;
         ProtectHome = "tmpfs";
         ProtectSystem = "strict";
         PrivateTmp = true;
