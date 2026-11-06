@@ -251,9 +251,11 @@ panels.dashboard {
       # The provider's own number for the key every Hindsight model shares, so it covers chat,
       # embeddings and rerank together and needs no price kept beside the model
       description = "What OpenRouter billed the key of every Hindsight model, read from its counter rather than estimated from tokens";
+      # One series, because the 30-day projection is thirty times the spend: on a shared axis it
+      # pins this line to the floor, where every step of it reads flat. The projection is a
+      # figure in the table below instead
       queries = [
         (query "A" roles.series-1 (spend "24h") "Last 24h")
-        (query "B" roles.series-3 (spend "24h" + " * 30") "30-day projection")
       ];
     })
     (panel {
@@ -289,11 +291,12 @@ panels.dashboard {
         label_replace(hindsight_spend_key_usage_usd, "item", "Spent", "__name__", ".*")
         or label_replace(hindsight_spend_key_limit_remaining_usd, "item", "Available", "__name__", ".*")
         or label_replace(hindsight_spend_key_limit_usd, "item", "Limit", "__name__", ".*")
+        or label_replace(delta(hindsight_spend_key_usage_usd[24h]) * 30, "item", "30-day projection", "instance", ".*")
       '';
       labels = [ "item" ];
       valueName = "USD";
       coloured = false;
-      description = "Current spend, remaining key limit, and the full limit from OpenRouter's key endpoint";
+      description = "Current spend, remaining key limit, and the full limit from OpenRouter's key endpoint; the projection is the last 24 hours multiplied by 30";
     })
     (row "Last 7 days" null 69)
     (table {

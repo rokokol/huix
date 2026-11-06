@@ -27,6 +27,11 @@ in
     # The station's node_exporter serves a directory in RAM, and a link keeps the file's owner
     # the unit's while the exporter, which runs as root, only reads it
     systemd.tmpfiles.rules = [
+      # A switch rewrites the links it knows and leaves the rest, and the exporter keeps the
+      # first file that declares a metric: the file this unit wrote under its previous name
+      # outlived the rename and shadowed the live counter, freezing the dashboard at the value
+      # of the switch. A boot clears /run, so the rule is only for the switch that follows it
+      "r ${config.rokokol.node-exporter.textfileDir}/hindsight-spend.prom"
       "L+ ${config.rokokol.node-exporter.textfileDir}/hindsight.prom - - - - ${metrics}"
     ];
     systemd.services.hindsight-monitor = {
