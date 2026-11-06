@@ -68,6 +68,7 @@ in
         sqlite
         unzip
         uv
+        zip
       ];
       pythonPackages =
         ps: with ps; [
