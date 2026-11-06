@@ -284,19 +284,21 @@ panels.dashboard {
       legend = "Hindsight key";
       mappings = upDown;
     })
-    (panel {
-      title = "Key limit";
+    (table {
+      title = "OpenRouter key balance";
       x = 8;
       y = 61;
       w = 16;
       unit = "currencyUSD";
-      decimals = 2;
-      # The key carries a limit of its own, and the series is absent while no limit is set
-      description = "The spending limit OpenRouter holds on the key, and what is left of it";
-      queries = [
-        (query "A" roles.series-1 "hindsight_spend_key_limit_usd" "Limit")
-        (query "B" roles.series-3 "hindsight_spend_key_limit_remaining_usd" "Remaining")
-      ];
+      expr = ''
+        label_replace(hindsight_spend_key_usage_usd, "item", "Spent", "__name__", ".*")
+        or label_replace(hindsight_spend_key_limit_remaining_usd, "item", "Available", "__name__", ".*")
+        or label_replace(hindsight_spend_key_limit_usd, "item", "Limit", "__name__", ".*")
+      '';
+      labels = [ "item" ];
+      valueName = "USD";
+      coloured = false;
+      description = "Current spend, remaining key limit, and the full limit from OpenRouter's key endpoint";
     })
     (row "Last 7 days" null 69)
     (table {

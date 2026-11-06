@@ -24,6 +24,9 @@ let
     dashboardExpressions = pkgs.lib.concatMap (
       panel: map (target: target.expr) (panel.targets or [ ])
     ) dashboard.panels;
+    keyBalancePanel = builtins.head (
+      builtins.filter (panel: (panel.title or null) == "OpenRouter key balance") dashboard.panels
+    );
     environment = station.systemd.services.hindsight.environment;
     envTemplate = station.sops.templates."hindsight.env".content;
     placeholders = {

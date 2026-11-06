@@ -54,6 +54,15 @@ def validate(f):
     # scope="rerank" matches nothing, and the panel stays empty without an error
     expressions = f["dashboardExpressions"]
     assert any("hindsight_spend_key_usage_usd" in expr for expr in expressions)
+    balance_panel = f["keyBalancePanel"]
+    assert balance_panel["type"] == "table"
+    balance_query = balance_panel["targets"][0]["expr"]
+    for metric in (
+        "hindsight_spend_key_usage_usd",
+        "hindsight_spend_key_limit_remaining_usd",
+        "hindsight_spend_key_limit_usd",
+    ):
+        assert metric in balance_query, metric
     # The rerank split needs both halves: the phase histogram counts the recalls, and only the
     # trace counter says which of them paid for a model call
     assert any("hindsight_rerank_paid_calls_total" in expr for expr in expressions)
@@ -97,6 +106,9 @@ for name, mutate in [
         'sum by (success) (rate(hindsight_llm_calls_total{scope="rerank"}[5m]))')),
     ("a spend panel that reads tokens", lambda f: f.update(
         dashboardExpressions=[e for e in f["dashboardExpressions"] if "hindsight_spend_key" not in e])),
+    ("a key balance table without remaining credit", lambda f: f["keyBalancePanel"]["targets"][0].update(
+        expr=f["keyBalancePanel"]["targets"][0]["expr"].replace(
+            "hindsight_spend_key_limit_remaining_usd", "missing_metric"))),
     ("a coverage table without the paid calls", lambda f: f.update(
         dashboardExpressions=[e for e in f["dashboardExpressions"] if "hindsight_rerank_paid_calls_total" not in e])),
 ]:
@@ -107,4 +119,4 @@ for name, mutate in [
     except AssertionError:
         continue
     raise AssertionError("Undetected defect: " + name)
-print("PASS: memory auth boundaries, socket URL, UTF-8, completed dumps, per-host pi backup isolation, one Hindsight key for every model, a reranked chain with its fallback, a spend panel of a series that exists and a rerank split of both halves; 11 planted defects rejected")
+print("PASS: memory auth boundaries, socket URL, UTF-8, completed dumps, per-host pi backup isolation, one Hindsight key for every model, a reranked chain with its fallback, a key balance table with its three values, a spend panel of a series that exists and a rerank split of both halves; 12 planted defects rejected")
