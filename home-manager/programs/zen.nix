@@ -91,28 +91,59 @@ let
     ZHuNM/m0TXt2wTTPL7JH2YC0gPz/BvvSzjksgzU5rLbRyUKQkgU=
     -----END CERTIFICATE-----
   '';
+
+  /*
+    Marionette is unauthenticated control of the whole browser from any local process, so it
+    cannot ride every launch. The plain package stays plain, and this wrapper opens both ports
+    only in the session the owner starts on purpose
+  */
+  zenMcp = pkgs.writeShellApplication {
+    name = "zen-mcp";
+    runtimeInputs = with pkgs; [
+      coreutils
+      libnotify
+    ];
+    text = ''
+      # Both ports are chosen when the browser process starts, and a launch that reaches a running
+      # instance hands it neither: the window opens, the ports stay shut
+      browser=${config.programs.zen-browser.finalPackage}/bin/zen-beta
+      marionettePort=2828
+
+      # The running browser is the only process whose executable is a zen binary
+      zenRunning() {
+        local exe
+        for exe in /proc/[0-9]*/exe; do
+          case "$(readlink "$exe" 2>/dev/null)" in
+            */lib/zen-bin-*/zen) return 0 ;;
+          esac
+        done
+        return 1
+      }
+
+      portOpen() {
+        (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null
+      }
+
+      refuse() {
+        printf 'zen-mcp: %s\n' "$1" >&2
+        notify-send --app-name=zen-mcp "Zen Browser (MCP)" "$1" || true
+        exit 1
+      }
+
+      if zenRunning; then
+        if ! portOpen "$marionettePort"; then
+          refuse "Close Zen first: a running Zen drops the automation flags, so the agent could not attach"
+        fi
+      elif portOpen "$marionettePort"; then
+        refuse "Port $marionettePort is held by another process, so this Zen could not offer it to the agent"
+      fi
+
+      # The bare flag keeps the Remote Agent on its default port, 9222
+      exec "$browser" --marionette --remote-debugging-port "$@"
+    '';
+  };
 in
 {
-  # The Firefox DevTools MCP attaches only to a browser started with Marionette, and the Zen
-  # module has no option for launch arguments. Wrapping the finished package adds both flags to
-  # every launch path, the desktop entry and xdg-open included
-  options.programs.zen-browser.finalPackage = lib.mkOption {
-    apply =
-      package:
-      if package == null then
-        null
-      else
-        pkgs.symlinkJoin {
-          name = "zen-browser-with-marionette";
-          paths = [ package ];
-          nativeBuildInputs = with pkgs; [ makeWrapper ];
-          postBuild = ''
-            wrapProgram "$out/bin/zen-beta" --add-flags "--marionette --remote-debugging-port"
-          '';
-          inherit (package) meta;
-        };
-  };
-
   options.rokokol.zen = {
     enable = lib.mkEnableOption "the Zen browser" // {
       default = config.rokokol.workstation.enable;
@@ -316,6 +347,22 @@ in
         "--tool-preset"
         "slim"
       ];
+    };
+
+    home.packages = [ zenMcp ];
+
+    xdg.desktopEntries.zen-mcp = {
+      name = "Zen Browser (MCP)";
+      genericName = "Web Browser";
+      comment = "Zen with the automation ports the agent attaches to";
+      exec = "${zenMcp}/bin/zen-mcp %U";
+      icon = "zen-browser";
+      categories = [
+        "Network"
+        "WebBrowser"
+      ];
+      startupNotify = true;
+      settings.StartupWMClass = "zen-beta";
     };
 
     xdg.mimeApps = {
