@@ -378,6 +378,12 @@ pkgs.testers.runNixOSTest {
         # live API, which this test is the wrong place to prove
         systemd.services.hindsight-bank-template.wantedBy = lib.mkForce [ ];
 
+        # The spend counter is OpenRouter's own, and a VM reaches no outside network, so the
+        # unit fails on every run there. What it exports is the provider's figure, which this
+        # test cannot produce either
+        systemd.services.hindsight-monitor.wantedBy = lib.mkForce [ ];
+        systemd.timers.hindsight-monitor.wantedBy = lib.mkForce [ ];
+
         # A unit that fails each time it runs and raises an alert as every watched unit does
         systemd.services.alert-probe = {
           unitConfig.OnFailure = "alert-mail@%n.service";
