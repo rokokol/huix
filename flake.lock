@@ -88,6 +88,22 @@
         "type": "github"
       }
     },
+    "baoyu-design": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1793910869,
+        "narHash": "sha256-VJSU7UDXmJcONQ+9Eqv8OlzouM8SoEyYIbTrNkGt70Y=",
+        "owner": "JimLiu",
+        "repo": "baoyu-design",
+        "rev": "9c5253c002820d8dd4c9c31e9c8ca04b529a3e34",
+        "type": "github"
+      },
+      "original": {
+        "owner": "JimLiu",
+        "repo": "baoyu-design",
+        "type": "github"
+      }
+    },
     "blender-mcp": {
       "flake": false,
       "locked": {
@@ -304,11 +320,11 @@
     "ex-ussr-kinship-research": {
       "flake": false,
       "locked": {
-        "lastModified": 1793012655,
-        "narHash": "sha256-K9ibWMPBuqqn9mulbyrhHELlQYxsaS+6i1+kx/lakCo=",
+        "lastModified": 1793916428,
+        "narHash": "sha256-fdZi2VXKbwojwHqUMb5kRuNvSKkAM91g2+oi9AZFmkA=",
         "owner": "DenisSergeevitch",
         "repo": "ex-ussr-kinship-research",
-        "rev": "038815d484c73af5c1c6b828faab803ef321a242",
+        "rev": "dbf2f0daf82a7e6025bdbe4a4e5b0c261a0b54fa",
         "type": "github"
       },
       "original": {
@@ -1452,6 +1468,7 @@
         "anatomy": "anatomy",
         "archive-mount-yazi": "archive-mount-yazi",
         "audacity-mcp": "audacity-mcp",
+        "baoyu-design": "baoyu-design",
         "blender-mcp": "blender-mcp",
         "compress-yazi": "compress-yazi",
         "dav-mcp": "dav-mcp",

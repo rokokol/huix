@@ -194,6 +194,15 @@
       flake = false;
     };
 
+    # The local build of claude.ai's Artifact types, with the editors that read them. No flake
+    # upstream and no release tag, so the lock pins the commit and this URL only names where
+    # updates come from. Its licence is not one: NOTICE.md keeps Anthropic's material under
+    # Anthropic's terms and covers the local tooling alone with its MIT
+    baoyu-design = {
+      url = "github:JimLiu/baoyu-design";
+      flake = false;
+    };
+
     # No flake and no release tag upstream, so the lock pins the commit and this URL only
     # names where updates come from. One tree holds both halves — the CLI to build and the
     # skill that drives it — and neither the skill- form nor that name fits the second:
