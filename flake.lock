@@ -1495,6 +1495,7 @@
         "skvpn": "skvpn",
         "sops-nix": "sops-nix",
         "telegram-skill": "telegram-skill",
+        "tiny5mono": "tiny5mono",
         "transcribe-cpp": "transcribe-cpp",
         "virtual-media-devices": "virtual-media-devices",
         "which-key-nvim": "which-key-nvim",
@@ -1935,6 +1936,22 @@
       "original": {
         "owner": "rokokol",
         "repo": "telegram-skill",
+        "type": "github"
+      }
+    },
+    "tiny5mono": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1793816227,
+        "narHash": "sha256-XsHD92OO622y4YWAcg+iW3khU1oNGe5p0E+ND/E0mfI=",
+        "owner": "Gissio",
+        "repo": "font_Tiny5Mono",
+        "rev": "e948aaa9730ad1282c89419bacdebb77fd023ae5",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Gissio",
+        "repo": "font_Tiny5Mono",
         "type": "github"
       }
     },

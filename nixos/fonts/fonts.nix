@@ -73,6 +73,25 @@ in
         ''
       )
       (google-fonts.override { fonts = [ "Spectral" ]; })
+      # Not in nixpkgs, and the static LCD, CRT and Matrix styles are the variable font's
+      # BLED, ROND and JITT axes, so the four variable files carry the whole design
+      (stdenv.mkDerivation {
+        pname = "tiny5mono";
+        version = "3.001-unstable-2026-11-04";
+        src = inputs.tiny5mono;
+        dontBuild = true;
+        installPhase = ''
+          mkdir -p $out/share/fonts/truetype
+          find $src/fonts/variable -name '*.ttf' -exec cp {} $out/share/fonts/truetype/ \;
+        '';
+
+        meta = {
+          description = "Tiny5 Mono, a 5-pixel variable monospace font, and its small-caps family";
+          homepage = "https://gissio.github.io/font_Tiny5Mono";
+          license = lib.licenses.ofl;
+          platforms = lib.platforms.all;
+        };
+      })
     ];
 
     fonts.fontconfig.defaultFonts = {

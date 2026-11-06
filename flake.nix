@@ -167,6 +167,13 @@
       flake = false;
     };
 
+    # No flake and no releases upstream, so the lock pins the commit and this URL only
+    # names where updates come from
+    tiny5mono = {
+      url = "github:Gissio/font_Tiny5Mono";
+      flake = false;
+    };
+
     blender-mcp = {
       url = "github:ahujasid/blender-mcp";
       flake = false;
