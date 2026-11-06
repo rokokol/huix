@@ -194,6 +194,16 @@
       flake = false;
     };
 
+    # No flake and no release tag upstream, so the lock pins the commit and this URL only
+    # names where updates come from. One tree holds both halves — the CLI to build and the
+    # skill that drives it — and neither the skill- form nor that name fits the second:
+    # home-manager/programs/agents/skills.nix gives every skill- input to every home in the
+    # huix group, while this skill belongs to creative alone
+    rea-video = {
+      url = "github:JuneYaooo/rea-video";
+      flake = false;
+    };
+
     opus-sound-layer = {
       url = "github:Bodila51/opus-sound-layer";
       flake = false;

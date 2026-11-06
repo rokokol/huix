@@ -1353,6 +1353,22 @@
         "type": "github"
       }
     },
+    "rea-video": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1793962499,
+        "narHash": "sha256-HQ7XIKTLoqUWbkX+w7utTCbPaQC29f4rPQjwf6y85us=",
+        "owner": "JuneYaooo",
+        "repo": "rea-video",
+        "rev": "c9359c46f90c9824713081ea18fd207a45a0636a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "JuneYaooo",
+        "repo": "rea-video",
+        "type": "github"
+      }
+    },
     "remotion-skills": {
       "flake": false,
       "locked": {
@@ -1469,6 +1485,7 @@
         "papers-skill": "papers-skill",
         "pyloudnorm": "pyloudnorm",
         "rea": "rea",
+        "rea-video": "rea-video",
         "remotion-skills": "remotion-skills",
         "rename-case-yazi": "rename-case-yazi",
         "rofi": "rofi",
