@@ -10,7 +10,7 @@
 # The module defaults match the owner's setup: GigaAM-v3 Q4_K_M, Russian speech and the Russian
 # interface. Only the cloud model differs from a stock install, and its key comes from sops
 {
-  config = lib.mkIf config.rokokol.workstation.enable {
+  config = lib.mkIf config.rokokol.packages.pc {
     programs.molvai = {
       enable = true;
       guiPackage = inputs.molvai.packages.${pkgs.stdenv.hostPlatform.system}.molva-gui;
