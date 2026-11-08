@@ -137,6 +137,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    molvai = {
+      url = "github:rokokol/MolvAI";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     skvpn = {
       url = "github:rokokol/skvpn";
       inputs.nixpkgs.follows = "nixpkgs";

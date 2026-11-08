@@ -36,6 +36,7 @@ inputs.nixpkgs.lib.nixosSystem {
           inputs.rofi-wooordhunt.homeModules.default
           inputs.ddlc-rofi-theme.homeModules.default
           inputs.virtual-media-devices.homeModules.default
+          inputs.molvai.homeModules.default
           inputs.papers-skill.homeModules.default
           inputs.archive-mount-yazi.homeModules.default
           inputs.rename-case-yazi.homeModules.default

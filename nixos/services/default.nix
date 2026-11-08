@@ -10,6 +10,7 @@
     ./desktop/file-manager.nix
     ./desktop/flatpak.nix
     ./desktop/gnome-keyring.nix
+    ./desktop/molvai.nix
     ./desktop/sddm.nix
     ./desktop/ssh-agent.nix
     ./devices/printer.nix

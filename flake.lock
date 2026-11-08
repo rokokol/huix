@@ -1019,6 +1019,27 @@
         "type": "github"
       }
     },
+    "molvai": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "transcribe-cpp": "transcribe-cpp"
+      },
+      "locked": {
+        "lastModified": 1794173826,
+        "narHash": "sha256-TvbM1T0lV1h+xv3WFDQFCqgY0B9vPSBUIzprKgwxWC4=",
+        "owner": "rokokol",
+        "repo": "MolvAI",
+        "rev": "cf492216bc16e95b6ee06ed8bf5555aa9d8fe21e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "MolvAI",
+        "type": "github"
+      }
+    },
     "nix-filter": {
       "locked": {
         "lastModified": 1757882181,
@@ -1493,6 +1514,7 @@
         "hyprland-screen-shader": "hyprland-screen-shader",
         "kdenlive-mcp": "kdenlive-mcp",
         "mail-skill": "mail-skill",
+        "molvai": "molvai",
         "nix-flatpak": "nix-flatpak",
         "nix-matlab": "nix-matlab",
         "nixpkgs": "nixpkgs_2",
@@ -1530,7 +1552,7 @@
         "sops-nix": "sops-nix",
         "telegram-skill": "telegram-skill",
         "tiny5mono": "tiny5mono",
-        "transcribe-cpp": "transcribe-cpp",
+        "transcribe-cpp": "transcribe-cpp_2",
         "virtual-media-devices": "virtual-media-devices",
         "which-key-nvim": "which-key-nvim",
         "wl-clipboard-rs": "wl-clipboard-rs",
@@ -1990,6 +2012,23 @@
       }
     },
     "transcribe-cpp": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792676080,
+        "narHash": "sha256-t+kTifoU+9NROp6p7SVicqqu0iUum0bLqS9gODZ53UU=",
+        "owner": "handy-computer",
+        "repo": "transcribe.cpp",
+        "rev": "4d7c1ccefd39e5a9ea36cca5f8fefc6dcc14b99b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "handy-computer",
+        "ref": "v0.4.1",
+        "repo": "transcribe.cpp",
+        "type": "github"
+      }
+    },
+    "transcribe-cpp_2": {
       "flake": false,
       "locked": {
         "lastModified": 1792676080,

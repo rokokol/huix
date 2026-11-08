@@ -5,6 +5,7 @@
     ./creative/default.nix
     ./design/default.nix
     ./lsp.nix
+    ./molvai.nix
     ./nixvim/default.nix
     ./reversing/default.nix
     ./rofi.nix
