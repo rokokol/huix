@@ -23,6 +23,7 @@
           model = "z-ai/glm-5.3-flash";
           api_key_source = "env";
           api_key_env = "OPENROUTER_API_KEY";
+          reasoning_effort = "none";
         };
 
         privacy.cloud_consent = true;
