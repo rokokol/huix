@@ -40,7 +40,7 @@
           toggle = "F9";
           command = "Shift+Alt+Enter";
           cancel = "Escape";
-          style_next = "Ctrl+Shift+Alt+S";
+          style_next = "Super+Shift+M";
         };
 
         rules = {
