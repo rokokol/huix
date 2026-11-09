@@ -1027,11 +1027,11 @@
         "transcribe-cpp": "transcribe-cpp"
       },
       "locked": {
-        "lastModified": 1794227524,
-        "narHash": "sha256-7Hkw/vp5VNb4LR5A7rydA8U9giMnwxfn6l+ulnYcqqU=",
+        "lastModified": 1794228406,
+        "narHash": "sha256-oIskL7mb/OUyWo0/Zfy1VbFpu20KYcBWkKSODi9d1TU=",
         "owner": "rokokol",
         "repo": "MolvAI",
-        "rev": "a3f06d40118ecf5de085a135ecc118a1024318de",
+        "rev": "ecf94873cb5065547f4e07caeaa3e92369b5fd86",
         "type": "github"
       },
       "original": {
