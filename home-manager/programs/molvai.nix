@@ -26,6 +26,19 @@
         };
 
         privacy.cloud_consent = true;
+
+        hotkeys = {
+          push_to_talk = "Ctrl+Shift+Enter";
+          toggle = "F9";
+          command = "Shift+Alt+Enter";
+          cancel = "Escape";
+          style_next = "Ctrl+Shift+Alt+S";
+        };
+
+        rules = {
+          remove_repeats = false;
+          structure = false;
+        };
       };
     };
 

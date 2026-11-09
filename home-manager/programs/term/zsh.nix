@@ -63,6 +63,9 @@ in
       # Word jumps (Ctrl + arrows)
       bindkey "^[[1;5C" forward-word
       bindkey "^[[1;5D" backward-word
+    ''
+    + lib.optionalString config.programs.molvai.enable ''
+      fpath=(${lib.getBin config.programs.molvai.package}/share/zsh/site-functions $fpath)
     '';
 
     oh-my-zsh = {
