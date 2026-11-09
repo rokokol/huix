@@ -27,6 +27,14 @@
 
         privacy.cloud_consent = true;
 
+        stt = {
+          language = "auto";
+          allowed_languages = [
+            "ru"
+            "en"
+          ];
+        };
+
         hotkeys = {
           push_to_talk = "Ctrl+Shift+Enter";
           toggle = "F9";
@@ -37,6 +45,8 @@
 
         rules = {
           remove_repeats = false;
+          remove_fillers = false;
+          spoken_punctuation = false;
           structure = false;
         };
       };
