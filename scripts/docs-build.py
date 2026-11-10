@@ -19,6 +19,9 @@ END = "<!-- /generated -->"
 # A page names the file behind every fact it shows, so a reader lands where the fact changes
 REPO = "https://github.com/rokokol/huix"
 
+# The mark in the tab, which the site takes from the repository rather than keeping a second copy
+FAVICON = "can-you-read-this-with-me.jpg"
+
 
 def repo_link(path):
     """A path in this repository as a link to the file itself"""
@@ -543,10 +546,13 @@ SHELL = """<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title} — huix</title>
+<link rel="icon" type="image/jpeg" href="{root}assets/{favicon}">
 <script>
   try {{
-    const t = localStorage.getItem("huix-theme")
-    if (t === "light" || t === "dark") document.documentElement.dataset.theme = t
+    const asked = new URLSearchParams(location.search).get("theme")
+    const stored = localStorage.getItem("huix-theme")
+    const chosen = asked === "light" || asked === "dark" ? asked : stored
+    if (chosen === "light" || chosen === "dark") document.documentElement.dataset.theme = chosen
   }} catch {{}}
 </script>
 <link rel="stylesheet" href="{root}assets/vendor/ddlc/ddlc-tokens.css">
@@ -559,7 +565,7 @@ SHELL = """<!DOCTYPE html>
 <header class="top"><div class="wrap top-inner">
 <a class="brand" href="{root}index.html">huix <span class="tagline">конфиг и то, что на нём работает</span></a>
 <button class="icon-button" data-theme-toggle type="button"><svg viewBox="0 0 8 8" width="16" height="16" aria-hidden="true"><path d="" fill-rule="evenodd"></path></svg></button>
-<a class="icon-button" href="https://github.com/rokokol/huix" aria-label="huix на GitHub"><img src="{root}assets/icon-github.svg" alt="" width="16" height="16"></a>
+<a class="icon-button" href="https://github.com/rokokol/huix" aria-label="huix на GitHub"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.4 7.4 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A7.99 7.99 0 0 0 16 8c0-4.42-3.58-8-8-8Z"></path></svg></a>
 </div></header>
 <div class="wrap layout">
 <nav class="sidebar">{sidebar}</nav>
@@ -604,6 +610,9 @@ def render_site(repo, out, assets):
     pictures = repo / DOCS / "img"
     if pictures.is_dir():
         shutil.copytree(pictures, out / "img", dirs_exist_ok=True)
+    mark = repo / "assets" / FAVICON
+    if mark.is_file():
+        shutil.copy2(mark, out / "assets" / FAVICON)
 
     for relative, meta, body in pages:
         target = relative[: -len(".md")] + ".html"
@@ -612,6 +621,7 @@ def render_site(repo, out, assets):
         page = SHELL.format(
             title=page_label(meta.get("title"), relative),
             root=root,
+            favicon=FAVICON,
             sidebar=sidebar_html(sections, target, root),
             main=f'<article class="prose">{to_figures(to_local_links(to_page_links(main), root))}</article>',
         )
@@ -626,7 +636,13 @@ def render_site(repo, out, assets):
         index.append(f"<h2>{name}</h2><ul>{links}</ul>")
     index.append("</article>")
     (out / "index.html").write_text(
-        SHELL.format(title="Документация", root="", sidebar=sidebar_html(sections, "index.html", ""), main="".join(index)),
+        SHELL.format(
+            title="Документация",
+            root="",
+            favicon=FAVICON,
+            sidebar=sidebar_html(sections, "index.html", ""),
+            main="".join(index),
+        ),
         encoding="utf-8",
     )
     return len(pages)

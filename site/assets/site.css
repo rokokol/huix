@@ -48,11 +48,7 @@ body {
   margin-left: 8px;
 }
 
-/* The kit draws the button; the site only says that both icons take a text role, so they follow
-   the theme like every other mark on the page */
-.top-inner .icon-button {
-  color: var(--ddlc-muted);
-}
+/* The kit draws both icons and takes their fill from the text role, so they follow the theme */
 /* ---------- the two columns ---------- */
 
 .layout {

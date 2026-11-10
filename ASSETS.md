@@ -36,10 +36,10 @@ It is not my artwork and it is not the greeter cursor — that one is cut from t
 
 `site/assets/vendor/ddlc/` is the DDLC web kit from [ddlc-themes](https://github.com/rokokol/ddlc-themes), vendored unchanged at commit `b7ee74d`: `ddlc-tokens.css`, `ddlc-ui.css`, `ddlc-report.css`, `ddlc-theme.js` and `ddlc-cloud.js`, MIT as the repository that generates them. The colours in them are Team Salvato's, measured off [ddlc.moe](https://ddlc.moe/) by [ddlc-palette](https://github.com/rokokol/ddlc-palette); the mapping of colour to role is the work of ddlc-themes
 
-`site/assets/icon-github.svg` is my own SVG, under the repository's MIT licence. It takes its fill from `currentColor`, so the icon follows the theme like every other mark on the page
+`ASSETS.md` and the site itself are mine. The GitHub mark on the documentation site is the repository's own SVG, written into the page template rather than kept as a second file, and it takes its fill from the text role, so it follows the theme like every other mark on the page. The mark in the tab is `assets/can-you-read-this-with-me.jpg`, the same file the repository already holds
 
 ## Everything else
 
-The decorative images under `assets/` (`logo.jpg`, `im-king-of-the-world.jpg`, `sayori-v-korobke.jpg`, `shef-os-320-kg.jpg`, `say-sketch2.webp`, `laptop-wallpaper.png`) are pictures collected off the internet. Several are drawings whose authors I do not know, and I claim no ownership of any of them — they are here as decoration for the READMEs and as a wallpaper
+The decorative images under `assets/` (`logo.jpg`, `can-you-read-this-with-me.jpg`, `im-king-of-the-world.jpg`, `sayori-v-korobke.jpg`, `shef-os-320-kg.jpg`, `say-sketch2.webp`, `laptop-wallpaper.png`) are pictures collected off the internet. Several are drawings whose authors I do not know, and I claim no ownership of any of them — they are here as decoration for the READMEs, as a wallpaper and as the mark in the tab of the documentation site
 
 If you drew one of these and want credit or want it taken down, open an issue and it will be done
