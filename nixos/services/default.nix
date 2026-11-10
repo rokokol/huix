@@ -2,7 +2,7 @@
 
 {
   imports = [
-    ./ai/comfyui.nix
+    ./ai/comfyui
     ./ai/hermes
     ./ai/hindsight
     ./ai/pi
