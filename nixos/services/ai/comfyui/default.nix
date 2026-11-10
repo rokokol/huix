@@ -7,6 +7,5 @@
     ./options.nix
     ./package.nix
     ./service.nix
-    ./storage.nix
   ];
 }

@@ -2,20 +2,24 @@
 
 An image and video generator driven by a node graph, running on the PC with CUDA and published to the tailnet
 
-The package, the node set and the CUDA build of Torch come from the `nixified-ai` input, because nixpkgs builds Torch without CUDA and its wheels disagree on the CUDA version across `torch`, `torchvision` and `torchaudio`. The files here set host policy only: the user, the port, the state directory and the node list
+The package, the node set and the CUDA build of Torch come from the `nixified-ai` input, because nixpkgs builds Torch without CUDA and its wheels disagree on the CUDA version across `torch`, `torchvision` and `torchaudio`. The files here set host policy only: the user, the port and the node list
 
 ## Where things live
 
 | What | Where |
 | --- | --- |
-| State, models, outputs | `/srv/comfyui/.local/share/comfyui` |
-| Shortcut for the owner | `~/comfyui-data`, a symlink to `/srv/comfyui` |
+| State, models, outputs | `/var/lib/comfyui`, a symlink to `/var/lib/private/comfyui` |
 | Nodes from the config | `/nix/store/…-comfyui-wrapped/lib/python3.14/site-packages/custom_nodes` |
-| Nodes installed by hand | `/srv/comfyui/.local/share/comfyui/custom_nodes` |
+| Nodes installed by hand | `/var/lib/comfyui/.local/share/comfyui/custom_nodes` |
 
-The state directory sits outside `/var/lib/private` on purpose. `StateDirectory` keeps it there, systemd requires mode `0700` on `/var/lib/private` and refuses to start a unit with anything wider, so the owner needed root to add a model. `/srv/comfyui` is created as `2770 comfyui:comfyui`, and writes go through the group
+The state directory is the module's own `StateDirectory`. systemd keeps it under `/var/lib/private`, whose mode is `0700 root`, so adding a model needs root:
 
-`PrivateUsers` is off for this unit. The wrapper copies its source tree into the data directory at every start, and inside a user namespace the second start cannot change the mode of the tree the first one made, so the unit failed with `EPERM`
+```sh
+sudo install -m 0644 -o comfyui -g comfyui ~/Downloads/model.safetensors \
+  /var/lib/comfyui/.local/share/comfyui/models/checkpoints/
+```
+
+`install` sets the owner, the group and the mode in one step. A plain `sudo cp` leaves the file owned by root, and the service reads it only while the mode lets others read
 
 ## Node manager
 
@@ -27,8 +31,8 @@ There is none. ComfyUI core imports `comfyui_manager` in `main.py` before any cu
 | --- | --- |
 | `comfyui-kjnodes` | conditions, math, conditioning work, graph utilities |
 | `comfyui-gguf` | loading of quantised GGUF models and LoRA |
-| `comfyui-impact-pack` | `FaceDetailer`, SEGS, detectors, masks |
-| `comfyui-impact-subpack` | `bbox` detectors for `FaceDetailer`, `ultralytics` among them |
+| `comfyui-impact-pack` | `FaceDetailer`, `DetailerForEach`, SEGS, `MaskToSEGS` |
+| `comfyui-impact-subpack` | `bbox` detectors, `ultralytics` among them |
 | `comfyui-inpaint` | `INPAINT_*` nodes: masks, blur, padding for a local repair |
 | `comfyui-controlnet-preprocessors` | ControlNet preprocessors: pose, depth, lineart |
 | `comfyui-advanced-controlnet` | ControlNet control by step and by mask |
@@ -45,7 +49,7 @@ There is none. ComfyUI core imports `comfyui_manager` in `main.py` before any cu
 | `comfyui-manager-comfycouple` | two figures side by side without their features blending |
 | `comfyui-manager-lora-auto-trigger-words` | reads a LoRA's trigger words from the model file |
 | `comfyui-res4lyf` | `ClownSampler` and the `beta57` and `kl_optimal` schedulers |
-| `comfyui-manager-euler-smea-dyn-sampler` | the `euler_smea_dy` sampler |
+| `comfyui-manager-euler-smea-dyn-sampler` | the `euler_smea_dy` sampler, for SDXL-like latents only |
 | `comfyui-manager-extra-samplers` | further samplers and schedulers |
 | `comfyui-manager-ab-samplercustom` | A/B comparison of samplers |
 | `comfyui-manager-ksamplertimer` | time per step, for measuring a sampler |
@@ -59,7 +63,7 @@ There is none. ComfyUI core imports `comfyui_manager` in `main.py` before any cu
 
 ## Models
 
-Files are placed in the matching directory under `models/` by hand, and the service lists them on the next request. Permissions are `0640` with the `comfyui` group, so the service reads the file and the owner can still delete it
+Files are placed in the matching directory under `models/` by hand, and the service lists them on the next request
 
 | Model | Source |
 | --- | --- |
