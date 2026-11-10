@@ -703,7 +703,7 @@ def render_scripts(entries):
         if entry["ok"]:
             lines.append("```\n" + entry["help"].replace("```", "'''") + "\n```")
         elif entry.get("reason"):
-            lines.append(f"The script prints no `--help`: `{entry['reason']}`")
+            lines.append(f"The script prints no `--help` and stops with: `{entry['reason']}`")
         else:
             lines.append("The script prints no `--help`: run it with no arguments, or read the text above")
         parts.append("\n\n".join(lines))

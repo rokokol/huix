@@ -176,7 +176,7 @@ options:
 
 ## [`scripts/drive-backup.py`](https://github.com/rokokol/huix/blob/master/scripts/drive-backup.py)
 
-The script prints no `--help`: `ModuleNotFoundError: No module named 'pathspec'`
+The script prints no `--help` and stops with: `ModuleNotFoundError: No module named 'pathspec'`
 
 ## [`scripts/forgejo-mirrors.sh`](https://github.com/rokokol/huix/blob/master/scripts/forgejo-mirrors.sh)
 
@@ -395,7 +395,15 @@ resets when the session restarts
 ## [`scripts/ocr.sh`](https://github.com/rokokol/huix/blob/master/scripts/ocr.sh)
 
 ```
-scripts/ocr.sh: line 9: slurp: command not found
+ocr.sh — read the text of a selected screen region into the clipboard
+
+  ocr.sh              recognise a selected region in Russian and English
+  ocr.sh LANG         recognise it in the tesseract languages named, as in rus+eng
+  ocr.sh help         this text
+
+The picture goes to tesseract from grim without touching the disk, and the text replaces the
+clipboard. A selection abandoned with Escape copies nothing and exits 0, and a failed
+recognition reports itself and exits 1
 ```
 
 ## [`scripts/or-transcribe.py`](https://github.com/rokokol/huix/blob/master/scripts/or-transcribe.py)
@@ -450,7 +458,14 @@ which case its folder is used. A clipboard of no supported type writes nothing a
 ## [`scripts/pin-screen.sh`](https://github.com/rokokol/huix/blob/master/scripts/pin-screen.sh)
 
 ```
-scripts/pin-screen.sh: line 8: slurp: command not found
+pin-screen.sh — pin a selected region above the other windows
+
+  pin-screen.sh          select a region and keep it on top
+  pin-screen.sh help     this text
+
+The picture is a grim screenshot shown by swayimg under the class desktop-pin, and a window
+rule of Hyprland places it over the region selected. What stays on top is the picture of the
+screen as it was, not the window below it. A selection abandoned with Escape does nothing
 ```
 
 ## [`scripts/random-wallpaper.sh`](https://github.com/rokokol/huix/blob/master/scripts/random-wallpaper.sh)
@@ -648,7 +663,24 @@ Exit 0 done, 1 when a unit, the switch or the keyboard cannot be reached, 2 on a
 
 ## [`scripts/toggle-theme.sh`](https://github.com/rokokol/huix/blob/master/scripts/toggle-theme.sh)
 
-The script prints no `--help`: `GTK_THEME_KEY COLOR_SCHEME_KEY LIGHT_THEME DARK_THEME LIGHT_SCHEME DARK_SCHEME GTK4_LIGHT_CSS GTK4_DARK_CSS`
+```
+toggle-theme.sh — light/dark theme toggle (bind SUPER+A)
+
+Usage:
+  toggle-theme.sh           switch the theme to the opposite one
+  toggle-theme.sh --sync    only bring the system to the saved choice
+                            (exec on every Hyprland reload)
+  toggle-theme.sh --help    this help
+
+The theme lives at runtime, not in Nix: the script flips color-scheme + gtk-theme
+in dconf, hands rofi's variant to ddlc-rofi-theme, swaps the libadwaita
+~/.config/gtk-4.0/gtk.css (so libadwaita apps follow too) and points Claude Code's
+~/.claude/themes/ddlc.json at ddlc-light.json or ddlc-dark.json in
+$CLAUDE_DDLC_THEMES, which Claude Code set to custom:ddlc picks up live. The choice
+is stored durably in
+~/.local/state/huix/theme — dconf load on nixos-rebuild resets the theme, --sync
+brings it back
+```
 
 ## [`scripts/touchscreen.sh`](https://github.com/rokokol/huix/blob/master/scripts/touchscreen.sh)
 

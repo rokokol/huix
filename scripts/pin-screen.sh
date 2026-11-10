@@ -1,12 +1,36 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+pin-screen.sh — pin a selected region above the other windows
+
+  pin-screen.sh          select a region and keep it on top
+  pin-screen.sh help     this text
+
+The picture is a grim screenshot shown by swayimg under the class desktop-pin, and a window
+rule of Hyprland places it over the region selected. What stays on top is the picture of the
+screen as it was, not the window below it. A selection abandoned with Escape does nothing
+EOF
+}
+
+case "${1:-}" in
+  -h | --help | help)
+    usage
+    exit 0
+    ;;
+esac
+
 # Pins a selected region above all windows: a grim screenshot into swayimg, class
 # desktop-pin, with float rules in hyprland.lua
 # Geometry comes from swayimg's own --position/--size: on Hyprland they become a window
 # rule applied when the window maps, so nothing has to move the window afterwards
 
 GEOM=$(slurp -b ffffff66 -w 1 -f "%x %y %w %h")
-[ -z "$GEOM" ] && exit 0
+if [ -z "$GEOM" ]; then
+  exit 0
+fi
 
 read -r X Y W H <<<"$GEOM"
 

@@ -2,8 +2,28 @@
 
 set -euo pipefail
 
+usage() {
+  cat <<'EOF'
+ocr.sh — read the text of a selected screen region into the clipboard
+
+  ocr.sh              recognise a selected region in Russian and English
+  ocr.sh LANG         recognise it in the tesseract languages named, as in rus+eng
+  ocr.sh help         this text
+
+The picture goes to tesseract from grim without touching the disk, and the text replaces the
+clipboard. A selection abandoned with Escape copies nothing and exits 0, and a failed
+recognition reports itself and exits 1
+EOF
+}
+
+case "${1:-}" in
+  -h | --help | help)
+    usage
+    exit 0
+    ;;
+esac
+
 # OCR of a selected screen region into the clipboard
-# $1 — tesseract languages (rus+eng | rus | eng), default rus+eng
 lang="${1:-rus+eng}"
 
 geom="$(slurp -b ffffff66 -w 1)" || exit 0

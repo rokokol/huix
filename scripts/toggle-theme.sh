@@ -48,6 +48,15 @@ require_env() {
   fi
 }
 
+# The help comes before the environment it names: the variables are set by the Nix wrapper, so a
+# shell outside the session holds none of them, and asking for the help there has to work anyway
+case "${1:-}" in
+  -h | --help | help)
+    usage
+    exit 0
+    ;;
+esac
+
 require_env \
   GTK_THEME_KEY \
   COLOR_SCHEME_KEY \
