@@ -1,34 +1,34 @@
 ---
-title: Хост nixos-pc
+title: Host nixos-pc
 kind: host
 hosts: [nixos-pc]
 ---
 
-# Хост nixos-pc
+# Host nixos-pc
 
 <!-- generated: host nixos-pc -->
 
-Система: `x86_64-linux`
+System: `x86_64-linux`
 
-Настраивается в [`nixos/configuration-pc.nix`](https://github.com/rokokol/huix/blob/master/nixos/configuration-pc.nix)
+Configured in [`nixos/configuration-pc.nix`](https://github.com/rokokol/huix/blob/master/nixos/configuration-pc.nix)
 
-**Службы из этого репозитория:** `NetworkManager-wait-online`, `comfyui`, `smartd`, `syncthing`, `syncthing-init`, `virt-secret-init-encryption`, `zram-metrics`
+**Services declared in this repository:** `NetworkManager-wait-online`, `comfyui`, `smartd`, `syncthing`, `syncthing-init`, `virt-secret-init-encryption`, `zram-metrics`
 
-**Таймеры:** `zram-metrics`
+**Timers:** `zram-metrics`
 
-Веб-службы в частной сети
+Web services on the private network
 
-| Служба | Порт | В домашней сети |
+| Service | Port | On the home network |
 | --- | --- | --- |
-| `comfyui` | `8189` | нет |
+| `comfyui` | `8189` | no |
 
-**Файрвол открывает:** TCP `22000`, UDP `21027`, `22000`, `41641`
+**The firewall opens:** TCP `22000`, UDP `21027`, `22000`, `41641`
 
-**Секреты sops по имени:** `drive-backup-client`, `forgejo-runner-nixos-pc`, `hindsight-client-token`, `mail-agent`, `opencode-go-pi-key`, `openrouter-pi-key`, `radicale-password-rokokol`, `syncthing-cert-nixos-pc`, `syncthing-key-nixos-pc`, `telegram-api-hash`, `telegram-api-id`, `unpaywall-email`
+**Sops secrets, by name:** `drive-backup-client`, `forgejo-runner-nixos-pc`, `hindsight-client-token`, `mail-agent`, `opencode-go-pi-key`, `openrouter-pi-key`, `radicale-password-rokokol`, `syncthing-cert-nixos-pc`, `syncthing-key-nixos-pc`, `telegram-api-hash`, `telegram-api-id`, `unpaywall-email`
 
-Переменные сессии
+Session variables
 
-| Переменная | Значение |
+| Variable | Value |
 | --- | --- |
 | `CHROME_PATH` | `/nix/store/fqriy9vihl23l4md56qgiks8z0d2xdlw-chromium-156.0.8078.79/bin/chromium` |
 | `COLOR_SCHEME_KEY` | `/org/gnome/desktop/interface/color-scheme` |

@@ -1,17 +1,17 @@
 ---
-title: Опции rokokol.ollama
+title: rokokol.ollama options
 kind: option
 hosts: [nixos-laptop, nixos-pc, nixos-station]
 ---
 
-# Опции rokokol.ollama
+# rokokol.ollama options
 
 <!-- generated: option ollama -->
 
-| Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
+| Option | nixos-laptop | nixos-pc | nixos-station | Description |
 | --- | --- | --- | --- | --- |
-| `rokokol.ollama.enable` | да | да | нет | Whether to enable the Ollama server. |
+| `rokokol.ollama.enable` | yes | yes | no | Whether to enable the Ollama server. |
 
-Объявлено в: [`nixos/services/ai/ollama.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/ai/ollama.nix)
+Declared in: [`nixos/services/ai/ollama.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/ai/ollama.nix)
 
 <!-- /generated -->

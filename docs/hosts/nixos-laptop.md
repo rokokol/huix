@@ -1,28 +1,28 @@
 ---
-title: Хост nixos-laptop
+title: Host nixos-laptop
 kind: host
 hosts: [nixos-laptop]
 ---
 
-# Хост nixos-laptop
+# Host nixos-laptop
 
 <!-- generated: host nixos-laptop -->
 
-Система: `x86_64-linux`
+System: `x86_64-linux`
 
-Настраивается в [`nixos/configuration-laptop.nix`](https://github.com/rokokol/huix/blob/master/nixos/configuration-laptop.nix)
+Configured in [`nixos/configuration-laptop.nix`](https://github.com/rokokol/huix/blob/master/nixos/configuration-laptop.nix)
 
-**Службы из этого репозитория:** `NetworkManager-wait-online`, `smartd`, `syncthing`, `syncthing-init`, `zram-metrics`
+**Services declared in this repository:** `NetworkManager-wait-online`, `smartd`, `syncthing`, `syncthing-init`, `zram-metrics`
 
-**Таймеры:** `zram-metrics`
+**Timers:** `zram-metrics`
 
-**Файрвол открывает:** TCP `22000`, UDP `21027`, `22000`, `41641`
+**The firewall opens:** TCP `22000`, UDP `21027`, `22000`, `41641`
 
-**Секреты sops по имени:** `drive-backup-client`, `hindsight-client-token`, `opencode-go-pi-key`, `openrouter-pi-key`, `radicale-password-rokokol`, `syncthing-cert-nixos-laptop`, `syncthing-key-nixos-laptop`
+**Sops secrets, by name:** `drive-backup-client`, `hindsight-client-token`, `opencode-go-pi-key`, `openrouter-pi-key`, `radicale-password-rokokol`, `syncthing-cert-nixos-laptop`, `syncthing-key-nixos-laptop`
 
-Переменные сессии
+Session variables
 
-| Переменная | Значение |
+| Variable | Value |
 | --- | --- |
 | `COLOR_SCHEME_KEY` | `/org/gnome/desktop/interface/color-scheme` |
 | `CONTRIB_HOME` | `/home/rokokol/.local/share/pi-shared/skill-state/contributing` |

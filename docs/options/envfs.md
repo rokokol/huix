@@ -1,17 +1,17 @@
 ---
-title: Опции rokokol.envfs
+title: rokokol.envfs options
 kind: option
 hosts: [nixos-laptop, nixos-pc, nixos-station]
 ---
 
-# Опции rokokol.envfs
+# rokokol.envfs options
 
 <!-- generated: option envfs -->
 
-| Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
+| Option | nixos-laptop | nixos-pc | nixos-station | Description |
 | --- | --- | --- | --- | --- |
-| `rokokol.envfs.enable` | да | да | нет | Whether to enable envfs for hardcoded /bin and /usr/bin paths. |
+| `rokokol.envfs.enable` | yes | yes | no | Whether to enable envfs for hardcoded /bin and /usr/bin paths. |
 
-Объявлено в: [`nixos/services/system/envfs.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/envfs.nix)
+Declared in: [`nixos/services/system/envfs.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/envfs.nix)
 
 <!-- /generated -->

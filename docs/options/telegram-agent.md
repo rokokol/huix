@@ -1,18 +1,18 @@
 ---
-title: Опции rokokol.telegram-agent
+title: rokokol.telegram-agent options
 kind: option
 hosts: [nixos-laptop, nixos-pc, nixos-station]
 ---
 
-# Опции rokokol.telegram-agent
+# rokokol.telegram-agent options
 
 <!-- generated: option telegram-agent -->
 
-| Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
+| Option | nixos-laptop | nixos-pc | nixos-station | Description |
 | --- | --- | --- | --- | --- |
-| `rokokol.telegram-agent.enable` | нет | да | да | Whether to enable the Telegram agent service. |
+| `rokokol.telegram-agent.enable` | no | yes | yes | Whether to enable the Telegram agent service. |
 | `rokokol.telegram-agent.socketUser` | `rokokol` | `rokokol` | `mya` | The user who may access the Telegram socket and receives its skill |
 
-Объявлено в: [`nixos/services/tools/telegram-agent.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/tools/telegram-agent.nix)
+Declared in: [`nixos/services/tools/telegram-agent.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/tools/telegram-agent.nix)
 
 <!-- /generated -->

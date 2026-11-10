@@ -1,17 +1,17 @@
 ---
-title: Опции rokokol.ssh-agent
+title: rokokol.ssh-agent options
 kind: option
 hosts: [nixos-laptop, nixos-pc, nixos-station]
 ---
 
-# Опции rokokol.ssh-agent
+# rokokol.ssh-agent options
 
 <!-- generated: option ssh-agent -->
 
-| Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
+| Option | nixos-laptop | nixos-pc | nixos-station | Description |
 | --- | --- | --- | --- | --- |
-| `rokokol.ssh-agent.enable` | да | да | нет | Whether to enable gcr's SSH agent. |
+| `rokokol.ssh-agent.enable` | yes | yes | no | Whether to enable gcr's SSH agent. |
 
-Объявлено в: [`nixos/services/desktop/ssh-agent.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/desktop/ssh-agent.nix)
+Declared in: [`nixos/services/desktop/ssh-agent.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/desktop/ssh-agent.nix)
 
 <!-- /generated -->

@@ -1,17 +1,17 @@
 ---
-title: Опции rokokol.paper-search
+title: rokokol.paper-search options
 kind: option
 hosts: [nixos-laptop, nixos-pc, nixos-station]
 ---
 
-# Опции rokokol.paper-search
+# rokokol.paper-search options
 
 <!-- generated: option paper-search -->
 
-| Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
+| Option | nixos-laptop | nixos-pc | nixos-station | Description |
 | --- | --- | --- | --- | --- |
-| `rokokol.paper-search.enable` | нет | да | нет | Whether to enable the paper-search-mcp settings file. |
+| `rokokol.paper-search.enable` | no | yes | no | Whether to enable the paper-search-mcp settings file. |
 
-Объявлено в: [`nixos/services/tools/paper-search.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/tools/paper-search.nix)
+Declared in: [`nixos/services/tools/paper-search.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/tools/paper-search.nix)
 
 <!-- /generated -->

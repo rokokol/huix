@@ -1,17 +1,17 @@
 ---
-title: Опции rokokol.nix-ld
+title: rokokol.nix-ld options
 kind: option
 hosts: [nixos-laptop, nixos-pc, nixos-station]
 ---
 
-# Опции rokokol.nix-ld
+# rokokol.nix-ld options
 
 <!-- generated: option nix-ld -->
 
-| Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
+| Option | nixos-laptop | nixos-pc | nixos-station | Description |
 | --- | --- | --- | --- | --- |
-| `rokokol.nix-ld.enable` | да | да | нет | Whether to enable nix-ld with a desktop set of libraries. |
+| `rokokol.nix-ld.enable` | yes | yes | no | Whether to enable nix-ld with a desktop set of libraries. |
 
-Объявлено в: [`nixos/services/system/nix-ld.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/nix-ld.nix)
+Declared in: [`nixos/services/system/nix-ld.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/nix-ld.nix)
 
 <!-- /generated -->

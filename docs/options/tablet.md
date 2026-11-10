@@ -1,17 +1,17 @@
 ---
-title: Опции rokokol.tablet
+title: rokokol.tablet options
 kind: option
 hosts: [nixos-laptop, nixos-pc, nixos-station]
 ---
 
-# Опции rokokol.tablet
+# rokokol.tablet options
 
 <!-- generated: option tablet -->
 
-| Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
+| Option | nixos-laptop | nixos-pc | nixos-station | Description |
 | --- | --- | --- | --- | --- |
-| `rokokol.tablet.enable` | нет | да | нет | Whether to enable graphics tablet (OpenTabletDriver). |
+| `rokokol.tablet.enable` | no | yes | no | Whether to enable graphics tablet (OpenTabletDriver). |
 
-Объявлено в: [`nixos/services/devices/tablet.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/devices/tablet.nix)
+Declared in: [`nixos/services/devices/tablet.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/devices/tablet.nix)
 
 <!-- /generated -->

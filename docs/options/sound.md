@@ -1,17 +1,17 @@
 ---
-title: Опции rokokol.sound
+title: rokokol.sound options
 kind: option
 hosts: [nixos-laptop, nixos-pc, nixos-station]
 ---
 
-# Опции rokokol.sound
+# rokokol.sound options
 
 <!-- generated: option sound -->
 
-| Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
+| Option | nixos-laptop | nixos-pc | nixos-station | Description |
 | --- | --- | --- | --- | --- |
-| `rokokol.sound.enable` | да | да | нет | Whether to enable PipeWire sound. |
+| `rokokol.sound.enable` | yes | yes | no | Whether to enable PipeWire sound. |
 
-Объявлено в: [`nixos/sound.nix`](https://github.com/rokokol/huix/blob/master/nixos/sound.nix)
+Declared in: [`nixos/sound.nix`](https://github.com/rokokol/huix/blob/master/nixos/sound.nix)
 
 <!-- /generated -->

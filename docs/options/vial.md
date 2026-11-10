@@ -1,17 +1,17 @@
 ---
-title: Опции rokokol.vial
+title: rokokol.vial options
 kind: option
 hosts: [nixos-laptop, nixos-pc, nixos-station]
 ---
 
-# Опции rokokol.vial
+# rokokol.vial options
 
 <!-- generated: option vial -->
 
-| Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
+| Option | nixos-laptop | nixos-pc | nixos-station | Description |
 | --- | --- | --- | --- | --- |
-| `rokokol.vial.enable` | да | да | нет | Whether to enable user access to Vial keyboards. |
+| `rokokol.vial.enable` | yes | yes | no | Whether to enable user access to Vial keyboards. |
 
-Объявлено в: [`nixos/services/devices/vial.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/devices/vial.nix)
+Declared in: [`nixos/services/devices/vial.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/devices/vial.nix)
 
 <!-- /generated -->

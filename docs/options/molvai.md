@@ -1,17 +1,17 @@
 ---
-title: Опции rokokol.molvai
+title: rokokol.molvai options
 kind: option
 hosts: [nixos-laptop, nixos-pc, nixos-station]
 ---
 
-# Опции rokokol.molvai
+# rokokol.molvai options
 
 <!-- generated: option molvai -->
 
-| Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
+| Option | nixos-laptop | nixos-pc | nixos-station | Description |
 | --- | --- | --- | --- | --- |
-| `rokokol.molvai.enable` | нет | да | нет | Whether to enable the sops environment of MolvAI. |
+| `rokokol.molvai.enable` | no | yes | no | Whether to enable the sops environment of MolvAI. |
 
-Объявлено в: [`nixos/services/desktop/molvai.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/desktop/molvai.nix)
+Declared in: [`nixos/services/desktop/molvai.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/desktop/molvai.nix)
 
 <!-- /generated -->

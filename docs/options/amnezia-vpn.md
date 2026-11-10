@@ -1,17 +1,17 @@
 ---
-title: Опции rokokol.amnezia-vpn
+title: rokokol.amnezia-vpn options
 kind: option
 hosts: [nixos-laptop, nixos-pc, nixos-station]
 ---
 
-# Опции rokokol.amnezia-vpn
+# rokokol.amnezia-vpn options
 
 <!-- generated: option amnezia-vpn -->
 
-| Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
+| Option | nixos-laptop | nixos-pc | nixos-station | Description |
 | --- | --- | --- | --- | --- |
-| `rokokol.amnezia-vpn.enable` | да | да | нет | Whether to enable the AmneziaVPN client. |
+| `rokokol.amnezia-vpn.enable` | yes | yes | no | Whether to enable the AmneziaVPN client. |
 
-Объявлено в: [`nixos/services/desktop/amnezia-vpn.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/desktop/amnezia-vpn.nix)
+Declared in: [`nixos/services/desktop/amnezia-vpn.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/desktop/amnezia-vpn.nix)
 
 <!-- /generated -->

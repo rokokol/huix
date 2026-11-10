@@ -1,17 +1,17 @@
 ---
-title: Опции rokokol.pi
+title: rokokol.pi options
 kind: option
 hosts: [nixos-laptop, nixos-pc, nixos-station]
 ---
 
-# Опции rokokol.pi
+# rokokol.pi options
 
 <!-- generated: option pi -->
 
-| Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
+| Option | nixos-laptop | nixos-pc | nixos-station | Description |
 | --- | --- | --- | --- | --- |
-| `rokokol.pi.enable` | да | да | нет | Whether to enable Pi credentials. |
+| `rokokol.pi.enable` | yes | yes | no | Whether to enable Pi credentials. |
 
-Объявлено в: [`nixos/services/ai/pi/credentials.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/ai/pi/credentials.nix)
+Declared in: [`nixos/services/ai/pi/credentials.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/ai/pi/credentials.nix)
 
 <!-- /generated -->

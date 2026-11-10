@@ -1,17 +1,17 @@
 ---
-title: Опции rokokol.workstation
+title: rokokol.workstation options
 kind: option
 hosts: [nixos-laptop, nixos-pc, nixos-station]
 ---
 
-# Опции rokokol.workstation
+# rokokol.workstation options
 
 <!-- generated: option workstation -->
 
-| Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
+| Option | nixos-laptop | nixos-pc | nixos-station | Description |
 | --- | --- | --- | --- | --- |
-| `rokokol.workstation.enable` | да | да | нет | Whether to enable the desktop session and the workstation services. |
+| `rokokol.workstation.enable` | yes | yes | no | Whether to enable the desktop session and the workstation services. |
 
-Объявлено в: [`nixos/desktop/core-options.nix`](https://github.com/rokokol/huix/blob/master/nixos/desktop/core-options.nix)
+Declared in: [`nixos/desktop/core-options.nix`](https://github.com/rokokol/huix/blob/master/nixos/desktop/core-options.nix)
 
 <!-- /generated -->

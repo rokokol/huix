@@ -1,10 +1,10 @@
 ---
-title: Корень репозитория
+title: Repository root
 kind: module
 dir: .
 ---
 
-# Корень репозитория
+# Repository root
 
 <!-- generated: module . -->
 
@@ -18,7 +18,7 @@ nix-lint holds every .nix file here to the standard the skill carries. It runs i
 build sandbox, so it leaves out the rules that need this flake's inputs; the eval
 job runs the whole checker through apps.check-nix, where the inputs are there
 
-**Юниты:** `sync`
+**Units:** `sync`
 
 ## [`flake.nix`](https://github.com/rokokol/huix/blob/master/flake.nix)
 

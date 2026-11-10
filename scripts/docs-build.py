@@ -2,6 +2,7 @@
 """Render the facts a host resolves to into the pages of the documentation corpus"""
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
 import re
@@ -74,7 +75,7 @@ def balanced(text, start, opening="(", closing=")"):
             depth -= 1
             if depth == 0:
                 return text[start + 1 : index], index + 1
-    raise ValueError("незакрытая скобка")
+    raise ValueError("unclosed bracket")
 
 
 def split_args(body):
@@ -188,20 +189,26 @@ def file_comment(text):
 
 
 def format_value(value):
-    """One fact as a table cell or an inline value"""
+    """One fact as an inline value, with no table escaping: a cell escapes its own pipes"""
     if value is None:
         return "—"
     if isinstance(value, bool):
-        return "да" if value else "нет"
+        return "yes" if value else "no"
     if isinstance(value, (int, float)):
         return f"`{value}`"
     if isinstance(value, str):
-        return f"`{value.replace('|', chr(92) + '|')}`"
+        return f"`{value}`"
     if isinstance(value, list):
         return ", ".join(format_value(item) for item in value) if value else "—"
     if isinstance(value, dict):
         return ", ".join(f"`{key}={format_value(item).strip('`')}`" for key, item in value.items())
     return f"`{value}`"
+
+
+def cell(text):
+    """One table cell. A newline inside a cell ends the row and breaks the table, and a bare pipe
+    starts a new column, so both are handled here rather than by every caller"""
+    return re.sub(r"\s+", " ", str(text)).strip().replace("|", chr(92) + "|")
 
 
 def declared_units(sources):
@@ -247,10 +254,10 @@ def render_modules(entries):
         if entry["options"]:
             names = ", ".join(f"`{name}`" for name in entry["options"])
             groups = sorted({option_group(name) for name in entry["options"]})
-            links = ", ".join(f"[опции rokokol.{group}](../options/{group}.md)" for group in groups)
-            lines.append(f"**Опции:** {names}\n\nПодробнее: {links}")
+            links = ", ".join(f"[rokokol.{group} options](../options/{group}.md)" for group in groups)
+            lines.append(f"**Options:** {names}\n\nMore: {links}")
         if entry["units"]:
-            lines.append("**Юниты:** " + ", ".join(f"`{unit}`" for unit in entry["units"]))
+            lines.append("**Units:** " + ", ".join(f"`{unit}`" for unit in entry["units"]))
         parts.append("\n\n".join(lines))
     return "\n\n".join(parts)
 
@@ -259,16 +266,16 @@ def render_bindings(binds, sources=()):
     """Every bind of the compositor as one table, with the file that declares them"""
     rows = [
         [
-            f"`{bind['keys'].replace('|', chr(92) + '|')}`",
-            f"`{bind['dispatcher']}`",
+            format_value(bind["keys"]),
+            format_value(bind["dispatcher"]),
             format_value(bind["argument"]) if bind["argument"] else "—",
-            "да" if bind["repeating"] else "—",
+            "yes" if bind["repeating"] else "—",
         ]
         for bind in binds
     ]
-    body = table(["Клавиши", "Диспетчер", "Аргумент", "Держится"], rows)
+    body = table(["Keys", "Dispatcher", "Argument", "Holds"], rows)
     if sources:
-        body += "\n\nОбъявлено в: " + ", ".join(repo_link(name) for name in sources)
+        body += "\n\nDeclared in: " + ", ".join(repo_link(name) for name in sources)
     return body
 
 
@@ -276,50 +283,50 @@ def bullet(items, sources=None):
     """A line of names, or a word saying there are none"""
     names = [name for name in items if sources is None or name in sources]
     if not names:
-        return "нет"
+        return "none"
     return ", ".join(f"`{name}`" for name in sorted(names))
 
 
 def table(header, rows):
     if not rows:
-        return "нет"
-    lines = ["| " + " | ".join(header) + " |", "| " + " | ".join("---" for _ in header) + " |"]
-    lines += ["| " + " | ".join(row) + " |" for row in rows]
+        return "none"
+    lines = ["| " + " | ".join(cell(text) for text in header) + " |", "| " + " | ".join("---" for _ in header) + " |"]
+    lines += ["| " + " | ".join(cell(text) for text in row) + " |" for row in rows]
     return "\n".join(lines)
 
 
 def render_host(facts, sources):
     """The generated half of a host page"""
     units = declared_units(sources)
-    parts = ["Система: `{}`".format(facts["system"])]
+    parts = ["System: `{}`".format(facts["system"])]
 
     # The configuration file of a host is named after the host without its role prefix, which is
     # the one convention the repository keeps for it
     configuration = f"nixos/configuration-{facts['name'].removeprefix('nixos-')}.nix"
     if configuration in sources:
-        parts.append("Настраивается в " + repo_link(configuration))
+        parts.append("Configured in " + repo_link(configuration))
 
-    parts.append("**Службы из этого репозитория:** " + bullet(facts["services"], units))
-    parts.append("**Таймеры:** " + bullet(facts["timers"], units))
+    parts.append("**Services declared in this repository:** " + bullet(facts["services"], units))
+    parts.append("**Timers:** " + bullet(facts["timers"], units))
 
     if facts["tailnet"]:
         rows = [
-            [f"`{name}`", format_value(site["port"]), "да" if site["lan"] else "нет"]
+            [format_value(name), format_value(site["port"]), "yes" if site["lan"] else "no"]
             for name, site in sorted(facts["tailnet"].items())
         ]
-        parts.append("Веб-службы в частной сети\n\n" + table(["Служба", "Порт", "В домашней сети"], rows))
+        parts.append("Web services on the private network\n\n" + table(["Service", "Port", "On the home network"], rows))
 
     firewall = [f"TCP {format_value(facts['firewall']['tcp'])}", f"UDP {format_value(facts['firewall']['udp'])}"]
-    parts.append("**Файрвол открывает:** " + ", ".join(firewall))
-    parts.append("**Секреты sops по имени:** " + bullet(facts["secrets"]))
+    parts.append("**The firewall opens:** " + ", ".join(firewall))
+    parts.append("**Sops secrets, by name:** " + bullet(facts["secrets"]))
 
     if facts["sessionVariables"]:
-        rows = [[f"`{name}`", format_value(value)] for name, value in sorted(facts["sessionVariables"].items())]
-        parts.append("Переменные сессии\n\n" + table(["Переменная", "Значение"], rows))
+        rows = [[format_value(name), format_value(value)] for name, value in sorted(facts["sessionVariables"].items())]
+        parts.append("Session variables\n\n" + table(["Variable", "Value"], rows))
 
     if facts["homeValues"]:
-        rows = [[f"`rokokol.{name}`", format_value(value)] for name, value in sorted(facts["homeValues"].items())]
-        parts.append("Опции Home Manager\n\n" + table(["Опция", "Значение"], rows))
+        rows = [[format_value(f"rokokol.{name}"), format_value(value)] for name, value in sorted(facts["homeValues"].items())]
+        parts.append("Home Manager options\n\n" + table(["Option", "Value"], rows))
 
     return "\n\n".join(parts)
 
@@ -328,7 +335,7 @@ def inject(text, marker, rendered):
     """Replace the content of a generated block, keeping the prose around it"""
     start = START.format(marker=marker)
     if start not in text:
-        raise MarkerMissing(f"нет маркера {start}")
+        raise MarkerMissing(f"no marker {start}")
     body = rendered.strip()
     pattern = re.compile(re.escape(start) + r".*?" + re.escape(END), re.DOTALL)
     return pattern.sub(lambda _: f"{start}\n\n{body}\n\n{END}", text)
@@ -355,6 +362,12 @@ def host_pages(facts, sources):
     return {DOCS / "hosts" / f"{name}.md": (f"host {name}", render_host(cfg, sources)) for name, cfg in facts["hosts"].items()}
 
 
+def option_page(names, rows, files):
+    """One group of options: a column per host that has it, and the file that declares it"""
+    header = ["Option", *names, "Description"]
+    return table(header, rows) + "\n\nDeclared in: " + ", ".join(repo_link(name) for name in files)
+
+
 def option_pages(facts):
     """The generated blocks of the option pages, keyed by the page path"""
     by_host = {name: group_options(cfg["options"]) for name, cfg in facts["hosts"].items()}
@@ -362,17 +375,17 @@ def option_pages(facts):
     pages = {}
     for group in groups:
         names = [name for name in by_host if group in by_host[name]]
+        order = []
+        for host in names:
+            order += [option["name"] for option in by_host[host][group] if option["name"] not in order]
         rows = []
-        for option in by_host[names[0]][group]:
-            values = []
-            for name in names:
-                found = next((item for item in by_host[name][group] if item["name"] == option["name"]), None)
-                values.append(format_value(found["value"]) if found else "—")
-            rows.append([f"`{option['name']}`", *values, option["description"] or "—"])
-        header = ["Опция", *names, "Описание"]
-        files = sorted({declaration for option in by_host[names[0]][group] for declaration in option["declarations"]})
-        body = table(header, rows) + "\n\nОбъявлено в: " + ", ".join(repo_link(name) for name in files)
-        pages[DOCS / "options" / f"{group}.md"] = (f"option {group}", body)
+        for name in order:
+            found = {host: next((item for item in by_host[host][group] if item["name"] == name), None) for host in names}
+            values = [format_value(found[host]["value"]) if found[host] else "—" for host in names]
+            described = next((item["description"] for item in found.values() if item), None)
+            rows.append([format_value(name), *values, described or "—"])
+        files = sorted({declaration for host in names for option in by_host[host][group] for declaration in option["declarations"]})
+        pages[DOCS / "options" / f"{group}.md"] = (f"option {group}", option_page(names, rows, files))
     return pages
 
 
@@ -505,6 +518,12 @@ def to_local_links(html, root):
     return re.sub(r'src="\.\./([^"]+)"', swap, html)
 
 
+def to_scroll_tables(html):
+    """A facts table can be wider than the page, and a table that overflows takes the whole layout
+    with it, so each one gets a box that scrolls on its own"""
+    return html.replace("<table>", '<div class="table-wrap"><table>').replace("</table>", "</table></div>")
+
+
 def page_label(title, path):
     """What a page is called in the navigation"""
     if title:
@@ -534,14 +553,14 @@ def navigation(pages):
 
 
 SECTIONS = {
-    "hosts": "Хосты",
-    "options": "Опции",
-    "modules": "Модули",
-    ".": "Обзор",
+    "hosts": "Hosts",
+    "options": "Options",
+    "modules": "Modules",
+    ".": "Reference",
 }
 
 SHELL = """<!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -558,14 +577,14 @@ SHELL = """<!DOCTYPE html>
 <link rel="stylesheet" href="{root}assets/vendor/ddlc/ddlc-tokens.css">
 <link rel="stylesheet" href="{root}assets/vendor/ddlc/ddlc-ui.css">
 <link rel="stylesheet" href="{root}assets/vendor/ddlc/ddlc-report.css">
-<link rel="stylesheet" href="{root}assets/site.css">
-<script type="module" src="{root}assets/site.js"></script>
+<link rel="stylesheet" href="{root}assets/site.css?v={stamp}">
+<script type="module" src="{root}assets/site.js?v={stamp}"></script>
 </head>
 <body>
 <header class="top"><div class="wrap top-inner">
-<a class="brand" href="{root}index.html">huix <span class="tagline">конфиг и то, что на нём работает</span></a>
+<a class="brand" href="{root}index.html">huix <span class="tagline">the configuration and what runs on it</span></a>
 <button class="icon-button" data-theme-toggle type="button"><svg viewBox="0 0 8 8" width="16" height="16" aria-hidden="true"><path d="" fill-rule="evenodd"></path></svg></button>
-<a class="icon-button" href="https://github.com/rokokol/huix" aria-label="huix на GitHub"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.4 7.4 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A7.99 7.99 0 0 0 16 8c0-4.42-3.58-8-8-8Z"></path></svg></a>
+<a class="icon-button" href="https://github.com/rokokol/huix" aria-label="huix on GitHub"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.4 7.4 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A7.99 7.99 0 0 0 16 8c0-4.42-3.58-8-8-8Z"></path></svg></a>
 </div></header>
 <div class="wrap layout">
 <nav class="sidebar">{sidebar}</nav>
@@ -605,6 +624,9 @@ def render_site(repo, out, assets):
 
     sections = navigation([(relative, meta) for relative, meta, _ in pages])
     shutil.copytree(assets, out / "assets", dirs_exist_ok=True)
+    # A rebuilt stylesheet must reach the reader rather than an hour-old cached copy, so the
+    # links carry a digest of the file they point at
+    stamp = hashlib.sha256((assets / "site.css").read_bytes()).hexdigest()[:8]
     # The pictures of the corpus live beside it, in docs/img, as the pictures of a README live
     # beside the README
     pictures = repo / DOCS / "img"
@@ -622,14 +644,15 @@ def render_site(repo, out, assets):
             title=page_label(meta.get("title"), relative),
             root=root,
             favicon=FAVICON,
+            stamp=stamp,
             sidebar=sidebar_html(sections, target, root),
-            main=f'<article class="prose">{to_figures(to_local_links(to_page_links(main), root))}</article>',
+            main=f'<article class="prose">{to_scroll_tables(to_figures(to_local_links(to_page_links(main), root)))}</article>',
         )
         destination = out / target
         destination.parent.mkdir(parents=True, exist_ok=True)
         destination.write_text(page, encoding="utf-8")
 
-    index = ["<h1>huix</h1>", '<article class="prose"><p>Документация по этому конфигу: что где лежит, что чем включается и почему сделано так. Каждая страница собрана из файлов самого репозитория.</p>']
+    index = ["<h1>huix</h1>", '<article class="prose"><p>The documentation of this configuration: what lives where, what turns it on and why it is arranged so. Every page is assembled from the files of the repository itself.</p>']
     for directory, items in sections:
         name = SECTIONS.get(directory, directory)
         links = "".join(f'<li><a href="{item["path"][: -len(".md")]}.html">{item["label"]}</a></li>' for item in items)
@@ -637,9 +660,10 @@ def render_site(repo, out, assets):
     index.append("</article>")
     (out / "index.html").write_text(
         SHELL.format(
-            title="Документация",
+            title="Documentation",
             root="",
             favicon=FAVICON,
+            stamp=stamp,
             sidebar=sidebar_html(sections, "index.html", ""),
             main="".join(index),
         ),
@@ -678,9 +702,9 @@ def render_scripts(entries):
         if entry["ok"]:
             lines.append("```\n" + entry["help"].replace("```", "'''") + "\n```")
         elif entry.get("reason"):
-            lines.append(f"Скрипт не печатает `--help`: `{entry['reason']}`")
+            lines.append(f"The script prints no `--help`: `{entry['reason']}`")
         else:
-            lines.append("Скрипт не печатает `--help`: запускать без аргументов или читать текст выше")
+            lines.append("The script prints no `--help`: run it with no arguments, or read the text above")
         parts.append("\n\n".join(lines))
     return "\n\n".join(parts)
 
@@ -701,7 +725,7 @@ def main(argv):
 
     if args.command == "site":
         pages = render_site(args.repo, args.repo / args.out, args.repo / "site" / "assets")
-        print(f"собрано {pages} страниц в {args.out}")
+        print(f"wrote {pages} pages to {args.out}")
         return 0
 
     facts = json.loads(args.facts.read_text(encoding="utf-8"))
@@ -725,15 +749,15 @@ def main(argv):
             hosts = [key] if kind == "host" else (sorted(facts["hosts"]) if kind == "option" else [])
             described = key if kind == "module" else ""
             if kind == "host":
-                title = f"Хост {key}"
+                title = f"Host {key}"
             elif kind == "option":
-                title = "Опции верхнего уровня" if key == "rokokol" else f"Опции rokokol.{key}"
+                title = "Top-level options" if key == "rokokol" else f"rokokol.{key} options"
             elif kind == "module":
-                title = "Корень репозитория" if key == "." else key
+                title = "Repository root" if key == "." else key
             elif kind == "scripts":
-                title = "Скрипты"
+                title = "Scripts"
             else:
-                title = "Клавиши Hyprland"
+                title = "Hyprland keys"
             page.parent.mkdir(parents=True, exist_ok=True)
             page.write_text(scaffold(marker, title, hosts, described), encoding="utf-8")
             print(f"created {path}")

@@ -14,9 +14,9 @@ binfmt_misc lets *.AppImage run directly without unpacking
 steam-run wraps any binary in a full FHS sandbox (/usr, /lib, real ld.so) for prebuilts
 that nix-ld can't satisfy
 
-**Опции:** `rokokol.appimage.enable`
+**Options:** `rokokol.appimage.enable`
 
-Подробнее: [опции rokokol.appimage](../options/appimage.md)
+More: [rokokol.appimage options](../options/appimage.md)
 
 ## [`nixos/services/system/cachix.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/cachix.nix)
 
@@ -28,18 +28,18 @@ fine); pin IPv4 to skip it
 envfs serves /bin and /usr/bin from the PATH of the calling process, so a script or a plugin
 that hardcodes /bin/bash or /usr/bin/python3 finds the binary instead of failing with ENOENT
 
-**Опции:** `rokokol.envfs.enable`
+**Options:** `rokokol.envfs.enable`
 
-Подробнее: [опции rokokol.envfs](../options/envfs.md)
+More: [rokokol.envfs options](../options/envfs.md)
 
 ## [`nixos/services/system/nix-ld.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/nix-ld.nix)
 
 nix-ld makes non-Nix prebuilt binaries find their shared libs via NIX_LD instead of dying
 with "No such file or directory"
 
-**Опции:** `rokokol.nix-ld.enable`
+**Options:** `rokokol.nix-ld.enable`
 
-Подробнее: [опции rokokol.nix-ld](../options/nix-ld.md)
+More: [rokokol.nix-ld options](../options/nix-ld.md)
 
 ## [`nixos/services/system/restic-server.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/restic-server.nix)
 
@@ -49,11 +49,11 @@ host, so only the node can forget and prune its own snapshots. A node that delet
 should not cannot reach the read-only snapshots this host takes of every repository. The data
 lives on its own filesystem, and nothing runs or is created while that filesystem is not mounted
 
-**Опции:** `rokokol.restic-server.dataDir`, `rokokol.restic-server.enable`, `rokokol.restic-server.localUserName`, `rokokol.restic-server.localUsers`, `rokokol.restic-server.mountPoint`, `rokokol.restic-server.port`, `rokokol.restic-server.preserve`, `rokokol.restic-server.snapshotDir`, `rokokol.restic-server.subvolumes`
+**Options:** `rokokol.restic-server.dataDir`, `rokokol.restic-server.enable`, `rokokol.restic-server.localUserName`, `rokokol.restic-server.localUsers`, `rokokol.restic-server.mountPoint`, `rokokol.restic-server.port`, `rokokol.restic-server.preserve`, `rokokol.restic-server.snapshotDir`, `rokokol.restic-server.subvolumes`
 
-Подробнее: [опции rokokol.restic-server](../options/restic-server.md)
+More: [rokokol.restic-server options](../options/restic-server.md)
 
-**Юниты:** `btrbk-restic`, `restic-backups-station`
+**Units:** `btrbk-restic`, `restic-backups-station`
 
 ## [`nixos/services/system/skvpn.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/skvpn.nix)
 
@@ -80,9 +80,9 @@ firewall opens by mistake still serves nothing to the LAN. A site that sets `lan
 exception: the firewall opens its port on the LAN link, and nginx admits the LAN network. There is
 no enable option: a service that declares a site is published, and its own option gates it
 
-**Опции:** `rokokol.tailnet-web.lan`, `rokokol.tailnet-web.sites`
+**Options:** `rokokol.tailnet-web.lan`, `rokokol.tailnet-web.sites`
 
-Подробнее: [опции rokokol.tailnet-web](../options/tailnet-web.md)
+More: [rokokol.tailnet-web options](../options/tailnet-web.md)
 
 ## [`nixos/services/system/tailscale.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/tailscale.nix)
 
@@ -98,6 +98,6 @@ zram cannot. A default, so a host can stay without swap.
 Swap metrics count the pages zram holds at their full size, which says nothing of the RAM it
 takes. mm_stat has both, and a timer writes them for node_exporter wherever zram is on
 
-**Юниты:** `zram-metrics`
+**Units:** `zram-metrics`
 
 <!-- /generated -->

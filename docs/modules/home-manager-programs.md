@@ -17,7 +17,7 @@ dir: home-manager/programs
 The module defaults match the owner's setup: GigaAM-v3 Q4_K_M, Russian speech and the Russian
 interface. Only the cloud model differs from a stock install, and its key comes from sops
 
-**Юниты:** `molva-daemon`
+**Units:** `molva-daemon`
 
 ## [`home-manager/programs/rofi.nix`](https://github.com/rokokol/huix/blob/master/home-manager/programs/rofi.nix)
 

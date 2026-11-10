@@ -1,18 +1,18 @@
 ---
-title: Опции rokokol.mail-agent
+title: rokokol.mail-agent options
 kind: option
 hosts: [nixos-laptop, nixos-pc, nixos-station]
 ---
 
-# Опции rokokol.mail-agent
+# rokokol.mail-agent options
 
 <!-- generated: option mail-agent -->
 
-| Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
+| Option | nixos-laptop | nixos-pc | nixos-station | Description |
 | --- | --- | --- | --- | --- |
-| `rokokol.mail-agent.enable` | нет | да | да | Whether to enable the mail agent service. |
+| `rokokol.mail-agent.enable` | no | yes | yes | Whether to enable the mail agent service. |
 | `rokokol.mail-agent.socketUser` | `rokokol` | `rokokol` | `mya` | Who may talk to the socket, and so whose agents get the skill |
 
-Объявлено в: [`nixos/services/tools/mail-agent.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/tools/mail-agent.nix)
+Declared in: [`nixos/services/tools/mail-agent.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/tools/mail-agent.nix)
 
 <!-- /generated -->

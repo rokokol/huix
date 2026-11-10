@@ -1,17 +1,17 @@
 ---
-title: Опции rokokol.docker
+title: rokokol.docker options
 kind: option
 hosts: [nixos-laptop, nixos-pc, nixos-station]
 ---
 
-# Опции rokokol.docker
+# rokokol.docker options
 
 <!-- generated: option docker -->
 
-| Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
+| Option | nixos-laptop | nixos-pc | nixos-station | Description |
 | --- | --- | --- | --- | --- |
-| `rokokol.docker.enable` | да | да | нет | Whether to enable the Docker daemon. |
+| `rokokol.docker.enable` | yes | yes | no | Whether to enable the Docker daemon. |
 
-Объявлено в: [`nixos/services/utils/docker.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/utils/docker.nix)
+Declared in: [`nixos/services/utils/docker.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/utils/docker.nix)
 
 <!-- /generated -->

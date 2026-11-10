@@ -1,9 +1,9 @@
 ---
-title: Скрипты
+title: Scripts
 kind: scripts
 ---
 
-# Скрипты
+# Scripts
 
 <!-- generated: scripts -->
 
@@ -161,7 +161,7 @@ options:
 
 ## [`scripts/drive-backup.py`](https://github.com/rokokol/huix/blob/master/scripts/drive-backup.py)
 
-Скрипт не печатает `--help`: `ModuleNotFoundError: No module named 'pathspec'`
+The script prints no `--help`: `ModuleNotFoundError: No module named 'pathspec'`
 
 ## [`scripts/forgejo-mirrors.sh`](https://github.com/rokokol/huix/blob/master/scripts/forgejo-mirrors.sh)
 

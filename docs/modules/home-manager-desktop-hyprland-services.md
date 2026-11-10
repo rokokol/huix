@@ -73,6 +73,6 @@ Persistent Wayland clipboard daemon. A user-session service, so it lives in HM
 alongside the other graphical-session units (mako, hypridle, swayosd) rather
 than in nixos/. wl-clipboard (wl-copy/wl-paste) comes from other HM modules
 
-**Юниты:** `wl-clip-persist`
+**Units:** `wl-clip-persist`
 
 <!-- /generated -->

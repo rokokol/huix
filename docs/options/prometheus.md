@@ -1,18 +1,18 @@
 ---
-title: Опции rokokol.prometheus
+title: rokokol.prometheus options
 kind: option
 hosts: [nixos-laptop, nixos-pc, nixos-station]
 ---
 
-# Опции rokokol.prometheus
+# rokokol.prometheus options
 
 <!-- generated: option prometheus -->
 
-| Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
+| Option | nixos-laptop | nixos-pc | nixos-station | Description |
 | --- | --- | --- | --- | --- |
-| `rokokol.prometheus.enable` | нет | нет | да | Whether to enable Prometheus that scrapes the hosts of this flake. |
+| `rokokol.prometheus.enable` | no | no | yes | Whether to enable Prometheus that scrapes the hosts of this flake. |
 | `rokokol.prometheus.retention` | `1y` | `1y` | `1y` | How long Prometheus keeps the metrics it scraped |
 
-Объявлено в: [`nixos/services/system/monitoring/prometheus.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/monitoring/prometheus.nix)
+Declared in: [`nixos/services/system/monitoring/prometheus.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/monitoring/prometheus.nix)
 
 <!-- /generated -->

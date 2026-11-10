@@ -170,6 +170,16 @@ body {
   overflow-wrap: anywhere;
 }
 
+/* A name in the first column is looked up rather than read as prose, so it may stay whole and the
+   box around the table scrolls when the page is narrow */
+.prose td:first-child code {
+  overflow-wrap: normal;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
 .prose ul,
 .prose ol {
   padding-left: 22px;

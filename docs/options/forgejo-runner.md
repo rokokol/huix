@@ -1,24 +1,22 @@
 ---
-title: Опции rokokol.forgejo-runner
+title: rokokol.forgejo-runner options
 kind: option
 hosts: [nixos-laptop, nixos-pc, nixos-station]
 ---
 
-# Опции rokokol.forgejo-runner
+# rokokol.forgejo-runner options
 
 <!-- generated: option forgejo-runner -->
 
-| Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
+| Option | nixos-laptop | nixos-pc | nixos-station | Description |
 | --- | --- | --- | --- | --- |
-| `rokokol.forgejo-runner.enable` | нет | да | нет | Whether to enable a Forgejo Actions runner with Docker. |
+| `rokokol.forgejo-runner.enable` | no | yes | no | Whether to enable a Forgejo Actions runner with Docker. |
 | `rokokol.forgejo-runner.labels` | `docker:docker://data.forgejo.org/oci/node:22-bookworm`, `ubuntu-latest:docker://data.forgejo.org/oci/node:22-bookworm`, `nixos-pc:docker://data.forgejo.org/oci/node:22-bookworm` | `docker:docker://data.forgejo.org/oci/node:22-bookworm`, `ubuntu-latest:docker://data.forgejo.org/oci/node:22-bookworm`, `nixos-pc:docker://data.forgejo.org/oci/node:22-bookworm` | `docker:docker://data.forgejo.org/oci/node:22-bookworm`, `ubuntu-latest:docker://data.forgejo.org/oci/node:22-bookworm`, `nixos-pc:docker://data.forgejo.org/oci/node:22-bookworm` | Labels the runner takes jobs for, each mapped to the image the job runs in |
 | `rokokol.forgejo-runner.name` | `nixos-laptop` | `nixos-pc` | `nixos-station` | Name the forge registers the runner under, in its `rokokol.forgejo.runners` |
-| `rokokol.forgejo-runner.secretsFile` | `/nix/store/2z5ycydi1vlpxmm8nn2fzynsxv6b7zzg-station-secrets` | `/nix/store/2z5ycydi1vlpxmm8nn2fzynsxv6b7zzg-station-secrets` | `/nix/store/2z5ycydi1vlpxmm8nn2fzynsxv6b7zzg-station-secrets` | sops file with the secret forgejo-runner-<name>, the same file the forge reads it from,
-so the secret is written once
- |
+| `rokokol.forgejo-runner.secretsFile` | `/nix/store/2z5ycydi1vlpxmm8nn2fzynsxv6b7zzg-station-secrets` | `/nix/store/2z5ycydi1vlpxmm8nn2fzynsxv6b7zzg-station-secrets` | `/nix/store/2z5ycydi1vlpxmm8nn2fzynsxv6b7zzg-station-secrets` | sops file with the secret forgejo-runner-<name>, the same file the forge reads it from, so the secret is written once |
 | `rokokol.forgejo-runner.unit` | `forgejo-runner-nixos\x2dlaptop.service` | `forgejo-runner-nixos\x2dpc.service` | `forgejo-runner-nixos\x2dstation.service` | The runner's systemd unit, whose name the nixpkgs module escapes as a path |
 | `rokokol.forgejo-runner.url` | — | `http://nixos-station:3000/` | — | Root URL of the Forgejo that hands out the jobs |
 
-Объявлено в: [`nixos/services/utils/forgejo-runner.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/utils/forgejo-runner.nix)
+Declared in: [`nixos/services/utils/forgejo-runner.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/utils/forgejo-runner.nix)
 
 <!-- /generated -->

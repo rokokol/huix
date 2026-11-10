@@ -53,7 +53,7 @@ agent's user, so a file the agent makes stays writable to Syncthing, and the age
 every peer. The rest of the backup volume, the snapshots among them, and Syncthing's keys stay
 out of its sight
 
-**Юниты:** `hermes-agent`
+**Units:** `hermes-agent`
 
 ## [`nixos/station/network.nix`](https://github.com/rokokol/huix/blob/master/nixos/station/network.nix)
 

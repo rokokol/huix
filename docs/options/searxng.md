@@ -1,19 +1,19 @@
 ---
-title: Опции rokokol.searxng
+title: rokokol.searxng options
 kind: option
 hosts: [nixos-laptop, nixos-pc, nixos-station]
 ---
 
-# Опции rokokol.searxng
+# rokokol.searxng options
 
 <!-- generated: option searxng -->
 
-| Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
+| Option | nixos-laptop | nixos-pc | nixos-station | Description |
 | --- | --- | --- | --- | --- |
-| `rokokol.searxng.enable` | нет | нет | да | Whether to enable SearxNG behind nginx. |
+| `rokokol.searxng.enable` | no | no | yes | Whether to enable SearxNG behind nginx. |
 | `rokokol.searxng.port` | `9000` | `9000` | `9000` | Loopback port of the SearXNG instance behind nginx |
 | `rokokol.searxng.publicPort` | `9001` | `9001` | `9001` | Tailnet port publishing SearXNG |
 
-Объявлено в: [`nixos/services/tools/searxng.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/tools/searxng.nix)
+Declared in: [`nixos/services/tools/searxng.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/tools/searxng.nix)
 
 <!-- /generated -->

@@ -10,11 +10,11 @@ dir: nixos/services/ai/hindsight
 
 ## [`nixos/services/ai/hindsight/backup.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/ai/hindsight/backup.nix)
 
-**Опции:** `rokokol.hindsight.backup.dumpDir`, `rokokol.hindsight.backup.mountPoint`, `rokokol.hindsight.backup.subvolumes`
+**Options:** `rokokol.hindsight.backup.dumpDir`, `rokokol.hindsight.backup.mountPoint`, `rokokol.hindsight.backup.subvolumes`
 
-Подробнее: [опции rokokol.hindsight](../options/hindsight.md)
+More: [rokokol.hindsight options](../options/hindsight.md)
 
-**Юниты:** `postgresqlBackup-hindsight`, `restic-backups-station`
+**Units:** `postgresqlBackup-hindsight`, `restic-backups-station`
 
 ## [`nixos/services/ai/hindsight/default.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/ai/hindsight/default.nix)
 
@@ -29,14 +29,14 @@ counter records chat alone"). Both reach Grafana through the textfile directory 
 station's node_exporter serves. It is not part of the Hermes monitor: Hindsight spends whether
 or not the agent runs
 
-**Юниты:** `hindsight-monitor`
+**Units:** `hindsight-monitor`
 
 ## [`nixos/services/ai/hindsight/service.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/ai/hindsight/service.nix)
 
-**Опции:** `rokokol.hindsight.bank`, `rokokol.hindsight.client.enable`, `rokokol.hindsight.dataDir`, `rokokol.hindsight.enable`, `rokokol.hindsight.poolMax`, `rokokol.hindsight.poolMin`, `rokokol.hindsight.port`, `rokokol.hindsight.publicPort`
+**Options:** `rokokol.hindsight.bank`, `rokokol.hindsight.client.enable`, `rokokol.hindsight.dataDir`, `rokokol.hindsight.enable`, `rokokol.hindsight.poolMax`, `rokokol.hindsight.poolMin`, `rokokol.hindsight.port`, `rokokol.hindsight.publicPort`
 
-Подробнее: [опции rokokol.hindsight](../options/hindsight.md)
+More: [rokokol.hindsight options](../options/hindsight.md)
 
-**Юниты:** `hindsight`, `hindsight-bank-template`, `hindsight-database`, `hindsight-storage`, `postgresql`
+**Units:** `hindsight`, `hindsight-bank-template`, `hindsight-database`, `hindsight-storage`, `postgresql`
 
 <!-- /generated -->

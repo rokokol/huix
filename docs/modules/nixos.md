@@ -15,9 +15,9 @@ dir: nixos
 hardware-configuration.nix regenerates, so btrfs options cannot live there. btrfs takes
 compress for the whole volume from the subvolume that mounts first, hence every point
 
-**Опции:** `rokokol.btrfs.mounts`, `rokokol.snapshots.enable`
+**Options:** `rokokol.btrfs.mounts`, `rokokol.snapshots.enable`
 
-Подробнее: [опции rokokol.btrfs](../options/btrfs.md), [опции rokokol.snapshots](../options/snapshots.md)
+More: [rokokol.btrfs options](../options/btrfs.md), [rokokol.snapshots options](../options/snapshots.md)
 
 ## [`nixos/configuration-laptop.nix`](https://github.com/rokokol/huix/blob/master/nixos/configuration-laptop.nix)
 
@@ -35,9 +35,9 @@ reaches neither logind nor Hyprland (see WORKAROUNDS.md)
 
 ## [`nixos/sound.nix`](https://github.com/rokokol/huix/blob/master/nixos/sound.nix)
 
-**Опции:** `rokokol.sound.enable`
+**Options:** `rokokol.sound.enable`
 
-Подробнее: [опции rokokol.sound](../options/sound.md)
+More: [rokokol.sound options](../options/sound.md)
 
 ## [`nixos/system.nix`](https://github.com/rokokol/huix/blob/master/nixos/system.nix)
 

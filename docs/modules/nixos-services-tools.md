@@ -14,17 +14,17 @@ The Radicale login of one local user, for dav-mcp, the calendar MCP server that 
 agents start. The server is registered on the Home Manager side, in
 home-manager/programs/agents/remote/dav-mcp.nix reads the password file and the URL from here
 
-**Опции:** `rokokol.dav-mcp.enable`, `rokokol.dav-mcp.passwordFile`, `rokokol.dav-mcp.url`, `rokokol.dav-mcp.user`
+**Options:** `rokokol.dav-mcp.enable`, `rokokol.dav-mcp.passwordFile`, `rokokol.dav-mcp.url`, `rokokol.dav-mcp.user`
 
-Подробнее: [опции rokokol.dav-mcp](../options/dav-mcp.md)
+More: [rokokol.dav-mcp options](../options/dav-mcp.md)
 
 ## [`nixos/services/tools/drive-backup.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/tools/drive-backup.nix)
 
-**Опции:** `rokokol.drive-backup.cloud.configFile`, `rokokol.drive-backup.cloud.destination`, `rokokol.drive-backup.cloud.enable`, `rokokol.drive-backup.cloud.maxAge`, `rokokol.drive-backup.cloud.onCalendar`, `rokokol.drive-backup.enable`
+**Options:** `rokokol.drive-backup.cloud.configFile`, `rokokol.drive-backup.cloud.destination`, `rokokol.drive-backup.cloud.enable`, `rokokol.drive-backup.cloud.maxAge`, `rokokol.drive-backup.cloud.onCalendar`, `rokokol.drive-backup.enable`
 
-Подробнее: [опции rokokol.drive-backup](../options/drive-backup.md)
+More: [rokokol.drive-backup options](../options/drive-backup.md)
 
-**Юниты:** `btrbk-restic`, `restic-cloud`, `restic-cloud-heartbeat`
+**Units:** `btrbk-restic`, `restic-cloud`, `restic-cloud-heartbeat`
 
 ## [`nixos/services/tools/forgejo-mirrors.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/tools/forgejo-mirrors.nix)
 
@@ -35,11 +35,11 @@ The run talks to Forgejo with an API token of the owner, which the forgejo CLI m
 first run; deleting its file makes a new one. Deleting or renaming a repository of a user
 takes the user scope as well as the repository one
 
-**Опции:** `rokokol.forgejo-mirrors.enable`, `rokokol.forgejo-mirrors.exclude`, `rokokol.forgejo-mirrors.forks`, `rokokol.forgejo-mirrors.githubApi`
+**Options:** `rokokol.forgejo-mirrors.enable`, `rokokol.forgejo-mirrors.exclude`, `rokokol.forgejo-mirrors.forks`, `rokokol.forgejo-mirrors.githubApi`
 
-Подробнее: [опции rokokol.forgejo-mirrors](../options/forgejo-mirrors.md)
+More: [rokokol.forgejo-mirrors options](../options/forgejo-mirrors.md)
 
-**Юниты:** `forgejo-mirrors`
+**Units:** `forgejo-mirrors`
 
 ## [`nixos/services/tools/forgejo.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/tools/forgejo.nix)
 
@@ -48,11 +48,11 @@ reaches too. Forgejo itself binds to loopback: its module listens on every addre
 There is no SSH server and no sign-up. The owner's admin account is made once, with a random
 first password that Forgejo asks to change on the first login
 
-**Опции:** `rokokol.forgejo.backup.dumpDir`, `rokokol.forgejo.backup.mountPoint`, `rokokol.forgejo.cli`, `rokokol.forgejo.enable`, `rokokol.forgejo.initialPasswordFile`, `rokokol.forgejo.owner`, `rokokol.forgejo.runners`
+**Options:** `rokokol.forgejo.backup.dumpDir`, `rokokol.forgejo.backup.mountPoint`, `rokokol.forgejo.cli`, `rokokol.forgejo.enable`, `rokokol.forgejo.initialPasswordFile`, `rokokol.forgejo.owner`, `rokokol.forgejo.runners`
 
-Подробнее: [опции rokokol.forgejo](../options/forgejo.md)
+More: [rokokol.forgejo options](../options/forgejo.md)
 
-**Юниты:** `forgejo`, `forgejo-dump`, `forgejo-dump-dir`, `forgejo-owner`, `forgejo-runners`, `restic-backups-station`
+**Units:** `forgejo`, `forgejo-dump`, `forgejo-dump-dir`, `forgejo-owner`, `forgejo-runners`, `restic-backups-station`
 
 ## [`nixos/services/tools/mail-agent.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/tools/mail-agent.nix)
 
@@ -62,9 +62,9 @@ come from, and who may talk to the socket. Read the module's own options before 
 a line here. The mailboxes are one private file, passwords and own addresses included,
 because this repository is public and the addresses are not
 
-**Опции:** `rokokol.mail-agent.enable`, `rokokol.mail-agent.socketUser`
+**Options:** `rokokol.mail-agent.enable`, `rokokol.mail-agent.socketUser`
 
-Подробнее: [опции rokokol.mail-agent](../options/mail-agent.md)
+More: [rokokol.mail-agent options](../options/mail-agent.md)
 
 ## [`nixos/services/tools/paper-search.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/tools/paper-search.nix)
 
@@ -74,9 +74,9 @@ The server reads them from an env file, so sops renders one and the user layer's
 Unpaywall address alone, for the open-access step of the download fallback. The sources take
 no key: an invalid Semantic Scholar key is refused where no key is answered
 
-**Опции:** `rokokol.paper-search.enable`
+**Options:** `rokokol.paper-search.enable`
 
-Подробнее: [опции rokokol.paper-search](../options/paper-search.md)
+More: [rokokol.paper-search options](../options/paper-search.md)
 
 ## [`nixos/services/tools/radicale.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/tools/radicale.nix)
 
@@ -87,17 +87,17 @@ deleted can be restored. The calendars themselves are data: a client makes them,
 here names one. Each login in `sharedWith` has the owner's home as its own, through a symlink,
 because a CalDAV client lists only the calendars of its own home
 
-**Опции:** `rokokol.radicale.dataDir`, `rokokol.radicale.enable`, `rokokol.radicale.localUrl`, `rokokol.radicale.mountPoint`, `rokokol.radicale.owner`, `rokokol.radicale.sharedWith`, `rokokol.radicale.subvolumes`, `rokokol.radicale.url`
+**Options:** `rokokol.radicale.dataDir`, `rokokol.radicale.enable`, `rokokol.radicale.localUrl`, `rokokol.radicale.mountPoint`, `rokokol.radicale.owner`, `rokokol.radicale.sharedWith`, `rokokol.radicale.subvolumes`, `rokokol.radicale.url`
 
-Подробнее: [опции rokokol.radicale](../options/radicale.md)
+More: [rokokol.radicale options](../options/radicale.md)
 
-**Юниты:** `radicale`
+**Units:** `radicale`
 
 ## [`nixos/services/tools/searxng.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/tools/searxng.nix)
 
-**Опции:** `rokokol.searxng.enable`, `rokokol.searxng.port`, `rokokol.searxng.publicPort`
+**Options:** `rokokol.searxng.enable`, `rokokol.searxng.port`, `rokokol.searxng.publicPort`
 
-Подробнее: [опции rokokol.searxng](../options/searxng.md)
+More: [rokokol.searxng options](../options/searxng.md)
 
 ## [`nixos/services/tools/syncthing.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/tools/syncthing.nix)
 
@@ -106,11 +106,11 @@ every other host takes it from there; a host with no ID yet is left out. A works
 each folder both ways. An archive host only receives it, unless a user there edits it, and
 keeps what a peer deletes or overwrites in snapshots, for the folder's `preserve`
 
-**Опции:** `rokokol.syncthing.archive.dir`, `rokokol.syncthing.archive.editor`, `rokokol.syncthing.archive.enable`, `rokokol.syncthing.archive.folders`, `rokokol.syncthing.archive.mountPoint`, `rokokol.syncthing.archive.snapshotDir`, `rokokol.syncthing.archive.subvolumes`, `rokokol.syncthing.deviceId`, `rokokol.syncthing.enable`, `rokokol.syncthing.keyFromSops`
+**Options:** `rokokol.syncthing.archive.dir`, `rokokol.syncthing.archive.editor`, `rokokol.syncthing.archive.enable`, `rokokol.syncthing.archive.folders`, `rokokol.syncthing.archive.mountPoint`, `rokokol.syncthing.archive.snapshotDir`, `rokokol.syncthing.archive.subvolumes`, `rokokol.syncthing.deviceId`, `rokokol.syncthing.enable`, `rokokol.syncthing.keyFromSops`
 
-Подробнее: [опции rokokol.syncthing](../options/syncthing.md)
+More: [rokokol.syncthing options](../options/syncthing.md)
 
-**Юниты:** `btrbk-syncthing`, `syncthing`, `syncthing-init`
+**Units:** `btrbk-syncthing`, `syncthing`, `syncthing-init`
 
 ## [`nixos/services/tools/telegram-agent.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/tools/telegram-agent.nix)
 
@@ -120,8 +120,8 @@ comes from, and who may talk to the socket. Read the module's own options before
 a line here: the permissions directory, the outbox and the sweep are already its own.
 One account, one session per host that runs this, so it is gated rather than shared
 
-**Опции:** `rokokol.telegram-agent.enable`, `rokokol.telegram-agent.socketUser`
+**Options:** `rokokol.telegram-agent.enable`, `rokokol.telegram-agent.socketUser`
 
-Подробнее: [опции rokokol.telegram-agent](../options/telegram-agent.md)
+More: [rokokol.telegram-agent options](../options/telegram-agent.md)
 
 <!-- /generated -->

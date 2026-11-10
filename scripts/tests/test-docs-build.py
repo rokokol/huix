@@ -40,8 +40,8 @@ def option(name, value, description=None, declarations=("nixos/services/x.nix",)
 
 class FormatValueTest(unittest.TestCase):
     def test_a_boolean_reads_as_a_word_rather_than_python(self):
-        self.assertEqual(docs.format_value(True), "да")
-        self.assertEqual(docs.format_value(False), "нет")
+        self.assertEqual(docs.format_value(True), "yes")
+        self.assertEqual(docs.format_value(False), "no")
 
     def test_an_unset_option_leaves_a_dash(self):
         self.assertEqual(docs.format_value(None), "—")
@@ -55,8 +55,30 @@ class FormatValueTest(unittest.TestCase):
     def test_an_empty_list_is_not_an_empty_cell(self):
         self.assertEqual(docs.format_value([]), "—")
 
-    def test_a_pipe_in_a_string_cannot_break_the_table_it_sits_in(self):
-        self.assertEqual(docs.format_value("a|b"), r"`a\|b`")
+    def test_a_pipe_in_a_string_is_escaped_where_a_table_cell_is_built(self):
+        self.assertEqual(docs.cell("a|b"), r"a\|b")
+
+    def test_a_value_keeps_its_pipe_where_it_is_not_a_table_cell(self):
+        self.assertEqual(docs.format_value("a|b"), "`a|b`")
+
+    def test_a_cell_that_spans_lines_stays_in_one_row(self):
+        text = docs.table(["a", "b"], [["x\ny", "z"]])
+        self.assertEqual(len(text.splitlines()), 3)
+
+    def test_a_multi_line_description_of_an_option_keeps_its_row(self):
+        page = docs.option_page(
+            ["nixos-pc"],
+            [
+                [
+                    docs.format_value("rokokol.backup-heartbeat.causesFile"),
+                    docs.format_value("/run/backup-heartbeat/causes"),
+                    "File for the problems as causes, one a line. When set,\n"
+                    "a problem no longer fails the unit",
+                ]
+            ],
+            ["nixos/services/system/monitoring/backup-heartbeat.nix"],
+        )
+        self.assertEqual(len([line for line in page.splitlines() if line.startswith("|")]), 3)
 
 
 class OwnUnitsTest(unittest.TestCase):
@@ -259,7 +281,7 @@ class BindingsPageTest(unittest.TestCase):
         text = docs.render_bindings(
             [{"keys": "SUPER + ALT + K", "dispatcher": "window.resize", "argument": "", "repeating": True}]
         )
-        self.assertIn("да", text)
+        self.assertIn("yes", text)
 
 
 class FrontTest(unittest.TestCase):
@@ -398,7 +420,7 @@ class ScriptsTest(unittest.TestCase):
     def test_a_script_that_will_not_print_help_says_so_instead_of_an_empty_block(self):
         entries = [{"path": "scripts/broken.sh", "help": "", "ok": False}]
         text = docs.render_scripts(entries)
-        self.assertIn("не печатает `--help`", text)
+        self.assertIn("prints no `--help`", text)
 
     def test_the_reason_a_script_cannot_print_help_is_shown_beside_the_refusal(self):
         entries = [

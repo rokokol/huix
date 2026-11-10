@@ -1,17 +1,17 @@
 ---
-title: Опции rokokol.file-manager
+title: rokokol.file-manager options
 kind: option
 hosts: [nixos-laptop, nixos-pc, nixos-station]
 ---
 
-# Опции rokokol.file-manager
+# rokokol.file-manager options
 
 <!-- generated: option file-manager -->
 
-| Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
+| Option | nixos-laptop | nixos-pc | nixos-station | Description |
 | --- | --- | --- | --- | --- |
-| `rokokol.file-manager.enable` | да | да | нет | Whether to enable Thunar with its mount, thumbnail and archive helpers. |
+| `rokokol.file-manager.enable` | yes | yes | no | Whether to enable Thunar with its mount, thumbnail and archive helpers. |
 
-Объявлено в: [`nixos/services/desktop/file-manager.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/desktop/file-manager.nix)
+Declared in: [`nixos/services/desktop/file-manager.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/desktop/file-manager.nix)
 
 <!-- /generated -->

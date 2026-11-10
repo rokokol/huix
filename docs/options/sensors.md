@@ -1,17 +1,17 @@
 ---
-title: Опции rokokol.sensors
+title: rokokol.sensors options
 kind: option
 hosts: [nixos-laptop, nixos-pc, nixos-station]
 ---
 
-# Опции rokokol.sensors
+# rokokol.sensors options
 
 <!-- generated: option sensors -->
 
-| Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
+| Option | nixos-laptop | nixos-pc | nixos-station | Description |
 | --- | --- | --- | --- | --- |
-| `rokokol.sensors.enable` | да | нет | нет | Whether to enable the accelerometer and the other IIO sensors, through iio-sensor-proxy. |
+| `rokokol.sensors.enable` | yes | no | no | Whether to enable the accelerometer and the other IIO sensors, through iio-sensor-proxy. |
 
-Объявлено в: [`nixos/services/devices/sensors.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/devices/sensors.nix)
+Declared in: [`nixos/services/devices/sensors.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/devices/sensors.nix)
 
 <!-- /generated -->

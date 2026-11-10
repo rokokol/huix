@@ -1,17 +1,17 @@
 ---
-title: Опции rokokol.virtualization
+title: rokokol.virtualization options
 kind: option
 hosts: [nixos-laptop, nixos-pc, nixos-station]
 ---
 
-# Опции rokokol.virtualization
+# rokokol.virtualization options
 
 <!-- generated: option virtualization -->
 
-| Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
+| Option | nixos-laptop | nixos-pc | nixos-station | Description |
 | --- | --- | --- | --- | --- |
-| `rokokol.virtualization.enable` | нет | да | нет | Whether to enable libvirt + virt-manager (KVM/VFIO). |
+| `rokokol.virtualization.enable` | no | yes | no | Whether to enable libvirt + virt-manager (KVM/VFIO). |
 
-Объявлено в: [`nixos/services/utils/virtualization.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/utils/virtualization.nix)
+Declared in: [`nixos/services/utils/virtualization.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/utils/virtualization.nix)
 
 <!-- /generated -->

@@ -1,17 +1,17 @@
 ---
-title: Опции rokokol.fonts
+title: rokokol.fonts options
 kind: option
 hosts: [nixos-laptop, nixos-pc, nixos-station]
 ---
 
-# Опции rokokol.fonts
+# rokokol.fonts options
 
 <!-- generated: option fonts -->
 
-| Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
+| Option | nixos-laptop | nixos-pc | nixos-station | Description |
 | --- | --- | --- | --- | --- |
-| `rokokol.fonts.enable` | да | да | да | Whether to enable the desktop fonts. |
+| `rokokol.fonts.enable` | yes | yes | yes | Whether to enable the desktop fonts. |
 
-Объявлено в: [`nixos/fonts/fonts.nix`](https://github.com/rokokol/huix/blob/master/nixos/fonts/fonts.nix)
+Declared in: [`nixos/fonts/fonts.nix`](https://github.com/rokokol/huix/blob/master/nixos/fonts/fonts.nix)
 
 <!-- /generated -->

@@ -10,9 +10,9 @@ dir: nixos/services/utils
 
 ## [`nixos/services/utils/docker.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/utils/docker.nix)
 
-**Опции:** `rokokol.docker.enable`
+**Options:** `rokokol.docker.enable`
 
-Подробнее: [опции rokokol.docker](../options/docker.md)
+More: [rokokol.docker options](../options/docker.md)
 
 ## [`nixos/services/utils/embedded.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/utils/embedded.nix)
 
@@ -20,9 +20,9 @@ Embedded toolchain for Arduino/AVR, ESP32, STM32, RP2040
 platformio-core.udev ships udev rules for common programmers/bootloaders; dialout grants
 /dev/ttyUSB* /dev/ttyACM* access
 
-**Опции:** `rokokol.embedded.enable`
+**Options:** `rokokol.embedded.enable`
 
-Подробнее: [опции rokokol.embedded](../options/embedded.md)
+More: [rokokol.embedded options](../options/embedded.md)
 
 ## [`nixos/services/utils/forgejo-runner.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/utils/forgejo-runner.nix)
 
@@ -34,16 +34,16 @@ and the host network from a job's container options on its own. Jobs run one at 
 give way to the desktop when the CPU is busy. The runner itself can reach the root Docker
 daemon, so a flaw in the runner, not in a job, is what this setup trusts
 
-**Опции:** `rokokol.forgejo-runner.enable`, `rokokol.forgejo-runner.labels`, `rokokol.forgejo-runner.name`, `rokokol.forgejo-runner.secretsFile`, `rokokol.forgejo-runner.unit`, `rokokol.forgejo-runner.url`
+**Options:** `rokokol.forgejo-runner.enable`, `rokokol.forgejo-runner.labels`, `rokokol.forgejo-runner.name`, `rokokol.forgejo-runner.secretsFile`, `rokokol.forgejo-runner.unit`, `rokokol.forgejo-runner.url`
 
-Подробнее: [опции rokokol.forgejo-runner](../options/forgejo-runner.md)
+More: [rokokol.forgejo-runner options](../options/forgejo-runner.md)
 
 ## [`nixos/services/utils/virtualization.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/utils/virtualization.nix)
 
-**Опции:** `rokokol.virtualization.enable`
+**Options:** `rokokol.virtualization.enable`
 
-Подробнее: [опции rokokol.virtualization](../options/virtualization.md)
+More: [rokokol.virtualization options](../options/virtualization.md)
 
-**Юниты:** `virt-secret-init-encryption`
+**Units:** `virt-secret-init-encryption`
 
 <!-- /generated -->

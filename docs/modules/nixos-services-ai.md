@@ -13,16 +13,16 @@ dir: nixos/services/ai
 nixified-ai owns the ComfyUI package set, its CUDA nixpkgs and the node packages; this module
 supplies the host policy only
 
-**Опции:** `rokokol.comfyui.enable`, `rokokol.comfyui.port`, `rokokol.comfyui.publicPort`
+**Options:** `rokokol.comfyui.enable`, `rokokol.comfyui.port`, `rokokol.comfyui.publicPort`
 
-Подробнее: [опции rokokol.comfyui](../options/comfyui.md)
+More: [rokokol.comfyui options](../options/comfyui.md)
 
-**Юниты:** `comfyui`
+**Units:** `comfyui`
 
 ## [`nixos/services/ai/ollama.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/ai/ollama.nix)
 
-**Опции:** `rokokol.ollama.enable`
+**Options:** `rokokol.ollama.enable`
 
-Подробнее: [опции rokokol.ollama](../options/ollama.md)
+More: [rokokol.ollama options](../options/ollama.md)
 
 <!-- /generated -->

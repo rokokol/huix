@@ -1,17 +1,17 @@
 ---
-title: Опции rokokol.gnome-keyring
+title: rokokol.gnome-keyring options
 kind: option
 hosts: [nixos-laptop, nixos-pc, nixos-station]
 ---
 
-# Опции rokokol.gnome-keyring
+# rokokol.gnome-keyring options
 
 <!-- generated: option gnome-keyring -->
 
-| Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
+| Option | nixos-laptop | nixos-pc | nixos-station | Description |
 | --- | --- | --- | --- | --- |
-| `rokokol.gnome-keyring.enable` | да | да | нет | Whether to enable the GNOME keyring as the Secret Service. |
+| `rokokol.gnome-keyring.enable` | yes | yes | no | Whether to enable the GNOME keyring as the Secret Service. |
 
-Объявлено в: [`nixos/services/desktop/gnome-keyring.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/desktop/gnome-keyring.nix)
+Declared in: [`nixos/services/desktop/gnome-keyring.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/desktop/gnome-keyring.nix)
 
 <!-- /generated -->

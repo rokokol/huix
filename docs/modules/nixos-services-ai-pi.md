@@ -10,9 +10,9 @@ dir: nixos/services/ai/pi
 
 ## [`nixos/services/ai/pi/credentials.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/ai/pi/credentials.nix)
 
-**Опции:** `rokokol.pi.enable`
+**Options:** `rokokol.pi.enable`
 
-Подробнее: [опции rokokol.pi](../options/pi.md)
+More: [rokokol.pi options](../options/pi.md)
 
 ## [`nixos/services/ai/pi/default.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/ai/pi/default.nix)
 

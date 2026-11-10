@@ -15,7 +15,7 @@ program for its disk, so the install needs no network and no store in RAM. It ho
 make-station-iso.sh adds them to a copy, and install-station.sh, run by the unit below, does
 the rest. Every fact about the installed system comes from the target's own configuration
 
-**Юниты:** `station-install`
+**Units:** `station-install`
 
 ## [`nixos/station/installer/make-iso.nix`](https://github.com/rokokol/huix/blob/master/nixos/station/installer/make-iso.nix)
 

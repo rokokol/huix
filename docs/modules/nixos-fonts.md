@@ -10,8 +10,8 @@ dir: nixos/fonts
 
 ## [`nixos/fonts/fonts.nix`](https://github.com/rokokol/huix/blob/master/nixos/fonts/fonts.nix)
 
-**Опции:** `rokokol.fonts.enable`
+**Options:** `rokokol.fonts.enable`
 
-Подробнее: [опции rokokol.fonts](../options/fonts.md)
+More: [rokokol.fonts options](../options/fonts.md)
 
 <!-- /generated -->

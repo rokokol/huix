@@ -17,7 +17,7 @@ with one place that holds the relay and the bot, and the registry closes a probl
 sends its resolution. The bridge accepts only the alerts labelled huix_resource, so a rule added
 by hand in the UI cannot mail through the registry
 
-**Юниты:** `grafana-alerts`
+**Units:** `grafana-alerts`
 
 ## [`nixos/services/system/grafana/grafana.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/grafana/grafana.nix)
 
@@ -28,9 +28,9 @@ in from either network. Grafana binds to loopback.
 Grafana sets the admin password from sops only when it makes its database. To change it later,
 run `grafana cli admin reset-admin-password` as the grafana user, then change the secret
 
-**Опции:** `rokokol.grafana.dashboardTitles`, `rokokol.grafana.enable`, `rokokol.grafana.resourcePolicy`
+**Options:** `rokokol.grafana.dashboardTitles`, `rokokol.grafana.enable`, `rokokol.grafana.resourcePolicy`
 
-Подробнее: [опции rokokol.grafana](../options/grafana.md)
+More: [rokokol.grafana options](../options/grafana.md)
 
 ## [`nixos/services/system/grafana/panels.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/grafana/panels.nix)
 

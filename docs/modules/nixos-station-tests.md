@@ -15,7 +15,7 @@ checks: `nix build .#station-boot-test -L`. The station runs its own module list
 VM cannot have is replaced: the disk layout, the card's MAC, smartd, the secrets, and the
 Hindsight bank template, whose import reaches for the models a VM has none of
 
-**Юниты:** `alert-probe`, `backup-subvolumes`, `fake-github`, `fake-hermes`, `fake-telegram`, `forgejo-mirrors`, `github-echo`, `hindsight-bank-template`, `hindsight-monitor`, `tailnet-web-probe`
+**Units:** `alert-probe`, `backup-subvolumes`, `fake-github`, `fake-hermes`, `fake-telegram`, `forgejo-mirrors`, `github-echo`, `hindsight-bank-template`, `hindsight-monitor`, `tailnet-web-probe`
 
 ## [`nixos/station/tests/fixture-host.nix`](https://github.com/rokokol/huix/blob/master/nixos/station/tests/fixture-host.nix)
 
@@ -23,7 +23,7 @@ What a VM cannot have of the station, replaced in every test that runs it: the c
 smartd, and the secrets, which come from the fixtures. How the age key gets there is each
 test's own question
 
-**Юниты:** `restic-cloud`, `restic-cloud-heartbeat`
+**Units:** `restic-cloud`, `restic-cloud-heartbeat`
 
 ## [`nixos/station/tests/fixtures.nix`](https://github.com/rokokol/huix/blob/master/nixos/station/tests/fixtures.nix)
 
@@ -42,7 +42,7 @@ make-station-iso.sh itself
 
 ## [`nixos/station/tests/sops-activation.nix`](https://github.com/rokokol/huix/blob/master/nixos/station/tests/sops-activation.nix)
 
-**Юниты:** `sops-activation-probe`
+**Units:** `sops-activation-probe`
 
 ## [`nixos/station/tests/test-meta.nix`](https://github.com/rokokol/huix/blob/master/nixos/station/tests/test-meta.nix)
 

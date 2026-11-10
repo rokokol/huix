@@ -1,13 +1,13 @@
 ---
-title: Клавиши Hyprland
+title: Hyprland keys
 kind: bindings
 ---
 
-# Клавиши Hyprland
+# Hyprland keys
 
 <!-- generated: bindings -->
 
-| Клавиши | Диспетчер | Аргумент | Держится |
+| Keys | Dispatcher | Argument | Holds |
 | --- | --- | --- | --- |
 | `SUPER + Q` | `exec_cmd` | `kitty` | — |
 | `SUPER + C` | `window.close` | — | — |
@@ -29,18 +29,9 @@ kind: bindings
 | `SUPER + SHIFT + G` | `exec_cmd` | `rofi-shader` | — |
 | `SUPER + G` | `exec_cmd` | `screen-shader effect clear` | — |
 | `SUPER + CTRL + BackSpace` | `exec_cmd` | `rofi-shader bright reset` | — |
-| `SUPER + CTRL + bracketright` | `exec_cmd` | `rofi-shader bright up` | да |
-| `SUPER + CTRL + bracketleft` | `exec_cmd` | `rofi-shader bright down` | да |
-| `SUPER + SHIFT + B` | `exec_cmd` | `rofi -show emoji -modi "emoji:rofimoji --action copy --files '
-    .. "emojis_smileys_emotion emojis_people_body emojis_animals_nature "
-    .. "emojis_food_drink emojis_activities emojis_travel_places emojis_objects "
-    .. "emojis_symbols emojis_flags dingbats "
-    .. "miscellaneous_symbols_and_pictographs,math:rofimoji --action copy --files "
-    .. "math mathematical_operators arrows geometric_shapes greek_and_coptic,"
-    .. "chars:rofimoji --action copy --files currency_symbols letterlike_symbols "
-    .. "latin-1_supplement general_punctuation superscripts_and_subscripts "
-    .. "enclosed_alphanumerics box_drawing cjk_symbols_and_punctuation nerd_font,"
-    .. 'kaomoji:rofimoji --action copy --files kaomoji"` | — |
+| `SUPER + CTRL + bracketright` | `exec_cmd` | `rofi-shader bright up` | yes |
+| `SUPER + CTRL + bracketleft` | `exec_cmd` | `rofi-shader bright down` | yes |
+| `SUPER + SHIFT + B` | `exec_cmd` | `rofi -show emoji -modi "emoji:rofimoji --action copy --files ' .. "emojis_smileys_emotion emojis_people_body emojis_animals_nature " .. "emojis_food_drink emojis_activities emojis_travel_places emojis_objects " .. "emojis_symbols emojis_flags dingbats " .. "miscellaneous_symbols_and_pictographs,math:rofimoji --action copy --files " .. "math mathematical_operators arrows geometric_shapes greek_and_coptic," .. "chars:rofimoji --action copy --files currency_symbols letterlike_symbols " .. "latin-1_supplement general_punctuation superscripts_and_subscripts " .. "enclosed_alphanumerics box_drawing cjk_symbols_and_punctuation nerd_font," .. 'kaomoji:rofimoji --action copy --files kaomoji"` | — |
 | `SUPER + ALT + S` | `exec_cmd` | `getScreen .. " - \| GTK_THEME=Adwaita:light satty -f -"` | — |
 | `SUPER + ALT + C` | `exec_cmd` | `HUIX.scripts .. "/shot-copy.sh region"` | — |
 | `SUPER + ALT + A` | `exec_cmd` | `HUIX.scripts .. "/pin-screen.sh"` | — |
@@ -68,14 +59,14 @@ kind: bindings
 | `SUPER + SHIFT + right` | `window.move` | `{ direction = "r" }` | — |
 | `SUPER + SHIFT + up` | `window.move` | `{ direction = "u" }` | — |
 | `SUPER + SHIFT + down` | `window.move` | `{ direction = "d" }` | — |
-| `SUPER + CTRL + left` | `window.move` | `{ x = -80, y = 0, relative = true }` | да |
-| `SUPER + CTRL + right` | `window.move` | `{ x = 80, y = 0, relative = true }` | да |
-| `SUPER + CTRL + up` | `window.move` | `{ x = 0, y = -80, relative = true }` | да |
-| `SUPER + CTRL + down` | `window.move` | `{ x = 0, y = 80, relative = true }` | да |
-| `SUPER + CTRL + h` | `window.move` | `{ x = -80, y = 0, relative = true }` | да |
-| `SUPER + CTRL + l` | `window.move` | `{ x = 80, y = 0, relative = true }` | да |
-| `SUPER + CTRL + k` | `window.move` | `{ x = 0, y = -80, relative = true }` | да |
-| `SUPER + CTRL + j` | `window.move` | `{ x = 0, y = 80, relative = true }` | да |
+| `SUPER + CTRL + left` | `window.move` | `{ x = -80, y = 0, relative = true }` | yes |
+| `SUPER + CTRL + right` | `window.move` | `{ x = 80, y = 0, relative = true }` | yes |
+| `SUPER + CTRL + up` | `window.move` | `{ x = 0, y = -80, relative = true }` | yes |
+| `SUPER + CTRL + down` | `window.move` | `{ x = 0, y = 80, relative = true }` | yes |
+| `SUPER + CTRL + h` | `window.move` | `{ x = -80, y = 0, relative = true }` | yes |
+| `SUPER + CTRL + l` | `window.move` | `{ x = 80, y = 0, relative = true }` | yes |
+| `SUPER + CTRL + k` | `window.move` | `{ x = 0, y = -80, relative = true }` | yes |
+| `SUPER + CTRL + j` | `window.move` | `{ x = 0, y = 80, relative = true }` | yes |
 | `SUPER + 1` | `focus` | `{ workspace = "1" }` | — |
 | `SUPER + 2` | `focus` | `{ workspace = "2" }` | — |
 | `SUPER + 3` | `focus` | `{ workspace = "3" }` | — |
@@ -103,25 +94,25 @@ kind: bindings
 | `SUPER + SHIFT + mouse_up` | `tab` | `-1, moveToWorkspace` | — |
 | `SUPER + mouse:272` | `window.drag` | — | — |
 | `SUPER + mouse:273` | `window.resize` | — | — |
-| `XF86AudioRaiseVolume` | `exec_cmd` | `swayosd-client --output-volume raise` | да |
-| `XF86AudioLowerVolume` | `exec_cmd` | `swayosd-client --output-volume lower` | да |
+| `XF86AudioRaiseVolume` | `exec_cmd` | `swayosd-client --output-volume raise` | yes |
+| `XF86AudioLowerVolume` | `exec_cmd` | `swayosd-client --output-volume lower` | yes |
 | `XF86AudioMute` | `exec_cmd` | `swayosd-client --output-volume mute-toggle` | — |
 | `XF86AudioMicMute` | `exec_cmd` | `swayosd-client --input-volume mute-toggle` | — |
-| `XF86MonBrightnessUp` | `exec_cmd` | `swayosd-client --brightness raise` | да |
-| `XF86MonBrightnessDown` | `exec_cmd` | `swayosd-client --brightness lower` | да |
+| `XF86MonBrightnessUp` | `exec_cmd` | `swayosd-client --brightness raise` | yes |
+| `XF86MonBrightnessDown` | `exec_cmd` | `swayosd-client --brightness lower` | yes |
 | `XF86AudioNext` | `exec_cmd` | `playerctl -p playerctld next` | — |
 | `XF86AudioPrev` | `exec_cmd` | `playerctl -p playerctld previous` | — |
 | `XF86AudioPlay` | `exec_cmd` | `playerctl -p playerctld play-pause` | — |
 | `XF86AudioPause` | `exec_cmd` | `playerctl -p playerctld play-pause` | — |
-| `SUPER + ALT + L` | `window.resize` | `{ x = 40, y = 0, relative = true }` | да |
-| `SUPER + ALT + H` | `window.resize` | `{ x = -40, y = 0, relative = true }` | да |
-| `SUPER + ALT + K` | `window.resize` | `{ x = 0, y = -40, relative = true }` | да |
-| `SUPER + ALT + J` | `window.resize` | `{ x = 0, y = 40, relative = true }` | да |
-| `SUPER + ALT + right` | `window.resize` | `{ x = 40, y = 0, relative = true }` | да |
-| `SUPER + ALT + left` | `window.resize` | `{ x = -40, y = 0, relative = true }` | да |
-| `SUPER + ALT + up` | `window.resize` | `{ x = 0, y = -40, relative = true }` | да |
-| `SUPER + ALT + down` | `window.resize` | `{ x = 0, y = 40, relative = true }` | да |
+| `SUPER + ALT + L` | `window.resize` | `{ x = 40, y = 0, relative = true }` | yes |
+| `SUPER + ALT + H` | `window.resize` | `{ x = -40, y = 0, relative = true }` | yes |
+| `SUPER + ALT + K` | `window.resize` | `{ x = 0, y = -40, relative = true }` | yes |
+| `SUPER + ALT + J` | `window.resize` | `{ x = 0, y = 40, relative = true }` | yes |
+| `SUPER + ALT + right` | `window.resize` | `{ x = 40, y = 0, relative = true }` | yes |
+| `SUPER + ALT + left` | `window.resize` | `{ x = -40, y = 0, relative = true }` | yes |
+| `SUPER + ALT + up` | `window.resize` | `{ x = 0, y = -40, relative = true }` | yes |
+| `SUPER + ALT + down` | `window.resize` | `{ x = 0, y = 40, relative = true }` | yes |
 
-Объявлено в: [`home-manager/desktop/hyprland/hyprland.lua`](https://github.com/rokokol/huix/blob/master/home-manager/desktop/hyprland/hyprland.lua)
+Declared in: [`home-manager/desktop/hyprland/hyprland.lua`](https://github.com/rokokol/huix/blob/master/home-manager/desktop/hyprland/hyprland.lua)
 
 <!-- /generated -->

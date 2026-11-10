@@ -20,9 +20,9 @@ rokokol.<name>.enable to this one, so a host turns the whole desktop on with a s
 and still can turn one piece off. The modules of nixos/desktop have no use apart from the
 desktop, so they read the umbrella itself and declare no flag of their own
 
-**Опции:** `rokokol.workstation.enable`
+**Options:** `rokokol.workstation.enable`
 
-Подробнее: [опции rokokol.workstation](../options/workstation.md)
+More: [rokokol.workstation options](../options/workstation.md)
 
 ## [`nixos/desktop/default.nix`](https://github.com/rokokol/huix/blob/master/nixos/desktop/default.nix)
 

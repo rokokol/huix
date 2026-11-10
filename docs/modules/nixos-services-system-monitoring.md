@@ -16,11 +16,11 @@ agent; a daily mail lists what is still open. msmtp becomes the system sendmail,
 the alerts reach an SMTP relay through it. The relay and the real recipient are private: both
 arrive through sops and never enter the store
 
-**Опции:** `rokokol.alert-mail.digestTime`, `rokokol.alert-mail.enable`, `rokokol.alert-mail.notify`, `rokokol.alert-mail.sources`, `rokokol.alert-mail.stateDir`, `rokokol.alert-mail.telegram.api`, `rokokol.alert-mail.telegram.enable`, `rokokol.alert-mail.telegram.threadId`
+**Options:** `rokokol.alert-mail.digestTime`, `rokokol.alert-mail.enable`, `rokokol.alert-mail.notify`, `rokokol.alert-mail.sources`, `rokokol.alert-mail.stateDir`, `rokokol.alert-mail.telegram.api`, `rokokol.alert-mail.telegram.enable`, `rokokol.alert-mail.telegram.threadId`
 
-Подробнее: [опции rokokol.alert-mail](../options/alert-mail.md)
+More: [rokokol.alert-mail options](../options/alert-mail.md)
 
-**Юниты:** `alert-digest`, `alert-reconcile`
+**Units:** `alert-digest`, `alert-reconcile`
 
 ## [`nixos/services/system/monitoring/backup-heartbeat.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/monitoring/backup-heartbeat.nix)
 
@@ -28,11 +28,11 @@ An hourly check that every node behind the restic server pushed recently and tha
 backup filesystem keeps its free space. A problem fails the unit, or, with causesFile, goes
 to that file; the host decides what either sets off
 
-**Опции:** `rokokol.backup-heartbeat.causesFile`, `rokokol.backup-heartbeat.enable`, `rokokol.backup-heartbeat.maxAge`, `rokokol.backup-heartbeat.metricsFile`, `rokokol.backup-heartbeat.minFree`
+**Options:** `rokokol.backup-heartbeat.causesFile`, `rokokol.backup-heartbeat.enable`, `rokokol.backup-heartbeat.maxAge`, `rokokol.backup-heartbeat.metricsFile`, `rokokol.backup-heartbeat.minFree`
 
-Подробнее: [опции rokokol.backup-heartbeat](../options/backup-heartbeat.md)
+More: [rokokol.backup-heartbeat options](../options/backup-heartbeat.md)
 
-**Юниты:** `backup-heartbeat`
+**Units:** `backup-heartbeat`
 
 ## [`nixos/services/system/monitoring/node-exporter.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/monitoring/node-exporter.nix)
 
@@ -42,9 +42,9 @@ interface, so the tailnet reaches it while the closed firewall keeps every other
 A module that measures a thing node_exporter cannot see writes a file into the textfile
 directory, and that module enables itself only where the thing exists
 
-**Опции:** `rokokol.node-exporter.textfileDir`
+**Options:** `rokokol.node-exporter.textfileDir`
 
-Подробнее: [опции rokokol.node-exporter](../options/node-exporter.md)
+More: [rokokol.node-exporter options](../options/node-exporter.md)
 
 ## [`nixos/services/system/monitoring/prometheus.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/monitoring/prometheus.nix)
 
@@ -53,9 +53,9 @@ tailnet, by the host's name, and takes from each host's own configuration which 
 there and on which port: a host that turns an exporter off drops out of its job. A host that is
 off gives a gap, not an alert
 
-**Опции:** `rokokol.prometheus.enable`, `rokokol.prometheus.retention`
+**Options:** `rokokol.prometheus.enable`, `rokokol.prometheus.retention`
 
-Подробнее: [опции rokokol.prometheus](../options/prometheus.md)
+More: [rokokol.prometheus options](../options/prometheus.md)
 
 ## [`nixos/services/system/monitoring/pushgateway.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/monitoring/pushgateway.nix)
 
@@ -64,11 +64,11 @@ check that each of them keeps pushing. The nodes are the users of the restic ser
 so no node name is written here: a node signs in with its restic user and may write only the
 group whose instance label is that user. Prometheus on this host reads the gateway on loopback
 
-**Опции:** `rokokol.pushgateway.backendPort`, `rokokol.pushgateway.causesFile`, `rokokol.pushgateway.enable`, `rokokol.pushgateway.maxSilence`, `rokokol.pushgateway.port`
+**Options:** `rokokol.pushgateway.backendPort`, `rokokol.pushgateway.causesFile`, `rokokol.pushgateway.enable`, `rokokol.pushgateway.maxSilence`, `rokokol.pushgateway.port`
 
-Подробнее: [опции rokokol.pushgateway](../options/pushgateway.md)
+More: [rokokol.pushgateway options](../options/pushgateway.md)
 
-**Юниты:** `node-push-watch`
+**Units:** `node-push-watch`
 
 ## [`nixos/services/system/monitoring/smartd.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/monitoring/smartd.nix)
 
@@ -76,6 +76,6 @@ SMART monitoring of every disk the host finds at boot, with desktop alerts. smar
 30 minutes and starts a scheduled self-test in the first poll inside the matching hour. A test
 whose hour passed while the host slept or was off starts in the first poll after that
 
-**Юниты:** `smartd`
+**Units:** `smartd`
 
 <!-- /generated -->
