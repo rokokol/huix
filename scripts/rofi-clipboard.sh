@@ -2,6 +2,26 @@
 
 set -euo pipefail
 
+usage() {
+  cat <<'EOF'
+rofi-clipboard.sh — pick an entry of the clipboard history in rofi and copy it back
+
+  rofi-clipboard.sh          open the history in rofi and copy the entry chosen
+  rofi-clipboard.sh help     this text
+
+The history comes from cliphist, and an image entry shows its preview. Return copies the
+entry, Control+Return copies the typed text as it is, Delete removes the entry, and Escape
+leaves the clipboard as it was
+EOF
+}
+
+case "${1:-}" in
+  -h | --help | help)
+    usage
+    exit 0
+    ;;
+esac
+
 tmp_dir="/tmp/cliphist_previews"
 mkdir -p "$tmp_dir"
 

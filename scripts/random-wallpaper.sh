@@ -2,6 +2,27 @@
 
 set -euo pipefail
 
+usage() {
+  cat <<'EOF'
+random-wallpaper.sh — draw a collage of random gallery pictures and set it as the wallpaper
+
+  random-wallpaper.sh          build a collage and hand it to awww
+  random-wallpaper.sh help     this text
+
+Six pictures at most come from the gallery of the vault, each rotated, jittered and given a
+shadow, and the result fades in with a random transition. Nothing happens while the lock
+screen is up, because the collage is not visible there
+Exit 0 when the wallpaper is set, 1 when the gallery holds no picture
+EOF
+}
+
+case "${1:-}" in
+  -h | --help | help)
+    usage
+    exit 0
+    ;;
+esac
+
 get_normal() {
   awk -v seed="$RANDOM" -v m="$1" -v s="$2" 'BEGIN {
         srand(seed);

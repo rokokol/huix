@@ -5,6 +5,26 @@
 # Image -> img.png (extension by MIME), text (incl. a path string) -> text.txt
 set -euo pipefail
 
+usage() {
+  cat <<'EOF'
+paste-as-file.sh — write the clipboard into a folder as a file and print its path
+
+  paste-as-file.sh [DIR]          paste into DIR, or into $PWD when DIR is absent
+  paste-as-file.sh help           this text
+
+An image becomes img.png with the extension of its MIME type, text and a copied path
+become text.txt, and a name already taken gains a number: img-1.png. DIR may be a file, in
+which case its folder is used. A clipboard of no supported type writes nothing and exits 0
+EOF
+}
+
+case "${1:-}" in
+  -h | --help | help)
+    usage
+    exit 0
+    ;;
+esac
+
 dir="${1:-$PWD}"
 # a selected file rather than a folder stands for the folder it is in
 [ -d "$dir" ] || dir="$(dirname "$dir")"

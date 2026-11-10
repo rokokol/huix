@@ -657,14 +657,16 @@ def script_files(sources):
 
 
 def help_text(repo, path):
-    """What a script prints for --help, with a status that says whether the print happened"""
+    """What a script prints for --help, with a status that says whether the print happened and,
+    when it did not, the last line the script said"""
     runner = ["bash", str(repo / path)] if path.endswith(".sh") else [sys.executable, "-B", str(repo / path)]
     try:
         done = subprocess.run(runner + ["--help"], capture_output=True, text=True, timeout=20, check=False)
     except (OSError, subprocess.TimeoutExpired):
-        return {"path": path, "help": "", "ok": False}
+        return {"path": path, "help": "", "ok": False, "reason": ""}
     printed = (done.stdout + done.stderr).strip()
-    return {"path": path, "help": printed, "ok": done.returncode == 0 and bool(printed)}
+    reason = printed.splitlines()[-1].strip() if printed else ""
+    return {"path": path, "help": printed, "ok": done.returncode == 0 and bool(printed), "reason": reason}
 
 
 def render_scripts(entries):
@@ -675,6 +677,8 @@ def render_scripts(entries):
         lines = [f"## {repo_link(entry['path'])}"]
         if entry["ok"]:
             lines.append("```\n" + entry["help"].replace("```", "'''") + "\n```")
+        elif entry.get("reason"):
+            lines.append(f"Скрипт не печатает `--help`: `{entry['reason']}`")
         else:
             lines.append("Скрипт не печатает `--help`: запускать без аргументов или читать текст выше")
         parts.append("\n\n".join(lines))

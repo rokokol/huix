@@ -79,10 +79,17 @@ swap() {
     forgejo PATCH "/repos/$owner/$1$renewing" --data-binary @- >/dev/null
 }
 
-[[ ${1-} == sync ]] || {
-  usage >&2
-  exit 2
-}
+case ${1-} in
+  -h | --help | help)
+    usage
+    exit 0
+    ;;
+  sync) ;;
+  *)
+    usage >&2
+    exit 2
+    ;;
+esac
 shift
 exclusions=()
 while getopts x: flag; do

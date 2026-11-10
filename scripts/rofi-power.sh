@@ -8,6 +8,26 @@
 
 set -euo pipefail
 
+usage() {
+  cat <<'EOF'
+rofi-power.sh — the power menu as a rofi mode
+
+  rofi-power.sh          open the power menu in rofi
+  rofi-power.sh help     this text
+
+The menu offers lock, screen off, suspend, reboot, log out and power off, and every one of
+them goes through logind, systemctl or Hyprland rather than doing the work here. Run outside
+rofi it starts rofi with this mode instead
+EOF
+}
+
+case "${1:-}" in
+  -h | --help | help)
+    usage
+    exit 0
+    ;;
+esac
+
 # List items: "label|action". The action is a key from the case below
 list_options() {
   cat <<'EOF'

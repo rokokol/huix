@@ -6,6 +6,26 @@
 
 set -euo pipefail
 
+usage() {
+  cat <<'EOF'
+rofi-notify.sh — the notification centre as a rofi mode
+
+  rofi-notify.sh          open the notification centre in rofi
+  rofi-notify.sh help     this text
+
+Called from rofi as a script mode, the mode lists the history, offers a do-not-disturb
+toggle and a clear, and copies the text of the notification chosen. Run outside rofi it
+starts rofi with this mode instead. The history itself belongs to notify-center.sh
+EOF
+}
+
+case "${1:-}" in
+  -h | --help | help)
+    usage
+    exit 0
+    ;;
+esac
+
 require_env() {
   if [[ -z "${HUIX:-}" ]]; then
     command -v notify-send >/dev/null 2>&1 &&

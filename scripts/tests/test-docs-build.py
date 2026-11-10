@@ -400,6 +400,18 @@ class ScriptsTest(unittest.TestCase):
         text = docs.render_scripts(entries)
         self.assertIn("не печатает `--help`", text)
 
+    def test_the_reason_a_script_cannot_print_help_is_shown_beside_the_refusal(self):
+        entries = [
+            {
+                "path": "scripts/needy.py",
+                "help": "",
+                "ok": False,
+                "reason": "ModuleNotFoundError: No module named 'pathspec'",
+            }
+        ]
+        text = docs.render_scripts(entries)
+        self.assertIn("No module named 'pathspec'", text)
+
 
 if __name__ == "__main__":
     unittest.main()

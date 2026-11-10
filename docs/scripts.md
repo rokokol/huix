@@ -130,7 +130,16 @@ Exit 0 when FILE is written, 1 when SNAPSHOTS cannot be read, 2 on a usage error
 
 ## [`scripts/colorpicker.sh`](https://github.com/rokokol/huix/blob/master/scripts/colorpicker.sh)
 
-Скрипт не печатает `--help`: запускать без аргументов или читать текст выше
+```
+colorpicker.sh — pick a colour off the screen and copy it as a hex value
+
+  colorpicker.sh          pick a colour, copy it, and notify with its HEX and RGB
+  colorpicker.sh help     this text
+
+The colour goes to the clipboard as a hex value. The screen shader is off for the pick,
+because it would tint the frozen overlay, and comes back on exit
+Exit 0 when a colour was picked, 1 when the pick was cancelled
+```
 
 ## [`scripts/docs-build.py`](https://github.com/rokokol/huix/blob/master/scripts/docs-build.py)
 
@@ -152,11 +161,32 @@ options:
 
 ## [`scripts/drive-backup.py`](https://github.com/rokokol/huix/blob/master/scripts/drive-backup.py)
 
-Скрипт не печатает `--help`: запускать без аргументов или читать текст выше
+Скрипт не печатает `--help`: `ModuleNotFoundError: No module named 'pathspec'`
 
 ## [`scripts/forgejo-mirrors.sh`](https://github.com/rokokol/huix/blob/master/scripts/forgejo-mirrors.sh)
 
-Скрипт не печатает `--help`: запускать без аргументов или читать текст выше
+```
+forgejo-mirrors.sh — keep a Forgejo pull mirror of every GitHub repository of a user
+
+  forgejo-mirrors.sh sync [-x NAME]... GITHUB_API GITHUB_TOKEN_FILE FORGEJO_URL FORGEJO_TOKEN_FILE OWNER STATE [FORK...]
+
+  -x NAME   make no mirror of the repository NAME; an existing one is kept
+
+Every repository that GITHUB_API/user/repos lists as the user's own gets a mirror under OWNER
+on FORGEJO_URL, except the forks; a fork named as a FORK gets one too. A mirror is private
+when its repository is, and only a private mirror is given the token, so a public one is not
+touched when the token changes. Forgejo cannot change the credentials of a mirror, so when the
+token differs from the one the last full run saw (its hash in STATE), each private mirror is
+made again: the new one is made beside it as <name>-renewing, then takes its place. A run that
+stops halfway finishes the swap the next time. A failed clone leaves Forgejo an empty mirror,
+so an empty mirror of a repository that GitHub reports as not empty is made again the same
+way. A mirror whose repository left GitHub is kept, and a repository of OWNER that is not a
+mirror is never touched
+
+GITHUB_PER_PAGE sets the page size of the GitHub list, 100 by default
+Exit 0 when every mirror is in place, 1 when GitHub or Forgejo refused a request or a FORK is
+not among the user's repositories, 2 on a usage error
+```
 
 ## [`scripts/grafana-alerts.py`](https://github.com/rokokol/huix/blob/master/scripts/grafana-alerts.py)
 
@@ -391,7 +421,16 @@ file it reads the path list from stdin, one per line.
 
 ## [`scripts/paste-as-file.sh`](https://github.com/rokokol/huix/blob/master/scripts/paste-as-file.sh)
 
-Скрипт не печатает `--help`: запускать без аргументов или читать текст выше
+```
+paste-as-file.sh — write the clipboard into a folder as a file and print its path
+
+  paste-as-file.sh [DIR]          paste into DIR, or into $PWD when DIR is absent
+  paste-as-file.sh help           this text
+
+An image becomes img.png with the extension of its MIME type, text and a copied path
+become text.txt, and a name already taken gains a number: img-1.png. DIR may be a file, in
+which case its folder is used. A clipboard of no supported type writes nothing and exits 0
+```
 
 ## [`scripts/pin-screen.sh`](https://github.com/rokokol/huix/blob/master/scripts/pin-screen.sh)
 
@@ -401,7 +440,17 @@ selection cancelled
 
 ## [`scripts/random-wallpaper.sh`](https://github.com/rokokol/huix/blob/master/scripts/random-wallpaper.sh)
 
-Скрипт не печатает `--help`: запускать без аргументов или читать текст выше
+```
+random-wallpaper.sh — draw a collage of random gallery pictures and set it as the wallpaper
+
+  random-wallpaper.sh          build a collage and hand it to awww
+  random-wallpaper.sh help     this text
+
+Six pictures at most come from the gallery of the vault, each rotated, jittered and given a
+shadow, and the result fades in with a random transition. Nothing happens while the lock
+screen is up, because the collage is not visible there
+Exit 0 when the wallpaper is set, 1 when the gallery holds no picture
+```
 
 ## [`scripts/restic-cloud.py`](https://github.com/rokokol/huix/blob/master/scripts/restic-cloud.py)
 
@@ -421,11 +470,29 @@ options:
 
 ## [`scripts/rofi-clipboard.sh`](https://github.com/rokokol/huix/blob/master/scripts/rofi-clipboard.sh)
 
-Скрипт не печатает `--help`: запускать без аргументов или читать текст выше
+```
+rofi-clipboard.sh — pick an entry of the clipboard history in rofi and copy it back
+
+  rofi-clipboard.sh          open the history in rofi and copy the entry chosen
+  rofi-clipboard.sh help     this text
+
+The history comes from cliphist, and an image entry shows its preview. Return copies the
+entry, Control+Return copies the typed text as it is, Delete removes the entry, and Escape
+leaves the clipboard as it was
+```
 
 ## [`scripts/rofi-notify.sh`](https://github.com/rokokol/huix/blob/master/scripts/rofi-notify.sh)
 
-Скрипт не печатает `--help`: запускать без аргументов или читать текст выше
+```
+rofi-notify.sh — the notification centre as a rofi mode
+
+  rofi-notify.sh          open the notification centre in rofi
+  rofi-notify.sh help     this text
+
+Called from rofi as a script mode, the mode lists the history, offers a do-not-disturb
+toggle and a clear, and copies the text of the notification chosen. Run outside rofi it
+starts rofi with this mode instead. The history itself belongs to notify-center.sh
+```
 
 ## [`scripts/rofi-open-with.sh`](https://github.com/rokokol/huix/blob/master/scripts/rofi-open-with.sh)
 
@@ -442,7 +509,16 @@ Exit 0 done, 1 when a FILE does not exist, 2 on a usage error
 
 ## [`scripts/rofi-power.sh`](https://github.com/rokokol/huix/blob/master/scripts/rofi-power.sh)
 
-Скрипт не печатает `--help`: запускать без аргументов или читать текст выше
+```
+rofi-power.sh — the power menu as a rofi mode
+
+  rofi-power.sh          open the power menu in rofi
+  rofi-power.sh help     this text
+
+The menu offers lock, screen off, suspend, reboot, log out and power off, and every one of
+them goes through logind, systemctl or Hyprland rather than doing the work here. Run outside
+rofi it starts rofi with this mode instead
+```
 
 ## [`scripts/rotate-screen.sh`](https://github.com/rokokol/huix/blob/master/scripts/rotate-screen.sh)
 
@@ -468,7 +544,17 @@ Exit 0 done, 1 when the monitor is not there or Hyprland refuses, 2 on a usage e
 
 ## [`scripts/shot-copy.sh`](https://github.com/rokokol/huix/blob/master/scripts/shot-copy.sh)
 
-Скрипт не печатает `--help`: запускать без аргументов или читать текст выше
+```
+shot-copy.sh — screenshot to the clipboard with a preview of its size
+
+  shot-copy.sh             select a region and copy it
+  shot-copy.sh full        copy the whole screen
+  shot-copy.sh help        this text
+
+The picture goes to the clipboard at once and a notification shows its size; the file lives
+five seconds and is removed. The size is the one of the PNG, which on a scaled output is
+larger than the selection. Cancelling the selection copies nothing and exits 0
+```
 
 ## [`scripts/sync.sh`](https://github.com/rokokol/huix/blob/master/scripts/sync.sh)
 
