@@ -144,7 +144,7 @@ Exit 0 when a colour was picked, 1 when the pick was cancelled
 ## [`scripts/docs-build.py`](https://github.com/rokokol/huix/blob/master/scripts/docs-build.py)
 
 ```
-usage: docs-build.py [-h] --facts FACTS [--repo REPO] [--out OUT]
+usage: docs-build.py [-h] --facts FACTS [--repo REPO] [--out OUT] [--strict]
                      {inject,check,show,scaffold,site}
 
 Render flake facts into the documentation corpus
@@ -157,6 +157,21 @@ options:
   --facts FACTS
   --repo REPO
   --out OUT
+  --strict              Fail on a page the corpus lacks
+```
+
+## [`scripts/docs-mcp.py`](https://github.com/rokokol/huix/blob/master/scripts/docs-mcp.py)
+
+```
+usage: docs-mcp.py [-h] [--repo REPO] [--corpus CORPUS] [--search SEARCH]
+
+The documentation of huix over MCP, offline and read-only
+
+options:
+  -h, --help       show this help message and exit
+  --repo REPO
+  --corpus CORPUS  A corpus directory other than the one of this repository
+  --search SEARCH  Search once and print the answer, instead of serving MCP
 ```
 
 ## [`scripts/drive-backup.py`](https://github.com/rokokol/huix/blob/master/scripts/drive-backup.py)
@@ -380,7 +395,7 @@ resets when the session restarts
 ## [`scripts/ocr.sh`](https://github.com/rokokol/huix/blob/master/scripts/ocr.sh)
 
 ```
-selection cancelled
+scripts/ocr.sh: line 9: slurp: command not found
 ```
 
 ## [`scripts/or-transcribe.py`](https://github.com/rokokol/huix/blob/master/scripts/or-transcribe.py)
@@ -435,7 +450,7 @@ which case its folder is used. A clipboard of no supported type writes nothing a
 ## [`scripts/pin-screen.sh`](https://github.com/rokokol/huix/blob/master/scripts/pin-screen.sh)
 
 ```
-selection cancelled
+scripts/pin-screen.sh: line 8: slurp: command not found
 ```
 
 ## [`scripts/random-wallpaper.sh`](https://github.com/rokokol/huix/blob/master/scripts/random-wallpaper.sh)
@@ -633,24 +648,7 @@ Exit 0 done, 1 when a unit, the switch or the keyboard cannot be reached, 2 on a
 
 ## [`scripts/toggle-theme.sh`](https://github.com/rokokol/huix/blob/master/scripts/toggle-theme.sh)
 
-```
-toggle-theme.sh — light/dark theme toggle (bind SUPER+A)
-
-Usage:
-  toggle-theme.sh           switch the theme to the opposite one
-  toggle-theme.sh --sync    only bring the system to the saved choice
-                            (exec on every Hyprland reload)
-  toggle-theme.sh --help    this help
-
-The theme lives at runtime, not in Nix: the script flips color-scheme + gtk-theme
-in dconf, hands rofi's variant to ddlc-rofi-theme, swaps the libadwaita
-~/.config/gtk-4.0/gtk.css (so libadwaita apps follow too) and points Claude Code's
-~/.claude/themes/ddlc.json at ddlc-light.json or ddlc-dark.json in
-$CLAUDE_DDLC_THEMES, which Claude Code set to custom:ddlc picks up live. The choice
-is stored durably in
-~/.local/state/huix/theme — dconf load on nixos-rebuild resets the theme, --sync
-brings it back
-```
+The script prints no `--help`: `GTK_THEME_KEY COLOR_SCHEME_KEY LIGHT_THEME DARK_THEME LIGHT_SCHEME DARK_SCHEME GTK4_LIGHT_CSS GTK4_DARK_CSS`
 
 ## [`scripts/touchscreen.sh`](https://github.com/rokokol/huix/blob/master/scripts/touchscreen.sh)
 

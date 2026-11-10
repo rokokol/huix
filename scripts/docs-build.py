@@ -689,7 +689,7 @@ def help_text(repo, path):
         done = subprocess.run(runner + ["--help"], capture_output=True, text=True, timeout=20, check=False)
     except (OSError, subprocess.TimeoutExpired):
         return {"path": path, "help": "", "ok": False, "reason": ""}
-    printed = (done.stdout + done.stderr).strip()
+    printed = (done.stdout + done.stderr).strip().replace(f"{repo}/", "")
     reason = printed.splitlines()[-1].strip() if printed else ""
     return {"path": path, "help": printed, "ok": done.returncode == 0 and bool(printed), "reason": reason}
 
@@ -722,6 +722,7 @@ def main(argv):
     parser.add_argument("--facts", required=True, type=Path)
     parser.add_argument("--repo", default=Path("."), type=Path)
     parser.add_argument("--out", default=Path("site/_build"), type=Path)
+    parser.add_argument("--strict", action="store_true", help="Fail on a page the corpus lacks")
     args = parser.parse_args(argv)
 
     if args.command == "site":
@@ -765,26 +766,34 @@ def main(argv):
         return 0
 
     stale = []
+    missing = []
     for path, (marker, rendered) in sorted(blocks.items()):
         page = args.repo / path
         if not page.exists():
             print(f"missing page {path}")
+            missing.append(str(path))
             continue
         text = page.read_text(encoding="utf-8")
         try:
             updated = inject(text, marker, rendered)
         except MarkerMissing as error:
             print(error)
+            missing.append(str(path))
             continue
         if updated != text:
             stale.append(str(path))
             if args.command == "inject":
                 page.write_text(updated, encoding="utf-8")
+                stale.remove(str(path))
         if args.command == "show":
             print(updated)
 
     for path in stale:
-        print(f"{'updated' if args.command == 'inject' else 'stale'} {path}")
+        print(f"stale {path}")
+    # A configuration that gained a module and no page is as broken as a page that lags it, and
+    # only a build reads the whole corpus rather than the pages a person remembered to add
+    if args.strict and missing:
+        return 1
     if args.command == "check" and stale:
         return 1
     return 0
