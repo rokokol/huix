@@ -466,6 +466,10 @@
       ) (builtins.readDir ./overlays);
 
       mkHost = import ./lib/mk-host.nix { inherit commonArgs nixpkgsConfig; };
+
+      # The documentation of this configuration: the corpus, the site built from it, the MCP
+      # server that answers from it, and the two ways of using it from a checkout
+      docs = import ./lib/docs/build.nix { inherit pkgs inputs; };
     in
     assert
       paletteNodes == [ "ddlc-palette" ]
@@ -538,6 +542,12 @@
       packages.${system} = {
         drive-backup = pkgs.callPackage ./lib/drive-backup-package.nix { inherit inputs; };
 
+        huix-docs = docs.corpus;
+
+        huix-docs-site = docs.site;
+
+        huix-docs-mcp = docs.mcp;
+
         hindsight-api-slim = inputs.self.nixosConfigurations.nixos-station.pkgs.hindsight-api-slim;
 
         station-boot-test = import ./nixos/station/tests/boot.nix (commonArgs // { inherit pkgs; });
@@ -569,6 +579,20 @@
           type = "app";
           program = nixpkgs.lib.getExe inputs.skill-nix-best-practices.packages.${system}.check-nix;
           meta.description = "Hold this repository to the standard nix-best-practices carries";
+        };
+
+        # `nix run .#docs-build` — render the pages of this checkout, writing them back into it
+        docs-build = {
+          type = "app";
+          program = nixpkgs.lib.getExe docs.writeback;
+          meta.description = "Render the documentation pages of this checkout into docs/";
+        };
+
+        # `nix run .#docs-site` — serve the built site on the local address alone
+        docs-site = {
+          type = "app";
+          program = nixpkgs.lib.getExe docs.serve;
+          meta.description = "Serve the built documentation site on http://127.0.0.1:8099/";
         };
 
         # `nix run .#drv-diff` — every host and every check, here and at another revision

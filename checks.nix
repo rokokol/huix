@@ -373,6 +373,11 @@ pkgs.lib.mapAttrs' (
         touch "$out"
       '';
 
+  # The corpus describes this tree and the tree describes the corpus: a page that lags the
+  # configuration fails here, in every host evaluation, and a module that gained no page fails
+  # beside it
+  check-docs = (import ./lib/docs/build.nix { inherit pkgs inputs; }).check;
+
   # The pure half of yazi's own plugins, under plain Lua with yazi's globals stubbed
   yazi-plugin-tests =
     pkgs.runCommand "yazi-plugin-tests"
