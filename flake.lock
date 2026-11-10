@@ -1104,11 +1104,11 @@
         "transcribe-cpp": "transcribe-cpp"
       },
       "locked": {
-        "lastModified": 1794305499,
-        "narHash": "sha256-yCfsA9FE9nuPE7AQwSgwGV6UDdJJ8Ks5EFoyiJsrCGU=",
+        "lastModified": 1794349541,
+        "narHash": "sha256-jb2p+FIFuS4O/Dbh9Hyz9eA3GNMyeFQH7wH0nbwcXOo=",
         "owner": "rokokol",
         "repo": "MolvAI",
-        "rev": "4e768ffdfc973e205c4853f9b173909e3a954049",
+        "rev": "2e6233c95a32221fd03b5c97f56dec04ee52f27f",
         "type": "github"
       },
       "original": {
@@ -1347,6 +1347,22 @@
       "original": {
         "owner": "rokokol",
         "repo": "papers-skill",
+        "type": "github"
+      }
+    },
+    "pixel-point-skills": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1793978408,
+        "narHash": "sha256-wF6/z73Al76M7N1gz/myguASOvagvsRukQKhf3Y0qNo=",
+        "owner": "pixel-point",
+        "repo": "skills",
+        "rev": "aa105343f9ccae65615280001bad00d18de6d882",
+        "type": "github"
+      },
+      "original": {
+        "owner": "pixel-point",
+        "repo": "skills",
         "type": "github"
       }
     },
@@ -1638,6 +1654,7 @@
         "nixvim": "nixvim",
         "opus-sound-layer": "opus-sound-layer",
         "papers-skill": "papers-skill",
+        "pixel-point-skills": "pixel-point-skills",
         "pyloudnorm": "pyloudnorm",
         "rea": "rea",
         "rea-video": "rea-video",

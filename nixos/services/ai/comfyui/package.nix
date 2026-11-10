@@ -39,14 +39,12 @@ in
         }))
         comfyui-manager-comfycouple
         comfyui-manager-lora-auto-trigger-words
-        # Samplers beyond the core list, and the utility packs the workflows use
         comfyui-res4lyf
         comfyui-manager-euler-smea-dyn-sampler
         comfyui-manager-extra-samplers
         comfyui-manager-ab-samplercustom
         comfyui-manager-ksamplertimer
         comfyui-rgthree
-        # Switch by flag, Pipe, and image metadata; its resource monitor is left out of the graphs
         comfyui-crystools
         comfyui-easy-use
         comfyui-inspire-pack
