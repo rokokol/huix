@@ -120,6 +120,278 @@
         "type": "github"
       }
     },
+    "comfyui-advanced-controlnet": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1785238769,
+        "narHash": "sha256-SZfXoqz05fmgX/BgvanldcgHdi9igskzycPdGR6U/qE=",
+        "owner": "Kosinkadink",
+        "repo": "ComfyUI-Advanced-ControlNet",
+        "rev": "27a67fee80cf46c198b10588a5651f23d67d1e95",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Kosinkadink",
+        "repo": "ComfyUI-Advanced-ControlNet",
+        "type": "github"
+      }
+    },
+    "comfyui-animatediff-evolved": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1785238768,
+        "narHash": "sha256-8Ej1aSfZfZn3JsMVqsDW5aBsFpSxWSeGQqdBfkVpKAo=",
+        "owner": "Kosinkadink",
+        "repo": "ComfyUI-AnimateDiff-Evolved",
+        "rev": "9257651221002dcba0a12f9cff37e1944e58fb60",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Kosinkadink",
+        "repo": "ComfyUI-AnimateDiff-Evolved",
+        "type": "github"
+      }
+    },
+    "comfyui-comfyroll": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1706136249,
+        "narHash": "sha256-+qhDJ9hawSEg9AGBz8w+UzohMFhgZDOzvenw8xVVyPc=",
+        "owner": "Suzie1",
+        "repo": "ComfyUI_Comfyroll_CustomNodes",
+        "rev": "d78b780ae43fcf8c6b7c6505e6ffb4584281ceca",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Suzie1",
+        "repo": "ComfyUI_Comfyroll_CustomNodes",
+        "type": "github"
+      }
+    },
+    "comfyui-controlnet-aux": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791710991,
+        "narHash": "sha256-sIagHbtP1W+bF63AlaqZZ/Gtc0yqc67ur64h8BWxdc4=",
+        "owner": "Fannovel16",
+        "repo": "comfyui_controlnet_aux",
+        "rev": "a587a4c1594524c1d2de5cd1a86cd868ff448e1c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Fannovel16",
+        "repo": "comfyui_controlnet_aux",
+        "type": "github"
+      }
+    },
+    "comfyui-custom-scripts": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1770895889,
+        "narHash": "sha256-2GgTS7l/sMSnJb07sBifL8NGnDBF3g9qdlSKr3gYFGQ=",
+        "owner": "pythongosssss",
+        "repo": "ComfyUI-Custom-Scripts",
+        "rev": "609f3afaa74b2f88ef9ce8d939626065e3247469",
+        "type": "github"
+      },
+      "original": {
+        "owner": "pythongosssss",
+        "repo": "ComfyUI-Custom-Scripts",
+        "type": "github"
+      }
+    },
+    "comfyui-easy-illustrious": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1775305113,
+        "narHash": "sha256-NyoffYm2fctlb81A9UUrle57qL5noN1X38+aaukNgMo=",
+        "owner": "regiellis",
+        "repo": "ComfyUI-EasyIllustrious",
+        "rev": "69a787d685386c4ab9faee0c3bbf7918b36aabcc",
+        "type": "github"
+      },
+      "original": {
+        "owner": "regiellis",
+        "repo": "ComfyUI-EasyIllustrious",
+        "type": "github"
+      }
+    },
+    "comfyui-essentials": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1744616001,
+        "narHash": "sha256-wkwkZVZYqPgbk2G4DFguZ1absVUFRJXYDRqgFrcLrfU=",
+        "owner": "cubiq",
+        "repo": "ComfyUI_essentials",
+        "rev": "9d9f4bedfc9f0321c19faf71855e228c93bd0dc9",
+        "type": "github"
+      },
+      "original": {
+        "owner": "cubiq",
+        "repo": "ComfyUI_essentials",
+        "type": "github"
+      }
+    },
+    "comfyui-gguf": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1768222528,
+        "narHash": "sha256-/ZwecgxTTMo9J1whdEJci8lEkOy/yP+UmjbpOAA3BvU=",
+        "owner": "city96",
+        "repo": "ComfyUI-GGUF",
+        "rev": "6ea2651e7df66d7585f6ffee804b20e92fb38b8a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "city96",
+        "repo": "ComfyUI-GGUF",
+        "type": "github"
+      }
+    },
+    "comfyui-ic-light": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1740501336,
+        "narHash": "sha256-QY2D4RL2xfq4w0mN1Fqg9XQasmqUcSqwX846GMV7nj8=",
+        "owner": "huchenlei",
+        "repo": "ComfyUI-IC-Light-Native",
+        "rev": "40883a839d2a719ad3d3a454700609b94b1a9c65",
+        "type": "github"
+      },
+      "original": {
+        "owner": "huchenlei",
+        "repo": "ComfyUI-IC-Light-Native",
+        "type": "github"
+      }
+    },
+    "comfyui-impact-pack": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794282845,
+        "narHash": "sha256-Cx7lioSSbn3e+MmM1xTP0m+UeCrcG7NMzOcVj/dotAc=",
+        "owner": "ltdrdata",
+        "repo": "ComfyUI-Impact-Pack",
+        "rev": "eae979f4efe43464521508ec9cf62bf695a7a93e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ltdrdata",
+        "repo": "ComfyUI-Impact-Pack",
+        "type": "github"
+      }
+    },
+    "comfyui-kiko-tools": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794054900,
+        "narHash": "sha256-gUNP/LN6+vQsPTXTsw6LR+aHePoliiHfAdCDPn5dmV4=",
+        "owner": "ComfyAssets",
+        "repo": "ComfyUI-KikoTools",
+        "rev": "52fb057167ff86967ddd1173dd542fc0163fe1ff",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ComfyAssets",
+        "repo": "ComfyUI-KikoTools",
+        "type": "github"
+      }
+    },
+    "comfyui-kjnodes": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1793284362,
+        "narHash": "sha256-FKBKcB3thkQ4UdTJQnGSatX0QYiN1VTvVBBTgDrmCCE=",
+        "owner": "kijai",
+        "repo": "ComfyUI-KJNodes",
+        "rev": "ab72eda7ffad6280422d71ab7d54d3fb87c0ba18",
+        "type": "github"
+      },
+      "original": {
+        "owner": "kijai",
+        "repo": "ComfyUI-KJNodes",
+        "type": "github"
+      }
+    },
+    "comfyui-lora-manager": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794284145,
+        "narHash": "sha256-fwYtOzpA6LBPvnKW5GdBD6MxT0ZxKP2XHTfwpTHfMfg=",
+        "owner": "willmiao",
+        "repo": "ComfyUI-Lora-Manager",
+        "rev": "fb4344c0097160cfca1e102ebf878c2a32838aca",
+        "type": "github"
+      },
+      "original": {
+        "owner": "willmiao",
+        "repo": "ComfyUI-Lora-Manager",
+        "type": "github"
+      }
+    },
+    "comfyui-sdxl-prompt-styler": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1711306524,
+        "narHash": "sha256-PXyasD4e4HYHiTvdWNOSaI9jcjZmSRxDWKPdIpm9hAQ=",
+        "owner": "twri",
+        "repo": "sdxl_prompt_styler",
+        "rev": "51068179927f79dce14f38c6b1984390ab242be2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "twri",
+        "repo": "sdxl_prompt_styler",
+        "type": "github"
+      }
+    },
+    "comfyui-ultimate-sd-upscale": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1782101085,
+        "narHash": "sha256-wUN08zn2z/1OLkvSXsfIzJ3/A2FHO5/okeUXEsefEDg=",
+        "owner": "ssitu",
+        "repo": "ComfyUI_UltimateSDUpscale",
+        "rev": "a5547db9e1d07d3318bb21e9e9c474f4c1e9c8df",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ssitu",
+        "repo": "ComfyUI_UltimateSDUpscale",
+        "type": "github"
+      }
+    },
+    "comfyui-video-helper-suite": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1788331686,
+        "narHash": "sha256-unh8GH5qdN+U9IgwWFl6/eAZfq9j3fxHC1UVb+ZTlS4=",
+        "owner": "Kosinkadink",
+        "repo": "ComfyUI-VideoHelperSuite",
+        "rev": "4d907bee61e92c2e65af3bd6383a4e4d356126d1",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Kosinkadink",
+        "repo": "ComfyUI-VideoHelperSuite",
+        "type": "github"
+      }
+    },
+    "comfyui-wd14-tagger": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1752227963,
+        "narHash": "sha256-ww3KpXR5gpDdVKWipYMtqkCTh5iLpqLaenGto0Z28WQ=",
+        "owner": "pythongosssss",
+        "repo": "ComfyUI-WD14-Tagger",
+        "rev": "9e0a6e700299182fc05c58b62e7ad9f72182a78b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "pythongosssss",
+        "repo": "ComfyUI-WD14-Tagger",
+        "type": "github"
+      }
+    },
     "compress-yazi": {
       "flake": false,
       "locked": {
@@ -1027,11 +1299,11 @@
         "transcribe-cpp": "transcribe-cpp"
       },
       "locked": {
-        "lastModified": 1794269631,
-        "narHash": "sha256-6aVkHPwmzZT4r+XJ7+eQqKkpnTvu1cO6If3obrrlT0U=",
+        "lastModified": 1794305499,
+        "narHash": "sha256-yCfsA9FE9nuPE7AQwSgwGV6UDdJJ8Ks5EFoyiJsrCGU=",
         "owner": "rokokol",
         "repo": "MolvAI",
-        "rev": "d405d82a1b3e577758ed87be26eb52ad6ad546bd",
+        "rev": "4e768ffdfc973e205c4853f9b173909e3a954049",
         "type": "github"
       },
       "original": {
@@ -1491,6 +1763,23 @@
         "audacity-mcp": "audacity-mcp",
         "baoyu-design": "baoyu-design",
         "blender-mcp": "blender-mcp",
+        "comfyui-advanced-controlnet": "comfyui-advanced-controlnet",
+        "comfyui-animatediff-evolved": "comfyui-animatediff-evolved",
+        "comfyui-comfyroll": "comfyui-comfyroll",
+        "comfyui-controlnet-aux": "comfyui-controlnet-aux",
+        "comfyui-custom-scripts": "comfyui-custom-scripts",
+        "comfyui-easy-illustrious": "comfyui-easy-illustrious",
+        "comfyui-essentials": "comfyui-essentials",
+        "comfyui-gguf": "comfyui-gguf",
+        "comfyui-ic-light": "comfyui-ic-light",
+        "comfyui-impact-pack": "comfyui-impact-pack",
+        "comfyui-kiko-tools": "comfyui-kiko-tools",
+        "comfyui-kjnodes": "comfyui-kjnodes",
+        "comfyui-lora-manager": "comfyui-lora-manager",
+        "comfyui-sdxl-prompt-styler": "comfyui-sdxl-prompt-styler",
+        "comfyui-ultimate-sd-upscale": "comfyui-ultimate-sd-upscale",
+        "comfyui-video-helper-suite": "comfyui-video-helper-suite",
+        "comfyui-wd14-tagger": "comfyui-wd14-tagger",
         "compress-yazi": "compress-yazi",
         "dav-mcp": "dav-mcp",
         "ddlc-hyprlock": "ddlc-hyprlock",
