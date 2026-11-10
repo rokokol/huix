@@ -14,6 +14,6 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 | `rokokol.comfyui.port` | `8188` | `8188` | `8188` | Loopback port ComfyUI binds |
 | `rokokol.comfyui.publicPort` | `8189` | `8189` | `8189` | Tailnet port ComfyUI publishes |
 
-Объявлено в: `nixos/services/ai/comfyui.nix`
+Объявлено в: [`nixos/services/ai/comfyui.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/ai/comfyui.nix)
 
 <!-- /generated -->

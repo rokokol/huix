@@ -22,6 +22,6 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 | `rokokol.hindsight.port` | `8888` | `8888` | `8888` | Loopback API port |
 | `rokokol.hindsight.publicPort` | `8788` | `8788` | `8788` | Authenticated API port on the tailnet |
 
-Объявлено в: `nixos/services/ai/hindsight/backup.nix`, `nixos/services/ai/hindsight/service.nix`
+Объявлено в: [`nixos/services/ai/hindsight/backup.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/ai/hindsight/backup.nix), [`nixos/services/ai/hindsight/service.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/ai/hindsight/service.nix)
 
 <!-- /generated -->

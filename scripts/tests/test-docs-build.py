@@ -262,5 +262,83 @@ class BindingsPageTest(unittest.TestCase):
         self.assertIn("да", text)
 
 
+class FrontTest(unittest.TestCase):
+    def test_the_front_matter_is_read_and_leaves_the_body(self):
+        text = "---\ntitle: Хост nixos-pc\nkind: host\n---\n\n# Заголовок\n"
+        meta, body = docs.parse_front(text)
+        self.assertEqual(meta["title"], "Хост nixos-pc")
+        self.assertEqual(meta["kind"], "host")
+        self.assertTrue(body.startswith("\n# Заголовок"))
+
+    def test_a_page_without_front_matter_has_none(self):
+        meta, body = docs.parse_front("# Заголовок\n")
+        self.assertEqual(meta, {})
+        self.assertEqual(body, "# Заголовок\n")
+
+
+class SiteLinkTest(unittest.TestCase):
+    def test_a_link_to_a_neighbouring_page_keeps_its_place(self):
+        html = '<a href="../options/hindsight.md">опции</a>'
+        self.assertIn('href="../options/hindsight.html"', docs.to_page_links(html))
+
+    def test_a_link_that_leaves_the_corpus_stays_a_markdown_link(self):
+        html = '<a href="../../WORKAROUNDS.md">обходные пути</a>'
+        self.assertEqual(docs.to_page_links(html), html)
+
+
+class NavigationTest(unittest.TestCase):
+    pages = [
+        ("hosts/nixos-pc.md", {"title": "Хост nixos-pc", "kind": "host"}),
+        ("bindings.md", {"title": "Клавиши Hyprland", "kind": "bindings"}),
+        ("options/hindsight.md", {"title": "Опции rokokol.hindsight", "kind": "option"}),
+        ("modules/nixos-desktop.md", {"title": "nixos/desktop", "kind": "module", "dir": "nixos/desktop"}),
+    ]
+
+    def test_a_section_holds_the_pages_of_one_directory_in_reading_order(self):
+        sections = docs.navigation(self.pages)
+        self.assertEqual([name for name, _ in sections], ["hosts", "options", "modules", "."])
+
+    def test_a_page_of_the_root_stands_in_its_own_section(self):
+        sections = docs.navigation(self.pages)
+        labels = {name: [item["label"] for item in items] for name, items in sections}
+        self.assertEqual(labels["."], ["Клавиши Hyprland"])
+
+    def test_a_module_page_is_grouped_by_the_layer_it_describes(self):
+        sections = dict(docs.navigation(self.pages))
+        self.assertEqual(sections["modules"][0]["group"], "nixos")
+        self.assertEqual(sections["modules"][0]["label"], "desktop")
+
+
+class PageLabelTest(unittest.TestCase):
+    def test_a_page_is_named_by_its_title(self):
+        self.assertEqual(docs.page_label("Хост nixos-pc", "hosts/nixos-pc.md"), "Хост nixos-pc")
+
+    def test_a_page_without_a_title_falls_back_on_its_slug(self):
+        self.assertEqual(docs.page_label(None, "options/hindsight.md"), "hindsight")
+
+
+class RepoLinkTest(unittest.TestCase):
+    def test_a_path_becomes_a_link_to_the_file_in_the_repository(self):
+        self.assertEqual(
+            docs.repo_link("nixos/services/ai/hindsight/service.nix"),
+            "[`nixos/services/ai/hindsight/service.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/ai/hindsight/service.nix)",
+        )
+
+    def test_a_host_page_links_the_file_that_configures_it(self):
+        sources = {"nixos/configuration-pc.nix": "{ }\n", "nixos/configuration-station.nix": "{ }\n"}
+        text = docs.render_host(host(), sources)
+        self.assertIn("nixos/configuration-pc.nix", text)
+        self.assertIn("blob/master/nixos/configuration-pc.nix", text)
+
+    def test_a_host_page_says_so_when_the_named_file_is_absent(self):
+        text = docs.render_host(host(), {})
+        self.assertNotIn("blob/master", text)
+
+    def test_a_module_heading_opens_the_module(self):
+        entries = [{"path": "nixos/x.nix", "comment": None, "options": [], "units": []}]
+        text = docs.render_modules(entries)
+        self.assertIn("blob/master/nixos/x.nix", text)
+
+
 if __name__ == "__main__":
     unittest.main()

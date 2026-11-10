@@ -12,6 +12,6 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 | --- | --- | --- | --- | --- |
 | `rokokol.flatpak.enable` | да | да | нет | Whether to enable Flatpak with declared apps. |
 
-Объявлено в: `nixos/services/desktop/flatpak.nix`
+Объявлено в: [`nixos/services/desktop/flatpak.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/desktop/flatpak.nix)
 
 <!-- /generated -->

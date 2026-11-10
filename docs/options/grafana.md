@@ -14,6 +14,6 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 | `rokokol.grafana.enable` | нет | нет | да | Whether to enable Grafana over the Prometheus of this host. |
 | `rokokol.grafana.resourcePolicy` | — | — | — | Resource thresholds, queries and rules for dashboards and checks |
 
-Объявлено в: `nixos/services/system/grafana/grafana.nix`
+Объявлено в: [`nixos/services/system/grafana/grafana.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/grafana/grafana.nix)
 
 <!-- /generated -->

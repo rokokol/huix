@@ -26,6 +26,6 @@ own user and only receives
 syncthing-cert-<host>, in the host's default sops file
 . |
 
-Объявлено в: `nixos/services/tools/syncthing.nix`
+Объявлено в: [`nixos/services/tools/syncthing.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/tools/syncthing.nix)
 
 <!-- /generated -->

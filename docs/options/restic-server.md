@@ -23,6 +23,6 @@ node's own `restic forget` policy is the other half and lives in the node's conf
 | `rokokol.restic-server.snapshotDir` | — | — | `/srv/backup/snapshots/restic` | Directory of the read-only snapshots of `dataDir`, on the same filesystem |
 | `rokokol.restic-server.subvolumes` | — | — | `restic`, `snapshots/restic` | Subvolumes of the backup filesystem, as paths inside `mountPoint`, for the disk layout to make |
 
-Объявлено в: `nixos/services/system/restic-server.nix`
+Объявлено в: [`nixos/services/system/restic-server.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/restic-server.nix)
 
 <!-- /generated -->

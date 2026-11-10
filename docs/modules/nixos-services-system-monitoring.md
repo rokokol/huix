@@ -1,13 +1,14 @@
 ---
-title: Модули nixos/services/system/monitoring
+title: nixos/services/system/monitoring
 kind: module
+dir: nixos/services/system/monitoring
 ---
 
-# Модули nixos/services/system/monitoring
+# nixos/services/system/monitoring
 
 <!-- generated: module nixos/services/system/monitoring -->
 
-## `nixos/services/system/monitoring/alert-mail.nix`
+## [`nixos/services/system/monitoring/alert-mail.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/monitoring/alert-mail.nix)
 
 Alerts for a host with no desktop to show a notification on, in two levels. A problem is sent
 once when it opens and once when it closes, by mail and, where it is on, by Telegram and to an
@@ -21,7 +22,7 @@ arrive through sops and never enter the store
 
 **Юниты:** `alert-digest`, `alert-reconcile`
 
-## `nixos/services/system/monitoring/backup-heartbeat.nix`
+## [`nixos/services/system/monitoring/backup-heartbeat.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/monitoring/backup-heartbeat.nix)
 
 An hourly check that every node behind the restic server pushed recently and that the
 backup filesystem keeps its free space. A problem fails the unit, or, with causesFile, goes
@@ -33,7 +34,7 @@ to that file; the host decides what either sets off
 
 **Юниты:** `backup-heartbeat`
 
-## `nixos/services/system/monitoring/node-exporter.nix`
+## [`nixos/services/system/monitoring/node-exporter.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/monitoring/node-exporter.nix)
 
 The host's own metrics for the station's Prometheus: CPU, memory, swap, disks, network and the
 hwmon sensors. The exporter listens on every address, and tailscale.nix trusts the tailnet
@@ -45,7 +46,7 @@ directory, and that module enables itself only where the thing exists
 
 Подробнее: [опции rokokol.node-exporter](../options/node-exporter.md)
 
-## `nixos/services/system/monitoring/prometheus.nix`
+## [`nixos/services/system/monitoring/prometheus.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/monitoring/prometheus.nix)
 
 Prometheus on loopback, for the Grafana beside it. It scrapes every host of this flake over the
 tailnet, by the host's name, and takes from each host's own configuration which exporters run
@@ -56,7 +57,7 @@ off gives a gap, not an alert
 
 Подробнее: [опции rokokol.prometheus](../options/prometheus.md)
 
-## `nixos/services/system/monitoring/pushgateway.nix`
+## [`nixos/services/system/monitoring/pushgateway.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/monitoring/pushgateway.nix)
 
 A Prometheus Pushgateway that the nodes behind the restic server push their metrics to, and a
 check that each of them keeps pushing. The nodes are the users of the restic server's htpasswd,
@@ -69,7 +70,7 @@ group whose instance label is that user. Prometheus on this host reads the gatew
 
 **Юниты:** `node-push-watch`
 
-## `nixos/services/system/monitoring/smartd.nix`
+## [`nixos/services/system/monitoring/smartd.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/monitoring/smartd.nix)
 
 SMART monitoring of every disk the host finds at boot, with desktop alerts. smartd polls every
 30 minutes and starts a scheduled self-test in the first poll inside the matching hour. A test

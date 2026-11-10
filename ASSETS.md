@@ -32,6 +32,12 @@ It is not my artwork and it is not the greeter cursor — that one is cut from t
 
 `assets/mya-logo.png`, the picture of Mya in the agent's README, is my own drawing
 
+## The documentation site
+
+`site/assets/vendor/ddlc/` is the DDLC web kit from [ddlc-themes](https://github.com/rokokol/ddlc-themes), vendored unchanged at commit `b7ee74d`: `ddlc-tokens.css`, `ddlc-ui.css`, `ddlc-report.css`, `ddlc-theme.js` and `ddlc-cloud.js`, MIT as the repository that generates them. The colours in them are Team Salvato's, measured off [ddlc.moe](https://ddlc.moe/) by [ddlc-palette](https://github.com/rokokol/ddlc-palette); the mapping of colour to role is the work of ddlc-themes
+
+`site/assets/icon-github.svg` is my own SVG, under the repository's MIT licence. It takes its fill from `currentColor`, so the icon follows the theme like every other mark on the page
+
 ## Everything else
 
 The decorative images under `assets/` (`logo.jpg`, `im-king-of-the-world.jpg`, `sayori-v-korobke.jpg`, `shef-os-320-kg.jpg`, `say-sketch2.webp`, `laptop-wallpaper.png`) are pictures collected off the internet. Several are drawings whose authors I do not know, and I claim no ownership of any of them — they are here as decoration for the READMEs and as a wallpaper

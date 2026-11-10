@@ -16,6 +16,6 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 | `rokokol.printer.enable` | нет | да | нет | Whether to enable printing (CUPS + gutenprint + Epson L120 driver). |
 | `rokokol.printer.skill` | `/nix/store/az178f0r8gyc37y2ym93k5ck06288zcx-print-skill` | `/nix/store/az178f0r8gyc37y2ym93k5ck06288zcx-print-skill` | `/nix/store/az178f0r8gyc37y2ym93k5ck06288zcx-print-skill` | Skill for local or remote printing |
 
-Объявлено в: `nixos/services/devices/printer.nix`
+Объявлено в: [`nixos/services/devices/printer.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/devices/printer.nix)
 
 <!-- /generated -->

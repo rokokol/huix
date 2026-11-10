@@ -19,6 +19,6 @@ in the unit's runtime directory, which outlives each run
 | `rokokol.pushgateway.maxSilence` | `1h` | `1h` | `1h` | Time since the last push of a node past which the node is silent |
 | `rokokol.pushgateway.port` | `9091` | `9091` | `9091` | TCP port of the tailnet-web site that the nodes push to |
 
-Объявлено в: `nixos/services/system/monitoring/pushgateway.nix`
+Объявлено в: [`nixos/services/system/monitoring/pushgateway.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/monitoring/pushgateway.nix)
 
 <!-- /generated -->

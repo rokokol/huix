@@ -1,13 +1,14 @@
 ---
-title: Модули lib/docs
+title: lib/docs
 kind: module
+dir: lib/docs
 ---
 
-# Модули lib/docs
+# lib/docs
 
 <!-- generated: module lib/docs -->
 
-## `lib/docs/facts.nix`
+## [`lib/docs/facts.nix`](https://github.com/rokokol/huix/blob/master/lib/docs/facts.nix)
 
 Facts the documentation generator renders into pages. Everything here is computed while the
 flake evaluates, so the renderer never runs `nix eval`: a build sandbox has no daemon, and a

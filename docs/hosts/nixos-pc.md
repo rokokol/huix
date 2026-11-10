@@ -10,6 +10,8 @@ hosts: [nixos-pc]
 
 Система: `x86_64-linux`
 
+Настраивается в [`nixos/configuration-pc.nix`](https://github.com/rokokol/huix/blob/master/nixos/configuration-pc.nix)
+
 **Службы из этого репозитория:** `NetworkManager-wait-online`, `comfyui`, `smartd`, `syncthing`, `syncthing-init`, `virt-secret-init-encryption`, `zram-metrics`
 
 **Таймеры:** `zram-metrics`

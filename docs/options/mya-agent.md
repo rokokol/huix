@@ -66,6 +66,6 @@ of its user, then rebases each on its upstream. scripts/agent-sync.sh says how
 | `rokokol.mya-agent.syncedBy` | — | — | `rokokol` | The user who may start `syncUnit`, as sync.sh does over SSH |
 | `rokokol.mya-agent.user` | `mya` | `mya` | `mya` | The user of the session |
 
-Объявлено в: `nixos/services/ai/hermes/agent.nix`, `nixos/services/ai/hermes/backup.nix`, `nixos/services/ai/hermes/github.nix`, `nixos/services/ai/hermes/hermes.nix`, `nixos/services/ai/hermes/monitor.nix`, `nixos/services/ai/hermes/power.nix`
+Объявлено в: [`nixos/services/ai/hermes/agent.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/ai/hermes/agent.nix), [`nixos/services/ai/hermes/backup.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/ai/hermes/backup.nix), [`nixos/services/ai/hermes/github.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/ai/hermes/github.nix), [`nixos/services/ai/hermes/hermes.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/ai/hermes/hermes.nix), [`nixos/services/ai/hermes/monitor.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/ai/hermes/monitor.nix), [`nixos/services/ai/hermes/power.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/ai/hermes/power.nix)
 
 <!-- /generated -->

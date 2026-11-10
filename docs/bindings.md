@@ -122,4 +122,6 @@ kind: bindings
 | `SUPER + ALT + up` | `window.resize` | `{ x = 0, y = -40, relative = true }` | да |
 | `SUPER + ALT + down` | `window.resize` | `{ x = 0, y = 40, relative = true }` | да |
 
+Объявлено в: [`home-manager/desktop/hyprland/hyprland.lua`](https://github.com/rokokol/huix/blob/master/home-manager/desktop/hyprland/hyprland.lua)
+
 <!-- /generated -->

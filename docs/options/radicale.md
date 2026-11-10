@@ -21,6 +21,6 @@ loopback, which the tailnet site refuses, so the client goes to Radicale directl
 | `rokokol.radicale.subvolumes` | — | — | `radicale` | Subvolumes of the backup filesystem, as paths inside `mountPoint`, for the disk layout to make |
 | `rokokol.radicale.url` | `http://nixos-laptop:5232/` | `http://nixos-pc:5232/` | `http://nixos-station:5232/` | Root URL of the server inside the tailnet, which a CalDAV client starts from |
 
-Объявлено в: `nixos/services/tools/radicale.nix`
+Объявлено в: [`nixos/services/tools/radicale.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/tools/radicale.nix)
 
 <!-- /generated -->

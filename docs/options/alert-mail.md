@@ -28,6 +28,6 @@ without it reaches the chat's General topic, while the agent's own replies go to
 topic its gateway is configured with
  |
 
-Объявлено в: `nixos/services/system/monitoring/alert-mail.nix`
+Объявлено в: [`nixos/services/system/monitoring/alert-mail.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/monitoring/alert-mail.nix)
 
 <!-- /generated -->

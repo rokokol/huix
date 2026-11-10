@@ -12,6 +12,6 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 | --- | --- | --- | --- | --- |
 | `rokokol.vial.enable` | да | да | нет | Whether to enable user access to Vial keyboards. |
 
-Объявлено в: `nixos/services/devices/vial.nix`
+Объявлено в: [`nixos/services/devices/vial.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/devices/vial.nix)
 
 <!-- /generated -->

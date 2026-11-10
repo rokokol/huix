@@ -22,6 +22,6 @@ this check runs as, and links the file into the textfile directory of node_expor
  |
 | `rokokol.backup-heartbeat.minFree` | `10G` | `10G` | `10G` | Free space the backup filesystem must keep, in powers of 1024 |
 
-Объявлено в: `nixos/services/system/monitoring/backup-heartbeat.nix`
+Объявлено в: [`nixos/services/system/monitoring/backup-heartbeat.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/monitoring/backup-heartbeat.nix)
 
 <!-- /generated -->

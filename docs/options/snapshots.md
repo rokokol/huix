@@ -12,6 +12,6 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 | --- | --- | --- | --- | --- |
 | `rokokol.snapshots.enable` | нет | нет | да | Whether a tool takes filesystem snapshots on this host |
 
-Объявлено в: `nixos/btrfs.nix`
+Объявлено в: [`nixos/btrfs.nix`](https://github.com/rokokol/huix/blob/master/nixos/btrfs.nix)
 
 <!-- /generated -->

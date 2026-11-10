@@ -23,6 +23,6 @@ that the policy keeps cost that much again
 secret from the sops secret forgejo-runner-<name>; lib/forgejo-runner-id.nix makes the rest
  |
 
-Объявлено в: `nixos/services/tools/forgejo.nix`
+Объявлено в: [`nixos/services/tools/forgejo.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/tools/forgejo.nix)
 
 <!-- /generated -->

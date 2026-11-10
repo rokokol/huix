@@ -15,6 +15,6 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 | `rokokol.dav-mcp.url` | `http://nixos-station:5232/` | `http://nixos-station:5232/` | `http://127.0.0.1:5233/` | Root URL of the CalDAV server |
 | `rokokol.dav-mcp.user` | `rokokol` | `rokokol` | `mya` | Local user whose agents use the calendars, and its login in Radicale |
 
-Объявлено в: `nixos/services/tools/dav-mcp.nix`
+Объявлено в: [`nixos/services/tools/dav-mcp.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/tools/dav-mcp.nix)
 
 <!-- /generated -->

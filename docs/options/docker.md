@@ -12,6 +12,6 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 | --- | --- | --- | --- | --- |
 | `rokokol.docker.enable` | да | да | нет | Whether to enable the Docker daemon. |
 
-Объявлено в: `nixos/services/utils/docker.nix`
+Объявлено в: [`nixos/services/utils/docker.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/utils/docker.nix)
 
 <!-- /generated -->

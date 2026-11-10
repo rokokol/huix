@@ -12,6 +12,6 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 | --- | --- | --- | --- | --- |
 | `rokokol.pi.enable` | да | да | нет | Whether to enable Pi credentials. |
 
-Объявлено в: `nixos/services/ai/pi/credentials.nix`
+Объявлено в: [`nixos/services/ai/pi/credentials.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/ai/pi/credentials.nix)
 
 <!-- /generated -->

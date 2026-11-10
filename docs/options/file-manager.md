@@ -12,6 +12,6 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 | --- | --- | --- | --- | --- |
 | `rokokol.file-manager.enable` | да | да | нет | Whether to enable Thunar with its mount, thumbnail and archive helpers. |
 
-Объявлено в: `nixos/services/desktop/file-manager.nix`
+Объявлено в: [`nixos/services/desktop/file-manager.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/desktop/file-manager.nix)
 
 <!-- /generated -->

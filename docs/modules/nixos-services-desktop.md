@@ -1,25 +1,26 @@
 ---
-title: Модули nixos/services/desktop
+title: nixos/services/desktop
 kind: module
+dir: nixos/services/desktop
 ---
 
-# Модули nixos/services/desktop
+# nixos/services/desktop
 
 <!-- generated: module nixos/services/desktop -->
 
-## `nixos/services/desktop/amnezia-vpn.nix`
+## [`nixos/services/desktop/amnezia-vpn.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/desktop/amnezia-vpn.nix)
 
 **Опции:** `rokokol.amnezia-vpn.enable`
 
 Подробнее: [опции rokokol.amnezia-vpn](../options/amnezia-vpn.md)
 
-## `nixos/services/desktop/file-manager.nix`
+## [`nixos/services/desktop/file-manager.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/desktop/file-manager.nix)
 
 **Опции:** `rokokol.file-manager.enable`
 
 Подробнее: [опции rokokol.file-manager](../options/file-manager.md)
 
-## `nixos/services/desktop/flatpak.nix`
+## [`nixos/services/desktop/flatpak.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/desktop/flatpak.nix)
 
 nix-flatpak installs what services.flatpak.packages lists and removes what leaves the list.
 uninstallUnmanaged stays off, so an app installed by hand stays installed
@@ -28,7 +29,7 @@ uninstallUnmanaged stays off, so an app installed by hand stays installed
 
 Подробнее: [опции rokokol.flatpak](../options/flatpak.md)
 
-## `nixos/services/desktop/gnome-keyring.nix`
+## [`nixos/services/desktop/gnome-keyring.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/desktop/gnome-keyring.nix)
 
 Secret Service for libsecret clients — Geary keeps its IMAP passwords here and refuses to
 store them without one. The module wires pam_gnome_keyring into "login", which SDDM's own
@@ -38,7 +39,7 @@ PAM stack substacks, so the keyring unlocks with the login password and never pr
 
 Подробнее: [опции rokokol.gnome-keyring](../options/gnome-keyring.md)
 
-## `nixos/services/desktop/molvai.nix`
+## [`nixos/services/desktop/molvai.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/desktop/molvai.nix)
 
 The daemon reads its OpenRouter key from the environment, so sops renders it into a file that
 only the owner can read. The secret itself is the same key Pi uses
@@ -47,7 +48,7 @@ only the owner can read. The secret itself is the same key Pi uses
 
 Подробнее: [опции rokokol.molvai](../options/molvai.md)
 
-## `nixos/services/desktop/sddm.nix`
+## [`nixos/services/desktop/sddm.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/desktop/sddm.nix)
 
 Theme, cursors and the QML-cache workaround come from the module
 
@@ -55,7 +56,7 @@ Theme, cursors and the QML-cache workaround come from the module
 
 Подробнее: [опции rokokol.sddm](../options/sddm.md)
 
-## `nixos/services/desktop/ssh-agent.nix`
+## [`nixos/services/desktop/ssh-agent.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/desktop/ssh-agent.nix)
 
 gcr's agent instead of OpenSSH's: it keeps key passphrases in the keyring from
 gnome-keyring.nix and asks through its own GTK prompt, so a passphrase is typed once ever

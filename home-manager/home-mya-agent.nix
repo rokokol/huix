@@ -19,8 +19,10 @@ in
     ./programs/agents/research/papers.nix
     ./programs/agents/skills.nix
     ./programs/cli/matplotlib.nix
+    ./programs/creative/compress-video.nix
   ];
   rokokol.matplotlib.enable = true;
+  rokokol.compress-video.enable = true;
 
   # The huix group without close-session, which keeps the agent's memory, and headless-gui,
   # which needs a GUI the station does not run

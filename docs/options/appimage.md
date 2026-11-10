@@ -12,6 +12,6 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 | --- | --- | --- | --- | --- |
 | `rokokol.appimage.enable` | да | да | нет | Whether to enable AppImage binfmt and steam-run. |
 
-Объявлено в: `nixos/services/system/appimage.nix`
+Объявлено в: [`nixos/services/system/appimage.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/appimage.nix)
 
 <!-- /generated -->

@@ -12,6 +12,6 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 | --- | --- | --- | --- | --- |
 | `rokokol.embedded.enable` | да | да | нет | Whether to enable the embedded toolchain and its udev rules. |
 
-Объявлено в: `nixos/services/utils/embedded.nix`
+Объявлено в: [`nixos/services/utils/embedded.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/utils/embedded.nix)
 
 <!-- /generated -->

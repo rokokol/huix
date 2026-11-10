@@ -12,6 +12,6 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 | --- | --- | --- | --- | --- |
 | `rokokol.ollama.enable` | да | да | нет | Whether to enable the Ollama server. |
 
-Объявлено в: `nixos/services/ai/ollama.nix`
+Объявлено в: [`nixos/services/ai/ollama.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/ai/ollama.nix)
 
 <!-- /generated -->

@@ -1,0 +1,197 @@
+/* huix documentation site: the DDLC web kit lays the page out from .bar, .work, .card and the
+   report sheet brings the prose. This file adds only what the kit has no class for, the
+   documentation layout, and holds no colour of its own: every colour is a --ddlc-* role */
+
+/* The report sheet is written for a 46rem report column; the documentation needs the width */
+body {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  background: var(--ddlc-ground);
+  color: var(--ddlc-text);
+}
+
+.wrap {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* ---------- the bar ---------- */
+
+.top {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  border-bottom: 2px solid var(--ddlc-line);
+  background: var(--ddlc-ground);
+}
+
+.top-inner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 52px;
+}
+
+.brand {
+  margin-right: auto;
+  color: var(--ddlc-text);
+  text-decoration: none;
+  font-size: 17px;
+}
+
+.brand .tagline {
+  color: var(--ddlc-muted);
+  font-size: 13px;
+  margin-left: 8px;
+}
+
+/* The kit draws the button; the site only says that both icons take a text role, so they follow
+   the theme like every other mark on the page */
+.top-inner .icon-button {
+  color: var(--ddlc-muted);
+}
+/* ---------- the two columns ---------- */
+
+.layout {
+  display: grid;
+  grid-template-columns: 264px minmax(0, 1fr);
+  gap: 32px;
+  align-items: start;
+}
+
+.sidebar {
+  position: sticky;
+  top: 52px;
+  max-height: calc(100vh - 52px);
+  overflow: auto;
+  padding: 20px 12px 40px 0;
+  border-right: 2px solid var(--ddlc-line);
+}
+
+.sidebar h2 {
+  margin: 18px 0 6px;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ddlc-muted);
+}
+
+.sidebar ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sidebar a {
+  display: block;
+  padding: 3px 8px;
+  border-left: 2px solid transparent;
+  color: var(--ddlc-text);
+  text-decoration: none;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.sidebar a:hover {
+  border-left-color: var(--ddlc-accent);
+}
+
+.sidebar a[aria-current="page"] {
+  border-left-color: var(--ddlc-accent);
+  color: var(--ddlc-accent);
+}
+
+/* The layer a group of modules belongs to, above the paths inside it */
+.sidebar .nav-group {
+  margin: 10px 0 2px;
+  color: var(--ddlc-muted);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+
+/* ---------- the page ---------- */
+
+.doc {
+  min-width: 0;
+  padding: 28px 0 80px;
+}
+
+.doc .prose {
+  max-width: none;
+  font: 500 15px / 1.65 var(--ddlc-font-prose, inherit);
+}
+
+.prose h1 {
+  margin: 0 0 20px;
+  font-size: var(--ddlc-size-big, 26px);
+}
+
+.prose h2 {
+  margin: 34px 0 10px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--ddlc-line);
+  font-size: 19px;
+}
+
+.prose a {
+  color: var(--ddlc-link);
+}
+
+/* A facts table is the bulk of the corpus, so it gets the room and the rules the kit has no
+   class for */
+.prose table {
+  width: 100%;
+  margin: 12px 0 20px;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.prose th,
+.prose td {
+  border: 1px solid var(--ddlc-line);
+  padding: 5px 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.prose th {
+  background: var(--ddlc-panel);
+  font-weight: 600;
+}
+
+.prose tr:nth-child(even) td {
+  background: var(--ddlc-board-shade);
+}
+
+.prose code {
+  padding: 1px 4px;
+  background: var(--ddlc-code-ground);
+  color: var(--ddlc-text);
+  font-size: 12.5px;
+  overflow-wrap: anywhere;
+}
+
+.prose ul,
+.prose ol {
+  padding-left: 22px;
+}
+
+/* The sidebar is the way around the corpus on a narrow screen too, so it moves above the text
+   rather than disappearing */
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .sidebar {
+    position: static;
+    max-height: none;
+    padding: 16px 0;
+    border-right: 0;
+    border-bottom: 2px solid var(--ddlc-line);
+  }
+}

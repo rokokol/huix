@@ -12,6 +12,6 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 | --- | --- | --- | --- | --- |
 | `rokokol.tablet.enable` | нет | да | нет | Whether to enable graphics tablet (OpenTabletDriver). |
 
-Объявлено в: `nixos/services/devices/tablet.nix`
+Объявлено в: [`nixos/services/devices/tablet.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/devices/tablet.nix)
 
 <!-- /generated -->

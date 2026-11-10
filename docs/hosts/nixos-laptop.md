@@ -10,6 +10,8 @@ hosts: [nixos-laptop]
 
 Система: `x86_64-linux`
 
+Настраивается в [`nixos/configuration-laptop.nix`](https://github.com/rokokol/huix/blob/master/nixos/configuration-laptop.nix)
+
 **Службы из этого репозитория:** `NetworkManager-wait-online`, `smartd`, `syncthing`, `syncthing-init`, `zram-metrics`
 
 **Таймеры:** `zram-metrics`

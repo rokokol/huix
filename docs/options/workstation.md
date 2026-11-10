@@ -12,6 +12,6 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 | --- | --- | --- | --- | --- |
 | `rokokol.workstation.enable` | да | да | нет | Whether to enable the desktop session and the workstation services. |
 
-Объявлено в: `nixos/desktop/core-options.nix`
+Объявлено в: [`nixos/desktop/core-options.nix`](https://github.com/rokokol/huix/blob/master/nixos/desktop/core-options.nix)
 
 <!-- /generated -->

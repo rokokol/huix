@@ -12,6 +12,6 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 | --- | --- | --- | --- | --- |
 | `rokokol.gnome-keyring.enable` | да | да | нет | Whether to enable the GNOME keyring as the Secret Service. |
 
-Объявлено в: `nixos/services/desktop/gnome-keyring.nix`
+Объявлено в: [`nixos/services/desktop/gnome-keyring.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/desktop/gnome-keyring.nix)
 
 <!-- /generated -->

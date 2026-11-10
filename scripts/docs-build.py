@@ -5,6 +5,7 @@ import argparse
 import json
 from pathlib import Path
 import re
+import shutil
 import sys
 
 # A unit of this repository is the one its sources declare: the list of a host's units also holds
@@ -13,6 +14,14 @@ UNIT = re.compile(r"systemd\.(?:user\.)?(?:services|timers)\.([A-Za-z0-9_@:-]+)"
 
 START = "<!-- generated: {marker} -->"
 END = "<!-- /generated -->"
+
+# A page names the file behind every fact it shows, so a reader lands where the fact changes
+REPO = "https://github.com/rokokol/huix"
+
+
+def repo_link(path):
+    """A path in this repository as a link to the file itself"""
+    return f"[`{path}`]({REPO}/blob/master/{path})"
 
 DOCS = Path("docs")
 
@@ -228,7 +237,7 @@ def render_modules(entries):
     """One section per module: its path, the reason its comment gives, and what it declares"""
     parts = []
     for entry in entries:
-        lines = [f"## `{entry['path']}`"]
+        lines = [f"## {repo_link(entry['path'])}"]
         if entry["comment"]:
             lines.append(paragraphs(entry["comment"]))
         if entry["options"]:
@@ -242,8 +251,8 @@ def render_modules(entries):
     return "\n\n".join(parts)
 
 
-def render_bindings(binds):
-    """Every bind of the compositor as one table"""
+def render_bindings(binds, sources=()):
+    """Every bind of the compositor as one table, with the file that declares them"""
     rows = [
         [
             f"`{bind['keys'].replace('|', chr(92) + '|')}`",
@@ -253,7 +262,10 @@ def render_bindings(binds):
         ]
         for bind in binds
     ]
-    return table(["Клавиши", "Диспетчер", "Аргумент", "Держится"], rows)
+    body = table(["Клавиши", "Диспетчер", "Аргумент", "Держится"], rows)
+    if sources:
+        body += "\n\nОбъявлено в: " + ", ".join(repo_link(name) for name in sources)
+    return body
 
 
 def bullet(items, sources=None):
@@ -276,6 +288,12 @@ def render_host(facts, sources):
     """The generated half of a host page"""
     units = declared_units(sources)
     parts = ["Система: `{}`".format(facts["system"])]
+
+    # The configuration file of a host is named after the host without its role prefix, which is
+    # the one convention the repository keeps for it
+    configuration = f"nixos/configuration-{facts['name'].removeprefix('nixos-')}.nix"
+    if configuration in sources:
+        parts.append("Настраивается в " + repo_link(configuration))
 
     parts.append("**Службы из этого репозитория:** " + bullet(facts["services"], units))
     parts.append("**Таймеры:** " + bullet(facts["timers"], units))
@@ -349,18 +367,20 @@ def option_pages(facts):
             rows.append([f"`{option['name']}`", *values, option["description"] or "—"])
         header = ["Опция", *names, "Описание"]
         files = sorted({declaration for option in by_host[names[0]][group] for declaration in option["declarations"]})
-        body = table(header, rows) + "\n\nОбъявлено в: " + ", ".join(f"`{name}`" for name in files)
+        body = table(header, rows) + "\n\nОбъявлено в: " + ", ".join(repo_link(name) for name in files)
         pages[DOCS / "options" / f"{group}.md"] = (f"option {group}", body)
     return pages
 
 
-def scaffold(marker, title, hosts):
-    """A new page: its heading, the hosts it describes, and the marker the generator fills"""
+def scaffold(marker, title, hosts, described=""):
+    """A new page: its heading, the hosts it describes and the marker the generator fills"""
     front = [f"title: {title}", f"kind: {marker.split()[0]}"]
     # A page about files describes no host: the module of a workstation and the one of the
     # station live in the same directory, and naming every host would be false for both
     if hosts:
         front.append(f"hosts: [{', '.join(hosts)}]")
+    if described:
+        front.append(f"dir: {described}")
     return (
         "---\n"
         + "\n".join(front)
@@ -408,18 +428,186 @@ def module_pages(sources, facts):
 def bindings_page(sources):
     """The compositor binds, read out of the Lua that declares them"""
     binds = []
+    declaring = []
     for path in sorted(sources):
         if path.endswith(".lua"):
-            binds += parse_binds(sources[path])
-    return {DOCS / "bindings.md": ("bindings", render_bindings(binds))}
+            found = parse_binds(sources[path])
+            binds += found
+            if found:
+                declaring.append(path)
+    return {DOCS / "bindings.md": ("bindings", render_bindings(binds, declaring))}
+
+
+def parse_front(text):
+    """The front matter a page carries and the body after it"""
+    if not text.startswith("---\n"):
+        return {}, text
+    end = text.find("\n---\n", 4)
+    if end < 0:
+        return {}, text
+    meta = {}
+    for line in text[4:end].splitlines():
+        if ":" not in line:
+            continue
+        key, value = line.split(":", 1)
+        value = value.strip()
+        if value.startswith("[") and value.endswith("]"):
+            meta[key.strip()] = [item.strip() for item in value[1:-1].split(",") if item.strip()]
+        else:
+            meta[key.strip()] = value
+    return meta, text[end + 5 :]
+
+
+def to_page_links(html):
+    """A link between corpus pages opens the rendered page; a link that leaves the corpus keeps
+    its markdown target, which resolves to the file in the repository"""
+
+    def swap(match):
+        target = match.group(1)
+        if target.startswith(("http://", "https://", "../../", "/")) or not target.endswith(".md"):
+            return match.group(0)
+        return match.group(0)[: -len(".md\"")] + '.html"'
+
+    return re.sub(r'href="([^"]+)"', swap, html)
+
+
+def page_label(title, path):
+    """What a page is called in the navigation"""
+    if title:
+        return title
+    return Path(path).stem
+
+
+def navigation(pages):
+    """Pages grouped by the directory that names their section, in the order the sections are
+    read and with the root section last
+
+    A module page remembers the directory it describes in its front matter, so the navigation
+    can group it by the layer it belongs to instead of offering one flat list of sixty paths"""
+    sections = {}
+    for path, meta in pages:
+        directory = str(Path(path).parent)
+        described = meta.get("dir")
+        group = described.split("/")[0] if described else None
+        label = described.split("/", 1)[1] if described and "/" in described else page_label(meta.get("title"), path)
+        # The section already says these are options, so the entry names the group alone
+        if meta.get("kind") == "option":
+            label = Path(path).stem
+        sections.setdefault(directory, []).append({"path": path, "label": label, "group": group})
+    order = [key for key in SECTIONS if key in sections]
+    order += sorted(key for key in sections if key not in SECTIONS)
+    return [(directory, sorted(sections[directory], key=lambda item: item["label"])) for directory in order]
+
+
+SECTIONS = {
+    "hosts": "Хосты",
+    "options": "Опции",
+    "modules": "Модули",
+    ".": "Обзор",
+}
+
+SHELL = """<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{title} — huix</title>
+<script>
+  try {{
+    const t = localStorage.getItem("huix-theme")
+    if (t === "light" || t === "dark") document.documentElement.dataset.theme = t
+  }} catch {{}}
+</script>
+<link rel="stylesheet" href="{root}assets/vendor/ddlc/ddlc-tokens.css">
+<link rel="stylesheet" href="{root}assets/vendor/ddlc/ddlc-ui.css">
+<link rel="stylesheet" href="{root}assets/vendor/ddlc/ddlc-report.css">
+<link rel="stylesheet" href="{root}assets/site.css">
+<script type="module" src="{root}assets/site.js"></script>
+</head>
+<body>
+<header class="top"><div class="wrap top-inner">
+<a class="brand" href="{root}index.html">huix <span class="tagline">конфиг и то, что на нём работает</span></a>
+<button class="icon-button" data-theme-toggle type="button"><svg viewBox="0 0 8 8" width="16" height="16" aria-hidden="true"><path d="" fill-rule="evenodd"></path></svg></button>
+<a class="icon-button" href="https://github.com/rokokol/huix" aria-label="huix на GitHub"><img src="{root}assets/icon-github.svg" alt="" width="16" height="16"></a>
+</div></header>
+<div class="wrap layout">
+<nav class="sidebar">{sidebar}</nav>
+<main class="doc">{main}</main>
+</div>
+</body>
+</html>
+"""
+
+
+def sidebar_html(sections, current):
+    blocks = []
+    for directory, items in sections:
+        name = SECTIONS.get(directory, directory)
+        links = []
+        group = None
+        for item in items:
+            if item["group"] != group:
+                group = item["group"]
+                links.append(f'<li class="nav-group">{group}</li>')
+            target = item["path"][: -len(".md")] + ".html"
+            mark = ' aria-current="page"' if target == current else ""
+            links.append(f'<li><a href="{target}"{mark}>{item["label"]}</a></li>')
+        blocks.append(f'<h2>{name}</h2><ul>{"".join(links)}</ul>')
+    return "".join(blocks)
+
+
+def render_site(repo, out, assets):
+    """Every corpus page as a page of the site, plus the index"""
+    import markdown
+
+    pages = []
+    for path in sorted((repo / DOCS).rglob("*.md")):
+        relative = str(path.relative_to(repo / DOCS))
+        meta, body = parse_front(path.read_text(encoding="utf-8"))
+        pages.append((relative, meta, body))
+
+    sections = navigation([(relative, meta) for relative, meta, _ in pages])
+    shutil.copytree(assets, out / "assets", dirs_exist_ok=True)
+
+    for relative, meta, body in pages:
+        target = relative[: -len(".md")] + ".html"
+        root = "../" * (len(Path(relative).parts) - 1)
+        main = markdown.markdown(body, extensions=["tables", "fenced_code", "toc", "sane_lists"])
+        page = SHELL.format(
+            title=page_label(meta.get("title"), relative),
+            root=root,
+            sidebar=sidebar_html(sections, target),
+            main=f'<article class="prose">{to_page_links(main)}</article>',
+        )
+        destination = out / target
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_text(page, encoding="utf-8")
+
+    index = ["<h1>huix</h1>", '<article class="prose"><p>Документация по этому конфигу: что где лежит, что чем включается и почему сделано так. Каждая страница собрана из файлов самого репозитория.</p>']
+    for directory, items in sections:
+        name = SECTIONS.get(directory, directory)
+        links = "".join(f'<li><a href="{item["path"][: -len(".md")]}.html">{item["label"]}</a></li>' for item in items)
+        index.append(f"<h2>{name}</h2><ul>{links}</ul>")
+    index.append("</article>")
+    (out / "index.html").write_text(
+        SHELL.format(title="Документация", root="", sidebar=sidebar_html(sections, "index.html"), main="".join(index)),
+        encoding="utf-8",
+    )
+    return len(pages)
 
 
 def main(argv):
     parser = argparse.ArgumentParser(description="Render flake facts into the documentation corpus")
-    parser.add_argument("command", choices=("inject", "check", "show", "scaffold"))
+    parser.add_argument("command", choices=("inject", "check", "show", "scaffold", "site"))
     parser.add_argument("--facts", required=True, type=Path)
     parser.add_argument("--repo", default=Path("."), type=Path)
+    parser.add_argument("--out", default=Path("site/_build"), type=Path)
     args = parser.parse_args(argv)
+
+    if args.command == "site":
+        pages = render_site(args.repo, args.repo / args.out, args.repo / "site" / "assets")
+        print(f"собрано {pages} страниц в {args.out}")
+        return 0
 
     facts = json.loads(args.facts.read_text(encoding="utf-8"))
     sources = read_sources(args.repo)
@@ -434,16 +622,17 @@ def main(argv):
             kind = parts[0]
             key = parts[1] if len(parts) > 1 else ""
             hosts = [key] if kind == "host" else (sorted(facts["hosts"]) if kind == "option" else [])
+            described = key if kind == "module" else ""
             if kind == "host":
                 title = f"Хост {key}"
             elif kind == "option":
                 title = "Опции верхнего уровня" if key == "rokokol" else f"Опции rokokol.{key}"
             elif kind == "module":
-                title = "Корень репозитория" if key == "." else f"Модули {key}"
+                title = "Корень репозитория" if key == "." else key
             else:
                 title = "Клавиши Hyprland"
             page.parent.mkdir(parents=True, exist_ok=True)
-            page.write_text(scaffold(marker, title, hosts), encoding="utf-8")
+            page.write_text(scaffold(marker, title, hosts, described), encoding="utf-8")
             print(f"created {path}")
         return 0
 

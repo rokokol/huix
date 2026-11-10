@@ -1,13 +1,14 @@
 ---
-title: Модули nixos/fonts
+title: nixos/fonts
 kind: module
+dir: nixos/fonts
 ---
 
-# Модули nixos/fonts
+# nixos/fonts
 
 <!-- generated: module nixos/fonts -->
 
-## `nixos/fonts/fonts.nix`
+## [`nixos/fonts/fonts.nix`](https://github.com/rokokol/huix/blob/master/nixos/fonts/fonts.nix)
 
 **Опции:** `rokokol.fonts.enable`
 

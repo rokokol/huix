@@ -1,19 +1,20 @@
 ---
-title: Модули nixos/services/utils
+title: nixos/services/utils
 kind: module
+dir: nixos/services/utils
 ---
 
-# Модули nixos/services/utils
+# nixos/services/utils
 
 <!-- generated: module nixos/services/utils -->
 
-## `nixos/services/utils/docker.nix`
+## [`nixos/services/utils/docker.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/utils/docker.nix)
 
 **Опции:** `rokokol.docker.enable`
 
 Подробнее: [опции rokokol.docker](../options/docker.md)
 
-## `nixos/services/utils/embedded.nix`
+## [`nixos/services/utils/embedded.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/utils/embedded.nix)
 
 Embedded toolchain for Arduino/AVR, ESP32, STM32, RP2040
 platformio-core.udev ships udev rules for common programmers/bootloaders; dialout grants
@@ -23,7 +24,7 @@ platformio-core.udev ships udev rules for common programmers/bootloaders; dialou
 
 Подробнее: [опции rokokol.embedded](../options/embedded.md)
 
-## `nixos/services/utils/forgejo-runner.nix`
+## [`nixos/services/utils/forgejo-runner.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/utils/forgejo-runner.nix)
 
 A Forgejo Actions runner that takes jobs from the station and runs each in a Docker container.
 The runner trusts no workflow: it has only docker:// labels, so no job runs on this host, and
@@ -37,7 +38,7 @@ daemon, so a flaw in the runner, not in a job, is what this setup trusts
 
 Подробнее: [опции rokokol.forgejo-runner](../options/forgejo-runner.md)
 
-## `nixos/services/utils/virtualization.nix`
+## [`nixos/services/utils/virtualization.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/utils/virtualization.nix)
 
 **Опции:** `rokokol.virtualization.enable`
 

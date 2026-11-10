@@ -12,6 +12,6 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 | --- | --- | --- | --- | --- |
 | `rokokol.sensors.enable` | да | нет | нет | Whether to enable the accelerometer and the other IIO sensors, through iio-sensor-proxy. |
 
-Объявлено в: `nixos/services/devices/sensors.nix`
+Объявлено в: [`nixos/services/devices/sensors.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/devices/sensors.nix)
 
 <!-- /generated -->

@@ -1,13 +1,14 @@
 ---
-title: Модули nixos/services/tools
+title: nixos/services/tools
 kind: module
+dir: nixos/services/tools
 ---
 
-# Модули nixos/services/tools
+# nixos/services/tools
 
 <!-- generated: module nixos/services/tools -->
 
-## `nixos/services/tools/dav-mcp.nix`
+## [`nixos/services/tools/dav-mcp.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/tools/dav-mcp.nix)
 
 The Radicale login of one local user, for dav-mcp, the calendar MCP server that the user's
 agents start. The server is registered on the Home Manager side, in
@@ -17,7 +18,7 @@ home-manager/programs/agents/remote/dav-mcp.nix reads the password file and the 
 
 Подробнее: [опции rokokol.dav-mcp](../options/dav-mcp.md)
 
-## `nixos/services/tools/drive-backup.nix`
+## [`nixos/services/tools/drive-backup.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/tools/drive-backup.nix)
 
 **Опции:** `rokokol.drive-backup.cloud.configFile`, `rokokol.drive-backup.cloud.destination`, `rokokol.drive-backup.cloud.enable`, `rokokol.drive-backup.cloud.maxAge`, `rokokol.drive-backup.cloud.onCalendar`, `rokokol.drive-backup.enable`
 
@@ -25,7 +26,7 @@ home-manager/programs/agents/remote/dav-mcp.nix reads the password file and the 
 
 **Юниты:** `btrbk-restic`, `restic-cloud`, `restic-cloud-heartbeat`
 
-## `nixos/services/tools/forgejo-mirrors.nix`
+## [`nixos/services/tools/forgejo-mirrors.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/tools/forgejo-mirrors.nix)
 
 Forgejo pull mirrors of the GitHub repositories that the token in the secret
 github-mirror-token sees as its user's own. A daily run makes the mirrors that are missing
@@ -40,7 +41,7 @@ takes the user scope as well as the repository one
 
 **Юниты:** `forgejo-mirrors`
 
-## `nixos/services/tools/forgejo.nix`
+## [`nixos/services/tools/forgejo.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/tools/forgejo.nix)
 
 A Forgejo forge for one owner, reached over HTTP through its tailnet-web site, which the LAN
 reaches too. Forgejo itself binds to loopback: its module listens on every address by default.
@@ -53,7 +54,7 @@ first password that Forgejo asks to change on the first login
 
 **Юниты:** `forgejo`, `forgejo-dump`, `forgejo-dump-dir`, `forgejo-owner`, `forgejo-runners`, `restic-backups-station`
 
-## `nixos/services/tools/mail-agent.nix`
+## [`nixos/services/tools/mail-agent.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/tools/mail-agent.nix)
 
 The seam for the mail skill's service. The module owns the unit, the isolation and
 every default; this file supplies the two things it ships none of — where the mailboxes
@@ -65,7 +66,7 @@ because this repository is public and the addresses are not
 
 Подробнее: [опции rokokol.mail-agent](../options/mail-agent.md)
 
-## `nixos/services/tools/paper-search.nix`
+## [`nixos/services/tools/paper-search.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/tools/paper-search.nix)
 
 The private settings of paper-search-mcp, the paper search server behind the papers skill.
 The server reads them from an env file, so sops renders one and the user layer's seam
@@ -77,7 +78,7 @@ no key: an invalid Semantic Scholar key is refused where no key is answered
 
 Подробнее: [опции rokokol.paper-search](../options/paper-search.md)
 
-## `nixos/services/tools/radicale.nix`
+## [`nixos/services/tools/radicale.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/tools/radicale.nix)
 
 A CalDAV server for the owner's calendars, reached through its tailnet-web site. Radicale binds
 to loopback, and every request needs a login from the htpasswd file. The calendars are plain
@@ -92,13 +93,13 @@ because a CalDAV client lists only the calendars of its own home
 
 **Юниты:** `radicale`
 
-## `nixos/services/tools/searxng.nix`
+## [`nixos/services/tools/searxng.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/tools/searxng.nix)
 
 **Опции:** `rokokol.searxng.enable`, `rokokol.searxng.port`, `rokokol.searxng.publicPort`
 
 Подробнее: [опции rokokol.searxng](../options/searxng.md)
 
-## `nixos/services/tools/syncthing.nix`
+## [`nixos/services/tools/syncthing.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/tools/syncthing.nix)
 
 Syncthing between the hosts of this flake and the phone. Each host names its own device ID, and
 every other host takes it from there; a host with no ID yet is left out. A workstation shares
@@ -111,7 +112,7 @@ keeps what a peer deletes or overwrites in snapshots, for the folder's `preserve
 
 **Юниты:** `btrbk-syncthing`, `syncthing`, `syncthing-init`
 
-## `nixos/services/tools/telegram-agent.nix`
+## [`nixos/services/tools/telegram-agent.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/tools/telegram-agent.nix)
 
 The seam for the telegram skill's service. The module owns the unit, the isolation and
 every default; this file supplies the two things it ships none of — where the api pair

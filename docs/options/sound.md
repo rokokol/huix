@@ -12,6 +12,6 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 | --- | --- | --- | --- | --- |
 | `rokokol.sound.enable` | да | да | нет | Whether to enable PipeWire sound. |
 
-Объявлено в: `nixos/sound.nix`
+Объявлено в: [`nixos/sound.nix`](https://github.com/rokokol/huix/blob/master/nixos/sound.nix)
 
 <!-- /generated -->

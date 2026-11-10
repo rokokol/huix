@@ -29,6 +29,6 @@ if ($pushgateway_instance != $remote_user) {
 }
 `, `lan=нет`, `port=9091`, `radicale=backend=http://127.0.0.1:5233`, `extraConfig=`, `lan=нет`, `port=5232`, `searxng=backend=http://127.0.0.1:9000`, `extraConfig=`, `lan=нет`, `port=9001` | Sites published to the tailnet, by name |
 
-Объявлено в: `nixos/services/system/tailnet-web.nix`
+Объявлено в: [`nixos/services/system/tailnet-web.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/tailnet-web.nix)
 
 <!-- /generated -->

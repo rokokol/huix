@@ -12,6 +12,6 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 | --- | --- | --- | --- | --- |
 | `rokokol.fonts.enable` | да | да | да | Whether to enable the desktop fonts. |
 
-Объявлено в: `nixos/fonts/fonts.nix`
+Объявлено в: [`nixos/fonts/fonts.nix`](https://github.com/rokokol/huix/blob/master/nixos/fonts/fonts.nix)
 
 <!-- /generated -->

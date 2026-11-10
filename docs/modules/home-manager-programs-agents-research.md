@@ -1,27 +1,28 @@
 ---
-title: Модули home-manager/programs/agents/research
+title: home-manager/programs/agents/research
 kind: module
+dir: home-manager/programs/agents/research
 ---
 
-# Модули home-manager/programs/agents/research
+# home-manager/programs/agents/research
 
 <!-- generated: module home-manager/programs/agents/research -->
 
-## `home-manager/programs/agents/research/default.nix`
+## [`home-manager/programs/agents/research/default.nix`](https://github.com/rokokol/huix/blob/master/home-manager/programs/agents/research/default.nix)
 
-## `home-manager/programs/agents/research/docs-mcp.nix`
+## [`home-manager/programs/agents/research/docs-mcp.nix`](https://github.com/rokokol/huix/blob/master/home-manager/programs/agents/research/docs-mcp.nix)
 
 MCP servers that answer from documentation rather than from the user's own data: mcp-nixos,
 over the NixOS, Home Manager and nixpkgs indexes of a channel rather than this flake's pin, and
 DeepWiki, which answers about a public GitHub repository from an index Cognition hosts
 
-## `home-manager/programs/agents/research/geo-sleuth.nix`
+## [`home-manager/programs/agents/research/geo-sleuth.nix`](https://github.com/rokokol/huix/blob/master/home-manager/programs/agents/research/geo-sleuth.nix)
 
-## `home-manager/programs/agents/research/group.nix`
+## [`home-manager/programs/agents/research/group.nix`](https://github.com/rokokol/huix/blob/master/home-manager/programs/agents/research/group.nix)
 
-## `home-manager/programs/agents/research/kinship-research.nix`
+## [`home-manager/programs/agents/research/kinship-research.nix`](https://github.com/rokokol/huix/blob/master/home-manager/programs/agents/research/kinship-research.nix)
 
-## `home-manager/programs/agents/research/papers.nix`
+## [`home-manager/programs/agents/research/papers.nix`](https://github.com/rokokol/huix/blob/master/home-manager/programs/agents/research/papers.nix)
 
 The seam to rokokol/papers-skill: the module owns the paper-search-mcp package, both
 binaries on PATH, the PAPER_SEARCH_MCP_ENV_FILE variable, the MCP server, the skill's

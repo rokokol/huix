@@ -12,6 +12,6 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 | --- | --- | --- | --- | --- |
 | `rokokol.virtualization.enable` | нет | да | нет | Whether to enable libvirt + virt-manager (KVM/VFIO). |
 
-Объявлено в: `nixos/services/utils/virtualization.nix`
+Объявлено в: [`nixos/services/utils/virtualization.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/utils/virtualization.nix)
 
 <!-- /generated -->

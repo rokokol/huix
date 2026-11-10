@@ -13,6 +13,6 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 | `rokokol.mail-agent.enable` | нет | да | да | Whether to enable the mail agent service. |
 | `rokokol.mail-agent.socketUser` | `rokokol` | `rokokol` | `mya` | Who may talk to the socket, and so whose agents get the skill |
 
-Объявлено в: `nixos/services/tools/mail-agent.nix`
+Объявлено в: [`nixos/services/tools/mail-agent.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/tools/mail-agent.nix)
 
 <!-- /generated -->

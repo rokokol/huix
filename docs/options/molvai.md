@@ -12,6 +12,6 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 | --- | --- | --- | --- | --- |
 | `rokokol.molvai.enable` | нет | да | нет | Whether to enable the sops environment of MolvAI. |
 
-Объявлено в: `nixos/services/desktop/molvai.nix`
+Объявлено в: [`nixos/services/desktop/molvai.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/desktop/molvai.nix)
 
 <!-- /generated -->

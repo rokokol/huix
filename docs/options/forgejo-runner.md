@@ -19,6 +19,6 @@ so the secret is written once
 | `rokokol.forgejo-runner.unit` | `forgejo-runner-nixos\x2dlaptop.service` | `forgejo-runner-nixos\x2dpc.service` | `forgejo-runner-nixos\x2dstation.service` | The runner's systemd unit, whose name the nixpkgs module escapes as a path |
 | `rokokol.forgejo-runner.url` | — | `http://nixos-station:3000/` | — | Root URL of the Forgejo that hands out the jobs |
 
-Объявлено в: `nixos/services/utils/forgejo-runner.nix`
+Объявлено в: [`nixos/services/utils/forgejo-runner.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/utils/forgejo-runner.nix)
 
 <!-- /generated -->

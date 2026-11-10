@@ -1,13 +1,14 @@
 ---
-title: Модули nixos/services/ai/hindsight
+title: nixos/services/ai/hindsight
 kind: module
+dir: nixos/services/ai/hindsight
 ---
 
-# Модули nixos/services/ai/hindsight
+# nixos/services/ai/hindsight
 
 <!-- generated: module nixos/services/ai/hindsight -->
 
-## `nixos/services/ai/hindsight/backup.nix`
+## [`nixos/services/ai/hindsight/backup.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/ai/hindsight/backup.nix)
 
 **Опции:** `rokokol.hindsight.backup.dumpDir`, `rokokol.hindsight.backup.mountPoint`, `rokokol.hindsight.backup.subvolumes`
 
@@ -15,9 +16,9 @@ kind: module
 
 **Юниты:** `postgresqlBackup-hindsight`, `restic-backups-station`
 
-## `nixos/services/ai/hindsight/default.nix`
+## [`nixos/services/ai/hindsight/default.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/ai/hindsight/default.nix)
 
-## `nixos/services/ai/hindsight/monitor.nix`
+## [`nixos/services/ai/hindsight/monitor.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/ai/hindsight/monitor.nix)
 
 Hindsight runs every model on a key of its own, and that key's counter is what the provider
 billed — so the dashboard reads the spend instead of inferring it from tokens, which Hindsight
@@ -30,7 +31,7 @@ or not the agent runs
 
 **Юниты:** `hindsight-monitor`
 
-## `nixos/services/ai/hindsight/service.nix`
+## [`nixos/services/ai/hindsight/service.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/ai/hindsight/service.nix)
 
 **Опции:** `rokokol.hindsight.bank`, `rokokol.hindsight.client.enable`, `rokokol.hindsight.dataDir`, `rokokol.hindsight.enable`, `rokokol.hindsight.poolMax`, `rokokol.hindsight.poolMin`, `rokokol.hindsight.port`, `rokokol.hindsight.publicPort`
 

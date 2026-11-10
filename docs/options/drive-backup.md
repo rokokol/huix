@@ -17,6 +17,6 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 | `rokokol.drive-backup.cloud.onCalendar` | `*-*-* 04:30:00` | `*-*-* 04:30:00` | `*-*-* 04:30:00` | Cloud mirror schedule in systemd calendar syntax |
 | `rokokol.drive-backup.enable` | да | да | да | Whether to enable Google Drive backup credentials. |
 
-Объявлено в: `nixos/services/tools/drive-backup.nix`
+Объявлено в: [`nixos/services/tools/drive-backup.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/tools/drive-backup.nix)
 
 <!-- /generated -->

@@ -1,13 +1,14 @@
 ---
-title: Модули home-manager/programs/nixvim
+title: home-manager/programs/nixvim
 kind: module
+dir: home-manager/programs/nixvim
 ---
 
-# Модули home-manager/programs/nixvim
+# home-manager/programs/nixvim
 
 <!-- generated: module home-manager/programs/nixvim -->
 
-## `home-manager/programs/nixvim/clipboard.nix`
+## [`home-manager/programs/nixvim/clipboard.nix`](https://github.com/rokokol/huix/blob/master/home-manager/programs/nixvim/clipboard.nix)
 
 A yank must reach the terminal's clipboard both in a desktop session and over SSH on a host
 whose desktop belongs to another machine. The host cannot answer which of the two this is:
@@ -20,20 +21,20 @@ terminal's paste key: an OSC 52 read makes kitty ask for permission, and with 'c
 unnamedplus every `p` would read it. So `p` returns the last text this nvim yanked, with its
 register type
 
-## `home-manager/programs/nixvim/default.nix`
+## [`home-manager/programs/nixvim/default.nix`](https://github.com/rokokol/huix/blob/master/home-manager/programs/nixvim/default.nix)
 
-## `home-manager/programs/nixvim/keymaps.nix`
+## [`home-manager/programs/nixvim/keymaps.nix`](https://github.com/rokokol/huix/blob/master/home-manager/programs/nixvim/keymaps.nix)
 
 --- Interface ---
 
-## `home-manager/programs/nixvim/opener.nix`
+## [`home-manager/programs/nixvim/opener.nix`](https://github.com/rokokol/huix/blob/master/home-manager/programs/nixvim/opener.nix)
 
 nvim's own desktop file asks for a terminal, and xdg-open cannot provide one, so this entry
 opens it in a kitty window. It only serves as an opener, so the launcher hides it
 
-## `home-manager/programs/nixvim/packages.nix`
+## [`home-manager/programs/nixvim/packages.nix`](https://github.com/rokokol/huix/blob/master/home-manager/programs/nixvim/packages.nix)
 
-## `home-manager/programs/nixvim/settings.nix`
+## [`home-manager/programs/nixvim/settings.nix`](https://github.com/rokokol/huix/blob/master/home-manager/programs/nixvim/settings.nix)
 
 --- Globals ---
 

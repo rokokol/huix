@@ -12,6 +12,6 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 | --- | --- | --- | --- | --- |
 | `rokokol.ssh-agent.enable` | да | да | нет | Whether to enable gcr's SSH agent. |
 
-Объявлено в: `nixos/services/desktop/ssh-agent.nix`
+Объявлено в: [`nixos/services/desktop/ssh-agent.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/desktop/ssh-agent.nix)
 
 <!-- /generated -->

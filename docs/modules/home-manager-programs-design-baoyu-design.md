@@ -1,13 +1,14 @@
 ---
-title: Модули home-manager/programs/design/baoyu-design
+title: home-manager/programs/design/baoyu-design
 kind: module
+dir: home-manager/programs/design/baoyu-design
 ---
 
-# Модули home-manager/programs/design/baoyu-design
+# home-manager/programs/design/baoyu-design
 
 <!-- generated: module home-manager/programs/design/baoyu-design -->
 
-## `home-manager/programs/design/baoyu-design/baoyu-design.nix`
+## [`home-manager/programs/design/baoyu-design/baoyu-design.nix`](https://github.com/rokokol/huix/blob/master/home-manager/programs/design/baoyu-design/baoyu-design.nix)
 
 The local build of claude.ai's Artifact types: a slide deck, a canvas, a design system, a
 dashboard and a motion film, each written as files in a folder and opened in the editor that

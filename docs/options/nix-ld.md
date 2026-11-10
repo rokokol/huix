@@ -12,6 +12,6 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 | --- | --- | --- | --- | --- |
 | `rokokol.nix-ld.enable` | да | да | нет | Whether to enable nix-ld with a desktop set of libraries. |
 
-Объявлено в: `nixos/services/system/nix-ld.nix`
+Объявлено в: [`nixos/services/system/nix-ld.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/nix-ld.nix)
 
 <!-- /generated -->

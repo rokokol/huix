@@ -15,6 +15,6 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 | `rokokol.forgejo-mirrors.forks` | — | — | `obsidian-media-gallery` | Forks that get a mirror too; every repository that is not a fork gets one anyway |
 | `rokokol.forgejo-mirrors.githubApi` | `https://api.github.com` | `https://api.github.com` | `https://api.github.com` | Base URL of the GitHub API |
 
-Объявлено в: `nixos/services/tools/forgejo-mirrors.nix`
+Объявлено в: [`nixos/services/tools/forgejo-mirrors.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/tools/forgejo-mirrors.nix)
 
 <!-- /generated -->

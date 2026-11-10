@@ -12,6 +12,6 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 | --- | --- | --- | --- | --- |
 | `rokokol.sddm.enable` | да | да | нет | Whether to enable the SDDM login screen. |
 
-Объявлено в: `nixos/services/desktop/sddm.nix`
+Объявлено в: [`nixos/services/desktop/sddm.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/desktop/sddm.nix)
 
 <!-- /generated -->

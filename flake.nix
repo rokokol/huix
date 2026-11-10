@@ -233,6 +233,14 @@
       flake = false;
     };
 
+    # A tree of several skills, so no skill-NAME input reaches one of them and the module that
+    # hands it to the agents names the directory. No release tag upstream, so the lock pins the
+    # commit
+    pixel-point-skills = {
+      url = "github:pixel-point/skills";
+      flake = false;
+    };
+
     geo-sleuth = {
       url = "github:Oldcircle/geo-sleuth";
       flake = false;

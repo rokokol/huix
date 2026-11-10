@@ -12,6 +12,6 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 | --- | --- | --- | --- | --- |
 | `rokokol.amnezia-vpn.enable` | да | да | нет | Whether to enable the AmneziaVPN client. |
 
-Объявлено в: `nixos/services/desktop/amnezia-vpn.nix`
+Объявлено в: [`nixos/services/desktop/amnezia-vpn.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/desktop/amnezia-vpn.nix)
 
 <!-- /generated -->

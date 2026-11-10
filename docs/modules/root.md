@@ -1,13 +1,14 @@
 ---
 title: Корень репозитория
 kind: module
+dir: .
 ---
 
 # Корень репозитория
 
 <!-- generated: module . -->
 
-## `checks.nix`
+## [`checks.nix`](https://github.com/rokokol/huix/blob/master/checks.nix)
 
 nix flake check already evaluates every host. The nixvim entries add the one thing
 evaluation cannot say: whether the Lua nixvim assembles out of every module is
@@ -19,7 +20,7 @@ job runs the whole checker through apps.check-nix, where the inputs are there
 
 **Юниты:** `sync`
 
-## `flake.nix`
+## [`flake.nix`](https://github.com/rokokol/huix/blob/master/flake.nix)
 
 Deliberately without nixpkgs.follows: nixvim pins its own nixpkgs and warns if you override it
 
