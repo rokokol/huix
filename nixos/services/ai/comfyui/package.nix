@@ -46,7 +46,6 @@ in
         comfyui-manager-ab-samplercustom
         comfyui-manager-ksamplertimer
         comfyui-rgthree
-        comfyui-crystools
         comfyui-easy-use
         comfyui-inspire-pack
         comfyui-comfy-mtb
