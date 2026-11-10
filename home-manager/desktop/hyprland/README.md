@@ -1,21 +1,21 @@
 # Hyprland
 
-[![huix](https://img.shields.io/badge/huix-наверх-222222?style=for-the-badge&logo=nixos&logoColor=white)](../../../README.md)
-[![home-manager](https://img.shields.io/badge/home--manager-юзер_слой-5E81AC?style=for-the-badge)](../../README.md)
-[![scripts](https://img.shields.io/badge/scripts-скрипты-4EAA25?style=for-the-badge&logo=gnubash&logoColor=white)](../../../scripts/README.md)
-[![screen-shader](https://img.shields.io/badge/screen--shader-эффекты-FF4088?style=for-the-badge&logo=opengl&logoColor=white)](https://github.com/rokokol/hyprland-screen-shader)
-[![rofi-wooordhunt](https://img.shields.io/badge/rofi--wooordhunt-словарь-F4A100?style=for-the-badge)](https://github.com/rokokol/rofi-wooordhunt)
+[![huix](https://img.shields.io/badge/huix-up-222222?style=for-the-badge&logo=nixos&logoColor=white)](../../../README.md)
+[![home-manager](https://img.shields.io/badge/home--manager-user_layer-5E81AC?style=for-the-badge)](../../README.md)
+[![scripts](https://img.shields.io/badge/scripts-scripts-4EAA25?style=for-the-badge&logo=gnubash&logoColor=white)](../../../scripts/README.md)
+[![screen-shader](https://img.shields.io/badge/screen--shader-effects-FF4088?style=for-the-badge&logo=opengl&logoColor=white)](https://github.com/rokokol/hyprland-screen-shader)
+[![rofi-wooordhunt](https://img.shields.io/badge/rofi--wooordhunt-dictionary-F4A100?style=for-the-badge)](https://github.com/rokokol/rofi-wooordhunt)
 
-Hyprland — мой рабочий стол для ПК и ноутбука: окна, рабочие пространства и мониторы ведут себя так, как мне удобно. Под рукой лаунчер, история буфера обмена, уведомления, скриншоты с распознаванием текста, словарь и экранные эффекты
+Hyprland is the desktop of the PC and the laptop: the windows, the workspaces and the monitors behave the way I like them. A launcher, the clipboard history, the notifications, screenshots with text recognition, a dictionary and the screen effects are all at hand
 
-Часть действий доступна с клавиатуры, часть — через лаунчер и панель. Про панель читай в [разделе Waybar](services/waybar/README.md), а про автоматизацию — в [разделе скриптов](../../../scripts/README.md)
+Some of it answers the keyboard, and some sits behind the launcher and the bar. The bar is in [its own section](services/waybar/README.md), and the automation is in [the scripts](../../../scripts/README.md)
 
-## Ноутбук-трансформер
+## The convertible laptop
 
-Ноутбук умеет складываться в планшет: экран сам поворачивается, сенсорные жесты помогают листать рабочие пространства, а интерфейс становится удобнее для пальцев и пера
+The laptop folds into a tablet: the screen turns by itself, the touch gestures page through the workspaces, and the interface becomes comfortable for fingers and for a pen
 
-## Компоненты
+## Components
 
-- [Экранные эффекты и программная яркость](https://github.com/rokokol/hyprland-screen-shader)
-- [Словарь](https://github.com/rokokol/rofi-wooordhunt)
-- [Экран блокировки](https://github.com/rokokol/ddlc-hyprlock)
+- [Screen effects and software brightness](https://github.com/rokokol/hyprland-screen-shader)
+- [Dictionary](https://github.com/rokokol/rofi-wooordhunt)
+- [Lock screen](https://github.com/rokokol/ddlc-hyprlock)

@@ -1,12 +1,12 @@
 # Nixvim
 
-[![huix](https://img.shields.io/badge/huix-наверх-222222?style=for-the-badge&logo=nixos&logoColor=white)](../../../README.md)
-[![programs](https://img.shields.io/badge/programs-программы-7E57C2?style=for-the-badge)](../README.md)
+[![huix](https://img.shields.io/badge/huix-up-222222?style=for-the-badge&logo=nixos&logoColor=white)](../../../README.md)
+[![programs](https://img.shields.io/badge/programs-programs-7E57C2?style=for-the-badge)](../README.md)
 
-Nixvim — мой сигма самодельный дистрибутив Neovim как универсальнй текстовый редактор. В нём есть навигация по проекту, форматирование, Git и просмотр медиа прямо из редактора
+Nixvim is my own self-made distribution of Neovim, used as a universal text editor. It navigates a project, formats, drives Git and shows media without leaving the editor
 
-## Особенности
+## What stands out
 
-- Оформление редактора сочетается с темой рабочего стола
-- В поиске можно показывать скрытые файлы, а результаты и медиа — смотреть, не уходя из редактора
-- Текстовые файлы из других приложений тоже открываются здесь
+- The look of the editor goes with the theme of the desktop
+- The search can show hidden files, and the results and the media open without leaving the editor
+- A text file handed over by another application opens here too

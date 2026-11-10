@@ -4,31 +4,31 @@
 
 </div>
 
-# Программы
+# Programs
 
-[![huix](https://img.shields.io/badge/huix-наверх-222222?style=for-the-badge&logo=nixos&logoColor=white)](../../README.md)
-[![home-manager](https://img.shields.io/badge/home--manager-юзер_слой-5E81AC?style=for-the-badge)](../README.md)
+[![huix](https://img.shields.io/badge/huix-up-222222?style=for-the-badge&logo=nixos&logoColor=white)](../../README.md)
+[![home-manager](https://img.shields.io/badge/home--manager-user_layer-5E81AC?style=for-the-badge)](../README.md)
 [![nixvim](https://img.shields.io/badge/nixvim-neovim-019733?style=for-the-badge&logo=neovim&logoColor=white)](nixvim/README.md)
-[![yazi](https://img.shields.io/badge/yazi-файлы-FFC107?style=for-the-badge)](yazi/README.md)
+[![yazi](https://img.shields.io/badge/yazi-files-FFC107?style=for-the-badge)](yazi/README.md)
 
-Тут собраны программы, которые делают пользовательскую среду удобнее и подстраиваются под привычный рабочий процесс
+The programs that make the user environment comfortable live here, each shaped around a familiar way of working
 
-Среди них — редактор [Nixvim](nixvim/README.md), файловый менеджер [Yazi](yazi/README.md), командные утилиты и графические приложения
+Among them are the editor [Nixvim](nixvim/README.md), the file manager [Yazi](yazi/README.md), the command-line tools and the graphical applications
 
-Pi получает MCP-серверы и скиллы из общих списков агентов. Сервер и скилл объявляются один раз рядом со своим инструментом, а руками ничего регистрировать не нужно. Так подключены календарь, поиск статей, Ghidra и творческие приложения. Скиллы из собственных репозиториев приходят flake inputs'ами, и каждый хост берёт из них только нужные
+Pi takes its MCP servers and its skills from the shared lists of the agents. A server and a skill are declared once, beside the tool they belong to, and nothing is registered by hand. The calendar, the search for papers, Ghidra and the creative applications arrive this way. The skills of their own repositories come as flake inputs, and each host takes only the ones it needs
 
-В pi инструменты распределены по отключаемым пакетам: `huix` для разработки и системной конфигурации, `reversing` для реверс-инжиниринга, `research` для статей и документации, `creative` для видео, звука и 3D, `design` для слайдов, канвасов, дизайн-систем, дашбордов и фильмов, `remote` для связи и управления устройствами. Через `pi config` можно отключить пакет вместе со скиллами и MCP, а через `/mcp` — отдельный сервер
+Inside pi the tools are split into packages that switch off: `huix` for development and the system configuration, `reversing` for reverse engineering, `research` for papers and documentation, `creative` for video, sound and 3D, `design` for slides, canvases, design systems, dashboards and films, `remote` for communication and the control of devices. `pi config` switches a package off with its skills and its MCP servers, and `/mcp` switches off one server
 
-Базовые настройки pi задаёт штатный модуль Home Manager. Предпочтения интерфейса остаются изменяемыми: они сохраняются между запусками и обновляются из Nix только при изменении декларативного источника. Ключи и вход в Codex хранятся отдельно от конфигурации Nix
+The stock Home Manager module carries the base settings of pi. The preferences of the interface stay editable: they survive the runs, and Nix changes them only when the declarative source changes. The keys and the Codex login live apart from the Nix configuration
 
-Расширения добавляют фоновых субагентов, связь между сессиями, боковые обсуждения и автоматическую проверку действий отдельной моделью. Маршруты OpenRouter ограничены выбранными хостерами с Zero Data Retention и запретом обучения на запросах
+The extensions add background subagents, the link between sessions, side conversations and an automatic review of actions by a separate model. The OpenRouter routes are limited to the chosen hosts with Zero Data Retention and with training on the requests forbidden
 
-Команда `/hoster` выбирает хостера текущей модели OpenRouter из разрешённого списка или возвращает автоматический выбор. Она показывает цены, контекст и квантизацию по каталогу OpenRouter и оценку стоимости по расходу токенов в текущей сессии. Предпочтение сохраняется локально для каждой модели; маршрут классификатора auto-mode остаётся независимым
+The `/hoster` command picks the host of the current OpenRouter model from the allowed list, or returns the automatic choice. It shows the price, the context and the quantisation from the OpenRouter catalogue, and an estimate of the cost from the token spend of the session. The preference is kept locally for each model, and the route of the auto-mode classifier stays independent
 
-В `reversing/` собраны Ghidra с ReVa и REA с собственным MCP и скиллом исследования приложений. REA использует Ghidra для headless-анализа и также исследует поддерживаемые форматы без запуска графического редактора
+`reversing/` holds Ghidra with ReVa, and REA with its own MCP and its own skill for the study of applications. REA uses Ghidra for a headless analysis, and reads the formats it supports without starting the graphical editor too
 
-Творческие приложения собраны в `creative/`: Kdenlive с MCP и скиллами Anatomy, Remotion и sound-layer, Blender с MCP, Audacity с MCP, FreeCAD с MCP, а также rea-video — скилл с CLI, который разбирает готовый ролик по кадрам и выдаёт план его пересъёмки, и compress-video, который сжимает видео через FFmpeg под выбранные кодеки и CRF. Редактор видео позволяет продолжить ручной монтаж после работы агента, а звуковые инструменты подбирают эффекты, сводят дорожки и проверяют результат
+The creative applications are gathered in `creative/`: Kdenlive with MCP and the Anatomy, Remotion and sound-layer skills, Blender with MCP, Audacity with MCP, FreeCAD with MCP, rea-video, a skill with a CLI that takes a finished film apart frame by frame and returns a plan to shoot it again, and compress-video, which compresses a video through FFmpeg for the chosen codecs and CRF. The video editor lets the manual cutting continue after the agent, and the sound tools pick effects, mix the tracks and check the result
 
-В `design/` живёт baoyu-design — типы артефактов claude.ai как локальные скиллы с их редакторами: колода слайдов, канвас, дизайн-система, дашборд и фильм. Агент пишет файлы в папку проекта, редактор открывается рядом и сохраняет правки туда же
+`design/` holds baoyu-design: the artifact types of claude.ai as local skills with their editors — a slide deck, a canvas, a design system, a dashboard and a film. The agent writes the files into the project folder, the editor opens beside it and saves the edits to the same place
 
-Некоторые инструменты выросли в отдельные проекты; ссылки на них найдёшь в корневом [README](../../README.md#вынесено-в-отдельные-репо)
+A few tools grew into projects of their own; the root [README](../../README.md#extracted-into-their-own-repositories) links them all

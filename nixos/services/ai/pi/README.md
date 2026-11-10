@@ -1,5 +1,5 @@
 # Pi
 
-Системная часть pi объявляет секрет для OpenRouter. Пользовательские настройки, модели, расширения и управление модулями находятся в [Home Manager](../../../../home-manager/programs/agents/pi/README.md)
+The system part of pi declares the secret for OpenRouter. The user settings, the models, the extensions and the module management are in [Home Manager](../../../../home-manager/programs/agents/pi/README.md)
 
-Общая память не принадлежит этому модулю: Hindsight используется и pi, и Hermes. Локальная проба памяти предшествует включению сервера на станции
+The shared memory belongs to no module of its own: both pi and Hermes use Hindsight. A local probe of the memory comes before the server is switched on at the station
