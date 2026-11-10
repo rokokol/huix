@@ -34,6 +34,7 @@
 
   rokokol = {
     workstation.enable = true;
+    comfyui.enable = true;
     molvai.enable = true;
 
     btrfs.mounts = [

@@ -366,6 +366,9 @@
 
     # A NixOS module and nothing else: it has no inputs, so it needs no follows
     nix-flatpak.url = "github:gmodena/nix-flatpak";
+
+    # Its ComfyUI module imports a pinned nixpkgs with CUDA enabled, so following huix nixpkgs changes that package set
+    nixified-ai.url = "github:nixified-ai/flake";
   };
 
   outputs =
