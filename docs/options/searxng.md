@@ -10,9 +10,9 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 
 | Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
 | --- | --- | --- | --- | --- |
-| `searxng.enable` | нет | нет | да | Whether to enable SearxNG behind nginx. |
-| `searxng.port` | `9000` | `9000` | `9000` | Loopback port of the SearXNG instance behind nginx |
-| `searxng.publicPort` | `9001` | `9001` | `9001` | Tailnet port publishing SearXNG |
+| `rokokol.searxng.enable` | нет | нет | да | Whether to enable SearxNG behind nginx. |
+| `rokokol.searxng.port` | `9000` | `9000` | `9000` | Loopback port of the SearXNG instance behind nginx |
+| `rokokol.searxng.publicPort` | `9001` | `9001` | `9001` | Tailnet port publishing SearXNG |
 
 Объявлено в: `nixos/services/tools/searxng.nix`
 

@@ -10,9 +10,9 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 
 | Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
 | --- | --- | --- | --- | --- |
-| `grafana.dashboardTitles` | `Hosts`, `Guards`, `Mail`, `VPN` | `Hosts`, `Guards`, `Mail`, `VPN` | `Hosts`, `Guards`, `Mail`, `VPN`, `Hermes`, `Hindsight` | Titles of the provisioned dashboards, for what points a reader at them |
-| `grafana.enable` | нет | нет | да | Whether to enable Grafana over the Prometheus of this host. |
-| `grafana.resourcePolicy` | — | — | — | Resource thresholds, queries and rules for dashboards and checks |
+| `rokokol.grafana.dashboardTitles` | `Hosts`, `Guards`, `Mail`, `VPN` | `Hosts`, `Guards`, `Mail`, `VPN` | `Hosts`, `Guards`, `Mail`, `VPN`, `Hermes`, `Hindsight` | Titles of the provisioned dashboards, for what points a reader at them |
+| `rokokol.grafana.enable` | нет | нет | да | Whether to enable Grafana over the Prometheus of this host. |
+| `rokokol.grafana.resourcePolicy` | — | — | — | Resource thresholds, queries and rules for dashboards and checks |
 
 Объявлено в: `nixos/services/system/grafana/grafana.nix`
 

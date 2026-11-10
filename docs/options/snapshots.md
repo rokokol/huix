@@ -10,7 +10,7 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 
 | Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
 | --- | --- | --- | --- | --- |
-| `snapshots.enable` | нет | нет | да | Whether a tool takes filesystem snapshots on this host |
+| `rokokol.snapshots.enable` | нет | нет | да | Whether a tool takes filesystem snapshots on this host |
 
 Объявлено в: `nixos/btrfs.nix`
 

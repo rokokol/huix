@@ -10,7 +10,7 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 
 | Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
 | --- | --- | --- | --- | --- |
-| `docker.enable` | да | да | нет | Whether to enable the Docker daemon. |
+| `rokokol.docker.enable` | да | да | нет | Whether to enable the Docker daemon. |
 
 Объявлено в: `nixos/services/utils/docker.nix`
 

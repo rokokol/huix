@@ -10,7 +10,7 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 
 | Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
 | --- | --- | --- | --- | --- |
-| `paper-search.enable` | нет | да | нет | Whether to enable the paper-search-mcp settings file. |
+| `rokokol.paper-search.enable` | нет | да | нет | Whether to enable the paper-search-mcp settings file. |
 
 Объявлено в: `nixos/services/tools/paper-search.nix`
 

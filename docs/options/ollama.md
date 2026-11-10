@@ -10,7 +10,7 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 
 | Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
 | --- | --- | --- | --- | --- |
-| `ollama.enable` | да | да | нет | Whether to enable the Ollama server. |
+| `rokokol.ollama.enable` | да | да | нет | Whether to enable the Ollama server. |
 
 Объявлено в: `nixos/services/ai/ollama.nix`
 

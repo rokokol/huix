@@ -142,5 +142,125 @@ class HostSectionTest(unittest.TestCase):
         self.assertIn("grafana", text)
 
 
+
+class FileCommentTest(unittest.TestCase):
+    def test_the_comment_after_the_argument_header_is_the_file_comment(self):
+        text = "{\n  config,\n  lib,\n}:\n\n# Why the page exists\n# and a second line\nlet\n  x = 1;\nin\n{ }\n"
+        self.assertEqual(docs.file_comment(text), "Why the page exists\nand a second line")
+
+    def test_a_module_without_a_comment_has_none(self):
+        text = "{\n  config,\n  lib,\n}:\nlet\n  cfg = config.rokokol.x;\nin\n{ }\n"
+        self.assertIsNone(docs.file_comment(text))
+
+    def test_a_curried_header_is_skipped_before_the_comment(self):
+        text = "{ commonArgs }:\n# One system with its home inside\n{\n  configuration,\n}:\n{ }\n"
+        self.assertEqual(docs.file_comment(text), "One system with its home inside")
+
+    def test_an_attribution_above_the_header_is_not_mistaken_for_code(self):
+        text = "# SPDX-License-Identifier: MIT\n{ lib }:\n# The body comment\n{ }\n"
+        self.assertEqual(docs.file_comment(text), "SPDX-License-Identifier: MIT")
+
+    def test_a_nested_brace_in_the_header_does_not_end_it_early(self):
+        text = "{\n  a ? { b = 1; },\n}:\n# After a nested default\n{ }\n"
+        self.assertEqual(docs.file_comment(text), "After a nested default")
+
+
+class ParseBindsTest(unittest.TestCase):
+    lua = """
+local terminal = "kitty"
+hl.bind("SUPER + Q", hl.dsp.exec_cmd(terminal))
+hl.bind(
+  "SUPER + ALT + K",
+  hl.dsp.window.resize({ x = 0, y = -40, relative = true }),
+  { repeating = true }
+)
+-- hl.bind("SUPER + 0", hl.dsp.focus({ workspace = "10" }))
+hl.bind("SUPER + F12", hl.dsp.exec_cmd("loginctl lock-session"))
+"""
+
+    def test_every_live_bind_is_read(self):
+        binds = docs.parse_binds(self.lua)
+        self.assertEqual([bind["keys"] for bind in binds], ["SUPER + Q", "SUPER + ALT + K", "SUPER + F12"])
+
+    def test_a_dispatcher_keeps_its_subcommand(self):
+        binds = docs.parse_binds(self.lua)
+        self.assertEqual(binds[1]["dispatcher"], "window.resize")
+
+    def test_a_local_constant_is_resolved_where_it_is_a_plain_string(self):
+        binds = docs.parse_binds(self.lua)
+        self.assertEqual(binds[0]["argument"], "kitty")
+
+    def test_a_quoted_argument_survives_with_its_spaces(self):
+        binds = docs.parse_binds(self.lua)
+        self.assertEqual(binds[2]["argument"], "loginctl lock-session")
+
+    def test_a_bind_inside_a_comment_is_not_a_bind(self):
+        binds = docs.parse_binds(self.lua)
+        self.assertNotIn("SUPER + 0", [bind["keys"] for bind in binds])
+
+    def test_a_repeating_bind_says_so(self):
+        binds = docs.parse_binds(self.lua)
+        self.assertTrue(binds[1]["repeating"])
+        self.assertFalse(binds[0]["repeating"])
+
+class ModulePageTest(unittest.TestCase):
+    def test_a_module_section_names_its_path_and_its_reason(self):
+        entries = [
+            {
+                "path": "nixos/services/ai/hindsight/service.nix",
+                "comment": "Shared memory for the agents",
+                "options": ["rokokol.hindsight.enable"],
+                "units": ["hindsight"],
+            }
+        ]
+        text = docs.render_modules(entries)
+        self.assertIn("`nixos/services/ai/hindsight/service.nix`", text)
+        self.assertIn("Shared memory for the agents", text)
+        self.assertIn("`rokokol.hindsight.enable`", text)
+        self.assertIn("`hindsight`", text)
+
+    def test_a_module_without_a_comment_does_not_invent_one(self):
+        entries = [{"path": "nixos/x.nix", "comment": None, "options": [], "units": []}]
+        text = docs.render_modules(entries)
+        self.assertIn("`nixos/x.nix`", text)
+        self.assertNotIn("None", text)
+
+    def test_an_option_link_points_at_the_page_of_its_group(self):
+        entries = [
+            {
+                "path": "nixos/services/ai/hindsight/service.nix",
+                "comment": None,
+                "options": ["rokokol.hindsight.enable"],
+                "units": [],
+            }
+        ]
+        text = docs.render_modules(entries)
+        self.assertIn("../options/hindsight.md", text)
+
+
+class BindingsPageTest(unittest.TestCase):
+    def test_a_bind_lands_in_the_table_with_its_keys(self):
+        text = docs.render_bindings(
+            [{"keys": "SUPER + Q", "dispatcher": "exec_cmd", "argument": "kitty", "repeating": False}]
+        )
+        self.assertIn("`SUPER + Q`", text)
+        self.assertIn("`exec_cmd`", text)
+        self.assertIn("`kitty`", text)
+
+    def test_a_bind_without_an_argument_leaves_a_dash(self):
+        text = docs.render_bindings(
+            [{"keys": "SUPER + C", "dispatcher": "window.close", "argument": "", "repeating": False}]
+        )
+        # The whole row is the contract here: an empty argument cell and a dash in the column
+        # that says the bind does not repeat are the two ways this row can be wrong
+        self.assertIn("| `SUPER + C` | `window.close` | — | — |", text)
+
+    def test_a_repeating_bind_is_marked(self):
+        text = docs.render_bindings(
+            [{"keys": "SUPER + ALT + K", "dispatcher": "window.resize", "argument": "", "repeating": True}]
+        )
+        self.assertIn("да", text)
+
+
 if __name__ == "__main__":
     unittest.main()

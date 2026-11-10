@@ -10,8 +10,8 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 
 | Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
 | --- | --- | --- | --- | --- |
-| `tailnet-web.lan` | — | — | `address=192.168.0.104/24`, `interface=lan` | The LAN link of the host, which sites with `lan` are open to |
-| `tailnet-web.sites` |  | `comfyui=backend=http://127.0.0.1:8188`, `extraConfig=client_max_body_size 512m;
+| `rokokol.tailnet-web.lan` | — | — | `address=192.168.0.104/24`, `interface=lan` | The LAN link of the host, which sites with `lan` are open to |
+| `rokokol.tailnet-web.sites` |  | `comfyui=backend=http://127.0.0.1:8188`, `extraConfig=client_max_body_size 512m;
 proxy_read_timeout 900s;
 `, `lan=нет`, `port=8189` | `forgejo=backend=http://127.0.0.1:3001`, `extraConfig=client_max_body_size 512m;`, `lan=да`, `port=3000`, `grafana=backend=http://127.0.0.1:3201`, `extraConfig=`, `lan=да`, `port=3200`, `hermes=backend=http://127.0.0.1:9121`, `extraConfig=proxy_read_timeout 3600s;
 proxy_send_timeout 3600s;

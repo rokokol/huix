@@ -10,7 +10,7 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 
 | Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
 | --- | --- | --- | --- | --- |
-| `fonts.enable` | да | да | да | Whether to enable the desktop fonts. |
+| `rokokol.fonts.enable` | да | да | да | Whether to enable the desktop fonts. |
 
 Объявлено в: `nixos/fonts/fonts.nix`
 

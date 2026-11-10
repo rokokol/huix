@@ -10,7 +10,7 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 
 | Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
 | --- | --- | --- | --- | --- |
-| `sddm.enable` | да | да | нет | Whether to enable the SDDM login screen. |
+| `rokokol.sddm.enable` | да | да | нет | Whether to enable the SDDM login screen. |
 
 Объявлено в: `nixos/services/desktop/sddm.nix`
 

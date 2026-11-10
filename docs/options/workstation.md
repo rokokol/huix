@@ -10,7 +10,7 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 
 | Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
 | --- | --- | --- | --- | --- |
-| `workstation.enable` | да | да | нет | Whether to enable the desktop session and the workstation services. |
+| `rokokol.workstation.enable` | да | да | нет | Whether to enable the desktop session and the workstation services. |
 
 Объявлено в: `nixos/desktop/core-options.nix`
 

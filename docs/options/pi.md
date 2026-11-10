@@ -10,7 +10,7 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 
 | Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
 | --- | --- | --- | --- | --- |
-| `pi.enable` | да | да | нет | Whether to enable Pi credentials. |
+| `rokokol.pi.enable` | да | да | нет | Whether to enable Pi credentials. |
 
 Объявлено в: `nixos/services/ai/pi/credentials.nix`
 

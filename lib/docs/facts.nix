@@ -95,7 +95,7 @@ let
   # appears with its default and says nothing false about the machines
   optionFacts =
     config: attrPath:
-    describeOptions "" (lib.attrByPath attrPath { } config.options) (
+    describeOptions "rokokol." (lib.attrByPath attrPath { } config.options) (
       lib.attrByPath attrPath { } config.config
     );
 

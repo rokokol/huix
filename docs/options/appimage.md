@@ -10,7 +10,7 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 
 | Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
 | --- | --- | --- | --- | --- |
-| `appimage.enable` | да | да | нет | Whether to enable AppImage binfmt and steam-run. |
+| `rokokol.appimage.enable` | да | да | нет | Whether to enable AppImage binfmt and steam-run. |
 
 Объявлено в: `nixos/services/system/appimage.nix`
 

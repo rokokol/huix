@@ -10,7 +10,7 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 
 | Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
 | --- | --- | --- | --- | --- |
-| `envfs.enable` | да | да | нет | Whether to enable envfs for hardcoded /bin and /usr/bin paths. |
+| `rokokol.envfs.enable` | да | да | нет | Whether to enable envfs for hardcoded /bin and /usr/bin paths. |
 
 Объявлено в: `nixos/services/system/envfs.nix`
 

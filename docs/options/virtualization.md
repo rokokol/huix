@@ -10,7 +10,7 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 
 | Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
 | --- | --- | --- | --- | --- |
-| `virtualization.enable` | нет | да | нет | Whether to enable libvirt + virt-manager (KVM/VFIO). |
+| `rokokol.virtualization.enable` | нет | да | нет | Whether to enable libvirt + virt-manager (KVM/VFIO). |
 
 Объявлено в: `nixos/services/utils/virtualization.nix`
 

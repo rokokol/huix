@@ -10,7 +10,7 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 
 | Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
 | --- | --- | --- | --- | --- |
-| `flatpak.enable` | да | да | нет | Whether to enable Flatpak with declared apps. |
+| `rokokol.flatpak.enable` | да | да | нет | Whether to enable Flatpak with declared apps. |
 
 Объявлено в: `nixos/services/desktop/flatpak.nix`
 

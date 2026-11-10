@@ -10,7 +10,7 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 
 | Опция | nixos-laptop | nixos-pc | nixos-station | Описание |
 | --- | --- | --- | --- | --- |
-| `sound.enable` | да | да | нет | Whether to enable PipeWire sound. |
+| `rokokol.sound.enable` | да | да | нет | Whether to enable PipeWire sound. |
 
 Объявлено в: `nixos/sound.nix`
 
