@@ -46,6 +46,8 @@ in
         comfyui-manager-ab-samplercustom
         comfyui-manager-ksamplertimer
         comfyui-rgthree
+        # Switch by flag, Pipe, and image metadata; its resource monitor is left out of the graphs
+        comfyui-crystools
         comfyui-easy-use
         comfyui-inspire-pack
         comfyui-comfy-mtb
