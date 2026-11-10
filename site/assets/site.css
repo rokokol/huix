@@ -179,6 +179,12 @@ body {
   padding-left: 22px;
 }
 
+/* A screenshot or a diagram is drawn at its own size, so it stays sharp when the page scales it,
+   as the pixel editor's own preview does */
+.doc .prose .ddlc-snap img {
+  image-rendering: pixelated;
+}
+
 /* The sidebar is the way around the corpus on a narrow screen too, so it moves above the text
    rather than disappearing */
 @media (max-width: 900px) {

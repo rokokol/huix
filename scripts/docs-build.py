@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import re
 import shutil
+import subprocess
 import sys
 
 # A unit of this repository is the one its sources declare: the list of a host's units also holds
@@ -471,6 +472,36 @@ def to_page_links(html):
     return re.sub(r'href="([^"]+)"', swap, html)
 
 
+IMAGE = re.compile(r"<img\b[^>]*>")
+PARAGRAPH_OF_IMAGES = re.compile(r"<p>\s*((?:<img\b[^>]*>\s*)+)</p>")
+
+
+def to_figures(html):
+    """A paragraph that holds images alone becomes a frame of the kit, with the alt text as its
+    caption: a picture in this corpus is a figure of the document, not a character of a sentence"""
+
+    def frame(match):
+        figures = []
+        for tag in IMAGE.finditer(match.group(1)):
+            element = tag.group(0)
+            alt = re.search(r'alt="([^"]*)"', element)
+            caption = alt.group(1) if alt else ""
+            figures.append(f'<figure class="ddlc-snap">{element}<figcaption>{caption}</figcaption></figure>')
+        return "".join(figures)
+
+    return PARAGRAPH_OF_IMAGES.sub(frame, html)
+
+
+def to_local_links(html, root):
+    """A picture a page references beside its markdown resolves against the page it was written
+    for, which on the site is one level up from the page of the corpus"""
+
+    def swap(match):
+        return f'src="{root}{match.group(1)}"'
+
+    return re.sub(r'src="\.\./([^"]+)"', swap, html)
+
+
 def page_label(title, path):
     """What a page is called in the navigation"""
     if title:
@@ -539,7 +570,7 @@ SHELL = """<!DOCTYPE html>
 """
 
 
-def sidebar_html(sections, current):
+def sidebar_html(sections, current, root):
     blocks = []
     for directory, items in sections:
         name = SECTIONS.get(directory, directory)
@@ -551,7 +582,7 @@ def sidebar_html(sections, current):
                 links.append(f'<li class="nav-group">{group}</li>')
             target = item["path"][: -len(".md")] + ".html"
             mark = ' aria-current="page"' if target == current else ""
-            links.append(f'<li><a href="{target}"{mark}>{item["label"]}</a></li>')
+            links.append(f'<li><a href="{root}{target}"{mark}>{item["label"]}</a></li>')
         blocks.append(f'<h2>{name}</h2><ul>{"".join(links)}</ul>')
     return "".join(blocks)
 
@@ -568,6 +599,11 @@ def render_site(repo, out, assets):
 
     sections = navigation([(relative, meta) for relative, meta, _ in pages])
     shutil.copytree(assets, out / "assets", dirs_exist_ok=True)
+    # The pictures of the corpus live beside it, in docs/img, as the pictures of a README live
+    # beside the README
+    pictures = repo / DOCS / "img"
+    if pictures.is_dir():
+        shutil.copytree(pictures, out / "img", dirs_exist_ok=True)
 
     for relative, meta, body in pages:
         target = relative[: -len(".md")] + ".html"
@@ -576,8 +612,8 @@ def render_site(repo, out, assets):
         page = SHELL.format(
             title=page_label(meta.get("title"), relative),
             root=root,
-            sidebar=sidebar_html(sections, target),
-            main=f'<article class="prose">{to_page_links(main)}</article>',
+            sidebar=sidebar_html(sections, target, root),
+            main=f'<article class="prose">{to_figures(to_local_links(to_page_links(main), root))}</article>',
         )
         destination = out / target
         destination.parent.mkdir(parents=True, exist_ok=True)
@@ -590,10 +626,49 @@ def render_site(repo, out, assets):
         index.append(f"<h2>{name}</h2><ul>{links}</ul>")
     index.append("</article>")
     (out / "index.html").write_text(
-        SHELL.format(title="Документация", root="", sidebar=sidebar_html(sections, "index.html"), main="".join(index)),
+        SHELL.format(title="Документация", root="", sidebar=sidebar_html(sections, "index.html", ""), main="".join(index)),
         encoding="utf-8",
     )
     return len(pages)
+
+
+def script_files(sources):
+    """The scripts a reader calls, which are the ones at the top of scripts/ rather than the
+    helpers beside them or the tests of them"""
+    return sorted(
+        path for path in sources if path.startswith("scripts/") and path.count("/") == 1 and path.endswith((".sh", ".py"))
+    )
+
+
+def help_text(repo, path):
+    """What a script prints for --help, with a status that says whether the print happened"""
+    runner = ["bash", str(repo / path)] if path.endswith(".sh") else [sys.executable, "-B", str(repo / path)]
+    try:
+        done = subprocess.run(runner + ["--help"], capture_output=True, text=True, timeout=20, check=False)
+    except (OSError, subprocess.TimeoutExpired):
+        return {"path": path, "help": "", "ok": False}
+    printed = (done.stdout + done.stderr).strip()
+    return {"path": path, "help": printed, "ok": done.returncode == 0 and bool(printed)}
+
+
+def render_scripts(entries):
+    """One section per script: its path, and the help it prints, which is the only description
+    that cannot disagree with the script itself"""
+    parts = []
+    for entry in entries:
+        lines = [f"## {repo_link(entry['path'])}"]
+        if entry["ok"]:
+            lines.append("```\n" + entry["help"].replace("```", "'''") + "\n```")
+        else:
+            lines.append("Скрипт не печатает `--help`: запускать без аргументов или читать текст выше")
+        parts.append("\n\n".join(lines))
+    return "\n\n".join(parts)
+
+
+def scripts_page(repo, sources):
+    """The page of the scripts, filled from what each one prints"""
+    entries = [help_text(repo, path) for path in script_files(sources)]
+    return {DOCS / "scripts.md": ("scripts", render_scripts(entries))}
 
 
 def main(argv):
@@ -611,7 +686,13 @@ def main(argv):
 
     facts = json.loads(args.facts.read_text(encoding="utf-8"))
     sources = read_sources(args.repo)
-    blocks = host_pages(facts, sources) | option_pages(facts) | module_pages(sources, facts) | bindings_page(sources)
+    blocks = (
+        host_pages(facts, sources)
+        | option_pages(facts)
+        | module_pages(sources, facts)
+        | bindings_page(sources)
+        | scripts_page(args.repo, sources)
+    )
 
     if args.command == "scaffold":
         for path, (marker, _) in sorted(blocks.items()):
@@ -629,6 +710,8 @@ def main(argv):
                 title = "Опции верхнего уровня" if key == "rokokol" else f"Опции rokokol.{key}"
             elif kind == "module":
                 title = "Корень репозитория" if key == "." else key
+            elif kind == "scripts":
+                title = "Скрипты"
             else:
                 title = "Клавиши Hyprland"
             page.parent.mkdir(parents=True, exist_ok=True)

@@ -340,5 +340,66 @@ class RepoLinkTest(unittest.TestCase):
         self.assertIn("blob/master/nixos/x.nix", text)
 
 
+class SidebarTest(unittest.TestCase):
+    sections = [
+        ("hosts", [{"path": "hosts/nixos-pc.md", "label": "Хост nixos-pc", "group": None}]),
+        ("options", [{"path": "options/hindsight.md", "label": "hindsight", "group": None}]),
+    ]
+
+    def test_a_sidebar_link_from_a_nested_page_carries_the_step_up(self):
+        html = docs.sidebar_html(self.sections, "hosts/nixos-pc.html", "../")
+        self.assertIn('href="../options/hindsight.html"', html)
+
+    def test_a_sidebar_link_from_the_root_page_needs_no_prefix(self):
+        html = docs.sidebar_html(self.sections, "index.html", "")
+        self.assertIn('href="options/hindsight.html"', html)
+
+    def test_the_page_the_reader_is_on_is_marked(self):
+        html = docs.sidebar_html(self.sections, "hosts/nixos-pc.html", "../")
+        self.assertIn('aria-current="page"', html)
+
+
+class FigureTest(unittest.TestCase):
+    def test_an_image_becomes_a_frame_with_its_alt_text_as_the_caption(self):
+        html = '<p><img alt="a screenshot of the waybar" src="../img/waybar.png"></p>'
+        out = docs.to_figures(html)
+        self.assertIn('<figure class="ddlc-snap">', out)
+        self.assertIn('<figcaption>a screenshot of the waybar</figcaption>', out)
+        self.assertIn('src="../img/waybar.png"', out)
+
+    def test_two_images_side_by_side_keep_their_order(self):
+        html = '<p><img alt="первый" src="a.png"><img alt="второй" src="b.png"></p>'
+        out = docs.to_figures(html)
+        self.assertEqual(out.count('<figure'), 2)
+        self.assertLess(out.index("первый"), out.index("второй"))
+
+    def test_a_paragraph_of_prose_is_left_alone(self):
+        html = "<p>обычный абзац</p>"
+        self.assertEqual(docs.to_figures(html), html)
+
+
+class ScriptsTest(unittest.TestCase):
+    def test_only_the_scripts_a_reader_calls_are_pages(self):
+        sources = {
+            "scripts/zoom.sh": "",
+            "scripts/drive-backup.py": "",
+            "scripts/lib/stub.sh": "",
+            "scripts/tests/run.sh": "",
+            "nixos/x.nix": "",
+        }
+        self.assertEqual(docs.script_files(sources), ["scripts/drive-backup.py", "scripts/zoom.sh"])
+
+    def test_a_script_page_carries_the_help_it_prints(self):
+        entries = [{"path": "scripts/zoom.sh", "help": "zoom.sh — zoom the screen\n\n  zoom.sh up", "ok": True}]
+        text = docs.render_scripts(entries)
+        self.assertIn("`scripts/zoom.sh`", text)
+        self.assertIn("zoom.sh up", text)
+
+    def test_a_script_that_will_not_print_help_says_so_instead_of_an_empty_block(self):
+        entries = [{"path": "scripts/broken.sh", "help": "", "ok": False}]
+        text = docs.render_scripts(entries)
+        self.assertIn("не печатает `--help`", text)
+
+
 if __name__ == "__main__":
     unittest.main()
