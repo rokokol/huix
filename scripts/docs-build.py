@@ -556,6 +556,7 @@ SECTIONS = {
     "hosts": "Hosts",
     "options": "Options",
     "modules": "Modules",
+    "guides": "Guides",
     ".": "Reference",
 }
 

@@ -14,6 +14,26 @@ Some of it answers the keyboard, and some sits behind the launcher and the bar. 
 
 The laptop folds into a tablet: the screen turns by itself, the touch gestures page through the workspaces, and the interface becomes comfortable for fingers and for a pen
 
+## Scaling the screen to taste
+
+The screen zooms from three devices, and the three feel the same while none of them can replace another:
+
+- A physical mouse wheel answers `ALT+SUPER+wheel` through `scripts/zoom.sh`
+- A touchpad pinch zooms through a Hyprland gesture, because a wheel bind never fires for a touchpad
+- A three-finger pinch on the touchscreen zooms through hyprgrass
+
+A new way of zooming joins these rather than replacing one, and the touchpad and the touchscreen keep their own because the gesture engine runs no command of its own
+
+## The power key and the lid
+
+The power key opens a menu, and the lid keeps the laptop awake while the dock is in use. Both work by handing the event over instead of acting on it: the key reaches Hyprland, and the lid meets a lock that only the session takes
+
+Outside the graphical session the kernel keeps its own behaviour, so the lid still suspends a laptop taken to a text console
+
+## Notifications
+
+Notifications arrive through mako, in the colours of the current theme, and a notification that carries no urgency hint is coloured like every other rather than left in the default blue. The feed, the do-not-disturb switch and the history live behind the launcher
+
 ## Components
 
 - [Screen effects and software brightness](https://github.com/rokokol/hyprland-screen-shader)
