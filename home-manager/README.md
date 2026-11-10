@@ -1,20 +1,20 @@
 <div align="center">
 
-<img src="../assets/laptop-wallpaper.png" alt="обои ноута" width="380"/>
+<img src="../assets/laptop-wallpaper.png" alt="the laptop wallpaper" width="380"/>
 
-<em>тут живёт всё, что делает рабочий стол крутым</em>
+<em>everything that makes the desktop good lives here</em>
 
 </div>
 
-# Home Manager-слой
+# The Home Manager layer
 
-[![huix](https://img.shields.io/badge/huix-наверх-222222?style=for-the-badge&logo=nixos&logoColor=white)](../README.md)
-[![hyprland](https://img.shields.io/badge/hyprland-рабочий_стол-00AAAE?style=for-the-badge&logo=hyprland&logoColor=white)](desktop/hyprland/README.md)
-[![programs](https://img.shields.io/badge/programs-программы-7E57C2?style=for-the-badge)](programs/README.md)
+[![huix](https://img.shields.io/badge/huix-up-222222?style=for-the-badge&logo=nixos&logoColor=white)](../README.md)
+[![hyprland](https://img.shields.io/badge/hyprland-desktop-00AAAE?style=for-the-badge&logo=hyprland&logoColor=white)](desktop/hyprland/README.md)
+[![programs](https://img.shields.io/badge/programs-programs-7E57C2?style=for-the-badge)](programs/README.md)
 [![nixvim](https://img.shields.io/badge/nixvim-neovim-019733?style=for-the-badge&logo=neovim&logoColor=white)](programs/nixvim/README.md)
 
-Здесь собирается всё, чем пользуешься каждый день: приложения, оболочка, оформление и сам рабочий стол. Железо и системные службы — в [NixOS-слое](../nixos/README.md)
+Everything used every day is assembled here: the applications, the shell, the look and the desktop itself. The hardware and the system services are in the [NixOS layer](../nixos/README.md)
 
-На ПК и ноутбуке — полноценный графический рабочий стол, на сервере — нужные в терминале инструменты. Про приложения подробнее написано в разделе [программ](programs/README.md)
+The PC and the laptop get a full graphical desktop, and the server gets the tools a terminal needs. The applications have their own [section](programs/README.md)
 
-Загляни в разделы [Hyprland](desktop/hyprland/README.md) и [Nixvim](programs/nixvim/README.md), если хочется посмотреть на рабочий стол и редактор
+Have a look at [Hyprland](desktop/hyprland/README.md) and [Nixvim](programs/nixvim/README.md) to see the desktop and the editor

@@ -1,38 +1,37 @@
 <div align="center">
 
-<img src="../../assets/sayori-v-korobke.jpg" alt="каждый сервис в своей коробочке" width="300"/>
+<img src="../../assets/sayori-v-korobke.jpg" alt="every service in its own little box" width="300"/>
 
-<em>каждый сервис разложен аккуратно по своей коробочке</em>
+<em>every service is packed neatly into its own box</em>
 
 </div>
 
-# Сервисы
+# Services
 
-[![huix](https://img.shields.io/badge/huix-наверх-222222?style=for-the-badge&logo=nixos&logoColor=white)](../../README.md)
-[![nixos](https://img.shields.io/badge/nixos-системный_слой-5277C3?style=for-the-badge&logo=nixos&logoColor=white)](../README.md)
-[![fonts](https://img.shields.io/badge/fonts-шрифты-EA4AAA?style=for-the-badge&logo=googlefonts&logoColor=white)](../fonts/README.md)
-[![DDLC](https://img.shields.io/badge/DDLC-тема_логина-FF80C0?style=for-the-badge&logo=qt&logoColor=white)](https://github.com/rokokol/ddlc-sddm-theme)
+[![huix](https://img.shields.io/badge/huix-up-222222?style=for-the-badge&logo=nixos&logoColor=white)](../../README.md)
+[![nixos](https://img.shields.io/badge/nixos-system_layer-5277C3?style=for-the-badge&logo=nixos&logoColor=white)](../README.md)
+[![fonts](https://img.shields.io/badge/fonts-fonts-EA4AAA?style=for-the-badge&logo=googlefonts&logoColor=white)](../fonts/README.md)
+[![DDLC](https://img.shields.io/badge/DDLC-login_theme-FF80C0?style=for-the-badge&logo=qt&logoColor=white)](https://github.com/rokokol/ddlc-sddm-theme)
 
-Здесь работают службы, которые связывают хосты, помогают следить за их состоянием и обеспечивают привычные инструменты
+The services that tie the hosts together, watch how they are doing and provide the usual tools run here
 
-На рабочих хостах есть службы для повседневной работы, а домашний сервер берёт на себя сетевые задачи и резервные копии
+The work hosts carry the services of everyday work, and the home server takes the network tasks and the backups
 
-## Сеть
+## The network
 
-Одни службы работают только на своей машине, другие доступны устройствам в частной сети. Некоторые веб-интерфейсы открываются и из домашней сети
+Some services work on their own machine alone, and others are reachable from the devices of the private network. A few web interfaces open from the home network too
 
-## Сервисы
+## Services
 
-- **ComfyUI** (ПК) — генерирует изображения и видео, получает ноды из конфига, держит модели в отдельном каталоге, открытом и для ручной записи, а доступ с других устройств получает через частную сеть
-- **ИИ и поиск** — можно запустить локальную языковую модель или найти что-нибудь в сети
-- **Связь** — частная сеть соединяет устройства, а VPN-клиент помогает переключать сетевые профили
-- **Здоровье машин** — службы следят за дисками и метриками. О поломке и о её починке сообщают по разу, в почту и в Telegram, а по утрам присылают список того, что ещё не починено
-- **Мониторинг** (станция) — графики помогают одним взглядом понять, всё ли в порядке с хостами и нодами, свежи ли бэкапы, здоровы ли диски и идёт ли синхронизация. Grafana сама следит за температурой станции, за заполнением дисков и за тем, когда место кончится по тренду недели, и сообщает о находке вместе с остальными алертами
-- **Бэкапы** (станция) — хранит копии с рабочих машин и помогает не потерять их из-за случайного удаления. [Облачная копия](tools/drive-backup.nix) переносит все зашифрованные restic-репозитории на Google Drive, не получая их паролей. Она использует read-only Btrfs-снимок без restic-lock-файлов, проверяет SHA-256 до удаления устаревших объектов и сообщает об ошибках или отсутствии свежего успешного запуска. История внутри репозиториев следует исходной политике restic; облако хранит одну копию репозиториев, а не один снимок restic
-- **Файлы** — Forgejo держит собственные Git-проекты и CI, а Syncthing синхронизирует заметки и общие пользовательские ресурсы pi; локальное состояние pi хранится отдельно для каждого хоста
-- **Архив файлов** (станция) — если удалить или перезаписать синхронизированный файл, прежнюю версию можно вернуть
-- **Календарь** (станция) — расписание и список дел Мии, общие для хозяина и Мии. Super Productivity и агенты на каждом хосте работают с ними напрямую, а удалённое событие можно вернуть из снимка
-- **Агент** (станция) — Мия, Hermes Agent в Telegram: правит заметки, выполняет задачи по расписанию, печатает, управляет питанием ПК и ноутбука. Всё о ней — в [её README](ai/hermes/README.md)
-- **Память агентов** (станция) — [Hindsight](ai/hindsight/README.md) хранит общие факты pi и Hermes, с отдельной авторизацией и резервными копиями базы
-- **Flatpak** — приложения, которые плохо работают из nixpkgs, ставятся по списку из конфига хоста. На ПК графический драйвер для них обновляется вместе с системным драйвером NVIDIA
-- **Датчики** (ноутбук) — поворачивают экран, когда ноутбук складывается в планшет
+- **AI and search**: run a local language model, or look something up on the web
+- **Connection**: the private network joins the devices, and a VPN client helps to switch network profiles
+- **The health of the machines**: services watch the disks and the metrics. A breakage and its repair are reported once, by mail and in Telegram, and every morning a list of what is still open arrives
+- **Monitoring** (station): the graphs answer at a glance whether the hosts and the nodes are well, whether the backups are fresh, whether the disks are healthy and whether the sync is going. Grafana watches the temperature of the station, the fill of the disks and the moment the space runs out by the trend of the week, and reports the finding with the other alerts
+- **Backups** (station): keeps the copies of the work machines and helps not to lose them to an accidental delete. A [cloud copy](tools/drive-backup.nix) moves every encrypted restic repository to Google Drive without ever holding their passwords. It takes a read-only Btrfs snapshot without the restic lock files, checks SHA-256 before it removes the outdated objects, and reports a failure or a missing fresh successful run. The history inside the repositories follows the policy of restic itself; the cloud holds one copy of the repositories rather than one restic snapshot
+- **Files**: Forgejo keeps the own Git projects and their CI, and Syncthing syncs the notes and the shared user resources of pi; the local state of pi is kept separately for each host
+- **The archive of files** (station): a synced file that was deleted or overwritten gives its previous version back
+- **Calendar** (station): the schedule and the task list of Mya, shared by the owner and Mya. Super Productivity and the agents of each host work with them directly, and a deleted event can be brought back from a snapshot
+- **Agent** (station): Mya, Hermes Agent in Telegram, edits notes, runs scheduled tasks, prints, and controls the power of the PC and the laptop. All about her is in [her README](ai/hermes/README.md)
+- **The memory of the agents** (station): [Hindsight](ai/hindsight/README.md) keeps the shared facts of pi and Hermes, with its own authorisation and its own backups of the database
+- **Flatpak**: the applications that work badly out of nixpkgs are installed from a list in the configuration of the host. On the PC the graphics driver for them updates together with the system driver of NVIDIA
+- **Sensors** (laptop): turn the screen when the laptop folds into a tablet

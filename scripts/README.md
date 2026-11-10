@@ -1,46 +1,46 @@
 <div align="center">
 
-<img src="../assets/shef-os-320-kg.jpg" alt="шеф готовит утилиты" width="300"/>
+<img src="../assets/shef-os-320-kg.jpg" alt="the chef cooks the utilities" width="300"/>
 
 <em>320kg scripts 💀</em>
 
 </div>
 
-# Скрипты
+# Scripts
 
-[![huix](https://img.shields.io/badge/huix-наверх-222222?style=for-the-badge&logo=nixos&logoColor=white)](../README.md)
+[![huix](https://img.shields.io/badge/huix-up-222222?style=for-the-badge&logo=nixos&logoColor=white)](../README.md)
 
-Маленькие скрипты берут на себя рутину: помогают управлять рабочим столом и файлами, а ещё присматривают за домашним сервером. Запускаются из приложений, по сочетаниям клавиш или системными службами
+Small scripts take the routine off your hands: they help to drive the desktop and the files, and they watch the home server. Applications, key bindings and system units start them
 
-Чтобы отправить изменения huix, запусти `syssync`; можно передать своё сообщение коммита. Автоматическая синхронизация при входе в систему сама коммиты и отправку не делает
+To send the changes of huix, run `syssync`, with a commit message of your own if you like. The automatic sync at login never commits and never pushes
 
-Синхронизация забирает и работу Мии: у huix и у проектов, которые она держит у себя на станции, появляется remote `mya`, и о её новых коммитах приходит уведомление. `syssync` идёт дальше: сначала коммитит всё, что Мия оставила в своём клоне huix, под её именем `[mya]`, а потом вливает это в huix и отправляет вместе с твоими изменениями. Что именно пришло от неё, сообщит отдельное уведомление. Если вливать её работу не нужно, есть `syssync --no-take`
+The sync also collects the work of Mya: huix and the projects she keeps on the station get a remote called `mya`, and a notification arrives about her new commits. `syssync` goes further: it first commits everything Mya left in her clone of huix under her name `[mya]`, then brings that into huix and pushes it with your changes. A separate notification says what came from her. When her work is not wanted, `syssync --no-take` leaves it out
 
-У команды есть полезный режим, если нужно синхронизировать только этот репозиторий:
+One mode is useful when only this repository needs a sync:
 
 ```sh
 syssync --no-projects
 ```
 
-У отдельных скриптов есть своя справка — `--help` подскажет команды и параметры
+Each script carries its own help: `--help` names the commands and their arguments
 
-## Архивы на Google Drive
+## Archives on Google Drive
 
-`drive-backup` сохраняет незашифрованный холодный архив директории, файл SHA-256 и отметку завершения. Команда сравнивает размер и SHA-256 с данными Drive, а прежний архив удаляет только после проверки нового. Обратное скачивание не требуется. Справка доступна через `drive-backup --help`; без установки команду можно запустить через `nix run .#drive-backup -- --help`
+`drive-backup` keeps an unencrypted cold archive of a directory, a SHA-256 file and a completion mark. The command compares the size and the SHA-256 with what Drive holds, and removes the previous archive only after it has checked the new one. Nothing has to be downloaded back. `drive-backup --help` is the reference, and without an install the command runs through `nix run .#drive-backup -- --help`
 
-Файл `.backupignore` в корне исходной директории задаёт исключения в формате Git ignore, включая отрицания и привязку к корню. Правила действуют до упаковки; вложенные `.backupignore`, `.gitignore` и `.ignore` автоматически не применяются. Предпросмотр `--dry-run` показывает состав архива без упаковки или обращения к Drive, но не показывает предыдущий архив: для этого пришлось бы обратиться к Drive. Без `.backupignore` команда предупреждает об отсутствии исключений, но не ищет секреты по содержимому
+A `.backupignore` file at the root of the source directory holds the exclusions in the format of a Git ignore, negations and root anchoring included. The rules apply before the packing, and nested `.backupignore`, `.gitignore` and `.ignore` files are not applied by themselves. A `--dry-run` preview shows the contents of the archive without packing and without reaching Drive, and leaves out the previous archive, which would take a call to Drive. Without a `.backupignore` the command warns that nothing is excluded, and never looks for secrets in the content
 
-Архив сохраняет права, пустые каталоги и символические ссылки, но не читает цели ссылок. Изменение исходных данных во время упаковки прерывает загрузку. Для баз данных сначала нужен согласованный дамп, а не архив живого каталога
+The archive keeps the permissions, the empty directories and the symbolic links, and never reads what a link points at. A change of the source data during the packing stops the upload. A database needs a consistent dump first, not an archive of a live directory
 
-При повторном запуске для той же пары "исходная директория → назначение" остаётся один завершённый архив. Другие наборы и посторонние файлы команда не удаляет. Одновременные запуски на одной машине блокируются; общий облачный каталог не следует обновлять одновременно с разных машин
+Another run for the same source directory and destination keeps one finished archive. The command never removes other sets or files it did not write. Two runs on one machine block each other, and one shared cloud directory should not be updated from two machines at once
 
-Авторизацию через собственный Google OAuth-клиент выполняют явно под тем пользователем, который будет запускать команду: `drive-backup auth`. Клиент хранится в sops, а обновляемый токен — в закрытом изменяемом конфиге rclone, вне Git и Nix store. Для переключения между аккаунтами удобно создать отдельные подключения через `--remote ИМЯ auth` и выбирать их с тем же `--remote` перед `archive`. Если повторная авторизация не удалась, прежний токен сохраняется. Для работы без еженедельной повторной авторизации OAuth-приложение не должно оставаться в режиме "Testing"
+The authorisation through an OAuth client of your own is done explicitly, as the user who will run the command: `drive-backup auth`. The client lives in sops, and the renewable token lives in a private mutable config of rclone, outside Git and outside the Nix store. To switch accounts, make separate connections with `--remote NAME auth` and pick one with the same `--remote` before `archive`. A failed reauthorisation keeps the previous token. An OAuth application left in the "Testing" mode asks for a reauthorisation every week
 
-Токен станции независим от пользовательского. Войди на станцию по SSH и выполни `sudo drive-backup --config /var/lib/restic-cloud/rclone.conf auth`, выбрав тот аккаунт, который должен хранить автоматическую копию. Ответь rclone, что на станции нет браузера: он покажет команду для машины с браузером и попросит вставить результат в SSH-терминал. Команда и результат содержат секретные данные, поэтому не публикуй их. Затем запусти `sudo systemctl start restic-cloud.service` и проверь журнал; новый аккаунт получит собственную папку, а прежний не изменится. Возраст последней копии проверяется для выбранного аккаунта и назначения
+The token of the station is its own. Log into the station over SSH and run `sudo drive-backup --config /var/lib/restic-cloud/rclone.conf auth`, choosing the account that should hold the automatic copy. Tell rclone the station has no browser: it prints a command for a machine that has one and asks for the answer back in the SSH terminal. Both the command and the answer carry secrets, so do not publish them. Then `sudo systemctl start restic-cloud.service` and read the journal: the new account gets a folder of its own, and the previous one stays as it was. The age of the last copy is checked for the chosen account and destination
 
-Удаление на Drive использует обычное поведение rclone: старые объекты попадают в корзину Google Drive. Они могут занимать квоту до очистки корзины
+A delete on Drive behaves as rclone always does: the outdated objects go to the Google Drive bin, and they may hold quota until the bin is emptied
 
-Если хочется проверить скрипты вручную, тесты запускаются так:
+To run the tests of the scripts by hand:
 
 ```sh
 nix develop -c bash scripts/tests/run.sh
