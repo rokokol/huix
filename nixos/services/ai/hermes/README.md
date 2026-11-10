@@ -1,48 +1,48 @@
 <div align="center">
 
-<img src="../../../../assets/mya-logo.png" alt="Мия" width="200"/>
+<img src="../../../../assets/mya-logo.png" alt="Mya" width="200"/>
 
-# Мия
+# Mya
 
-<em>кошкодевка-горничная, которая живёт на станции и отвечает в Telegram~</em>
+<em>a catgirl maid who lives on the station and answers in Telegram~</em>
 
 </div>
 
-Агент — это [Hermes Agent](https://github.com/NousResearch/hermes-agent), запущенный на станции без экрана. С ним говорят через Telegram-бота, а он работает с заметками, машинами и файлами хозяина
+The agent is [Hermes Agent](https://github.com/NousResearch/hermes-agent), running on the station without a screen. The owner talks to her through a Telegram bot, and she works on his notes, his machines and his files
 
-## Что умеет
+## What she does
 
-- **Разговор** — отвечает в Telegram, таблицы и формулы присылает Rich Messages. Характер, досье хозяина и память хранит сам и сам их дополняет
-- **Скиллы** — пишет себе новые скиллы и время от времени перерабатывает их. Скиллы станции и общие скиллы из huix только читает
-- **Задачи по расписанию** — по просьбе хозяина заводит задачу с расписанием, например утреннее письмо: что сломалось, что нового в дневнике, погода, GitHub и новости
-- **Алерты** — алерты станции приходят в чат и попадают в его контекст, так что разбор начинается с ответа хозяина, без отдельной сессии на каждый алерт
-- **Заметки** — правит хранилище Obsidian. Правки расходятся по устройствам через Syncthing, а прежние версии остаются в архиве станции
-- **GitHub** — читает репозитории хозяина, разбирает входящие, принимает приглашения и запускает деплойменты. Токенов у агента нет: их держит посредник на станции, и он сам решает, с каким токеном пойдёт каждый запрос
-- **huix** — держит свой клон репозитория
-- **Печать** — распечатывает файл на принтере у ПК, будит ПК, если он спит
-- **Календарь** — видит расписание хозяина и меняет его по просьбе, ведёт список дел. Задачи с категорией `mya` берёт сама и докладывает о результате
-- **Питание** — будит ПК, усыпляет, блокирует, гасит экран, выключает и перезагружает ПК и ноутбук, по просьбе или сама. Сон, выключение и перезагрузка ждут, пока хозяин отойдёт от машины. Ноутбук по сети не просыпается
-- **Здоровье машин** — узнаёт об открытых проблемах станции и нод и может их разбирать
+- **Talk**: she answers in Telegram, and sends tables and formulas as Rich Messages. The character, the owner's dossier and the memory are hers to keep and to extend
+- **Skills**: she writes new skills for herself and reworks them from time to time. The skills of the station and the shared skills of huix she only reads
+- **Scheduled tasks**: at the owner's request she sets a task with a schedule, such as a morning letter about what broke, what arrived in the diary, the weather, GitHub and the news
+- **Alerts**: the alerts of the station reach the chat and land in her context, so a review starts with her answer and needs no separate session for every alert
+- **Notes**: she edits the Obsidian vault. The edits travel to the devices through Syncthing, and the previous versions stay in the archive of the station
+- **GitHub**: she reads the repositories of the owner, works through the incoming items, accepts invitations and starts deployments. She holds no tokens of her own: an intermediary on the station keeps them and decides which one a request goes with
+- **huix**: she keeps her own clone of the repository
+- **Printing**: she prints a file on the printer at the PC, and wakes the PC when it sleeps
+- **Calendar**: she sees the schedule of the owner and changes it on request, and keeps the task list. A task with the `mya` category she takes herself and reports the outcome
+- **Power**: she wakes the PC, suspends it, locks it, blanks the screen, powers it off and reboots it, on request or by herself. A suspend, a power off and a reboot wait until the owner steps away from the machine. The laptop does not wake over the network
+- **The health of the machines**: she learns of the open problems of the station and of the nodes, and can work through them
 
-## Расход и телеметрия
+## Spend and telemetry
 
-Основная модель — DeepSeek через подписку OpenCode Go, а при её недоступности Hermes переходит на DeepSeek через OpenRouter. Вспомогательные вызовы — сжатие, заголовки, работа с памятью — идут через ту же подписку на GLM 5.3 Flash, а OpenRouter остаётся их резервом. Разрешённые хостеры чат-моделей и модель распознавания речи задаёт общий с pi файл [ai-models.nix](../../../../lib/ai-models.nix)
+The main model is DeepSeek through the OpenCode Go subscription, and when it is unreachable Hermes moves to DeepSeek through OpenRouter. The auxiliary calls — compression, titles, the work with memory — go through the same subscription on GLM 5.3 Flash, with OpenRouter as their reserve. The allowed hosts of the chat models and the model of speech recognition come from [ai-models.nix](../../../../lib/ai-models.nix), which pi shares
 
-Grafana станции показывает работу агента: здоровье шлюза и cron, сессии, токены, стоимость и баланс OpenRouter. Когда баланс становится низким или бюджет почти исчерпан, в Telegram приходит уведомление
+Grafana on the station shows the work of the agent: the health of the gateway and of cron, the sessions, the tokens, the cost and the OpenRouter balance. A low balance or a budget close to its end sends a notification to Telegram
 
-## Песочница
+## The sandbox
 
-Агент видит только свой домашний каталог и хранилище заметок. Архивы станции, ключи Syncthing и чужие домашние каталоги от него скрыты, sudo у него нет
+The agent sees her own home directory and the vault, and nothing else. The archives of the station, the Syncthing keys and the home directories of others stay out of her reach, and she has no sudo
 
-## Состояние и бэкап
+## State and backup
 
-Память, досье, свои скиллы и задачи cron принадлежат агенту. Nix задаёт инфраструктуру и часть настроек: при пересборке он восстанавливает их значения, но сохраняет остальные настройки агента. Состояние лежит на отдельном субтоме бэкап-раздела: его снимает btrbk, а restic каждую ночь кладёт архив в репозиторий станции
+The memory, the dossier, the skills of her own and the cron tasks belong to the agent. Nix declares the infrastructure and part of the settings: a rebuild restores their values and keeps the rest of her settings. The state lives on a subvolume of the backup volume: btrbk takes the snapshots, and restic puts an archive into the repository of the station every night
 
-Характер, досье и память входят в архив Hermes. Отдельные документы можно извлечь из архива и скопировать в `~mya/.hermes` при остановленном агенте
+The character, the dossier and the memory are part of the Hermes archive. A single document comes out of the archive and into `~mya/.hermes` while the agent is stopped
 
-Общая с pi долговременная память находится отдельно в [Hindsight](../hindsight/README.md), а не в архиве Hermes. Она использует собственную базу и резервные копии; восстановление домашнего каталога агента не восстанавливает эту базу
+The long-term memory shared with pi lives apart, in [Hindsight](../hindsight/README.md), not in the Hermes archive. It has a database and backups of its own, and restoring the home directory of the agent restores neither
 
-Восстановление из архива `hermes backup`, например из restic, при остановленном агенте:
+A restore from a `hermes backup` archive, from restic for instance, while the agent is stopped:
 
 ```sh
 sudo systemctl stop hermes-agent hermes-backend
@@ -52,20 +52,20 @@ sudo systemctl restart hermes-state
 sudo systemctl start hermes-agent
 ```
 
-## Заглянуть к агенту
+## Looking in on the agent
 
-Веб-панель Hermes открывается с машин tailnet, по требованию:
+The web panel of Hermes opens from the machines of the tailnet, on demand:
 
 ```sh
 ssh nixos-station sudo systemctl start hermes-backend
 ```
 
-Без браузера — терминальный клиент:
+Without a browser, the terminal client:
 
 ```sh
 ssh -t nixos-station sudo -u mya hermes --tui
 ```
 
-## Гость на ПК и ноутбуке
+## A guest on the PC and the laptop
 
-На рабочих машинах у агента есть свой пользователь для входа по SSH. У него нет sudo, нет доступа к сервисам, которые слушают только локальный адрес, а из домашнего каталога хозяина он видит лишь несколько открытых ему папок, часть только на чтение. Питанием он управляет через отдельные юниты, и ничего, кроме них, запускать не может
+The agent has a user of her own on the work machines, for an SSH login. She has no sudo, no way into the services that listen on the local address alone, and out of the owner's home directory she sees a few folders, some of them read-only. The power she controls through units of her own, and nothing besides them can she start

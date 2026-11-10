@@ -6,7 +6,7 @@ This file provides guidance to coding agents when working with code in this repo
 
 A single NixOS flake that builds the workstations `nixos-pc` (NVIDIA/CUDA) and `nixos-laptop` (CPU-only) and the headless home server `nixos-station`, which receives the backups. It is configuration — there is no application code and no test suite; what stands in for one is `nix flake check`, which evaluates every host and builds the Lua nixvim assembles, and one VM test of the station built on demand. "Building" the repo means evaluating the flake into a system closure; "running" it means switching to that closure on a NixOS host
 
-Every layer has a README in Russian describing what lives there — [`nixos/`](nixos/README.md), [`nixos/services/`](nixos/services/README.md), [`home-manager/`](home-manager/README.md), [`hyprland/`](home-manager/desktop/hyprland/README.md), [`waybar/`](home-manager/desktop/hyprland/services/waybar/README.md), [`programs/`](home-manager/programs/README.md), [`scripts/`](scripts/README.md). Read the one next to the file you are editing; this file holds only what none of them can say
+Every layer has a README describing what lives there — [`nixos/`](nixos/README.md), [`nixos/services/`](nixos/services/README.md), [`home-manager/`](home-manager/README.md), [`hyprland/`](home-manager/desktop/hyprland/README.md), [`waybar/`](home-manager/desktop/hyprland/services/waybar/README.md), [`programs/`](home-manager/programs/README.md), [`scripts/`](scripts/README.md). Read the one next to the file you are editing; this file holds only what none of them can say
 
 ## Build / switch / iterate
 
@@ -91,7 +91,7 @@ nix run .#check-nix -- -N rokokol   # the whole checker, including what the sand
 What neither checker can know, because it is this repository's own:
 
 - **`cfg = config.rokokol.<name>` is bound only when the config is read more than once** — a `let` for a single reference is noise
-- **All user-facing text is English** — every notify-send, rofi prompt, `usage()` and waybar tooltip. The sole exception is `README.md` files, which stay in Russian
+- **All user-facing text is English** — every notify-send, rofi prompt, `usage()`, waybar tooltip and `README.md`
 - **Every path in this repository is kebab-case, not only the `.nix` ones** — assets included. The checker judges `.nix` paths alone, because elsewhere it met Cargo, pytest and X11, which choose their own names; here every file is yours, so the wider rule holds and a human keeps it. When renaming, `git mv` and grep the tree for references. The exceptions are conventional root metadata (`README.md`, `LICENSE`, `ASSETS.md`, `WORKAROUNDS.md`, `DEVIATIONS.md`, `TODO.md`) and the X11 cursor names under `assets/sayori-cursor-v2/cursors/`, which are a protocol
 - **An exception the checker must know goes in `check-nix.allow`**, one line each; an entry that excuses nothing is itself a finding. The one entry there is `nixos/station/tests/test-meta.nix`, which extends the test framework's own `meta` option
 - Don't touch `system.stateVersion` unless doing an explicit migration; `home.stateVersion` follows it in `home-manager/desktop/user.nix`, so it moves with it
