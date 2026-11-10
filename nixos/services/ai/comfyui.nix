@@ -35,6 +35,10 @@
       group = "comfyui";
       acceleration = "cuda";
       host = "127.0.0.1";
+      # StateDirectory would put the state under /var/lib/private, whose mode systemd holds at 0700
+      # and refuses to start with anything else; /srv keeps the same tree writable for the owner by
+      # group, with no root and no touch of a system directory (see DEVIATIONS.md)
+      home = "/srv/comfyui";
       inherit (config.rokokol.comfyui) port;
       # No ComfyUI-Manager: core imports comfyui_manager in main.py before any custom node loads,
       # and this package set ships it as a separate Python package rather than in ComfyUI's env
@@ -86,19 +90,23 @@
     # The service writes with UMask 0077 and owns the state, so the owner needs the group bit
     # to add models by hand; this rule and the override below are the only places that widen it
     systemd.tmpfiles.settings."10-comfyui" = {
-      "/var/lib/comfyui".d = {
+      "/srv/comfyui".d = {
         user = "comfyui";
         group = "comfyui";
         mode = "2770";
       };
       "/home/${rokokolName}/comfyui-data" = {
         "L+" = {
-          argument = "/var/lib/comfyui";
+          argument = "/srv/comfyui";
         };
       };
     };
 
-    systemd.services.comfyui.serviceConfig.UMask = lib.mkForce "0007";
+    systemd.services.comfyui.serviceConfig = {
+      UMask = lib.mkForce "0007";
+      StateDirectory = lib.mkForce [ ];
+      PrivateUsers = lib.mkForce false;
+    };
 
     environment.sessionVariables = {
       COMFYUI_PORT = toString config.rokokol.comfyui.port;
