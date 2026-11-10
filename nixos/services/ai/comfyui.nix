@@ -50,13 +50,10 @@
           comfyui-comfyroll-custom_nodes
           comfyui-advanced-controlnet
           comfyui-video-helper-suite
-          comfyui-manager-wd14-tagger
           comfyui-manager-animatediff-evolved
-          comfyui-manager-ultimatesdupscale
           comfyui-manager-ic-light-native
           comfyui-manager-easyillustrious
           comfyui-manager-kikotools
-          comfyui-manager-lora-manager
           # The skill's front end: A1111 syntax, regional prompting and LoRA tags in the prompt
           # Upstream's Makefile runs `ruff format` as its default target, which their derivation does not
           # provide; the install phase copies the tree and needs no build
@@ -67,6 +64,17 @@
           comfyui-manager-lora-auto-trigger-words
           comfyui-impact-subpack
           comfyui-inpaint
+          # Samplers beyond the core list, and the utility packs the workflow uses
+          comfyui-res4lyf
+          comfyui-manager-euler-smea-dyn-sampler
+          comfyui-manager-extra-samplers
+          comfyui-manager-ab-samplercustom
+          comfyui-manager-ksamplertimer
+          comfyui-rgthree
+          comfyui-crystools
+          comfyui-easy-use
+          comfyui-inspire-pack
+          comfyui-comfy-mtb
         ];
     };
 
