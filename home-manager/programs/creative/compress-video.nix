@@ -22,7 +22,7 @@ in
     };
 
   config = lib.mkIf config.rokokol.compress-video.enable {
-    home.packages = [ pkgs.ffmpeg-headless ];
+    home.packages = with pkgs; [ ffmpeg-headless ];
 
     rokokol.agents.skills.compress-video = skill;
   };
