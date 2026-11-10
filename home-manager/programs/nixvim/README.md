@@ -10,3 +10,4 @@ Nixvim is my own self-made distribution of Neovim, used as a universal text edit
 - The look of the editor goes with the theme of the desktop
 - The search can show hidden files, and the results and the media open without leaving the editor
 - A text file handed over by another application opens here too
+- A yank reaches the clipboard of the terminal in a desktop session and over an SSH login alike, and a host reached over SSH needs no display for it
