@@ -2,6 +2,7 @@
 
 {
   imports = [
+    ./gpu-unlock.nix
     ./hardware-configuration.nix
     ./hardware.nix
     ./keyboard.nix

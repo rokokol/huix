@@ -35,6 +35,7 @@
   rokokol = {
     workstation.enable = true;
     comfyui.enable = true;
+    gpu-unlock.enable = true;
     molvai.enable = true;
 
     btrfs.mounts = [
