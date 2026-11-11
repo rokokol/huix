@@ -2,7 +2,9 @@
   description = "I love Monika btw";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    # Held at the commit before pi-coding-agent 1.5.0, whose recipe installs no pi-schema and so
+    # breaks checks.pi-extensions; that commit already carries gpu-unlock (see WORKAROUNDS.md)
+    nixpkgs.url = "github:NixOS/nixpkgs/8cb8f896983571463db567ccfe6c98925afef48d";
     nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-26.05";
     # Deliberately without nixpkgs.follows: nixvim pins its own nixpkgs and warns if you override it
     nixvim.url = "github:nix-community/nixvim";

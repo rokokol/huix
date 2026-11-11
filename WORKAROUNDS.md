@@ -582,3 +582,29 @@ nix build .#station-boot-test -L
 The run passes only when the upstream module creates the dump directory itself, and then the workaround is gone. A failure naming `forgejo-dump.service` or the mount namespace means it is still needed
 
 **Upstream:** [NixOS/nixpkgs#582601](https://github.com/NixOS/nixpkgs/pull/582601) makes `services.forgejo.dump` create its own directory
+
+---
+
+## nixpkgs is held before pi-coding-agent 1.5.0
+
+**Where:** the `nixpkgs` input in `flake.nix`, pinned to `8cb8f896`, the commit before pi-coding-agent 1.5.0 reached the tree
+
+**Symptom it prevents:** `checks.x86_64-linux.pi-extensions` fails after its eighth group, and any Pi path that loads `pi-ai/dist/utils/validation.js` dies there: `Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@earendil-works/pi-schema'`. The 1.5.0 package carries `@earendil-works/pi-ai` and the rest of the workspace but never `pi-schema`, which `pi-ai` imports
+
+**Why it happens:** 1.5.0 moved that module into a workspace package of its own, and `pkgs/by-name/pi/pi-coding-agent/package.nix` copies the other `@earendil-works` packages into `node_modules` without it. `pi --version` still answers, so the breakage shows only where a session reaches validation
+
+**Why this works:** the pinned commit is the parent of the 1.5.0 bump, so the tree keeps 1.4.0 and still holds everything this configuration needs from that week, `gpu-unlock` included (merged 1 Nov)
+
+**Rejected alternative:** the tip of 7 Nov, `f4a03c00`, was taken first and fails the same check; its PC closure also asks for 5861 store paths built against 390 at the pinned commit, so it costs far more for no gain. Overlaying the 1.4.0 recipe into `overlays/` keeps nixpkgs moving, but it is a copy of a nixpkgs file that then ages on its own
+
+**Removal check:** put the input back to `github:NixOS/nixpkgs/nixos-unstable` and read both answers
+
+```sh
+nix flake update nixpkgs
+nix eval --raw .#nixosConfigurations.nixos-pc.pkgs.pi-coding-agent.version
+nix build .#checks.x86_64-linux.pi-extensions
+```
+
+1.5.2 or later with a green check means the pin can go. A 1.5.0 or 1.5.1 version, or a failure naming `@earendil-works/pi-schema`, keeps it
+
+**Upstream:** [NixOS/nixpkgs#583791](https://github.com/NixOS/nixpkgs/issues/583791) reports the missing package and is open; [NixOS/nixpkgs#585935](https://github.com/NixOS/nixpkgs/pull/585935) takes 1.5.2, whose recipe installs `@earendil-works/pi-schema`, and it sits on master since 10 Nov in no `nixos-unstable` commit yet
