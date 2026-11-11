@@ -12,7 +12,7 @@ System: `x86_64-linux`
 
 Configured in [`nixos/configuration-pc.nix`](https://github.com/rokokol/huix/blob/master/nixos/configuration-pc.nix)
 
-**Services declared in this repository:** `NetworkManager-wait-online`, `comfyui`, `smartd`, `syncthing`, `syncthing-init`, `virt-secret-init-encryption`, `zram-metrics`
+**Services declared in this repository:** `NetworkManager-wait-online`, `smartd`, `syncthing`, `syncthing-init`, `virt-secret-init-encryption`, `zram-metrics`
 
 **Timers:** `zram-metrics`
 
