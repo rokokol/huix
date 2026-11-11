@@ -90,11 +90,21 @@
       }
       for key, fn in pairs(keymap) do swayimg.viewer.on_key(key, fn) end
 
-      -- The stock wheel bindings move the image against the wheel (up moves it up),
-      -- so the signs are reversed here to make the wheel scroll the view like a page.
-      -- swayimg 5.7 replaced the per-button wheel binds with one scroll handler
+      -- swayimg 5.7 replaced the per-button wheel binds with one scroll handler, and a
+      -- handler of our own replaces the stock one whole: what it did on its own, zoom
+      -- at the pointer under Ctrl, has to be repeated below
       local step = 10
-      swayimg.viewer.on_scroll(function(_, dx, dy)
+      local zoom_divisor = 10
+      swayimg.viewer.on_scroll(function(kmods, dx, dy)
+        if kmods == "Ctrl" then
+          -- wheel up (dy below zero) zooms in, the image point under the pointer stays put
+          local mouse = swayimg.get_mouse_pos()
+          local scale = swayimg.viewer.scale
+          swayimg.viewer.set_abs_scale(scale - scale * dy / zoom_divisor, mouse.x, mouse.y)
+          return
+        end
+        -- The stock movement moves the image against the wheel (up moves it up), so the
+        -- signs are reversed here to make the wheel scroll the view like a page
         local pos = swayimg.viewer.get_position()
         swayimg.viewer.set_abs_position(pos.x - dx * step, pos.y - dy * step)
       end)
