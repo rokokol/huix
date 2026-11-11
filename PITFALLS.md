@@ -45,3 +45,17 @@ curl -s http://127.0.0.1:8888/metrics | grep 'phase="reranking"' | grep count
 **Mechanism:** the cross-encoder traces its call through `trace_model_call` with `RERANK_SCOPE`, and that row lands in the bank's `llm_requests` table. The `hindsight_llm_calls_total` and `hindsight_llm_duration_seconds` counters are fed from the chat path alone, so the rerank call and the usage the provider returns reach neither
 
 **Safe route:** `nixos/services/ai/hindsight/monitor.nix` exports observed model call traces for the configured bank. These include errors and do not prove payment or fallback. The phase histogram counts completed stages and covers a different scope, so subtracting traces cannot measure fallback. Read actual spend from the OpenRouter key counter
+
+---
+
+## A boot that reboots itself leaves no journal, because the initrd watchdog did it
+
+**Where it bites:** any boot that hangs before `/var` is mounted — a module loaded from the initrd, an early oneshot, and the tensor unlock that `nixos/pc/gpu-unlock.nix` runs there
+
+**Reproduction:** on 11 November 2026 the first boot after `nixos-rebuild boot` with `gpu_unlock.targets=all` went dark for about forty seconds and then rebooted the machine by itself. `journalctl --list-boots` holds no record of that attempt: the previous boot ends at 16:54:59 and the next starts at 16:55:44, and that second attempt unlocked the card in one second
+
+**Misleading result:** the machine resets with no message, no journal entry and nothing on screen after a dark framebuffer, so it reads as a POST or memory-training fault and points at the firmware rather than at the kernel
+
+**Mechanism:** `kernel.panic` is `0` on this host, so a Linux panic hangs the machine instead of rebooting it. The reset comes from the board's own watchdog: the initrd's systemd arms `/dev/watchdog` with `RuntimeWatchdogSec = 30s` and `RebootWatchdogSec = 10min` (`nixos/modules/system/boot/systemd/initrd.nix`), and a kernel spinning in a driver cannot let systemd pet it. Nothing reaches the journal because `/var` is not mounted yet
+
+**Safe route:** read `sysctl kernel.panic` before blaming the firmware, since `0` rules a panic out and leaves the watchdog as the only reset in play, and do not search for a journal that cannot exist. Attribute the hang by taking the suspect parameter off for one boot — the bootloader edit, `gpu_unlock.targets` removed — and comparing. The next boot recovers on its own, and the generation before it always boots, so a repeat costs one reboot rather than a rescue
