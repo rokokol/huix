@@ -1,0 +1,30 @@
+Which host's firewall opens no TCP ports at all?	docs/hosts/nixos-station.md
+Which sops secret names does the station hold for its alert e-mail?	docs/hosts/nixos-station.md
+On the laptop, which session variable names the switch device that the tablet mode reads?	docs/hosts/nixos-laptop.md
+Which host declares a system service named virt-secret-init-encryption?	docs/hosts/nixos-pc.md
+Which session variable on the PC points at the rendered paper-search environment file?	docs/hosts/nixos-pc.md
+Which sops secret names give the laptop its Syncthing certificate and key?	docs/hosts/nixos-laptop.md
+How long does the station's Prometheus keep the metrics it scraped?	docs/options/prometheus.md
+How long are the snapshots of the restic server's data directory kept?	docs/options/restic-server.md
+What is the memory limit for each Hermes service on the station?	docs/options/mya-agent.md
+Where does the station keep read-only snapshots of the folders Syncthing receives?	docs/options/syncthing.md
+After how long without a push is a restic node treated as silent?	docs/options/pushgateway.md
+Which memory bank do pi and Hermes share in Hindsight?	docs/options/hindsight.md
+Which mount points on the laptop get btrfs compression and drop atime?	docs/options/btrfs.md
+Which dashboards does the station provision beyond the four the workstations have?	docs/options/grafana.md
+If the Forgejo module listens on every address by default, how is the forge kept off the network?	docs/modules/nixos-services-tools.md
+Where do the node names checked by the pushgateway watchdog come from?	docs/modules/nixos-services-system-monitoring.md
+How often are Radicale's calendar files snapshotted?	docs/modules/nixos-services-tools.md
+How does gh inside the agent session get a GitHub token without holding one?	docs/modules/nixos-services-ai-hermes.md
+Why does the Hindsight dashboard read the key's spend instead of counting tokens?	docs/modules/nixos-services-ai-hindsight.md
+How does the PC's Forgejo Actions runner keep jobs from running directly on the host?	docs/modules/nixos-services-utils.md
+What must I set on a secret so that a service restarts when the secret changes?	docs/guides/secrets.md
+By default, which revisions does drv-diff compare after I bump an input?	docs/guides/bump-an-input.md
+How does a flake input declare a standalone agent skill?	docs/guides/add-a-skill.md
+After changing the station configuration, does the installer image need rebuilding?	docs/guides/install-station.md
+Why does the theme module not set the GTK theme through Home Manager?	docs/guides/theme.md
+What happens when I raise an alert that is already open?	docs/scripts.md
+What commit subject does the script use when it sweeps an agent's clones?	docs/scripts.md
+What does exit status 3 from the wake script mean?	docs/scripts.md
+Which key combination toggles a window to floating?	docs/bindings.md
+Which key locks the session through logind?	docs/bindings.md

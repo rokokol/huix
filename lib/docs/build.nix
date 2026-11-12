@@ -8,6 +8,7 @@ let
     lib
     nix
     python3
+    ripgrep
     runCommand
     writeShellApplication
     writeShellScriptBin
@@ -87,15 +88,30 @@ let
 
   # A configuration that gained a module and no page is as broken as a page that lags the
   # configuration, and a person reads neither
-  check = runCommand "check-docs" { nativeBuildInputs = [ python3 ]; } ''
-    cp -r ${renderSource} work
-    chmod -R u+w work
-    python3 -B work/scripts/docs-build.py check --strict --facts ${factsJson} --repo work || {
-      echo "the pages of docs/ lag this tree: run \`nix run .#docs-build\` and commit them" >&2
-      exit 1
-    }
-    touch $out
-  '';
+  check =
+    runCommand "check-docs"
+      {
+        nativeBuildInputs = [
+          python3
+          ripgrep
+        ];
+      }
+      ''
+        set -euo pipefail
+        cp -r ${renderSource} work
+        chmod -R u+w work
+        python3 -B work/scripts/docs-build.py check --strict --facts ${factsJson} --repo work || {
+          echo "the pages of docs/ lag this tree: run \`nix run .#docs-build\` and commit them" >&2
+          exit 1
+        }
+        python3 -B work/scripts/tests/test-docs-build.py
+        python3 -B work/scripts/tests/test-docs-mcp.py
+        python3 -B work/scripts/tests/test-eval-docs-search.py
+        # A question set shows the search getting worse, and the number is worth reading even in a
+        # log nobody opens until it is red
+        python3 -B work/scripts/tests/eval-docs-search.py --min-recall 0.7
+        touch $out
+      '';
 
   # `nix run .#docs-build` — render the pages of this checkout and write them back into it. The
   # render happens in the sandbox, so the pages a person commits are the pages the check builds:
