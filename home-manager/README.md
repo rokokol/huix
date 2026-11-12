@@ -17,4 +17,10 @@ Everything used every day is assembled here: the applications, the shell, the lo
 
 The PC and the laptop get a full graphical desktop, and the server gets the tools a terminal needs. The applications have their own [section](programs/README.md)
 
+## Which home and which host
+
+A host has one entry file here, and the flake hands it to that host's Home Manager. The station carries more than one home: the owner's, the one of the agent that answers in Telegram, and the guests that session logs in to. They are separate values of the same flake, so a change to a shared module reaches every one of them
+
+One flag decides whether the desktop reaches a host at all, and the modules of [Hyprland](desktop/hyprland/README.md) and the rest of the desktop follow it. That is why the same configuration gives a workstation its desktop and leaves the server without one
+
 Have a look at [Hyprland](desktop/hyprland/README.md) and [Nixvim](programs/nixvim/README.md) to see the desktop and the editor
