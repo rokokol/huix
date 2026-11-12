@@ -171,7 +171,10 @@ in
           HINDSIGHT_API_LLM_PROVIDER = "openai";
           HINDSIGHT_API_LLM_BASE_URL = "https://openrouter.ai/api/v1";
           HINDSIGHT_API_LLM_MODEL = models.memory.model;
-          HINDSIGHT_API_LLM_REASONING_EFFORT = "low";
+          # DeepSeek without thinking is 3x faster and 4x cheaper here; GLM rejects "none"
+          # ("Reasoning is mandatory for this endpoint"), so reverting the memory model to
+          # GLM means putting this back to "low"
+          HINDSIGHT_API_LLM_REASONING_EFFORT = "none";
           HINDSIGHT_API_LLM_EXTRA_BODY = builtins.toJSON {
             provider = {
               order = hosts;

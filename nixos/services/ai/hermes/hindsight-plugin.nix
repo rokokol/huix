@@ -64,6 +64,16 @@ in
     postPatch = ''
       mkdir hindsight_hermes
       cp __init__.py config_schema.py embedded.py plugin.yaml settings.py setup.py templates.py hindsight_hermes/
+      # Per-turn keys re-stamp every unit and void in-flight consolidation; --replace-fail
+      substituteInPlace hindsight_hermes/__init__.py \
+        --replace-fail '            "retained_at": datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z"),' \
+          '            #'
+      substituteInPlace hindsight_hermes/__init__.py \
+        --replace-fail '            "message_count": str(message_count),' \
+          '            #'
+      substituteInPlace hindsight_hermes/__init__.py \
+        --replace-fail '            "turn_index": str(turn_index),' \
+          '            #'
       cat > pyproject.toml <<'EOF'
       [build-system]
       requires = ["hatchling"]
