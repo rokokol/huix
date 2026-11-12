@@ -57,7 +57,7 @@ let
   renderSource = runCommand "huix-docs-render-source" { } ''
     mkdir -p $out/assets
     cp -r ${src}/docs ${src}/nixos ${src}/home-manager ${src}/lib ${src}/scripts ${src}/site $out/
-    cp ${src}/assets/can-you-read-this-with-me.jpg $out/assets/
+    cp ${src}/assets/*.* $out/assets/
     cp ${src}/flake.nix ${src}/checks.nix $out/
     cp ${src}/*.md $out/
   '';
@@ -76,6 +76,7 @@ let
       chmod -R u+w web
       python3 -B web/scripts/docs-build.py site --facts ${factsJson} --repo web --out $out
       cp ${siteFonts}/*.woff2 ${siteFonts}/*-LICENSE.txt $out/assets/vendor/ddlc/
+      python3 -B web/scripts/check-site-links.py $out
     ''
   );
 
@@ -107,6 +108,7 @@ let
         python3 -B work/scripts/tests/test-docs-build.py
         python3 -B work/scripts/tests/test-docs-mcp.py
         python3 -B work/scripts/tests/test-eval-docs-search.py
+        python3 -B work/scripts/tests/test-check-site-links.py
         # A question set shows the search getting worse, and the number is worth reading even in a
         # log nobody opens until it is red
         python3 -B work/scripts/tests/eval-docs-search.py --min-recall 0.7

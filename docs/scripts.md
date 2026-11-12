@@ -128,6 +128,20 @@ Nothing here reaches the network
 Exit 0 when FILE is written, 1 when SNAPSHOTS cannot be read, 2 on a usage error
 ```
 
+## [`scripts/check-site-links.py`](https://github.com/rokokol/huix/blob/master/scripts/check-site-links.py)
+
+```
+usage: check-site-links.py [-h] site
+
+Check that every internal link of a built site resolves
+
+positional arguments:
+  site
+
+options:
+  -h, --help  show this help message and exit
+```
+
 ## [`scripts/colorpicker.sh`](https://github.com/rokokol/huix/blob/master/scripts/colorpicker.sh)
 
 ```

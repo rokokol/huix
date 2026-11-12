@@ -364,6 +364,50 @@ class RepoLinkTest(unittest.TestCase):
         self.assertIn("blob/master/nixos/x.nix", text)
 
 
+class ReadmePageTest(unittest.TestCase):
+    def repo(self, temporary):
+        root = Path(temporary)
+        (root / "nixos").mkdir()
+        (root / "nixos" / "README.md").write_text(
+            "# The NixOS layer\n\n[the scripts](../scripts/README.md) and [the licence](../LICENSE)\n", encoding="utf-8"
+        )
+        (root / "scripts").mkdir()
+        (root / "scripts" / "README.md").write_text("# Scripts\n", encoding="utf-8")
+        (root / "README.md").write_text("# huix\n", encoding="utf-8")
+        return root
+
+    def test_a_readme_becomes_a_page_where_it_lives(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            pages = docs.readme_pages(self.repo(temporary))
+        self.assertEqual([path for path, _, _ in pages], ["README.md", "nixos/README.md", "scripts/README.md"])
+        self.assertEqual(pages[1][1]["kind"], "readme")
+        self.assertEqual(pages[1][1]["title"], "The NixOS layer")
+
+    def test_a_readme_holds_its_own_section_named_by_its_directory(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            pages = docs.readme_pages(self.repo(temporary))
+        sections = dict(docs.navigation([(path, meta) for path, meta, _ in pages]))
+        self.assertEqual(sections["readme"][0]["label"], "nixos")
+        self.assertIn("repository root", [item["label"] for item in sections["readme"]])
+
+    def test_a_link_to_a_rendered_page_opens_it_and_any_other_goes_to_the_repository(self):
+        known = {"scripts/README.html", "nixos/README.html"}
+        html = '<a href="../scripts/README.md">scripts</a> <a href="../LICENSE">licence</a>'
+        out = docs.to_readme_links(html, "nixos", known)
+        self.assertIn('href="../scripts/README.html"', out)
+        self.assertIn('href="https://github.com/rokokol/huix/blob/master/LICENSE"', out)
+
+    def test_a_link_into_the_corpus_opens_the_page_the_site_writes(self):
+        known = {"guides/secrets.html"}
+        out = docs.to_readme_links('<a href="docs/guides/secrets.md">secrets</a>', "", known)
+        self.assertIn('href="guides/secrets.html"', out)
+
+    def test_a_fragment_survives_the_step_to_the_rendered_page(self):
+        known = {"nixos/README.html"}
+        out = docs.to_readme_links('<a href="nixos/README.md#the-station">station</a>', "", known)
+        self.assertIn('href="nixos/README.html#the-station"', out)
+
+
 class HomepageTest(unittest.TestCase):
     def test_the_home_uses_the_kits_popup_and_taped_snapshots(self):
         class Elements(HTMLParser):

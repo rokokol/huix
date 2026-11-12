@@ -5,6 +5,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import posixpath
 import re
 import shutil
 import subprocess
@@ -531,6 +532,49 @@ def page_label(title, path):
     return Path(path).stem
 
 
+def readme_pages(root):
+    """The README of every layer as a page where it lives, so the links it writes to its
+    neighbours keep working, on the site as in the repository"""
+    pages = []
+    for path in sorted(Path(root).rglob("README.md")):
+        if any(part in {"node_modules", "result"} for part in path.parts):
+            continue
+        body = path.read_text(encoding="utf-8")
+        title = next(
+            (line.lstrip("# ").strip() for line in body.splitlines() if line.startswith("# ")),
+            path.parent.name,
+        )
+        pages.append((str(path.relative_to(root)), {"title": title, "kind": "readme"}, body))
+    return pages
+
+
+def to_readme_links(html, base, known):
+    """A README links to its neighbours, to the corpus and to files of the repository. A page the
+    site renders opens as that page, with its fragment kept; anything else opens on GitHub, because
+    the site publishes no other file"""
+
+    def swap(match):
+        target = match.group(1)
+        if target.startswith(("http://", "https://", "mailto:", "#", "/")):
+            return match.group(0)
+        path, _, fragment = target.partition("#")
+        fragment = f"#{fragment}" if fragment else ""
+        resolved = posixpath.normpath(posixpath.join(base, path))
+        # The corpus is published at the root of the site, so a README reaches it by dropping the
+        # directory the markdown lives in
+        page = resolved[: -len(".md")] + ".html" if resolved.endswith(".md") else resolved
+        candidate = page[len(str(DOCS)) + 1 :] if page.startswith(f"{DOCS}/") else page
+        if candidate not in known:
+            return f'href="{REPO}/blob/master/{resolved}{fragment}"'
+        # A page that keeps its place keeps the link as it was written, which is what makes a
+        # neighbour's relative path work; one that moved out of the corpus is followed to where
+        # the site put it
+        kept = path[: -len(".md")] + ".html" if candidate == page else posixpath.relpath(candidate, base or ".")
+        return f'href="{kept}{fragment}"'
+
+    return re.sub(r'href="([^"]+)"', swap, html)
+
+
 def navigation(pages):
     """Pages grouped by the directory that names their section, in the order the sections are
     read and with the root section last
@@ -539,6 +583,14 @@ def navigation(pages):
     can group it by the layer it belongs to instead of offering one flat list of sixty paths"""
     sections = {}
     for path, meta in pages:
+        # A README describes the directory it lives in, and several of them describe one layer,
+        # so they stand together and the entry names the directory
+        if meta.get("kind") == "readme":
+            parent = str(Path(path).parent)
+            sections.setdefault("readme", []).append(
+                {"path": path, "label": "repository root" if parent == "." else parent, "group": None}
+            )
+            continue
         directory = str(Path(path).parent)
         described = meta.get("dir")
         group = described.split("/")[0] if described else None
@@ -557,6 +609,7 @@ SECTIONS = {
     "options": "Options",
     "modules": "Modules",
     "guides": "Guides",
+    "readme": "Repository",
     ".": "Reference",
 }
 
@@ -619,7 +672,7 @@ def home_page(repo, stamp):
 
 
 def render_site(repo, out, assets):
-    """Every corpus page as a page of the site, plus the index"""
+    """Every corpus page and every layer README as a page of the site, plus the index"""
     import markdown
 
     pages = []
@@ -627,17 +680,25 @@ def render_site(repo, out, assets):
         relative = str(path.relative_to(repo / DOCS))
         meta, body = parse_front(path.read_text(encoding="utf-8"))
         pages.append((relative, meta, body))
+    readmes = readme_pages(repo)
+    # A README links to the pages the site publishes and to files it does not, and only the set
+    # of pages written here can answer which is which
+    known = {path[: -len(".md")] + ".html" for path, _, _ in pages + readmes}
 
-    sections = navigation([(relative, meta) for relative, meta, _ in pages])
+    sections = navigation([(relative, meta) for relative, meta, _ in pages + readmes])
     shutil.copytree(assets, out / "assets", dirs_exist_ok=True)
     # A rebuilt stylesheet must reach the reader rather than an hour-old cached copy, so the
     # links carry a digest of the file they point at
     stamp = hashlib.sha256((assets / "site.css").read_bytes()).hexdigest()[:8]
     # The pictures of the corpus live beside it, in docs/img, as the pictures of a README live
-    # beside the README
+    # beside the README. Those of the repository are published flat, where a README expects
+    # them, and the cursor set and the shader beside them stay out of the site
     pictures = repo / DOCS / "img"
     if pictures.is_dir():
         shutil.copytree(pictures, out / "img", dirs_exist_ok=True)
+    for picture in sorted((repo / "assets").glob("*")):
+        if picture.is_file() and picture.suffix.lower() in {'.png', '.jpg', '.jpeg', '.svg', '.webp'}:
+            shutil.copy2(picture, out / "assets" / picture.name)
     mark = repo / "assets" / FAVICON
     if mark.is_file():
         shutil.copy2(mark, out / "assets" / FAVICON)
@@ -653,6 +714,22 @@ def render_site(repo, out, assets):
             stamp=stamp,
             sidebar=sidebar_html(sections, target, root),
             main=f'<article class="prose">{to_scroll_tables(to_figures(to_local_links(to_page_links(main), root)))}</article>',
+        )
+        destination = out / target
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_text(page, encoding="utf-8")
+
+    for relative, meta, body in readmes:
+        target = relative[: -len(".md")] + ".html"
+        root = "../" * (len(Path(relative).parts) - 1)
+        main = markdown.markdown(body, extensions=["tables", "fenced_code", "toc", "sane_lists"])
+        page = SHELL.format(
+            title=page_label(meta.get("title"), relative),
+            root=root,
+            favicon=FAVICON,
+            stamp=stamp,
+            sidebar=sidebar_html(sections, target, root),
+            main=f'<article class="prose">{to_scroll_tables(to_figures(to_readme_links(main, str(Path(relative).parent), known)))}</article>',
         )
         destination = out / target
         destination.parent.mkdir(parents=True, exist_ok=True)
