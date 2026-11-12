@@ -104,6 +104,7 @@ let
     bank_id = config.rokokol.hindsight.bank;
     recall_budget = "mid";
     recall_sync = true;
+    retain_every_n_turns = 3;
     recall_max_tokens = 2000;
     # Measured on 2026-11-06 against the live Voyage reranker: nothing relevant in a 12-query
     # sample scored below 0.308 and no query lost its facts at 0.3, while the unanswerable
