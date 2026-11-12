@@ -51,12 +51,16 @@ A service on `127.0.0.1` needs nothing more. A web service that the other hosts 
 
 ## The check
 
+Make new files visible to Git before you evaluate the flake; an untracked module is not included in a Git-backed flake source. The strict renderer refuses a missing page, so create the required option or module page with its generated marker first. Then generate and review the documentation and run the checks:
+
 ```sh
-nix flake check                 # every host still evaluates
-nixos-rebuild switch --flake .#nixos-pc
+nix run .#docs-build
+nix flake check
 ```
 
-To see what the new module changed in the store, compare the derivation paths against the commit before it:
+If the service needs credentials, follow [Add a secret](secrets.md). Deploy only after the target host and its access are ready; the station uses the remote command in the [repository README](https://github.com/rokokol/huix#commands)
+
+To inspect derivation changes against a chosen revision, run the comparison below. It exits nonzero when paths change, which is expected for a new service:
 
 ```sh
 nix run .#drv-diff -- -r HEAD~1

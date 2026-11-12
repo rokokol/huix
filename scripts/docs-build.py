@@ -582,10 +582,11 @@ SHELL = """<!DOCTYPE html>
 <script type="module" src="{root}assets/site.js?v={stamp}"></script>
 </head>
 <body>
+<canvas class="cloud" aria-hidden="true"></canvas>
 <header class="top"><div class="wrap top-inner">
 <a class="brand" href="{root}index.html">huix <span class="tagline">the configuration and what runs on it</span></a>
 <button class="icon-button" data-theme-toggle type="button"><svg viewBox="0 0 8 8" width="16" height="16" aria-hidden="true"><path d="" fill-rule="evenodd"></path></svg></button>
-<a class="icon-button" href="https://github.com/rokokol/huix" aria-label="huix on GitHub"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.4 7.4 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A7.99 7.99 0 0 0 16 8c0-4.42-3.58-8-8-8Z"></path></svg></a>
+<a class="icon-button" href="https://github.com/rokokol/huix" aria-label="huix on GitHub"><span class="github-icon" aria-hidden="true"></span></a>
 </div></header>
 <div class="wrap layout">
 <nav class="sidebar">{sidebar}</nav>
@@ -611,6 +612,10 @@ def sidebar_html(sections, current, root):
             links.append(f'<li><a href="{root}{target}"{mark}>{item["label"]}</a></li>')
         blocks.append(f'<h2>{name}</h2><ul>{"".join(links)}</ul>')
     return "".join(blocks)
+
+
+def home_page(repo, stamp):
+    return (repo / "site" / "home.html").read_text(encoding="utf-8").replace("__STAMP__", stamp)
 
 
 def render_site(repo, out, assets):
@@ -659,7 +664,7 @@ def render_site(repo, out, assets):
         links = "".join(f'<li><a href="{item["path"][: -len(".md")]}.html">{item["label"]}</a></li>' for item in items)
         index.append(f"<h2>{name}</h2><ul>{links}</ul>")
     index.append("</article>")
-    (out / "index.html").write_text(
+    (out / "docs.html").write_text(
         SHELL.format(
             title="Documentation",
             root="",
@@ -670,6 +675,7 @@ def render_site(repo, out, assets):
         ),
         encoding="utf-8",
     )
+    (out / "index.html").write_text(home_page(repo, stamp), encoding="utf-8")
     return len(pages)
 
 

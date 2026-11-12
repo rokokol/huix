@@ -28,6 +28,21 @@ let
     path = inputs.self;
   };
 
+  siteFonts = builtins.path {
+    name = "ddlc-site-fonts";
+    path = "${inputs.ddlc-themes}/dist";
+    filter =
+      path: type:
+      type == "directory"
+      || builtins.elem (builtins.baseNameOf path) [
+        "DepartureMono-Regular.woff2"
+        "DepartureMono-LICENSE.txt"
+        "MyaNunito.woff2"
+        "MyaNunito-Italic.woff2"
+        "MyaNunito-LICENSE.txt"
+      ];
+  };
+
   facts = import ./facts.nix {
     inherit lib;
     inherit (inputs) self;
@@ -39,8 +54,9 @@ let
   # help they print, the pages themselves and the assets of the site. The pictures of the
   # repository are large and no page is built from them
   renderSource = runCommand "huix-docs-render-source" { } ''
-    mkdir -p $out
+    mkdir -p $out/assets
     cp -r ${src}/docs ${src}/nixos ${src}/home-manager ${src}/lib ${src}/scripts ${src}/site $out/
+    cp ${src}/assets/can-you-read-this-with-me.jpg $out/assets/
     cp ${src}/flake.nix ${src}/checks.nix $out/
     cp ${src}/*.md $out/
   '';
@@ -58,6 +74,7 @@ let
       cp -r ${corpus} web
       chmod -R u+w web
       python3 -B web/scripts/docs-build.py site --facts ${factsJson} --repo web --out $out
+      cp ${siteFonts}/*.woff2 ${siteFonts}/*-LICENSE.txt $out/assets/vendor/ddlc/
     ''
   );
 

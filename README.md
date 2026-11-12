@@ -39,13 +39,9 @@ nix build .#station-boot-test -L      # the station in virtual machines beside a
 nix build .#station-install-test -L   # its installer image in virtual machines: the refusals, then a full install
 ```
 
-The first install of the station goes from a flash drive: `nix build .#station-installer` builds the image without its secrets, `nix run .#make-station-iso -- write result/iso/*.iso OUTPUT` adds them to a copy, and that OUTPUT is deleted after the install. What the station can do is in [the system layer](nixos/README.md#the-station)
+The station installs from a flash drive. The [installation guide](docs/guides/install-station.md) explains the image and its secrets. What the station can do is in [the system layer](nixos/README.md#the-station)
 
-If the hardware changed, describe it again:
-
-```sh
-sudo nixos-generate-config --show-hardware-config > nixos/<host>/hardware-configuration.nix
-```
+If the hardware changed, inspect the output of `sudo nixos-generate-config --show-hardware-config` on that host before you update its hardware configuration. Preserve the existing file until you have reviewed the changes
 
 MATLAB runs through Nix too (★^O^★):
 

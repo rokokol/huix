@@ -5,13 +5,13 @@ kind: guide
 
 # Switch the light and dark theme
 
-`SUPER+A` runs `scripts/toggle-theme.sh`, the choice is saved outside the store, and a rebuild never overwrites it. The rest of this page is what has to stay true for that to keep working
+`SUPER+A` runs `scripts/toggle-theme.sh` and saves the choice outside the store. Hyprland runs the script with `--sync` when its configuration loads, so it can restore the saved choice
 
 ## Who owns the choice
 
-The script owns it at runtime. It writes the GTK preference through dconf and remembers the side in `~/.local/state/huix/theme`, and the next login reads that file back. Declaring the same key in Nix would fight it: the Home Manager GTK module writes `gtk-theme` into dconf on every activation, so a rebuild would undo the toggle
+The script owns it at runtime. It writes the GTK preference through dconf and remembers the choice in `${XDG_STATE_HOME:-$HOME/.local/state}/huix/theme`. Hyprland calls `--sync` on startup and reload to restore it
 
-That is why `theme.nix` holds no `color-scheme` and no `gtk-theme`. If a rebuild starts resetting the theme, look for a declared dconf key before anything else
+`home-manager/desktop/theme/theme.nix` does not declare `color-scheme` or `gtk-theme` in dconf. It also does not set `gtk.theme`, which would make Home Manager write the GTK theme to dconf. Declaring either runtime choice there would compete with the toggle
 
 ## What follows the theme and what does not
 
@@ -21,4 +21,4 @@ That is why `theme.nix` holds no `color-scheme` and no `gtk-theme`. If a rebuild
 
 ## Moving the files
 
-The paths the script writes to are session variables, `GTK4_LIGHT_CSS` and `GTK4_DARK_CSS`. A change there reaches the script only at the next login, because Home Manager writes the session file once per session
+`GTK4_LIGHT_CSS` and `GTK4_DARK_CSS` name the source files for the GTK CSS symlink. Changes to these session variables reach an existing session only after a fresh login. The script also requires its theme and dconf variables; see its environment guard before changing the wrapper

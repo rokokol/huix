@@ -37,7 +37,6 @@ in
         (comfyui-manager-prompt-control.overrideAttrs (_: {
           dontBuild = true;
         }))
-        comfyui-manager-comfycouple
         comfyui-manager-lora-auto-trigger-words
         comfyui-res4lyf
         comfyui-manager-euler-smea-dyn-sampler

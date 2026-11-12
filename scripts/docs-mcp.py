@@ -193,9 +193,9 @@ TOOLS = [
     {
         "name": "search_docs",
         "description": (
-            "Search the documentation of this configuration: what runs on which host, which option "
-            "turns a service on, and why an arrangement is the way it is. Offline and read-only. "
-            "Returns the page path, its title, the heading a match sits under, a snippet and a link"
+            "Search the current huix system configuration in its documentation: hosts, options, services "
+            "and how they fit together. The index is a snapshot, not live host state. "
+            "Offline and read-only. Returns page paths, headings, snippets and links"
         ),
         "inputSchema": {
             "type": "object",
@@ -246,7 +246,7 @@ def answer(message):
         return {
             "protocolVersion": message.get("params", {}).get("protocolVersion", "2025-06-18"),
             "capabilities": {"tools": {}},
-            "serverInfo": {"name": "huix-docs", "version": "0.1.0"},
+            "serverInfo": {"name": "actual_system_docs", "version": "0.1.0"},
         }
     if method == "tools/list":
         return {"tools": TOOLS}

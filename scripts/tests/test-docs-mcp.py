@@ -82,6 +82,12 @@ class SearchTest(unittest.TestCase):
         self.assertTrue(answer["hits"][0]["url"].startswith("https://github.com/rokokol/huix/blob/master/"))
 
 
+class ProtocolTest(unittest.TestCase):
+    def test_initialize_identifies_the_server(self):
+        result = mcp.answer({"method": "initialize", "params": {}})
+        self.assertEqual(result["serverInfo"]["name"], "actual_system_docs")
+
+
 class CorpusTest(unittest.TestCase):
     def test_a_corpus_is_read_from_the_markdown_of_every_page(self):
         with tempfile.TemporaryDirectory() as directory:

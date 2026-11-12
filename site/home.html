@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en" data-ddlc-heading="plain">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="A personal NixOS configuration, its story, and the projects that grew with it">
+<title>huix — a system of my own</title>
+<link rel="icon" type="image/jpeg" href="assets/can-you-read-this-with-me.jpg">
+<script>
+  try {
+    const asked = new URLSearchParams(location.search).get("theme")
+    const stored = localStorage.getItem("huix-theme")
+    const chosen = asked === "light" || asked === "dark" ? asked : stored
+    if (chosen === "light" || chosen === "dark") document.documentElement.dataset.theme = chosen
+  } catch {}
+</script>
+<link rel="stylesheet" href="assets/vendor/ddlc/ddlc-tokens.css">
+<link rel="stylesheet" href="assets/vendor/ddlc/ddlc-ui.css">
+<link rel="stylesheet" href="assets/vendor/ddlc/ddlc-report.css">
+<link rel="stylesheet" href="assets/site.css?v=__STAMP__">
+<script type="module" src="assets/site.js?v=__STAMP__"></script>
+</head>
+<body class="home">
+<canvas class="cloud" aria-hidden="true"></canvas>
+<header class="home-bar">
+  <nav class="home-nav" aria-label="Main navigation">
+    <a class="home-brand" href="index.html">huix <span>✦ a system of my own</span></a>
+    <a href="#story">Story</a>
+    <a href="#family">Projects</a>
+    <a href="docs.html">Documentation</a>
+    <div class="home-controls">
+      <button class="icon-button" data-theme-toggle type="button" aria-label="Change theme"><svg viewBox="0 0 8 8" width="16" height="16" aria-hidden="true"><path d="" fill-rule="evenodd"></path></svg></button>
+      <a class="icon-button home-github" href="https://github.com/rokokol/huix" aria-label="huix on GitHub"><span class="github-icon" aria-hidden="true"></span></a>
+    </div>
+  </nav>
+</header>
+<main>
+  <section class="home-hero home-wrap">
+    <div class="hero-copy">
+      <p class="home-eyebrow">A PERSONAL NIXOS CONFIGURATION <span>✦</span></p>
+      <h1>A system<br>of my <em>own</em></h1>
+      <p class="hero-lead">My PC, laptop and home station live in one Nix flake. It began as an experiment and became the system I use every day</p>
+      <div class="hero-actions"><a class="home-button primary" href="docs.html">Explore the docs →</a><a class="home-button" href="https://github.com/rokokol/huix">View on GitHub ↗</a></div>
+      <p class="hero-note">NixOS · Home Manager · Hyprland · a little DDLC</p>
+    </div>
+    <figure class="ddlc-snap ddlc-snap-right hero-photo">
+      <div class="hero-art" aria-label="The three parts of huix">
+        <div class="hero-orbit orbit-one"></div><div class="hero-orbit orbit-two"></div>
+        <div class="hero-center"><span>❄</span><strong>huix</strong><small>one flake, my own space</small></div>
+        <div class="hero-tag tag-pc"><span>01</span> work PC</div><div class="hero-tag tag-laptop"><span>02</span> laptop</div><div class="hero-tag tag-station"><span>03</span> home station</div>
+        <span class="hero-spark spark-one">✦</span><span class="hero-spark spark-two">✧</span>
+      </div>
+      <figcaption>one flake · three hosts · my own space</figcaption>
+    </figure>
+  </section>
+  <section class="home-section home-wrap" id="story">
+    <div class="section-heading"><p class="home-eyebrow">HOW IT STARTED</p><h2>From frustration<br>to <em>declarative</em></h2><p>This was not love at first boot</p></div>
+    <div class="story-grid">
+      <article class="story-card"><span class="story-number">01 / THE NAME</span><h3>A small experiment</h3><p>I tried NixOS and did not like it at first. I got angry and named the repository "huix", after a Russian swear word</p></article>
+      <article class="story-card"><span class="story-number">02 / THE IDEA</span><h3>One place to describe it</h3><p>The idea of a declarative system drew me in. Packages, settings and services could live together in one directory, while the system stayed clean</p></article>
+      <article class="story-card"><span class="story-number">03 / THE SYSTEM</span><h3>I decided to stay</h3><p>I grew comfortable with NixOS and made it my main system. The separate PC and laptop configurations became a modular flake</p></article>
+      <article class="story-card"><span class="story-number">04 / THE STATION</span><h3>A new home for Mya</h3><p>Later I added a small home station and set up an isolated AI agent there. I also built a private NixOS mail server</p></article>
+    </div>
+  </section>
+  <section class="home-band"><div class="home-wrap band-inner"><span class="band-mark">❄</span><div><p class="home-eyebrow">WHY NIX?</p><h2>Describe it once.<br><em>Make it yours.</em></h2></div><p>I like a system I can understand and change from one place. Nix lets my configuration describe the system instead of leaving its state scattered across machines</p></div></section>
+  <section class="home-section home-wrap" id="agents">
+    <div class="section-heading"><p class="home-eyebrow">FOR PEOPLE AND AGENTS</p><h2>A guide to<br><em>the system</em></h2></div>
+    <blockquote><p>This site began while I was building an MCP server for my agents. They need to understand how my systems fit together before they change them</p><p>The same documentation gives them an offline search and gives people a place to explore huix</p></blockquote>
+    <a class="home-button" href="docs.html">Explore the documentation →</a>
+  </section>
+  <section class="home-section home-wrap" id="family">
+    <div class="section-heading"><p class="home-eyebrow">THE PROJECT FAMILY</p><h2>Things that grew<br><em>out of huix</em></h2><p>Some pieces became projects of their own. Others grew alongside huix and came back as inputs</p></div>
+    <div class="project-grid">
+      <a class="project-card ddlc-snap" href="https://github.com/rokokol/hyprland-screen-shader"><span>DESKTOP / HYPRLAND</span><h3>screen shader ↗</h3><p>Screen effects and software brightness</p></a>
+      <a class="project-card" href="https://github.com/rokokol/rofi-wooordhunt"><span>DESKTOP / LANGUAGE</span><h3>rofi-wooordhunt ↗</h3><p>A dictionary at the launcher</p></a>
+      <a class="project-card" href="https://github.com/rokokol/virtual-media-devices"><span>MEDIA / DEVICES</span><h3>virtual media devices ↗</h3><p>Virtual camera and microphone devices</p></a>
+      <a class="project-card" href="https://github.com/rokokol/skvpn"><span>NETWORK / PRIVACY</span><h3>skvpn ↗</h3><p>A declarative VPN client</p></a>
+      <a class="project-card ddlc-snap" href="https://github.com/rokokol/archive-mount.yazi"><span>FILES / YAZI</span><h3>archive-mount ↗</h3><p>Open archives as directories</p></a>
+      <a class="project-card" href="https://github.com/rokokol/rename-case.yazi"><span>FILES / YAZI</span><h3>rename-case ↗</h3><p>Rename files and change their case</p></a>
+      <a class="project-card ddlc-snap" href="https://github.com/rokokol/ddlc-sddm-theme"><span>DDLC / LOGIN</span><h3>ddlc-sddm-theme ↗</h3><p>A DDLC login screen</p></a>
+      <a class="project-card" href="https://github.com/rokokol/ddlc-hyprlock"><span>DDLC / LOCK</span><h3>ddlc-hyprlock ↗</h3><p>A lock screen with character</p></a>
+      <a class="project-card ddlc-snap" href="https://github.com/rokokol/ddlc-rofi-theme"><span>DDLC / LAUNCHER</span><h3>ddlc-rofi-theme ↗</h3><p>A DDLC look for rofi</p></a>
+      <a class="project-card legacy ddlc-snap" href="https://github.com/rokokol/claude-account"><span>LEGACY IN HUIX</span><h3>claude-account ↗</h3><p>A profile switcher that huix no longer uses</p></a>
+    </div>
+    <div class="related ddlc-inform"><h3 class="ddlc-inform-title">Made alongside huix</h3><p><a href="https://github.com/rokokol/ddlc-palette">ddlc-palette</a> · <a href="https://github.com/rokokol/ddlc-themes">ddlc-themes</a> · <a href="https://github.com/rokokol/ddlc.nvim">ddlc.nvim</a> · <a href="https://github.com/rokokol/MolvAI">MolvAI</a> · <a href="https://github.com/rokokol/papers-skill">papers-skill</a> · <a href="https://github.com/rokokol/telegram-skill">telegram-skill</a> · <a href="https://github.com/rokokol/mail-skill">mail-skill</a> · <a href="https://github.com/rokokol/skills">agent skills</a></p></div>
+  </section>
+  <section class="home-section home-wrap ending"><div><p class="home-eyebrow">A NOTE FROM ME ♡</p><h2>Of course there is<br><em>a little DDLC</em></h2><p>I love Doki Doki Literature Club and its aesthetic. It found its way into the desktop, the tools and this site</p><p class="coming">ddlc.rokokol.art <span>coming soon</span></p></div><div class="ending-note"><span>✦</span><p>There is more to try. One day I want to put NixOS on a phone and add a few more hosts</p><small>THE STORY CONTINUES →</small></div></section>
+</main>
+<footer class="home-footer"><div class="home-wrap"><span>huix · made with declarative love ❄</span><span><a href="docs.html">Documentation</a> · <a href="https://github.com/rokokol/huix">GitHub</a></span></div></footer>
+</body>
+</html>

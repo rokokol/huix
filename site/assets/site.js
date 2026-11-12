@@ -2,10 +2,13 @@
 // is applied in <head> before the first paint, so this module only turns the button and keeps
 // the choice. Without it every page still reads, in the theme of the system
 import { initTheme } from "./vendor/ddlc/ddlc-theme.js"
+import { startCloud } from "./vendor/ddlc/ddlc-cloud.js"
 
 const KEY = "huix-theme"
 const button = document.querySelector("[data-theme-toggle]")
 const icon = button ? button.querySelector("path") : null
+const canvas = document.querySelector(".cloud")
+const cloud = canvas ? startCloud(canvas, { pitch: 6, radius: 170 }) : null
 
 // A `?theme=light` or `?theme=dark` address pins the choice, so a link can show a page in one
 // theme; the kit reads the stored value, so the address writes it before the button is built
@@ -17,5 +20,5 @@ if (asked === "light" || asked === "dark") {
 }
 
 if (button && icon) {
-  initTheme({ button, icon, key: KEY })
+  initTheme({ button, icon, key: KEY, onChange: () => cloud?.recolor() })
 }

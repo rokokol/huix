@@ -5,24 +5,24 @@ kind: guide
 
 # Add an agent skill
 
-A skill is a flake input and nothing else. No list names it, because `home-manager/programs/agents/skills.nix` hands every input whose name starts with `skill-` to the agents of each home that runs one
+For a standalone skill, add a `skill-` input. `home-manager/programs/agents/skills.nix` discovers those inputs and hands the selected skills to enabled agents. A skill that ships with a service uses that service's agent module instead
 
 ## The input
 
 ```nix
 skill-thing = {
   url = "github:rokokol/thing-skill";
-  inputs.nixpkgs.follows = "nixpkgs";
+  flake = false;
 };
 ```
 
-Two things about that block carry the whole job: the prefix `skill-` makes the input a skill, and its name without the prefix becomes the name the agent sees. A third-party flake must follow the system `nixpkgs`, or it drags in a copy of its own
+The prefix makes the input discoverable, and its name without the prefix becomes the name the agent sees. This example uses a non-flake source. If the upstream is a flake, inspect its inputs and follow the repository's input policy
 
-Run `nix flake lock` after the edit. If the skill ships a flake of its own, `nix flake check` proves it evaluates
+Run `nix flake lock` after the edit and verify the selected agent receives the skill. `nix flake check` does not prove the skill itself works
 
 ## Which homes get it
 
-Every home that imports the module gets every skill input, so a skill that only one host should have is taken out by name:
+The module provides skills to a home when a supported agent is enabled. By default it selects all skill inputs, but a home can use an allow-list or exclusions:
 
 ```nix
 rokokol.skills = {
@@ -31,8 +31,8 @@ rokokol.skills = {
 };
 ```
 
-Both options live in the module and are checked against the inputs that exist, so a name that is not an input fails the evaluation instead of doing nothing
+These are alternative examples, not a configuration that includes and excludes the same skill. Both options are checked against existing inputs. The station agent has its own allow-list in `home-manager/home-mya-agent.nix`, so add the skill there if that agent needs it
 
 ## Where a skill keeps its state
 
-A skill comes from the store and cannot be written. The notes, the drafts and the standing permissions it keeps go to `rokokol.agents.skillState`, which each host has for itself: a token belongs to one machine, since every application issues its own
+A skill comes from the store and cannot be written. The owner's Pi configuration places `rokokol.agents.skillState` in the shared Pi directory, which synchronizes across hosts. Do not put a host-specific token there. A skill must be configured to use the intended state path; see `skills.nix` for examples and separate token paths

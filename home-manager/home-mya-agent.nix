@@ -13,6 +13,7 @@ in
   # Of the research directory, the research group alone: ex-USSR kinship is deep-research
   imports = [
     ./programs/agents/agents.nix
+    ./programs/agents/huix-docs.nix
     ./programs/agents/remote/default.nix
     ./programs/agents/research/group.nix
     ./programs/agents/research/docs-mcp.nix
@@ -41,6 +42,7 @@ in
     "tests"
     "versioning"
   ];
+  rokokol.huix-docs.enable = true;
   rokokol.docs-mcp.enable = true;
   rokokol.papers.enable = true;
   # PaperQA's preset runs on Ollama, which the station lacks

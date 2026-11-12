@@ -1,5 +1,7 @@
 import importlib.util
+from html.parser import HTMLParser
 from pathlib import Path
+import tempfile
 import unittest
 
 
@@ -360,6 +362,52 @@ class RepoLinkTest(unittest.TestCase):
         entries = [{"path": "nixos/x.nix", "comment": None, "options": [], "units": []}]
         text = docs.render_modules(entries)
         self.assertIn("blob/master/nixos/x.nix", text)
+
+
+class HomepageTest(unittest.TestCase):
+    def test_the_home_uses_the_kits_popup_and_taped_snapshots(self):
+        class Elements(HTMLParser):
+            def __init__(self):
+                super().__init__()
+                self.classes = []
+
+            def handle_starttag(self, tag, attrs):
+                classes = dict(attrs).get("class", "").split()
+                self.classes.append((tag, set(classes)))
+
+        repo = Path(__file__).parents[2]
+        page = Elements()
+        page.feed(docs.home_page(repo, "test"))
+        self.assertTrue(any("ddlc-inform" in classes and "related" in classes for _, classes in page.classes))
+        self.assertTrue(any(tag == "figure" and "ddlc-snap" in classes for tag, classes in page.classes))
+        self.assertTrue(any("project-card" in classes and "ddlc-snap" in classes for _, classes in page.classes))
+
+    def test_both_page_types_have_the_pointer_cloud(self):
+        repo = Path(__file__).parents[2]
+        self.assertIn('class="cloud"', docs.home_page(repo, "test"))
+        self.assertIn('class="cloud"', docs.SHELL)
+
+    def test_github_link_uses_the_shared_accessible_icon(self):
+        repo = Path(__file__).parents[2]
+        home = docs.home_page(repo, "test")
+        self.assertIn('aria-label="huix on GitHub"', home)
+        self.assertIn('class="github-icon"', home)
+        self.assertIn('class="github-icon"', docs.SHELL)
+        self.assertTrue((repo / "site/assets/github.svg").is_file())
+
+    def test_home_comes_from_the_site_source(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            repo = Path(temporary)
+            (repo / "site").mkdir()
+            (repo / "site" / "home.html").write_text('<a href="docs.html">Story</a>')
+            self.assertIn('<a href="docs.html">Story</a>', docs.home_page(repo, "abc"))
+
+    def test_home_uses_the_stylesheet_stamp(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            repo = Path(temporary)
+            (repo / "site").mkdir()
+            (repo / "site" / "home.html").write_text('<link href="site.css?v=__STAMP__">')
+            self.assertIn('site.css?v=abc', docs.home_page(repo, "abc"))
 
 
 class SidebarTest(unittest.TestCase):

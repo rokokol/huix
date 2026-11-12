@@ -9,8 +9,10 @@ An input moves with one command, and the size of the change decides how much has
 
 ```sh
 nix flake update             # every input
-nix flake update nixpkgs     # one of them
+nix flake update nixpkgs-stable  # one input
 ```
+
+An input pinned to a commit in its URL does not advance until that URL changes. Check `flake.nix` and its pin rationale before you update `nixpkgs`
 
 ## Before the switch
 
@@ -20,19 +22,21 @@ nix flake update nixpkgs     # one of them
 nix flake check
 ```
 
-A change meant to leave behaviour alone is the one to measure. `nix run .#drv-diff` evaluates every host and every check here and at the commit before, and names the ones whose derivation path moved
+A change meant to leave behaviour alone is the one to measure. `nix run .#drv-diff` evaluates the outputs here and at `HEAD` by default, and names the derivation paths that moved
 
 ```sh
 nix run .#drv-diff
 nix run .#drv-diff -- -r HEAD~3
 ```
 
-An output that moves when nothing should have is either a bug just written or a dependency nobody knew about. Both are worth the minute
+An output that moves when nothing should have is either a bug just written or a dependency nobody knew about. The command exits nonzero when it finds a change; review the output rather than treating that status alone as a failure
 
 ## The third-party flakes
 
-An extracted flake must reuse the system `nixpkgs` and `home-manager` through `follows`, or it brings a copy of its own and the packages double. The `ddlc-*` inputs also follow `ddlc-palette`, since a second palette would drift from the first without a word
+Extracted flakes generally follow the system `nixpkgs` and `home-manager` to avoid separate inputs. Check the comments in `flake.nix` before changing an existing input: some deliberately use a different package set. The `ddlc-*` inputs also follow `ddlc-palette`
 
 ## When the lock is bumped
 
-The lock is one file for every host, so two branches that both update it meet in a conflict. Take the newer lock whole rather than merging the two by hand, then run `nix flake check` again: a merged lock is a lock nobody has evaluated
+The lock is shared by every host. When branches conflict, retain the intended input changes from both sides and regenerate the lock if necessary. Inspect the resulting diff and run the checks again; choosing the newer file alone can discard an input added on the other branch
+
+If generated documentation is stale after the update, run `nix run .#docs-build` and review its changes. A green `nix flake check` does not build every host closure or exercise every application at runtime

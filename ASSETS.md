@@ -36,7 +36,9 @@ It is not my artwork and it is not the greeter cursor — that one is cut from t
 
 `site/assets/vendor/ddlc/` is the DDLC web kit from [ddlc-themes](https://github.com/rokokol/ddlc-themes), vendored unchanged at commit `b7ee74d`: `ddlc-tokens.css`, `ddlc-ui.css`, `ddlc-report.css`, `ddlc-theme.js` and `ddlc-cloud.js`, MIT as the repository that generates them. The colours in them are Team Salvato's, measured off [ddlc.moe](https://ddlc.moe/) by [ddlc-palette](https://github.com/rokokol/ddlc-palette); the mapping of colour to role is the work of ddlc-themes
 
-`ASSETS.md` and the site itself are mine. The GitHub mark on the documentation site is the repository's own SVG, written into the page template rather than kept as a second file, and it takes its fill from the text role, so it follows the theme like every other mark on the page. The mark in the tab is `assets/can-you-read-this-with-me.jpg`, the same file the repository already holds
+The built site also takes Departure Mono and Mya Nunito from the locked `ddlc-themes` input. Their licence files are installed beside the fonts under `assets/vendor/ddlc/`
+
+`ASSETS.md` and the site itself are mine. The GitHub mark at `site/assets/github.svg` is shared by the landing page and the documentation. It takes its colour from the text role, so it follows the theme. The mark in the tab is `assets/can-you-read-this-with-me.jpg`, the same file the repository already holds
 
 ## Everything else
 
