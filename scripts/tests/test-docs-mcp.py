@@ -87,6 +87,41 @@ class ProtocolTest(unittest.TestCase):
         result = mcp.answer({"method": "initialize", "params": {}})
         self.assertEqual(result["serverInfo"]["name"], "actual_system_docs")
 
+    def test_a_page_of_a_corpus_without_a_prefix_opens_by_its_own_path(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "hosts").mkdir()
+            (root / "hosts" / "nixos-pc.md").write_text(
+                "---\ntitle: Host nixos-pc\nkind: host\n---\n\n# Host nixos-pc\n\nBody\n", encoding="utf-8"
+            )
+            pages = mcp.load_corpus(root, prefix="")
+            index = mcp.Index(mcp.chunk_pages(pages))
+            found = mcp.call_tool(index, root, "get_page", {"path": pages[0][0]})
+        self.assertIn("text", found)
+        self.assertEqual(found["title"], "Host nixos-pc")
+
+    def test_a_prefix_joins_without_a_doubled_or_missing_slash(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "bindings.md").write_text("# Bindings\n", encoding="utf-8")
+            prefixed = mcp.load_corpus(root, prefix="docs")[0][0]
+            bare = mcp.load_corpus(root, prefix="")[0][0]
+        self.assertEqual(prefixed, "docs/bindings.md")
+        self.assertEqual(bare, "bindings.md")
+
+
+class SplitSectionsTest(unittest.TestCase):
+    def test_every_heading_names_its_own_section(self):
+        sections = mcp.split_sections("Intro\n\n## One\n\nA\n\n## Two\n\nB\n")
+        self.assertEqual([title for title, _ in sections], ["", "One", "Two"])
+
+    def test_a_page_without_a_heading_is_one_section(self):
+        sections = mcp.split_sections("Only text\n")
+        self.assertEqual(sections, [("", "Only text")])
+
+    def test_an_empty_page_has_no_sections(self):
+        self.assertEqual(mcp.split_sections("\n"), [])
+
 
 class CorpusTest(unittest.TestCase):
     def test_a_corpus_is_read_from_the_markdown_of_every_page(self):

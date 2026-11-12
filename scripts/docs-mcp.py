@@ -11,6 +11,7 @@ import sys
 
 REPO = "https://github.com/rokokol/huix"
 DOCS = Path("docs")
+DOCS_PREFIX = str(DOCS)
 
 # A word is a run of letters and digits, and an identifier is kept whole beside its parts, so a
 # query for `tailnet-web.sites` finds the page that spells the option out
@@ -54,13 +55,14 @@ def parse_front(text):
     return meta, text[end + 5 :]
 
 
-def load_corpus(root, prefix=DOCS):
+def load_corpus(root, prefix=DOCS_PREFIX):
     """Every page of the corpus as its path relative to the repository, its front matter and its
     body. The path a reader sees is the one the repository has, so a page opens where it lives"""
     pages = []
     for path in sorted(Path(root).rglob("*.md")):
         meta, body = parse_front(path.read_text(encoding="utf-8"))
-        pages.append((f"{prefix}/{path.relative_to(root)}", meta, body))
+        relative = path.relative_to(root)
+        pages.append((f"{prefix}/{relative}" if prefix else str(relative), meta, body))
     return pages
 
 
@@ -107,18 +109,17 @@ def chunk_pages(pages):
 
 def split_sections(body):
     """The sections of a page as (heading, text), the part before the first heading first"""
-    starts = [match.start() for match in HEADING.finditer(body)]
-    if not starts:
+    matches = list(HEADING.finditer(body))
+    if not matches:
         return [("", body.strip())] if body.strip() else []
     sections = []
-    intro = body[: starts[0]].strip()
+    intro = body[: matches[0].start()].strip()
     if intro:
         sections.append(("", intro))
-    for index, start in enumerate(starts):
-        end = starts[index + 1] if index + 1 < len(starts) else len(body)
-        block = body[start:end]
-        title = HEADING.match(block).group(1).strip()
-        sections.append((title, block[block.find("\n") :].strip()))
+    for index, match in enumerate(matches):
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(body)
+        block = body[match.start() : end]
+        sections.append((match.group(1).strip(), block[block.find("\n") :].strip()))
     return sections
 
 
