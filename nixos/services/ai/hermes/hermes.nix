@@ -110,14 +110,10 @@ let
     # Every turn: the server chunks at 3000 chars anyway, so batching saves no extraction calls
     retain_every_n_turns = 1;
     recall_max_tokens = 2000;
-    # Measured on 2026-11-06 against the live Voyage reranker: nothing relevant in a 12-query
-    # sample scored below 0.308 and no query lost its facts at 0.3, while the unanswerable
-    # queries kept a third of their candidates instead of all of them. Absent, control queries
-    # returned the same 24-25 rows as on-topic ones. A floor could not be set higher: the
-    # mail-agent query answers correctly on 0.33-0.44, so 0.5 would empty it
+    # Lite scores run higher; 0.33 approximates the old model's 0.3 floor on sampled recalls
     recall_min_scores = {
       semantic = 0.5;
-      reranker = 0.3;
+      reranker = 0.33;
     };
   };
   guests = lib.filterAttrs (

@@ -73,6 +73,9 @@ in
         ''
       )
       (google-fonts.override { fonts = [ "Spectral" ]; })
+      # Computer Modern outside TeX, where matplotlib mathtext and LaTeX-styled captions need it
+      # as an installed family rather than as glyphs buried in the plotting library
+      lmodern
       # Not in nixpkgs, and the static LCD, CRT and Matrix styles are the variable font's
       # BLED, ROND and JITT axes, so the four variable files carry the whole design
       (stdenv.mkDerivation {

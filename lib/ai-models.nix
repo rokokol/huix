@@ -34,7 +34,7 @@ in
   stt.model = "microsoft/mai-transcribe-2";
   reranker = {
     provider = "openrouter";
-    model = "mongodb/rerank-3";
+    model = "mongodb/rerank-3-lite";
     # A provider failure falls back to fusion so that recall still returns results
     fallback = "rrf";
     maxCandidates = 100;
