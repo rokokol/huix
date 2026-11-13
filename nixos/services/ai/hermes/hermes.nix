@@ -62,6 +62,9 @@ let
     source = inputs.hindsight;
   };
   hmMcp = inputs.home-manager.lib.hm.mcp;
+  hermesMcpServers = builtins.removeAttrs (lib.filterAttrs (
+    _: server: (server.enabled or null) != false
+  ) home.programs.mcp.servers) [ "searxng" ];
   mcpServers = lib.mapAttrs (
     name: server:
     hmMcp.transformMcpServer {
@@ -69,7 +72,7 @@ let
       exclude = [ "type" ];
       extraTransforms = [ (hmMcp.wrapEnvFilesCommand { inherit pkgs name; }) ];
     }
-  ) (lib.filterAttrs (_: server: server.enabled or null != false) home.programs.mcp.servers);
+  ) hermesMcpServers;
   mcpPackages = lib.mapAttrs (
     name: server:
     pkgs.writeShellScriptBin "hermes-mcp-${name}" ''
@@ -220,6 +223,12 @@ in
   };
 
   config = lib.mkIf agent.enable {
+    home-manager.users.${agent.user}.home.sessionVariables =
+      lib.optionalAttrs config.rokokol.searxng.enable
+        {
+          # The built-in provider reads this in Hermes CLI as well as the gateway services
+          SEARXNG_URL = "http://127.0.0.1:${toString config.rokokol.searxng.port}";
+        };
     users.users.${agent.user} = {
       linger = true;
       packages = [
@@ -541,15 +550,9 @@ in
     };
 
     systemd.services.hermes-agent = {
-      environment =
-        lib.mapAttrs (_: toString) home.home.sessionVariables
-        // {
-          HERMES_MANAGED = lib.mkForce "false";
-        }
-        // lib.optionalAttrs config.rokokol.searxng.enable {
-          # plugins/web/searxng reads SEARXNG_URL; the port is the one tools/searxng.nix assigns
-          SEARXNG_URL = "http://127.0.0.1:${toString config.rokokol.searxng.port}";
-        };
+      environment = lib.mapAttrs (_: toString) home.home.sessionVariables // {
+        HERMES_MANAGED = lib.mkForce "false";
+      };
       after = [ "home-manager-${agent.user}.service" ];
       path = [
         "/etc/profiles/per-user/${agent.user}"
@@ -569,15 +572,9 @@ in
       };
     };
     systemd.services.hermes-backend = {
-      environment =
-        lib.mapAttrs (_: toString) home.home.sessionVariables
-        // {
-          HERMES_MANAGED = lib.mkForce "false";
-        }
-        // lib.optionalAttrs config.rokokol.searxng.enable {
-          # plugins/web/searxng reads SEARXNG_URL; the port is the one tools/searxng.nix assigns
-          SEARXNG_URL = "http://127.0.0.1:${toString config.rokokol.searxng.port}";
-        };
+      environment = lib.mapAttrs (_: toString) home.home.sessionVariables // {
+        HERMES_MANAGED = lib.mkForce "false";
+      };
       wantedBy = lib.mkForce (lib.optional cfg.dashboardAutoStart "multi-user.target");
       after = [ "home-manager-${agent.user}.service" ];
       unitConfig.RequiresMountsFor = lib.attrValues agent.directories;
