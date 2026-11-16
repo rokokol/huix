@@ -1104,17 +1104,14 @@
         "transcribe-cpp": "transcribe-cpp"
       },
       "locked": {
-        "lastModified": 1794385686,
-        "narHash": "sha256-tyOFIFq+1BBATgcbg1EMQRMKtNDla8XX9SXGGvOh/eU=",
-        "owner": "rokokol",
-        "repo": "MolvAI",
-        "rev": "bc05ccf5c8cd91951519624d7667fcb40835c222",
-        "type": "github"
+        "lastModified": 1794836502,
+        "narHash": "sha256-dkTYwYgsO+BvI97B1MWIx+x+bqqLvG0bWXyV29yh7EQ=",
+        "path": "/home/rokokol/Projects/MolvAI",
+        "type": "path"
       },
       "original": {
-        "owner": "rokokol",
-        "repo": "MolvAI",
-        "type": "github"
+        "path": "/home/rokokol/Projects/MolvAI",
+        "type": "path"
       }
     },
     "nix-filter": {
@@ -1240,17 +1237,17 @@
     },
     "nixpkgs_3": {
       "locked": {
-        "lastModified": 1793638623,
-        "narHash": "sha256-cM4gsCOB/9udaLBEjUxU0PQfZkYh6vLZW0xfQxqg78I=",
+        "lastModified": 1794537146,
+        "narHash": "sha256-Wpz/7x/YWnDIBu7yj6ixe8j6fIMsidd9Y+o1PqPF3iM=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "8cb8f896983571463db567ccfe6c98925afef48d",
+        "rev": "d5cc6833999746cffdfe0598f7bc801a57b887a9",
         "type": "github"
       },
       "original": {
         "owner": "NixOS",
+        "ref": "nixos-unstable",
         "repo": "nixpkgs",
-        "rev": "8cb8f896983571463db567ccfe6c98925afef48d",
         "type": "github"
       }
     },

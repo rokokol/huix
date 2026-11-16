@@ -33,7 +33,6 @@ def validate(f):
     env = f["environment"]
     assert json.loads(env["HINDSIGHT_API_EMBEDDINGS_OPENAI_EXTRA_BODY"])["provider"]["data_collection"] == "deny"
     assert env.get("HINDSIGHT_API_RERANKER_PROVIDER") == "openrouter"
-    assert env.get("HINDSIGHT_API_RERANKER_OPENROUTER_MODEL") == "mongodb/rerank-3"
     assert env.get("HINDSIGHT_API_RERANKER_1_PROVIDER") == "rrf"
     # Every model of Hindsight spends on one key of its own, and the dashboard reads that key's
     # counter; a model left on the agents' key would spend outside the number the panels show

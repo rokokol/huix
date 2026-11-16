@@ -35,11 +35,23 @@
         journal.encrypt = true;
 
         stt = {
+          # Recognition through OpenRouter: the recording leaves the machine, and the cloud
+          # consent above covers it. MAI-Transcribe 2 identifies the language itself and keeps
+          # the audio away from providers that store it or train on it
+          engine = "remote-openai";
           language = "auto";
           allowed_languages = [
             "ru"
             "en"
           ];
+          remote = {
+            base_url = "https://openrouter.ai/api/v1";
+            model = "microsoft/mai-transcribe-2";
+            api_key_source = "env";
+            api_key_env = "OPENROUTER_API_KEY";
+            zdr = true;
+            data_collection = "deny";
+          };
         };
 
         hotkeys = {

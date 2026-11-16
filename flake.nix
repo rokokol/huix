@@ -2,9 +2,7 @@
   description = "I love Monika btw";
 
   inputs = {
-    # Held at the commit before pi-coding-agent 1.5.0, whose recipe installs no pi-schema and so
-    # breaks checks.pi-extensions; that commit already carries gpu-unlock (see WORKAROUNDS.md)
-    nixpkgs.url = "github:NixOS/nixpkgs/8cb8f896983571463db567ccfe6c98925afef48d";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-26.05";
     # Deliberately without nixpkgs.follows: nixvim pins its own nixpkgs and warns if you override it
     nixvim.url = "github:nix-community/nixvim";
@@ -140,7 +138,9 @@
     };
 
     molvai = {
-      url = "github:rokokol/MolvAI";
+      # The checkout of this machine while the release is not on GitHub yet: a path input copies
+      # the working tree, uncommitted changes included, so a rebuild tests what is here
+      url = "path:/home/rokokol/Projects/MolvAI";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -525,7 +525,6 @@
           overlays.yazi
           overlays.which-key
           overlays.dav-mcp
-          overlays.hindsight
         ];
       };
 
