@@ -27,6 +27,12 @@
         };
 
         privacy.cloud_consent = true;
+        gui.start_in_tray = true;
+        mcp.enabled = true;
+
+        # The text of a phrase is sealed in the journal; the key stays beside it with owner-only
+        # permissions, and entries written before this line stay as they are
+        journal.encrypt = true;
 
         stt = {
           language = "auto";
@@ -37,8 +43,9 @@
         };
 
         hotkeys = {
+          tap_toggles = true;
           push_to_talk = "Ctrl+Shift+Enter";
-          toggle = "F9";
+          toggle = "";
           command = "Shift+Alt+Enter";
           cancel = "Escape";
           style_next = "Super+Shift+M";
