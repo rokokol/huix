@@ -530,7 +530,7 @@ in
 
         The vault is at ~/myWiki. Read the vault's agent instructions before you edit notes
 
-        The English vocabulary is at ~/myWiki/05. Конспекты/14. Английский/Слова.md
+        The English vocabulary is at ~/myWiki/02. Zettelkasten/Слова.md
 
         Read the vault's fsrs-vocabulary skill before you add a vocabulary entry
 
