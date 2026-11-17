@@ -32,6 +32,7 @@ in
     dimensions = 1024;
   };
   stt.model = "microsoft/mai-transcribe-2";
+  tts.model = "mistralai/voxtral-mini-tts-3-0";
   reranker = {
     provider = "openrouter";
     model = "mongodb/rerank-3-lite";

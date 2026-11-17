@@ -152,6 +152,17 @@ let
       exec python3 ${sttScript} --model ${sttModel} "$@"
     '';
   };
+  ttsScript = builtins.path {
+    name = "or-speech.py";
+    path = "${inputs.self}/scripts/or-speech.py";
+  };
+  tts = pkgs.writeShellApplication {
+    name = "mya-agent-tts";
+    runtimeInputs = [ pkgs.python3 ];
+    text = ''
+      exec python3 ${ttsScript} "$@"
+    '';
+  };
   sandbox = {
     ProtectHome = lib.mkForce "tmpfs";
     ProtectSystem = "strict";
@@ -428,6 +439,18 @@ in
             command = "${lib.getExe stt} --language {language} {input_path}";
             timeout = 900;
             format = "txt";
+            env_passthrough = [ "OPENROUTER_API_KEY" ];
+          };
+        };
+        tts = {
+          provider = "openrouter-voxtral";
+          providers.openrouter-voxtral = {
+            type = "command";
+            command = "${lib.getExe tts} --model {model} --voice {voice} {input_path} {output_path}";
+            model = aiModels.tts.model;
+            voice = "voice_3155";
+            output_format = "mp3";
+            voice_compatible = true;
             env_passthrough = [ "OPENROUTER_API_KEY" ];
           };
         };
