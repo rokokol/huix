@@ -20,14 +20,16 @@ More: [rokokol.hindsight options](../options/hindsight.md)
 
 ## [`nixos/services/ai/hindsight/monitor.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/ai/hindsight/monitor.nix)
 
-Hindsight runs every model on a key of its own, and that key's counter is what the provider
-billed — so the dashboard reads the spend instead of inferring it from tokens, which Hindsight
-records for neither an embedding nor a rerank (DEVIATIONS.md, "Hindsight spends an OpenRouter
-key of its own"). The same unit counts observed model calls from the trace table, including
-errors, because the call counter omits the rerank scope (PITFALLS.md, "Hindsight's call
-counter records chat alone"). Both reach Grafana through the textfile directory that the
-station's node_exporter serves. It is not part of the Hermes monitor: Hindsight spends whether
-or not the agent runs
+Hindsight used to run every model on a key of its own, and that key's counter is what the
+provider billed — so the dashboard reads the spend instead of inferring it from tokens,
+which Hindsight records for neither an embedding nor a rerank (DEVIATIONS.md, "Hindsight
+spends an OpenRouter key of its own"). The memory LLM has since moved to the Go
+subscription, whose cost appears as a share of the plan's windows and not on this key, so
+the counter below now covers embeddings and the reranker alone. The same unit counts
+observed model calls from the trace table, including errors, because the call counter
+omits the rerank scope (PITFALLS.md, "Hindsight's call counter records chat alone"). Both
+reach Grafana through the textfile directory that the station's node_exporter serves. It is
+not part of the Hermes monitor: Hindsight spends whether or not the agent runs
 
 **Units:** `hindsight-monitor`
 
