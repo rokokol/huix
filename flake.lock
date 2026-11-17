@@ -1104,14 +1104,17 @@
         "transcribe-cpp": "transcribe-cpp"
       },
       "locked": {
-        "lastModified": 1794836502,
-        "narHash": "sha256-dkTYwYgsO+BvI97B1MWIx+x+bqqLvG0bWXyV29yh7EQ=",
-        "path": "/home/rokokol/Projects/MolvAI",
-        "type": "path"
+        "lastModified": 1794904598,
+        "narHash": "sha256-UmLsQ11HphB5qBXXlj8ce1CAsEXa42jrnCPTkXc6j8s=",
+        "owner": "rokokol",
+        "repo": "MolvAI",
+        "rev": "31fd9a4ef40f5c42b107785c9bb85584b9c7391d",
+        "type": "github"
       },
       "original": {
-        "path": "/home/rokokol/Projects/MolvAI",
-        "type": "path"
+        "owner": "rokokol",
+        "repo": "MolvAI",
+        "type": "github"
       }
     },
     "nix-filter": {

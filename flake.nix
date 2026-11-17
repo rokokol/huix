@@ -138,9 +138,9 @@
     };
 
     molvai = {
-      # The checkout of this machine while the release is not on GitHub yet: a path input copies
-      # the working tree, uncommitted changes included, so a rebuild tests what is here
-      url = "path:/home/rokokol/Projects/MolvAI";
+      # The pushed branch: a path input takes a narHash of the whole working tree, including the
+      # build directory, so the lock goes stale with every commit and every build
+      url = "github:rokokol/MolvAI";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
