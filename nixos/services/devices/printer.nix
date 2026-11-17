@@ -13,14 +13,6 @@ let
   hosts = lib.attrNames (
     lib.filterAttrs (_: host: host.config.rokokol.printer.enable) inputs.self.nixosConfigurations
   );
-
-  # the filter prefixes its own resource directory to this name, see WORKAROUNDS.md
-  epson-l120 = pkgs.epson_201310w.overrideAttrs (old: {
-    postFixup = old.postFixup + ''
-      substituteInPlace $out/share/cups/model/EPSON_L120.ppd \
-        --replace-fail "$out/resource/Epson_201310w.1.data" "Epson_201310w.1.data"
-    '';
-  });
 in
 {
   options.rokokol.printer = {
@@ -60,9 +52,9 @@ in
       services.printing = {
         enable = true;
         listenAddresses = [ "localhost:${toString port}" ];
-        drivers = [
-          pkgs.gutenprint
-          epson-l120
+        drivers = with pkgs; [
+          gutenprint
+          epson_201310w
         ];
       };
 

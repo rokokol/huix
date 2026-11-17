@@ -158,7 +158,7 @@ let
   };
   tts = pkgs.writeShellApplication {
     name = "mya-agent-tts";
-    runtimeInputs = [ pkgs.python3 ];
+    runtimeInputs = with pkgs; [ python3 ];
     text = ''
       exec python3 ${ttsScript} "$@"
     '';

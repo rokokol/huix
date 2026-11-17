@@ -13,7 +13,7 @@
   config = lib.mkIf config.rokokol.sound.enable {
     services.pulseaudio.enable = false;
     security.rtkit.enable = true;
-    environment.systemPackages = [ pkgs.pipewire.jack ];
+    environment.systemPackages = with pkgs; [ pipewire.jack ];
 
     services.pipewire = {
       enable = true;

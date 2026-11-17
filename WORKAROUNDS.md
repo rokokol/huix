@@ -466,26 +466,6 @@ Anything but `0` -> keep the patch. `0` -> drop the patch and its line in `overl
 
 ---
 
-## `epson_201310w` names its resource file relative to the filter
-
-**Where:** `epson-l120` in `nixos/services/devices/printer.nix`, on the hosts with `rokokol.printer.enable`
-
-**Symptom it prevents:** every job to a queue with `EPSON_L120.ppd` ends in `Filter failed`. The printer gets only a job header and prints nothing. The filter opens `…/resource//nix/store/…/resource/Epson_201310w.1.data`, which does not exist, and exits with code 1
-
-**Why it happens:** the `postFixup` of the nixpkgs package replaces `Epson_201310w.1.data` in the PPD with an absolute store path. The filter prefixes its own resource directory to the value of `*epcgResourceData`, so the path is doubled. Epson's original PPD carries only the file name
-
-**Why this works:** the override puts the plain file name back into the PPD after the package's own `postFixup`, so the filter builds the correct path once
-
-**Removal check:** look at the PPD as nixpkgs ships it
-
-```sh
-grep epcgResourceData "$(nix build --no-link --print-out-paths --inputs-from . nixpkgs#epson_201310w)/share/cups/model/EPSON_L120.ppd"
-```
-
-The value is an absolute path -> keep the override. The value is `"Epson_201310w.1.data"` -> use `pkgs.epson_201310w` directly. The `--replace-fail` of the override then also breaks the build
-
-**Upstream:** [NixOS/nixpkgs#568735](https://github.com/NixOS/nixpkgs/pull/568735) (open)
-
 ## nginx is built without libxcrypt, so bcrypt htpasswd logins 500
 
 **Where:** `nixos/services/system/tailnet-web.nix`
@@ -560,4 +540,26 @@ nix build .#station-boot-test -L
 The run passes only when the upstream module creates the dump directory itself, and then the workaround is gone. A failure naming `forgejo-dump.service` or the mount namespace means it is still needed
 
 **Upstream:** [NixOS/nixpkgs#582601](https://github.com/NixOS/nixpkgs/pull/582601) makes `services.forgejo.dump` create its own directory
+
+---
+
+## Ghidra 12.2 does not compile ReVa 7.3.1
+
+**Where:** `reva` in `home-manager/programs/reversing/ghidra.nix`, on the hosts with `rokokol.ghidra.enable`
+
+**Symptom it prevents:** `ghidra-extensions.reva` fails at `:compileJava` with `revaFileSystem.java:72: error: unreported exception IOException; must be caught or declared to be thrown`, and with it `ghidra-with-extensions`, `home-manager-path` and the whole home generation
+
+**Why it happens:** nixpkgs pins ReVa 7.3.1, whose tree still carries Ghidra's untouched skeleton samples — `revaFileSystem.java`, `revaExporter.java` and `revaAnalyzer.java`, dead template code that nothing references. Ghidra 12.2 made the `FileSystemService.storeFile` overload those samples call declare `IOException`, and the sample no longer compiles
+
+**Why this works:** the `postPatch` deletes the three template sources before the compile, which is what upstream does in 7.3.2 — the release that names Ghidra 12.2 in its notes. ReVa's own code is untouched
+
+**Removal check:** look at the version nixpkgs ships
+
+```sh
+nix eval --raw .#nixosConfigurations.nixos-pc.pkgs.ghidra-extensions.reva.version
+```
+
+7.3.2 or later -> drop the `rm` line
+
+**Upstream:** [NixOS/nixpkgs#588040](https://github.com/NixOS/nixpkgs/pull/588040) (merged 2026-11-15). The pin here predates it, so the next `nix flake update` removes the need
 

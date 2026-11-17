@@ -12,16 +12,20 @@ let
   cfg = config.rokokol.ghidra;
   # ReVa's own default, which it keeps in Ghidra's tool options and reads from no file
   revaDefaultPort = 8080;
-  reva =
-    if cfg.port == revaDefaultPort then
-      pkgs.ghidra-extensions.reva
-    else
-      pkgs.ghidra-extensions.reva.overrideAttrs (previous: {
-        postPatch = (previous.postPatch or "") + ''
-          substituteInPlace src/main/java/reva/plugin/ConfigManager.java \
-            --replace-fail "DEFAULT_PORT = ${toString revaDefaultPort};" "DEFAULT_PORT = ${toString cfg.port};"
-        '';
-      });
+  reva = pkgs.ghidra-extensions.reva.overrideAttrs (previous: {
+    postPatch =
+      (previous.postPatch or "")
+      + ''
+        # See WORKAROUNDS.md: Ghidra 12.2 refuses the skeleton templates this release still ships
+        rm -f src/main/java/reva/revaFileSystem.java \
+          src/main/java/reva/revaExporter.java \
+          src/main/java/reva/revaAnalyzer.java
+      ''
+      + lib.optionalString (cfg.port != revaDefaultPort) ''
+        substituteInPlace src/main/java/reva/plugin/ConfigManager.java \
+          --replace-fail "DEFAULT_PORT = ${toString revaDefaultPort};" "DEFAULT_PORT = ${toString cfg.port};"
+      '';
+  });
   # ReVa's source carries the skills that drive it, so they come at the revision of the extension
   revaSkills = "${reva.src}/ReVa/skills";
   skills = lib.mapAttrs (name: _: "${revaSkills}/${name}") (
