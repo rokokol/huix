@@ -49,6 +49,11 @@ that file is never touched, and --no-projects limits this to huix
 The huix history is written by hand. The session/rebuild unit only fast-forwards, so it never
 rebases local commits and never touches a dirty tree — when it cannot fast-forward it just
 says so. Staging is -A, so a new file goes up without a separate git add
+
+Before the push the pages of docs/ are rendered from the tree that is about to go up, agent
+commits included, and committed on their own when they changed. The render runs in a detached
+worktree, so an edit made meanwhile in this checkout is never published unnoticed: one to a
+page stops the sync and nothing is pushed
 EOF
 }
 
@@ -212,6 +217,41 @@ take_agents() {
         "Its commits stay in its clone"$'\n'"git log -p --remotes=$name --not --branches"
     fi
   done
+}
+
+# Bring the generated pages of docs/ in line with the tree about to be pushed, and commit them
+# on their own. The renderer runs over a detached worktree of HEAD rather than over the
+# checkout: a file another session edits meanwhile stays out of the commit, and the single
+# commit is cherry-picked back, so a docs/ page edited by hand there conflicts and stops the
+# push instead of being overwritten. A tree with no flake has no renderer to run
+render_docs() {
+  local tmp
+  git cat-file -e 'HEAD:flake.nix' 2>/dev/null || return 0
+
+  tmp=$(mktemp -d) || return 1
+  if ! git worktree add --quiet --detach "$tmp" HEAD; then
+    rm -rf "$tmp"
+    return 1
+  fi
+
+  local status=0
+  if ! (cd "$tmp" && nix run "path:$tmp#docs-build" -- "$tmp"); then
+    status=1
+  elif [ -n "$(git -C "$tmp" status --porcelain -- docs)" ]; then
+    if git -C "$tmp" add -A -- docs &&
+      git -C "$tmp" commit --quiet -m 'regenerate the documentation pages'; then
+      git cherry-pick --quiet "$(git -C "$tmp" rev-parse HEAD)" >/dev/null || {
+        git cherry-pick --abort 2>/dev/null || true
+        status=1
+      }
+    else
+      status=1
+    fi
+  fi
+
+  git worktree remove --force "$tmp" 2>/dev/null || rm -rf "$tmp"
+  git worktree prune
+  return "$status"
 }
 
 # Catch every repository under the roots PROJECTS_PATHS up to its upstream. Fetching is the
@@ -427,6 +467,14 @@ fi
 if [ "$TOOK" = 1 ] && ! timeout 90 git pull --quiet --rebase; then
   git rebase --abort 2>/dev/null || true
   notify critical "Sync Error (#｀ε´#ゞ" "git pull after taking the agents' commits failed"
+  exit 1
+fi
+
+# After the last pull: the pushed pages must describe the pushed tree, whatever the agent's
+# commits and the upstream's brought into it
+if ! render_docs; then
+  notify critical "Documentation not rendered (╯°□°）╯︵ ┻━┻" \
+    "Nothing was pushed: run nix run .#docs-build, then call syssync again"
   exit 1
 fi
 

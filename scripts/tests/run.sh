@@ -1224,6 +1224,87 @@ is "the third party's commit is upstream once and not taken as the agent's" 1 \
   "$(git -C "$git_work/pair.git" log --format=%s master | grep -cx "a third party's commit")"
 is "the raced agent's clone ends where the owner's does" "$(git -C "$git_work/pair" rev-parse HEAD)" \
   "$(git -C "$agent_clone" rev-parse HEAD)"
+cat >"$work/bin/nix" <<'EOF'
+#!/usr/bin/env bash
+printf 'nix %s\n' "$*" >>"$STUB_LOG"
+[ "${STUB_DOCS_FAIL:-0}" = 0 ] || exit 1
+[ "$1" = run ] && [[ $2 == ?*#docs-build ]] || exit 2
+mkdir -p docs
+for file in owner.txt agent.txt late.txt; do
+  [ ! -f "$file" ] || cat "$file"
+done >docs/generated.txt
+EOF
+sed -i "1s|.*|#!$BASH|" "$work/bin/nix"
+chmod +x "$work/bin/nix"
+
+docs_fixture() {
+  local name=$1
+  git init -q --bare "$git_work/$name.git"
+  git clone -q "$git_work/$name.git" "$git_work/$name-owner"
+  git -C "$git_work/$name-owner" commit -q --allow-empty -m base
+  printf '{}\n' >"$git_work/$name-owner/flake.nix"
+  git -C "$git_work/$name-owner" add flake.nix
+  git -C "$git_work/$name-owner" commit -q -m 'a tree the renderer runs in'
+  git -C "$git_work/$name-owner" push -q origin master
+  git clone -q "$git_work/$name.git" "$git_work/$name-agent"
+  docs_owner=$git_work/$name-owner
+  docs_agent=$git_work/$name-agent
+  docs_remote=$git_work/$name.git
+  git -C "$docs_owner" remote set-url origin "git@github.com:owner/$name.git"
+  printf 'mya https://github.com/owner/%s station:%s mya-agent-sync.service\n' "$name" "$docs_agent" >"$git_work/docs-remotes"
+}
+docs_run() {
+  reset_log
+  HUIX=$docs_owner PROJECTS_DIR=$git_work/no-projects \
+    SYNC_REMOTES=$git_work/docs-remotes GIT_SSH_COMMAND=$work/bin/ssh \
+    STUB_AGENT_SYNC=$agent_sync STUB_AGENT_REPO=$docs_agent \
+    bash "$sync_sh" --no-projects >/dev/null 2>&1
+  docs_status=$?
+}
+
+docs_fixture docs-race
+git clone -q "$docs_remote" "$git_work/docs-third"
+printf 'owner\n' >"$docs_owner/owner.txt"
+printf 'agent\n' >"$docs_agent/agent.txt"
+cat >"$git_work/docs-race.sh" <<EOF
+printf 'late\n' >"$git_work/docs-third/late.txt"
+git -C "$git_work/docs-third" add late.txt
+git -C "$git_work/docs-third" commit -q -m late
+git -C "$git_work/docs-third" push -q origin master
+git -C "$docs_agent" pull -q --rebase
+EOF
+STUB_RACE=$git_work/docs-race.sh docs_run
+is "docs sync with a late upstream commit succeeds" 0 "$docs_status"
+logged "docs are generated" '^nix run .*docs-build'
+is "pushed docs include owner, agent and late upstream changes" $'owner\nagent\nlate' \
+  "$(in_tree "$docs_remote" master docs/generated.txt)"
+is "the docs commit follows the owner, agent and late commits" yes \
+  "$(git -C "$docs_remote" diff-tree --no-commit-id --name-only -r master | grep -qx 'docs/generated.txt' &&
+    [ "$(in_tree "$docs_remote" master^ owner.txt)" = owner ] &&
+    [ "$(in_tree "$docs_remote" master^ agent.txt)" = agent ] &&
+    [ "$(in_tree "$docs_remote" master^ late.txt)" = late ] && echo yes)"
+
+docs_fixture docs-fail
+printf 'owner\n' >"$docs_owner/owner.txt"
+docs_before=$(git -C "$docs_remote" rev-parse master)
+STUB_DOCS_FAIL=1 docs_run
+logged "the failing docs generator is called" '^nix run .*docs-build'
+is "a failed docs generator fails the sync" 1 "$docs_status"
+is "a failed docs generator prevents push" "$docs_before" "$(git -C "$docs_remote" rev-parse master)"
+
+docs_fixture docs-clean
+mkdir -p "$docs_owner/docs"
+printf 'owner\n' >"$docs_owner/owner.txt"
+printf 'owner\n' >"$docs_owner/docs/generated.txt"
+git -C "$docs_owner" add -A
+git -C "$docs_owner" commit -q -m 'current docs'
+git -C "$docs_owner" push -q origin master
+docs_before=$(git -C "$docs_owner" rev-parse HEAD)
+docs_run
+is "sync with current docs succeeds" 0 "$docs_status"
+logged "current docs are checked by the generator" '^nix run .*docs-build'
+is "current docs produce no empty commit" "$docs_before" "$(git -C "$docs_owner" rev-parse HEAD)"
+rm "$work/bin/nix"
 unset GIT_CONFIG_NOSYSTEM GIT_CONFIG_GLOBAL GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL
 unset GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL
 
