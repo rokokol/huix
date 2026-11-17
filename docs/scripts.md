@@ -662,6 +662,11 @@ that file is never touched, and --no-projects limits this to huix
 The huix history is written by hand. The session/rebuild unit only fast-forwards, so it never
 rebases local commits and never touches a dirty tree — when it cannot fast-forward it just
 says so. Staging is -A, so a new file goes up without a separate git add
+
+Before the push the pages of docs/ are rendered from the tree that is about to go up, agent
+commits included, and committed on their own when they changed. The render runs in a detached
+worktree, so an edit made meanwhile in this checkout is never published unnoticed: one to a
+page stops the sync and nothing is pushed
 ```
 
 ## [`scripts/tablet-mode.sh`](https://github.com/rokokol/huix/blob/master/scripts/tablet-mode.sh)
