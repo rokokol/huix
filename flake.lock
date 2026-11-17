@@ -93,14 +93,15 @@
       "locked": {
         "lastModified": 1793910869,
         "narHash": "sha256-VJSU7UDXmJcONQ+9Eqv8OlzouM8SoEyYIbTrNkGt70Y=",
-        "owner": "JimLiu",
+        "owner": "hh0592821",
         "repo": "baoyu-design",
         "rev": "9c5253c002820d8dd4c9c31e9c8ca04b529a3e34",
         "type": "github"
       },
       "original": {
-        "owner": "JimLiu",
+        "owner": "hh0592821",
         "repo": "baoyu-design",
+        "rev": "9c5253c002820d8dd4c9c31e9c8ca04b529a3e34",
         "type": "github"
       }
     },
@@ -1104,11 +1105,11 @@
         "transcribe-cpp": "transcribe-cpp"
       },
       "locked": {
-        "lastModified": 1794904598,
-        "narHash": "sha256-UmLsQ11HphB5qBXXlj8ce1CAsEXa42jrnCPTkXc6j8s=",
+        "lastModified": 1794910278,
+        "narHash": "sha256-UeVwzBWM2zXowT+EzzFLTKRiEcjbDkyfMVh/IpZshL8=",
         "owner": "rokokol",
         "repo": "MolvAI",
-        "rev": "31fd9a4ef40f5c42b107785c9bb85584b9c7391d",
+        "rev": "76b53780899d5e02219c84c8650b8cb25f0fc86b",
         "type": "github"
       },
       "original": {
