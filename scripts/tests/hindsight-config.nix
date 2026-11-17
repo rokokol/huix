@@ -35,6 +35,7 @@ let
     placeholders = {
       agents = station.sops.placeholder."openrouter-api-key";
       hindsight = station.sops.placeholder."openrouter-hindsight-api-key";
+      go = station.sops.placeholder."opencode-go-mya-key";
     };
     monitor = station.systemd.services.hindsight-monitor.serviceConfig;
     textfileRules = station.systemd.tmpfiles.rules;

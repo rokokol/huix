@@ -22,14 +22,14 @@ Anything but `['ddlc-palette']` means a parent is missing its `follows`
 
 ---
 
-## Hindsight spends an OpenRouter key of its own
+## Hindsight's models split between the Go subscription and an OpenRouter key
 
 **Where:** `lib/ai-models.nix` (`memory`, `reranker`), `nixos/services/ai/hindsight/service.nix` (`hindsight.env` and the service environment) and `nixos/services/ai/hindsight/monitor.nix`
 
-**Why it differs from the obvious route:** one OpenRouter key serves every model, and the spend is then estimated from the token counters of each consumer. For Hindsight that estimate cannot be built: its model calls, embeddings and rerank keep no token count a price could multiply, and the catalog prices the rerank model at zero (see `PITFALLS.md`, "A rerank model's catalog entry says its price is zero"). A key of its own makes the counter of `openrouter-hindsight-api-key` the spend as the provider billed it, covering chat, embeddings and rerank together, with no price kept by hand in the flake and no patch to a package nixpkgs owns. It also confines Hindsight's limit and revocation: an exhausted budget or a leaked key does not touch the agents' key, and the reverse holds too
+**Why it differs from the obvious route:** one OpenRouter key for everything was the plain arrangement, and the memory LLM alone spent about $0.48 a day against a key whose ceiling is $5 — a bill that kept arriving at its limit. The Go subscription carries the same traffic for roughly 0.6 points of its monthly window a day (measured 18 November 2026: 4 points of the 5-hour window cost $0.52 of allowance, and that window is a fifth of a month worth about $100 of list price). Go answers 404 on embeddings and on rerank, so those two stay on the key, which is also why the key cannot be dropped
 
-**What returning to the obvious route breaks:** the shared counter mixes Hindsight with Hermes and pi, so the Hindsight panels either show a share of one number or fall back to a per-token estimate that no counter supports; a hand-kept price then decides the figure, and a model change leaves it silently wrong
+**What returning to the obvious route breaks:** the memory LLM back on the key restores the $0.48 a day against a $5 ceiling. Moving embeddings or the reranker to Go does not run at all. Reading the key's counter as the whole of Hindsight's spend now undercounts it by the LLM's share, which lives in the Go windows and nowhere else — the panels say so where the counter is exported, and `HINDSIGHT_API_LLM_EXTRA_BODY` must not be sent to Go: the `provider {order, only, zdr}` block in it is OpenRouter's own
 
 **Rejected alternative:** keeping the estimate and a price table beside the model name. It reads as exact while it ignores cache discounts, embeddings and rerank, and it charges the wrong model the moment `memory.model` moves
 
-**Enforcement:** `scripts/tests/test-hindsight-config.py` requires all three model keys of `hindsight.env` to carry one placeholder other than the agents' key, and `scripts/tests/test-hindsight-monitor.py` pins what the counter exports, including a day that grows and a trace read that fails
+**Enforcement:** `scripts/tests/test-hindsight-config.py` requires the LLM key of `hindsight.env` to carry the Go placeholder while embeddings and the reranker carry one other placeholder different from the agents' key, requires the provider, the bare model name, an explicit reasoning effort and no base URL or extra body, and `scripts/tests/test-hindsight-monitor.py` pins what the counter exports, including a day that grows and a trace read that fails

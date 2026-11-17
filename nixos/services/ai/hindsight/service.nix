@@ -8,7 +8,6 @@
 let
   cfg = config.rokokol.hindsight;
   models = import ../../../../lib/ai-models.nix;
-  hosts = models.chat.${models.memory.model};
   secret = name: config.sops.placeholder.${name};
   secretsFile = ../../../../secrets/hindsight.yaml;
   pgDir = config.services.postgresql.dataDir;
@@ -88,6 +87,9 @@ in
       # Hindsight keeps a key of its own so that the dashboard reads its spend instead of
       # inferring it; see DEVIATIONS.md, "Hindsight spends an OpenRouter key of its own"
       sops.secrets.openrouter-hindsight-api-key = { };
+      # The memory LLM's key lives in the Go subscription; the station's own file holds it
+      # already for the agent, so the same placeholder serves here
+      sops.secrets.opencode-go-mya-key = { };
       sops.secrets.hindsight-api-token = {
         sopsFile = secretsFile;
         key = "api-token";
@@ -95,7 +97,7 @@ in
       sops.templates."hindsight.env" = {
         owner = "hindsight";
         content = ''
-          HINDSIGHT_API_LLM_API_KEY=${secret "openrouter-hindsight-api-key"}
+          HINDSIGHT_API_LLM_API_KEY=${secret "opencode-go-mya-key"}
           HINDSIGHT_API_EMBEDDINGS_OPENAI_API_KEY=${secret "openrouter-hindsight-api-key"}
           HINDSIGHT_API_TENANT_API_KEY=${secret "hindsight-api-token"}
           HINDSIGHT_API_MCP_AUTH_TOKEN=${secret "hindsight-api-token"}
@@ -168,22 +170,20 @@ in
         requires = [ "postgresql.target" ];
         environment = {
           HINDSIGHT_API_DATABASE_URL = "postgresql://hindsight@/hindsight?host=/run/postgresql";
-          HINDSIGHT_API_LLM_PROVIDER = "openai";
-          HINDSIGHT_API_LLM_BASE_URL = "https://openrouter.ai/api/v1";
-          HINDSIGHT_API_LLM_MODEL = models.memory.model;
-          # DeepSeek without thinking is 3x faster and 4x cheaper here; GLM rejects "none"
-          # ("Reasoning is mandatory for this endpoint"), so reverting the memory model to
-          # GLM means putting this back to "low"
+          # The memory LLM runs on the Go subscription. OpenRouter was the last bill
+          # standing ($0.48 a day) against a $5 key that kept nearing its ceiling, while
+          # the Go window carries this traffic for ~0.6 points a day (measured 2026-11-18:
+          # 4 points of the 5-hour window cost $0.52 of allowance, and that window is a
+          # fifth of a monthly one worth about $100 of list price). Embeddings and the
+          # reranker stay on OpenRouter, where the key is still needed: Go answers 404 on
+          # both. Without a BASE_URL the provider supplies its own Go endpoint
+          HINDSIGHT_API_LLM_PROVIDER = "opencode-go";
+          HINDSIGHT_API_LLM_MODEL = models.memory.goModel;
+          # Thinking stays off: replayed on the bank's own consolidation prompt, "low" spends
+          # 778 reasoning tokens and writes a three times longer answer ($0.0023 a call
+          # against $0.0003), with no measured gain in extracted facts, and consolidation is
+          # the bulk of the calls. Go accepts both values; GLM accepts only an explicit one
           HINDSIGHT_API_LLM_REASONING_EFFORT = "none";
-          HINDSIGHT_API_LLM_EXTRA_BODY = builtins.toJSON {
-            provider = {
-              order = hosts;
-              only = hosts;
-              zdr = true;
-              data_collection = "deny";
-              require_parameters = true;
-            };
-          };
           HINDSIGHT_API_EMBEDDINGS_PROVIDER = "openai";
           HINDSIGHT_API_EMBEDDINGS_OPENAI_BASE_URL = "https://openrouter.ai/api/v1";
           HINDSIGHT_API_EMBEDDINGS_OPENAI_MODEL = models.embeddings.model;

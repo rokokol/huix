@@ -20,6 +20,8 @@ in
     # where this model returns 10-20 on the same chunk, while "none" reasoning keeps it
     # faster and cheaper than GLM and still returns valid JSON in Russian
     model = background;
+    # The Go API names a model without its vendor, the way `side.piModel` does
+    goModel = "deepseek-v4.1-flash";
   };
   side = {
     # Hermes reaches this model through OpenRouter, whose routing this flake configures
