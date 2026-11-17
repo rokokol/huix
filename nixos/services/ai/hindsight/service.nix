@@ -84,8 +84,8 @@ in
         group = "hindsight";
       };
       sops.secrets.openrouter-api-key = { };
-      # Hindsight keeps a key of its own so that the dashboard reads its spend instead of
-      # inferring it; see DEVIATIONS.md, "Hindsight spends an OpenRouter key of its own"
+      # The dashboard reads a key's spend instead of inferring it; see DEVIATIONS.md,
+      # "Hindsight's models split between the Go subscription and an OpenRouter key"
       sops.secrets.openrouter-hindsight-api-key = { };
       # The memory LLM's key lives in the Go subscription; the station's own file holds it
       # already for the agent, so the same placeholder serves here
