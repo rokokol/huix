@@ -22,7 +22,6 @@ job runs the whole checker through apps.check-nix, where the inputs are there
 
 ## [`flake.nix`](https://github.com/rokokol/huix/blob/master/flake.nix)
 
-Held at the commit before pi-coding-agent 1.5.0, whose recipe installs no pi-schema and so
-breaks checks.pi-extensions; that commit already carries gpu-unlock (see WORKAROUNDS.md)
+Deliberately without nixpkgs.follows: nixvim pins its own nixpkgs and warns if you override it
 
 <!-- /generated -->

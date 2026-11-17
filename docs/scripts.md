@@ -420,6 +420,23 @@ clipboard. A selection abandoned with Escape copies nothing and exits 0, and a f
 recognition reports itself and exits 1
 ```
 
+## [`scripts/or-speech.py`](https://github.com/rokokol/huix/blob/master/scripts/or-speech.py)
+
+```
+usage: or-speech.py [-h] --model MODEL --voice VOICE input_path output_path
+
+Synthesize an input text file to MP3 through OpenRouter's speech endpoint.
+
+positional arguments:
+  input_path
+  output_path
+
+options:
+  -h, --help     show this help message and exit
+  --model MODEL
+  --voice VOICE
+```
+
 ## [`scripts/or-transcribe.py`](https://github.com/rokokol/huix/blob/master/scripts/or-transcribe.py)
 
 ```

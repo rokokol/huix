@@ -30,20 +30,20 @@ Session variables
 
 | Variable | Value |
 | --- | --- |
-| `CHROME_PATH` | `/nix/store/fqriy9vihl23l4md56qgiks8z0d2xdlw-chromium-156.0.8078.79/bin/chromium` |
+| `CHROME_PATH` | `/nix/store/b3xq32a3v70bq0w9r7z88d7rrpba7cq7-chromium-157.0.8103.78/bin/chromium` |
 | `COLOR_SCHEME_KEY` | `/org/gnome/desktop/interface/color-scheme` |
 | `CONTRIB_HOME` | `/home/rokokol/.local/share/pi-shared/skill-state/contributing` |
 | `DARK_SCHEME` | `prefer-dark` |
 | `DARK_THEME` | `Gruvbox-Dark` |
 | `EDITOR` | `nvim` |
 | `GTK2_RC_FILES` | `/home/rokokol/.gtkrc-2.0` |
-| `GTK4_DARK_CSS` | `/nix/store/85h2fb72npr5r1cdv5q1rzfgcaxyd9im-gruvbox-gtk-theme-0-unstable-2025-10-23/share/themes/Gruvbox-Dark/gtk-4.0/gtk-colors.css` |
-| `GTK4_LIGHT_CSS` | `/nix/store/85h2fb72npr5r1cdv5q1rzfgcaxyd9im-gruvbox-gtk-theme-0-unstable-2025-10-23/share/themes/Gruvbox-Light/gtk-4.0/gtk-colors.css` |
+| `GTK4_DARK_CSS` | `/nix/store/d11zr56cal1c93fd32kw1p3124yb9m7x-gruvbox-gtk-theme-0-unstable-2025-10-23/share/themes/Gruvbox-Dark/gtk-4.0/gtk-colors.css` |
+| `GTK4_LIGHT_CSS` | `/nix/store/d11zr56cal1c93fd32kw1p3124yb9m7x-gruvbox-gtk-theme-0-unstable-2025-10-23/share/themes/Gruvbox-Light/gtk-4.0/gtk-colors.css` |
 | `GTK_THEME_KEY` | `/org/gnome/desktop/interface/gtk-theme` |
 | `HUIX` | `/home/rokokol/huix` |
 | `LIGHT_SCHEME` | `prefer-light` |
 | `LIGHT_THEME` | `Gruvbox-Light` |
-| `LOCALE_ARCHIVE_2_27` | `/nix/store/00s4gff16566pz4z1ydragxa1dra03cz-glibc-locales-2.44-57/lib/locale/locale-archive` |
+| `LOCALE_ARCHIVE_2_27` | `/nix/store/gqybwbrb93gqlqxpkk8rjbx5jh6i0396-glibc-locales-2.44-57/lib/locale/locale-archive` |
 | `MY_WIKI` | `/home/rokokol/myWiki` |
 | `NIXOS_OZONE_WL` | `1` |
 | `NIX_XDG_DESKTOP_PORTAL_DIR` | `/etc/profiles/per-user/rokokol/share/xdg-desktop-portal/portals` |

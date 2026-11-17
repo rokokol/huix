@@ -39,7 +39,7 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 | `rokokol.mya-agent.hermes.webhookPort` | `8644` | `8644` | `8644` | Loopback port of the signed alert webhook |
 | `rokokol.mya-agent.hiddenPaths` | — | — | `/srv/backup`, `/var/lib/syncthing` | Paths the session sees empty, each under a read-only tmpfs. A directory in `directories` stays open even under one of them |
 | `rokokol.mya-agent.home` | `/home/mya` | `/home/mya` | `/home/mya` | The home of the session's user |
-| `rokokol.mya-agent.notify` | — | — | `/nix/store/wbcv1c7arpqfs2926sw8j82l5pwvsllj-mya-agent-notify/bin/mya-agent-notify` | Command that delivers an alert to the agent webhook |
+| `rokokol.mya-agent.notify` | — | — | `/nix/store/c7n4mz8h46n6dh4plgkl3mz1waf46jrf-mya-agent-notify/bin/mya-agent-notify` | Command that delivers an alert to the agent webhook |
 | `rokokol.mya-agent.packages` | — | — | — | Commands the session can run beside the system's, in its user's profile |
 | `rokokol.mya-agent.power.enable` | no | no | yes | Whether to enable the skill that wakes, puts to sleep, locks and turns off the workstations. |
 | `rokokol.mya-agent.pythonPackages` | — | — | — | Python libraries that the session's `python3` can import, chosen from its package set |

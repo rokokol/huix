@@ -37,8 +37,9 @@ Session variables
 | Variable | Value |
 | --- | --- |
 | `CONTRIB_HOME` | `/home/mya/.local/state/agent-skills/contributing` |
-| `LOCALE_ARCHIVE_2_27` | `/nix/store/00s4gff16566pz4z1ydragxa1dra03cz-glibc-locales-2.44-57/lib/locale/locale-archive` |
+| `LOCALE_ARCHIVE_2_27` | `/nix/store/gqybwbrb93gqlqxpkk8rjbx5jh6i0396-glibc-locales-2.44-57/lib/locale/locale-archive` |
 | `PRINT_HOST` | `nixos-pc` |
 | `PRINT_PREPARE_COMMAND` | `wake-pc` |
+| `SEARXNG_URL` | `http://127.0.0.1:9000` |
 
 <!-- /generated -->
