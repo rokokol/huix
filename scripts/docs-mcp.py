@@ -79,6 +79,24 @@ def load_readmes(root):
     return pages
 
 
+ROOT_DOCS = ("WORKAROUNDS.md", "DEVIATIONS.md", "PITFALLS.md")
+
+
+def load_root_docs(root):
+    """The maintainer documents beside the README at the repository root, the same three
+    scripts/docs-build.py publishes. No page of the corpus repeats what they preserve, so they
+    belong in the same index"""
+    pages = []
+    for name in sorted(ROOT_DOCS):
+        path = Path(root) / name
+        if not path.is_file():
+            continue
+        body = path.read_text(encoding="utf-8")
+        title = next((line.lstrip("# ").strip() for line in body.splitlines() if line.startswith("# ")), Path(name).stem)
+        pages.append((name, {"title": title, "kind": "doc"}, body))
+    return pages
+
+
 LINK = re.compile(r"\[([^\]]*)\]\([^)]*\)")
 BARE_URL = re.compile(r"https?://\S+")
 
@@ -296,7 +314,11 @@ def main(argv):
     args = parser.parse_args(argv)
 
     root = Path(args.repo)
-    pages = load_corpus(args.corpus, prefix="") if args.corpus else load_corpus(root / DOCS) + load_readmes(root)
+    pages = (
+        load_corpus(args.corpus, prefix="")
+        if args.corpus
+        else load_corpus(root / DOCS) + load_readmes(root) + load_root_docs(root)
+    )
     index = Index(chunk_pages(pages))
     if args.search:
         print(json.dumps(index.answer(args.search), ensure_ascii=False, indent=2))

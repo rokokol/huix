@@ -532,6 +532,14 @@ def page_label(title, path):
     return Path(path).stem
 
 
+def page_title(body, fallback):
+    """The first heading of a page, which names it in the navigation"""
+    return next(
+        (line.lstrip("# ").strip() for line in body.splitlines() if line.startswith("# ")),
+        fallback,
+    )
+
+
 def readme_pages(root):
     """The README of every layer as a page where it lives, so the links it writes to its
     neighbours keep working, on the site as in the repository"""
@@ -540,11 +548,26 @@ def readme_pages(root):
         if any(part in {"node_modules", "result"} for part in path.parts):
             continue
         body = path.read_text(encoding="utf-8")
-        title = next(
-            (line.lstrip("# ").strip() for line in body.splitlines() if line.startswith("# ")),
-            path.parent.name,
+        pages.append(
+            (str(path.relative_to(root)), {"title": page_title(body, path.parent.name), "kind": "readme"}, body)
         )
-        pages.append((str(path.relative_to(root)), {"title": title, "kind": "readme"}, body))
+    return pages
+
+
+ROOT_DOCS = ("WORKAROUNDS.md", "DEVIATIONS.md", "PITFALLS.md")
+
+
+def maintainer_docs(root):
+    """The maintainer documents beside the README at the repository root, as pages where they
+    live: a page of the corpus names one of them by its file, so the site answers where it
+    stands instead of sending the reader to GitHub"""
+    pages = []
+    for name in sorted(ROOT_DOCS):
+        path = Path(root) / name
+        if not path.is_file():
+            continue
+        body = path.read_text(encoding="utf-8")
+        pages.append((name, {"title": page_title(body, Path(name).stem), "kind": "doc"}, body))
     return pages
 
 
@@ -589,6 +612,12 @@ def navigation(pages):
             parent = str(Path(path).parent)
             sections.setdefault("readme", []).append(
                 {"path": path, "label": "repository root" if parent == "." else parent, "group": None}
+            )
+            continue
+        # A document at the repository root has no directory to name, so its entry is its title
+        if meta.get("kind") == "doc":
+            sections.setdefault("readme", []).append(
+                {"path": path, "label": page_label(meta.get("title"), path), "group": None}
             )
             continue
         directory = str(Path(path).parent)
@@ -680,7 +709,7 @@ def render_site(repo, out, assets):
         relative = str(path.relative_to(repo / DOCS))
         meta, body = parse_front(path.read_text(encoding="utf-8"))
         pages.append((relative, meta, body))
-    readmes = readme_pages(repo)
+    readmes = readme_pages(repo) + maintainer_docs(repo)
     # A README links to the pages the site publishes and to files it does not, and only the set
     # of pages written here can answer which is which
     known = {path[: -len(".md")] + ".html" for path, _, _ in pages + readmes}

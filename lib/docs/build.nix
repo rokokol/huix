@@ -52,8 +52,9 @@ let
   factsJson = writers.writeJSON "huix-docs-facts.json" facts;
 
   # What the renderer reads: the modules for their comments and their units, the scripts for the
-  # help they print, the pages themselves and the assets of the site. The pictures of the
-  # repository are large and no page is built from them
+  # help they print, the pages themselves, the documents at the root (the READMEs the site
+  # publishes and the maintainer notes beside them) and the assets of the site. The pictures of
+  # the repository are large and no page is built from them
   renderSource = runCommand "huix-docs-render-source" { } ''
     mkdir -p $out/assets
     cp -r ${src}/docs ${src}/nixos ${src}/home-manager ${src}/lib ${src}/scripts ${src}/site $out/

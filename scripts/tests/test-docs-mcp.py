@@ -136,6 +136,16 @@ class CorpusTest(unittest.TestCase):
         self.assertEqual(pages[0][1]["title"], "The theme")
         self.assertIn("Text", pages[0][2])
 
+    def test_the_maintainer_documents_of_the_root_join_the_corpus(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "WORKAROUNDS.md").write_text("# Workarounds\n\nAn input pins a branch\n", encoding="utf-8")
+            (root / "README.md").write_text("# huix\n", encoding="utf-8")
+            pages = mcp.load_root_docs(root)
+        self.assertEqual([path for path, _, _ in pages], ["WORKAROUNDS.md"])
+        self.assertEqual(pages[0][1], {"title": "Workarounds", "kind": "doc"})
+        self.assertIn("An input pins a branch", pages[0][2])
+
 
 if __name__ == "__main__":
     unittest.main()

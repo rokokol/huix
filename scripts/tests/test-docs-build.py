@@ -408,6 +408,32 @@ class ReadmePageTest(unittest.TestCase):
         self.assertIn('href="nixos/README.html#the-station"', out)
 
 
+class MaintainerDocsTest(unittest.TestCase):
+    def repo(self, temporary):
+        root = Path(temporary)
+        (root / "WORKAROUNDS.md").write_text("# Workarounds\n\nAn input pins a branch\n", encoding="utf-8")
+        (root / "DEVIATIONS.md").write_text("# Deviations\n\nThe input is unfollowed\n", encoding="utf-8")
+        return root
+
+    def test_a_maintainer_document_becomes_a_page_at_the_root(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            pages = docs.maintainer_docs(self.repo(temporary))
+        self.assertEqual([path for path, _, _ in pages], ["DEVIATIONS.md", "WORKAROUNDS.md"])
+        self.assertEqual(pages[1][1], {"title": "Workarounds", "kind": "doc"})
+
+    def test_a_maintainer_document_stands_in_the_repository_section_by_its_title(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            pages = docs.maintainer_docs(self.repo(temporary))
+        sections = dict(docs.navigation([(path, meta) for path, meta, _ in pages]))
+        self.assertEqual(
+            [item["label"] for item in sections["readme"]], ["Deviations", "Workarounds"]
+        )
+
+    def test_a_link_to_a_published_root_document_opens_the_page(self):
+        out = docs.to_readme_links('<a href="../WORKAROUNDS.md">обходные пути</a>', "nixos", {"WORKAROUNDS.html"})
+        self.assertIn('href="../WORKAROUNDS.html"', out)
+
+
 class HomepageTest(unittest.TestCase):
     def test_the_home_uses_the_kits_popup_and_taped_snapshots(self):
         class Elements(HTMLParser):
