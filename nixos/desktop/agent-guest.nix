@@ -33,6 +33,12 @@ in
     };
   };
 
+  # The owner reads and edits the guest's home through the guest's group, as on the station; the
+  # guest's own home and not a share is where it keeps a file between two steps of a run
+  config.users.users.${rokokolName}.extraGroups = lib.mkIf (
+    config.rokokol.workstation.enable && config.rokokol.mya-agent.guest.enable
+  ) [ config.rokokol.mya-agent.user ];
+
   # Documents, Downloads and Projects are made by xdg-user-dirs and Pocket has nothing that would
   # make it, while the guest's mount needs it to exist; tmpfiles makes it before that mount starts
   config.systemd.tmpfiles.rules = lib.mkIf config.rokokol.workstation.enable [

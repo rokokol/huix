@@ -16,6 +16,12 @@ let
 in
 {
   config = lib.mkMerge [
+    # The owner reads and edits everything the agent makes in its home through the agent's
+    # group; the hermes sandbox's umask keeps every new file open to that group
+    (lib.mkIf agent.enable {
+      users.users.${rokokolName}.extraGroups = [ agent.user ];
+    })
+
     # The agent reads and writes the owner's calendars as its own Radicale login
     (lib.mkIf (agent.enable && config.rokokol.radicale.enable) {
       rokokol.radicale.sharedWith = [ agent.user ];

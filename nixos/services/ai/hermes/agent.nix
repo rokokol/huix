@@ -186,6 +186,9 @@ in
         inherit (cfg) home;
         group = cfg.user;
         inherit (cfg) extraGroups;
+        # The group crosses the whole home: the owner reads and edits the session's files
+        # through it, and only a repository's .git keeps the group read-only
+        homeMode = "770";
         packages =
           (with pkgs; [
             curl
@@ -251,11 +254,6 @@ in
     })
 
     (lib.mkIf cfg.enable {
-      users.users.${cfg.user} = {
-        # The group passes through to the repositories, and to nothing else the home holds
-        homeMode = "710";
-      };
-
       systemd.services.mya-agent-clone = lib.mkIf (cfg.repositories != { }) {
         description = "Clone the repositories the Telegram agent works in";
         wantedBy = [ "hermes-agent.service" ];
@@ -281,8 +279,8 @@ in
               if [ ! -e ${repo}/.git ]; then
                 git clone ${lib.escapeShellArg url} ${repo}
               fi
-              # The owner fetches through the group, and the agent's sandbox writes with umask
-              # 0077: git gives the group read on what it writes, and older files get it here
+              # The owner fetches through the group and commits nowhere: the .git keeps the
+              # group read-only, and the files an older commit left closed get that back here
               git -C ${repo} config core.sharedRepository 0640
               chmod -R g+rX ${repo}/.git
             ''

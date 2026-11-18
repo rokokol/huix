@@ -86,7 +86,6 @@ in
       };
       script = config.system.activationScripts.hermes-agent-setup.text + ''
         chown -R ${agent.user}:${agent.user} ${agent.home}/.hermes
-        chmod 0710 ${agent.home}
       '';
     };
     systemd.tmpfiles.rules = [ "d ${cache} 0700 ${agent.user} ${agent.user} -" ];

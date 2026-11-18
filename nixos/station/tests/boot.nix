@@ -885,12 +885,16 @@ pkgs.testers.runNixOSTest {
         clone = f"{agent_home}/huix"
         station.wait_until_succeeds("systemctl show -P Result mya-agent-clone.service | grep -qx success")
         station.succeed(f"test $(stat -c %U {clone}) = ${agent.user}")
-        # The group passes through the home to the clone, and lists nothing in the home
+        # The group crosses the whole home, and the owner reads and edits what the session
+        # writes there; the clone's .git alone keeps the group read-only
         station.succeed(f"runuser -u rokokol -- git -C {clone} log -1 --format=%s | grep -qx first")
-        station.fail(f"runuser -u rokokol -- ls {agent_home}")
-        # A commit the agent makes in its sandbox, whose umask is 0077, stays readable to the owner
+        station.succeed(f"runuser -u rokokol -- ls {agent_home}")
+        station.fail(f"runuser -u rokokol -- sh -c 'echo owner >>{clone}/.git/HEAD'")
+        # A commit the agent makes in its sandbox, whose umask is 0007, stays readable to the owner
         type_in("cd ~/huix && git commit -q --allow-empty -m from-the-session && echo done >~/committed")
         station.wait_until_succeeds(f"grep -qx done {agent_home}/committed", timeout=timedelta(minutes=1))
+        station.succeed(f"runuser -u rokokol -- cat {agent_home}/committed")
+        station.succeed(f"runuser -u rokokol -- sh -c 'echo owner >{agent_home}/owner-note'")
         station.succeed(f"runuser -u rokokol -- git -C {clone} log -1 --format=%s | grep -qx from-the-session")
         station.succeed(f"runuser -u rokokol -- git -C {clone} status --short")
 

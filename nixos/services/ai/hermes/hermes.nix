@@ -163,17 +163,14 @@ let
       exec python3 ${ttsScript} "$@"
     '';
   };
+  # Only what the hermes-agent module does not set itself; its own hardening stands
   sandbox = {
     ProtectHome = lib.mkForce "tmpfs";
-    ProtectSystem = "strict";
-    PrivateTmp = true;
     # A separate user namespace blocks access through another same-UID process's root
     PrivateUsers = true;
-    NoNewPrivileges = true;
     MemoryMax = cfg.memoryMax;
     TemporaryFileSystem = map (path: "${path}:ro") agent.hiddenPaths;
     BindPaths = [ agent.home ] ++ lib.attrValues agent.directories;
-    UMask = lib.mkForce "0077";
   };
 in
 {
