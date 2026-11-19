@@ -546,6 +546,18 @@ in
 
         Look for simpler or less obvious ways to solve the problem when they materially improve the result; prefer practical improvements that help the owner get more done with less effort, without expanding the task unnecessarily
 
+        # Text
+
+        These rules hold in every repository and every file type, and a repository's own instructions may repeat them for readers that never see this file
+
+        Quotes are straight: "вот так", never `«ёлочки»` or `„лапки»`; only a citation nested inside a straight-quoted string takes ёлочки: "внешний уровень с «внутренней» вставкой"
+
+        A prose paragraph, a list item and a table cell end without a full stop, and a closing quote, bracket or bold marker after it does not excuse one; sentences inside keep their periods
+
+        One paragraph is one line, never hard-wrapped, and the same for a list item and a table cell, so that an edit of one word does not reflow the file
+
+        A fact lives in one place: when it moves, the first copy goes in the same turn, and a second readable copy is a defect rather than a backup
+
         # Notes
 
         The vault is at ~/myWiki. Read the vault's agent instructions before you edit notes
