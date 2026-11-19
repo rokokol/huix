@@ -60,6 +60,7 @@ A background command runs exactly like an ordinary one. The model may call `bash
 ## Extensions of my own
 
 - [hoster.ts](hoster.ts) narrows the OpenRouter catalogue to the configured models, checks the privacy policy and keeps the chosen allowed host through `/hoster`
+- [init.ts](init.ts) registers `/init` and injects a separate repository-guidance task into the current session
 - [modules.ts](modules.ts) drives the resource tree through the stock extension of pi, keeping the user filters and protecting the extensions that must stay
 - [memory.ts](memory.ts) connects the shared memory with an API token of its own, and never puts that token into the generated configuration
 - [quiet-tools.ts](quiet-tools.ts) folds the line of a tool call into one grey line with a preview under Ctrl+O, and leaves the diffs of `edit` and `write` in place
