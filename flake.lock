@@ -1102,14 +1102,15 @@
         "nixpkgs": [
           "nixpkgs"
         ],
+        "rust-overlay": "rust-overlay",
         "transcribe-cpp": "transcribe-cpp"
       },
       "locked": {
-        "lastModified": 1794939353,
-        "narHash": "sha256-M1rKnwFNWDUR2ZQM3vwHt9LUFnWendkc1K9EAImmdk0=",
+        "lastModified": 1795296718,
+        "narHash": "sha256-BRvMrihkYB0oLHGx8lIlOhaiEXC2V+4K0i2s25RD2IA=",
         "owner": "rokokol",
         "repo": "MolvAI",
-        "rev": "256b2611318431159433b1603b85018387b5427b",
+        "rev": "40e3d7b38609bcc0d66a24c40fba7a0f67e8d092",
         "type": "github"
       },
       "original": {
@@ -1691,6 +1692,27 @@
         "which-key-nvim": "which-key-nvim",
         "wl-clipboard-rs": "wl-clipboard-rs",
         "zen-browser": "zen-browser"
+      }
+    },
+    "rust-overlay": {
+      "inputs": {
+        "nixpkgs": [
+          "molvai",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1795253373,
+        "narHash": "sha256-Vg6Sg8gJCDG9qpVEdOZX+72Z50MLwdnwtfZ8FNBwiYI=",
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "rev": "52db20539ec0ba063479d66092992d9efcf456ff",
+        "type": "github"
+      },
+      "original": {
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "type": "github"
       }
     },
     "sing-geoip": {
