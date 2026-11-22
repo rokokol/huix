@@ -30,6 +30,16 @@ def run(pi, extensions, node):
             "enableAnalytics": False,
             "defaultProjectTrust": "never",
         }))
+        (agent / "models.json").write_text(json.dumps({
+            "providers": {
+                "pi-extension-test": {
+                    "baseUrl": "http://127.0.0.1:1/v1",
+                    "api": "openai-completions",
+                    "apiKey": "unused",
+                    "models": [{"id": "test-model"}],
+                },
+            },
+        }))
         intercom = agent / "intercom"
         intercom.mkdir()
         (intercom / "config.json").write_text(json.dumps({

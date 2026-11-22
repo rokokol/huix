@@ -30,7 +30,7 @@ Session variables
 
 | Variable | Value |
 | --- | --- |
-| `CHROME_PATH` | `/nix/store/b3xq32a3v70bq0w9r7z88d7rrpba7cq7-chromium-157.0.8103.78/bin/chromium` |
+| `CHROME_PATH` | `/nix/store/j5jzyirg5xsmiikjy2bpnwhnn2l78dby-chromium-158.0.8127.36/bin/chromium` |
 | `COLOR_SCHEME_KEY` | `/org/gnome/desktop/interface/color-scheme` |
 | `CONTRIB_HOME` | `/home/rokokol/.local/share/pi-shared/skill-state/contributing` |
 | `DARK_SCHEME` | `prefer-dark` |

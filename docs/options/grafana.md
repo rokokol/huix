@@ -10,7 +10,7 @@ hosts: [nixos-laptop, nixos-pc, nixos-station]
 
 | Option | nixos-laptop | nixos-pc | nixos-station | Description |
 | --- | --- | --- | --- | --- |
-| `rokokol.grafana.dashboardTitles` | `Hosts`, `Guards`, `Mail`, `VPN` | `Hosts`, `Guards`, `Mail`, `VPN` | `Hosts`, `Guards`, `Mail`, `VPN`, `Hermes`, `Hindsight` | Titles of the provisioned dashboards, for what points a reader at them |
+| `rokokol.grafana.dashboardTitles` | `Hosts`, `Guards`, `Mail`, `VPN` | `Hosts`, `Guards`, `Mail`, `VPN` | `AI Spend`, `Hosts`, `Guards`, `Mail`, `VPN`, `Hermes`, `Hindsight` | Titles of the provisioned dashboards, for what points a reader at them |
 | `rokokol.grafana.enable` | no | no | yes | Whether to enable Grafana over the Prometheus of this host. |
 | `rokokol.grafana.resourcePolicy` | — | — | — | Resource thresholds, queries and rules for dashboards and checks |
 
