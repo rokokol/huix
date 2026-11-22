@@ -32,7 +32,7 @@ let
   keyMetric = prefix: field: "${prefix}_${field}_usd";
   keys =
     lib.optional hermes {
-      name = "Agents";
+      name = "Hermes";
       prefix = "openrouter_key";
       stamp = "hermes_collect_timestamp_seconds";
     }
