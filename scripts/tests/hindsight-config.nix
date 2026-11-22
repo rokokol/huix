@@ -18,15 +18,14 @@ let
     memoryModel = (import "${inputs.self}/lib/ai-models.nix").memory.model;
     inherit (cfg) poolMax;
   };
+  provisioned =
+    (builtins.head station.services.grafana.provision.dashboards.settings.providers).options.path;
   fixture = (pkgs.formats.json { }).generate "hindsight-config.json" {
     # What the dashboard asks Prometheus, so a query of a series that never exists is caught here
     # rather than on a panel that stays empty without saying so
     dashboardExpressions = pkgs.lib.concatMap (
       panel: map (target: target.expr) (panel.targets or [ ])
     ) dashboard.panels;
-    keyBalancePanel = builtins.head (
-      builtins.filter (panel: (panel.title or null) == "OpenRouter key balance") dashboard.panels
-    );
     latencyPanel = builtins.head (
       builtins.filter (panel: (panel.title or null) == "Average model and phase latency") dashboard.panels
     );
@@ -69,6 +68,6 @@ let
   };
 in
 pkgs.runCommand "hindsight-config-tests" { nativeBuildInputs = with pkgs; [ python3 ]; } ''
-  python3 ${./test-hindsight-config.py} ${fixture}
+  python3 ${./test-hindsight-config.py} ${fixture} ${provisioned}/ai-spend.json
   touch "$out"
 ''

@@ -77,6 +77,8 @@ rec {
       thresholds ? null,
       dangerBelow ? false,
       decimals ? null,
+      h ? 8,
+      dailyBars ? false,
       # Shown as the panel's info tooltip: a series name alone does not say what is measured
       description ? null,
     }:
@@ -85,10 +87,22 @@ rec {
       inherit title;
       datasource = ds;
       gridPos = {
-        inherit x y w;
-        h = 8;
+        inherit
+          x
+          y
+          w
+          h
+          ;
       };
-      targets = map (q: q.target) queries;
+      targets = map (
+        q:
+        q.target
+        // {
+          instant = false;
+          range = true;
+        }
+        // lib.optionalAttrs dailyBars { interval = "1d"; }
+      ) queries;
       fieldConfig = {
         defaults = {
           inherit unit;
@@ -105,6 +119,13 @@ rec {
             fillOpacity = 10;
             spanNulls = false;
             thresholdsStyle.mode = if thresholds == null then "off" else "dashed";
+          }
+          // lib.optionalAttrs dailyBars {
+            drawStyle = "bars";
+            barAlignment = -1;
+            barWidthFactor = 0.9;
+            fillOpacity = 80;
+            lineWidth = 0;
           };
           thresholds = thresholdSteps thresholds dangerBelow;
         }
@@ -117,12 +138,73 @@ rec {
         legend = {
           displayMode = "list";
           placement = "bottom";
+          showLegend = !dailyBars;
         };
         tooltip.mode = "multi";
       };
     }
     # Grafana draws the info icon only when the key is present, so an absent description must
     # stay absent rather than become an empty string
+    // lib.optionalAttrs (description != null) { inherit description; }
+    // lib.optionalAttrs dailyBars { interval = "1d"; };
+
+  stat =
+    {
+      title,
+      x,
+      y,
+      w,
+      h ? 4,
+      unit,
+      expr,
+      legend ? "",
+      thresholds ? null,
+      dangerBelow ? false,
+      decimals ? null,
+      description ? null,
+      mappings ? { },
+    }:
+    {
+      type = "stat";
+      inherit title;
+      datasource = ds;
+      gridPos = {
+        inherit
+          x
+          y
+          w
+          h
+          ;
+      };
+      targets = [
+        (
+          (query "A" roles.series-1 expr legend).target
+          // {
+            instant = true;
+            range = false;
+          }
+        )
+      ];
+      fieldConfig = {
+        defaults = {
+          inherit unit;
+          noValue = "No data";
+          thresholds = thresholdSteps thresholds dangerBelow;
+          mappings = lib.optional (mappings != { }) {
+            type = "value";
+            options = mappings;
+          };
+        }
+        // lib.optionalAttrs (decimals != null) { inherit decimals; };
+        overrides = [ ];
+      };
+      options = {
+        graphMode = "none";
+        colorMode = if thresholds != null || mappings != { } then "value" else "none";
+        textMode = if legend == "" then "value" else "value_and_name";
+        reduceOptions.calcs = [ "lastNotNull" ];
+      };
+    }
     // lib.optionalAttrs (description != null) { inherit description; };
 
   # The state of each series over time, as a band: a value maps to a word and a colour
@@ -207,6 +289,7 @@ rec {
         target
         // {
           inherit instant;
+          range = !instant;
           format = "table";
         }
         // lib.optionalAttrs (interval != null) { inherit interval; }

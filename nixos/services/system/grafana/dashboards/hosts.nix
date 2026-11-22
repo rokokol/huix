@@ -4,14 +4,14 @@
   resources,
 }:
 
-# The dashboard of the hosts: a row of each host with its CPU, memory, swap traffic, CPU
-# temperature and disks, and a row of each host that has a GPU. The temperature turns to danger
-# where waybar does
+# A separate GPU row keeps its charts off hosts that do not run the exporter
 let
   inherit (panels)
     query
     panel
     row
+    stat
+    table
     variable
     ;
 
@@ -19,8 +19,8 @@ let
   host = on "host";
   gpu = on "gpu_host";
 
-  # Disk file systems once each: btrfs mounts one volume at several points
-  disks = metric: ''max by (host, device) (${metric}{${host}, fstype=~"btrfs|ext4|xfs|vfat"})'';
+  cpuLoad = ''100 * (1 - avg by (host) (rate(node_cpu_seconds_total{${host}, mode="idle"}[$__rate_interval])))'';
+  memoryUsed = "node_memory_MemTotal_bytes{${host}} - node_memory_MemAvailable_bytes{${host}}";
 in
 panels.dashboard {
   uid = "hosts";
@@ -32,85 +32,69 @@ panels.dashboard {
   ];
   panels = [
     (row "$host" "host" 0)
-    (panel {
-      title = "CPU";
+    (stat {
+      title = "Node exporter";
       x = 0;
       y = 1;
-      w = 8;
+      w = 6;
+      unit = "none";
+      expr = ''up{job="node", ${host}}'';
+      mappings = {
+        "0" = {
+          text = "Down";
+          color = roles.danger;
+        };
+        "1" = {
+          text = "Up";
+          color = roles.ok;
+        };
+      };
+    })
+    (stat {
+      title = "CPU now";
+      x = 6;
+      y = 1;
+      w = 6;
       unit = "percent";
-      min = 0;
-      max = 100;
-      queries = [
-        (query "A" roles.series-1
-          "100 * (1 - avg by (host) (rate(node_cpu_seconds_total{${host}, mode=\"idle\"}[$__rate_interval])))"
-          "load"
-        )
-      ];
+      expr = cpuLoad;
+      decimals = 1;
     })
-    (panel {
-      title = "Memory";
-      x = 8;
-      y = 1;
-      w = 8;
-      unit = "bytes";
-      min = 0;
-      queries = [
-        (query "A" roles.series-1
-          "node_memory_MemTotal_bytes{${host}} - node_memory_MemAvailable_bytes{${host}}"
-          "RAM used"
-        )
-        (query "B" roles.series-3
-          "node_memory_SwapTotal_bytes{${host}} - node_memory_SwapFree_bytes{${host}}"
-          "swap used"
-        )
-        # Swap counts zram's pages at their full size; this is the RAM they take
-        (query "C" roles.series-4 "sum by (host) (zram_memory_used_bytes{${host}})" "RAM of zram")
-      ];
-    })
-    (panel {
-      title = "Swap traffic";
-      x = 16;
-      y = 1;
-      w = 8;
-      unit = "suffix: pages/s";
-      min = 0;
-      queries = [
-        (query "A" roles.series-1 "rate(node_vmstat_pswpin{${host}}[$__rate_interval])" "in")
-        (query "B" roles.series-3 "rate(node_vmstat_pswpout{${host}}[$__rate_interval])" "out")
-      ];
-    })
-    (panel {
-      title = "CPU temperature";
-      x = 0;
-      y = 9;
-      w = 12;
-      unit = "celsius";
-      thresholds = resources.limits.cpuTemperature;
-      queries = [ (query "A" roles.series-1 (resources.cpuTemperature host) "CPU") ];
-    })
-    (panel {
-      title = "Disks";
-      thresholds = 100 * resources.limits.diskUsed;
+    (stat {
+      title = "RAM used now";
       x = 12;
-      y = 9;
+      y = 1;
+      w = 6;
+      unit = "percentunit";
+      expr = "(${memoryUsed}) / node_memory_MemTotal_bytes{${host}}";
+      decimals = 1;
+    })
+    (stat {
+      title = "CPU temperature now";
+      x = 18;
+      y = 1;
+      w = 6;
+      unit = "celsius";
+      expr = resources.cpuTemperature host;
+      thresholds = resources.limits.cpuTemperature;
+    })
+    (table {
+      title = "Disks";
+      x = 0;
+      y = 5;
       w = 12;
-      unit = "percent";
-      min = 0;
-      max = 100;
-      shaded = true;
-      queries = [
-        (query "A" roles.series-1
-          "100 * (1 - ${disks "node_filesystem_avail_bytes"} / ${disks "node_filesystem_size_bytes"})"
-          "{{device}}"
-        )
-      ];
+      unit = "percentunit";
+      expr = resources.diskUsed host;
+      thresholds = resources.limits.diskUsed;
+      labels = [ "device" ];
+      valueName = "Used";
+      sortDesc = true;
     })
     (panel {
       title = "Disk use in seven days";
       description = "Linear forecast from the last seven days. The red line marks a full disk, and a gap a history too short to forecast";
-      x = 0;
-      y = 17;
-      w = 24;
+      x = 12;
+      y = 5;
+      w = 12;
       unit = "percentunit";
       thresholds = 1;
       shaded = true;
@@ -118,40 +102,91 @@ panels.dashboard {
         (query "A" roles.series-1 (resources.forecast (resources.diskUsed host)) "{{device}}")
       ];
     })
-    (row "GPU of $gpu_host" "gpu_host" 25)
+    (panel {
+      title = "CPU";
+      x = 0;
+      y = 13;
+      w = 12;
+      unit = "percent";
+      min = 0;
+      max = 100;
+      queries = [
+        (query "A" roles.series-1 cpuLoad "load")
+      ];
+    })
+    (panel {
+      title = "CPU temperature";
+      x = 12;
+      y = 13;
+      w = 12;
+      unit = "celsius";
+      thresholds = resources.limits.cpuTemperature;
+      queries = [ (query "A" roles.series-1 (resources.cpuTemperature host) "CPU") ];
+    })
+    (panel {
+      title = "Memory";
+      x = 0;
+      y = 21;
+      w = 12;
+      unit = "bytes";
+      min = 0;
+      queries = [
+        (query "A" roles.series-1 memoryUsed "RAM used")
+        (query "B" roles.series-3
+          "node_memory_SwapTotal_bytes{${host}} - node_memory_SwapFree_bytes{${host}}"
+          "swap used"
+        )
+      ];
+    })
+    (panel {
+      title = "Swap traffic";
+      x = 12;
+      y = 21;
+      w = 12;
+      unit = "suffix: pages/s";
+      min = 0;
+      queries = [
+        (query "A" roles.series-1 "rate(node_vmstat_pswpin{${host}}[$__rate_interval])" "in")
+        (query "B" roles.series-3 "rate(node_vmstat_pswpout{${host}}[$__rate_interval])" "out")
+      ];
+    })
+    (row "GPU of $gpu_host" "gpu_host" 29)
     (panel {
       title = "GPU load";
       x = 0;
-      y = 26;
-      w = 8;
+      y = 30;
+      w = 12;
       unit = "percentunit";
       min = 0;
       max = 1;
       queries = [ (query "A" roles.series-1 "nvidia_smi_utilization_gpu_ratio{${gpu}}" "load") ];
     })
-    (panel {
-      title = "GPU memory";
-      x = 8;
-      y = 26;
-      w = 8;
-      unit = "bytes";
-      min = 0;
-      queries = [
-        (query "A" roles.series-1 "nvidia_smi_memory_used_bytes{${gpu}}" "used")
-        (query "B" roles.series-3 "nvidia_smi_memory_total_bytes{${gpu}}" "total")
-      ];
+    (stat {
+      title = "GPU memory used now";
+      x = 12;
+      y = 30;
+      w = 12;
+      h = 8;
+      unit = "percentunit";
+      expr = "nvidia_smi_memory_used_bytes{${gpu}} / nvidia_smi_memory_total_bytes{${gpu}}";
+      decimals = 1;
     })
     (panel {
-      title = "GPU temperature and power";
-      x = 16;
-      y = 26;
-      w = 8;
-      unit = "short";
+      title = "GPU temperature";
+      x = 0;
+      y = 38;
+      w = 12;
+      unit = "celsius";
+      queries = [ (query "A" roles.series-1 "nvidia_smi_temperature_gpu{${gpu}}" "") ];
+    })
+    (panel {
+      title = "GPU power";
+      x = 12;
+      y = 38;
+      w = 12;
+      unit = "watt";
       min = 0;
-      queries = [
-        (query "A" roles.series-1 "nvidia_smi_temperature_gpu{${gpu}}" "°C")
-        (query "B" roles.series-3 "nvidia_smi_power_draw_watts{${gpu}}" "W")
-      ];
+      queries = [ (query "A" roles.series-1 "nvidia_smi_power_draw_watts{${gpu}}" "") ];
     })
   ];
 }

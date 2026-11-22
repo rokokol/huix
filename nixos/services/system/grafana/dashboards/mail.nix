@@ -8,14 +8,13 @@
   resources,
 }:
 
-# The dashboard of the mail node, from what it pushes to the Pushgateway: the mail that flows
-# through it and the spam it filters, then its health. The node pushes its counters as totals at
-# least every quarter hour, so a flow is the increase over an hour or a day, which holds several
+# Mail counters arrive at least every quarter hour. Use windows that hold several samples
 let
   inherit (panels)
     query
     panel
     row
+    stat
     states
     table
     variable
@@ -34,24 +33,129 @@ panels.dashboard {
   title = "Mail";
   templating.list = [ (variable "instance" ''push_time_seconds{job="mail"}'' "instance") ];
   panels = [
-    (row "Flow and spam" null 0)
-    (panel {
-      title = "Deliveries per hour";
+    (row "Mail now" null 0)
+    (stat {
+      title = "Queue";
       x = 0;
       y = 1;
-      w = 8;
+      w = 6;
       unit = "short";
-      min = 0;
-      queries = [
-        (query "A" roles.series-1 (deliveries "sent") "{{instance}} delivered")
-        (query "B" roles.series-3 (deliveries "deferred") "{{instance}} deferred")
-        (query "C" roles.series-4 (deliveries "bounced") "{{instance}} bounced")
+      expr = "mail_queue_messages{${node}}";
+      legend = "{{instance}}";
+      thresholds = 1;
+      decimals = 0;
+    })
+    (stat {
+      title = "Age of the last backup push";
+      x = 6;
+      y = 1;
+      w = 6;
+      unit = "s";
+      expr = "time() - mail_backup_last_push_timestamp_seconds{${node}}";
+      legend = "{{instance}}";
+      thresholds = maxBackupAge;
+    })
+    (stat {
+      title = "Disk used";
+      x = 12;
+      y = 1;
+      w = 6;
+      unit = "percentunit";
+      expr = resources.freshDisk "mail" node;
+      legend = "{{instance}}";
+      thresholds = maxDiskUsed;
+    })
+    (stat {
+      title = "Time since last metrics push";
+      description = "The Pushgateway retains the last report even when the mail node stops sending metrics";
+      x = 18;
+      y = 1;
+      w = 6;
+      unit = "s";
+      expr = "time() - push_time_seconds{${node}}";
+      legend = "{{instance}}";
+    })
+    (table {
+      title = "Reported problems";
+      valueName = "Reported";
+      x = 0;
+      y = 5;
+      w = 16;
+      expr = "node_problem{${node}}";
+      unit = "none";
+      thresholds = 1;
+      labels = [
+        "instance"
+        "key"
+        "summary"
       ];
     })
+    (stat {
+      title = "Reboot";
+      x = 16;
+      y = 5;
+      w = 8;
+      unit = "none";
+      expr = "mail_reboot_required{${node}}";
+      legend = "{{instance}}";
+      mappings = {
+        "0" = {
+          text = "current";
+          color = roles.ok;
+        };
+        "1" = {
+          text = "required";
+          color = roles.kind-warning;
+        };
+      };
+    })
+    (stat {
+      title = "Unparsed reports";
+      x = 16;
+      y = 9;
+      w = 8;
+      unit = "short";
+      expr = "mail_reports_unparsed_total{${node}}";
+      legend = "{{instance}}";
+      thresholds = 1;
+      decimals = 0;
+    })
+    (table {
+      title = "Certificate lifetime left";
+      x = 0;
+      y = 13;
+      w = 12;
+      unit = "s";
+      expr = "mail_certificate_expiry_timestamp_seconds{${node}} - time()";
+      thresholds = minCertificateLife;
+      dangerBelow = true;
+      labels = [
+        "instance"
+        "certificate"
+      ];
+      valueName = "Time left";
+      sortDesc = false;
+    })
+    (table {
+      title = "Mailbox quota used";
+      x = 12;
+      y = 13;
+      w = 12;
+      unit = "percentunit";
+      expr = "mail_mailbox_quota_used_ratio{${node}}";
+      thresholds = maxQuotaUsed;
+      labels = [
+        "instance"
+        "mailbox"
+      ];
+      valueName = "Used";
+      sortDesc = true;
+    })
+    (row "Flow and spam" null 21)
     (panel {
       title = "Messages accepted per hour";
-      x = 8;
-      y = 1;
+      x = 0;
+      y = 22;
       w = 8;
       unit = "short";
       min = 0;
@@ -62,21 +166,33 @@ panels.dashboard {
       ];
     })
     (panel {
-      title = "Queue";
-      x = 16;
-      y = 1;
+      title = "Deliveries per hour";
+      x = 8;
+      y = 22;
       w = 8;
       unit = "short";
       min = 0;
-      # The node reports any message that waits in the queue
+      queries = [
+        (query "A" roles.series-1 (deliveries "sent") "{{instance}} delivered")
+        (query "B" roles.series-3 (deliveries "deferred") "{{instance}} deferred")
+        (query "C" roles.series-4 (deliveries "bounced") "{{instance}} bounced")
+      ];
+    })
+    (panel {
+      title = "Queue history";
+      x = 16;
+      y = 22;
+      w = 8;
+      unit = "short";
+      min = 0;
       thresholds = 1;
       queries = [ (query "A" roles.series-1 "mail_queue_messages{${node}}" "{{instance}}") ];
     })
     (panel {
       title = "rspamd actions per hour";
       x = 0;
-      y = 9;
-      w = 8;
+      y = 30;
+      w = 12;
       unit = "short";
       min = 0;
       shaded = true;
@@ -87,25 +203,10 @@ panels.dashboard {
       ];
     })
     (panel {
-      title = "Filed into Junk per hour";
-      x = 8;
-      y = 9;
-      w = 8;
-      unit = "short";
-      min = 0;
-      queries = [
-        # The action whose header Sieve files into Junk
-        (query "A" roles.series-1
-          (hourly ''mail_scanned_messages_total{${node}, action="add header"}'' "instance")
-          "{{instance}}"
-        )
-      ];
-    })
-    (panel {
       title = "SMTP rejections per hour";
-      x = 16;
-      y = 9;
-      w = 8;
+      x = 12;
+      y = 30;
+      w = 12;
       unit = "short";
       min = 0;
       shaded = true;
@@ -118,7 +219,7 @@ panels.dashboard {
     (panel {
       title = "Logins per hour";
       x = 0;
-      y = 17;
+      y = 38;
       w = 12;
       unit = "short";
       min = 0;
@@ -130,7 +231,7 @@ panels.dashboard {
     (panel {
       title = "fail2ban bans per hour";
       x = 12;
-      y = 17;
+      y = 38;
       w = 12;
       unit = "short";
       min = 0;
@@ -141,53 +242,11 @@ panels.dashboard {
         )
       ];
     })
-
-    (row "Health" null 25)
-    (panel {
-      title = "Certificate lifetime left";
-      x = 0;
-      y = 26;
-      w = 8;
-      unit = "s";
-      min = 0;
-      shaded = true;
-      thresholds = minCertificateLife;
-      dangerBelow = true;
-      queries = [
-        (query "A" roles.series-1 "mail_certificate_expiry_timestamp_seconds{${node}} - time()"
-          "{{instance}} {{certificate}}"
-        )
-      ];
-    })
-    (panel {
-      title = "Disk used";
-      x = 8;
-      y = 26;
-      w = 8;
-      unit = "percentunit";
-      min = 0;
-      max = 1;
-      thresholds = maxDiskUsed;
-      queries = [ (query "A" roles.series-1 (resources.freshDisk "mail" node) "{{instance}}") ];
-    })
-    (panel {
-      title = "Mailbox quota used";
-      x = 16;
-      y = 26;
-      w = 8;
-      unit = "percentunit";
-      min = 0;
-      max = 1;
-      shaded = true;
-      thresholds = maxQuotaUsed;
-      queries = [
-        (query "A" roles.series-1 "mail_mailbox_quota_used_ratio{${node}}" "{{instance}} {{mailbox}}")
-      ];
-    })
+    (row "Report and collector history" null 46)
     (panel {
       title = "Report failures per day";
       x = 0;
-      y = 34;
+      y = 47;
       w = 12;
       unit = "short";
       min = 0;
@@ -204,36 +263,11 @@ panels.dashboard {
         )
       ];
     })
-    (panel {
-      title = "Reports that did not parse";
-      x = 12;
-      y = 34;
-      w = 12;
-      unit = "short";
-      min = 0;
-      # The node reports these while any of them stays at the report addresses
-      thresholds = 1;
-      queries = [ (query "A" roles.series-1 "mail_reports_unparsed_total{${node}}" "{{instance}}") ];
-    })
-    (panel {
-      title = "Age of the last backup push";
-      x = 0;
-      y = 42;
-      w = 8;
-      unit = "s";
-      min = 0;
-      thresholds = maxBackupAge;
-      queries = [
-        (query "A" roles.series-1 "time() - mail_backup_last_push_timestamp_seconds{${node}}"
-          "{{instance}}"
-        )
-      ];
-    })
     (states {
       title = "The station, as the node sees it";
-      x = 8;
-      y = 42;
-      w = 16;
+      x = 12;
+      y = 47;
+      w = 12;
       expr = "mail_station_up{${node}}";
       legend = "{{instance}}";
       mappings = {
@@ -250,8 +284,8 @@ panels.dashboard {
     (panel {
       title = "Collector lag";
       x = 0;
-      y = 50;
-      w = 8;
+      y = 55;
+      w = 12;
       unit = "s";
       min = 0;
       queries = [
@@ -265,9 +299,9 @@ panels.dashboard {
     })
     (panel {
       title = "Collector cursor gaps per day";
-      x = 8;
-      y = 50;
-      w = 8;
+      x = 12;
+      y = 55;
+      w = 12;
       unit = "short";
       min = 0;
       thresholds = 1;
@@ -277,62 +311,16 @@ panels.dashboard {
         )
       ];
     })
-    (panel {
-      title = "Problems the node reports";
-      x = 16;
-      y = 50;
-      w = 8;
-      unit = "short";
-      min = 0;
-      # The station alerts while this is above zero
-      thresholds = 1;
-      queries = [
-        (query "A" roles.series-1 "count by (instance) (node_problem{${node}})" "{{instance}}")
-      ];
-    })
-    (table {
-      title = "What the node reports now";
-      x = 0;
-      y = 58;
-      w = 12;
-      expr = "node_problem{${node}}";
-      unit = "none";
-      thresholds = 1;
-      labels = [
-        "instance"
-        "key"
-        "summary"
-      ];
-    })
-    (states {
-      title = "Reboot";
-      x = 12;
-      y = 58;
-      w = 12;
-      expr = "mail_reboot_required{${node}}";
-      legend = "{{instance}}";
-      mappings = {
-        "0" = {
-          text = "current";
-          color = roles.ok;
-        };
-        "1" = {
-          text = "required";
-          color = roles.kind-warning;
-        };
-      };
-    })
-
-    (row "Who knocks" null 66)
+    (row "Who knocks" null 63)
   ]
-  ++ panels.attackers "mail" node 67
+  ++ panels.attackers "mail" node 64
   ++ [
-    (row "Capacity" null 75)
+    (row "Capacity" null 72)
     (panel {
       title = "Disk use in seven days";
       description = "Linear forecast from seven days of measurements the node actually made. The red line marks a full disk, and a gap a history too short to forecast";
       x = 0;
-      y = 76;
+      y = 73;
       w = 24;
       unit = "percentunit";
       thresholds = 1;

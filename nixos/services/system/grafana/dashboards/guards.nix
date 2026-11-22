@@ -9,15 +9,13 @@
   resources,
 }:
 
-# The dashboard of the watchers: what is open and which watched unit failed, how fresh the
-# backups and the pushes of the nodes are, the disks by SMART, zram, btrfs with its scrubs and
-# snapshots, and Syncthing. The thresholds are the ones the watchers alert at, in seconds and
-# bytes, so a value turns red where its alert fires
+# The panels use the limits of the monitors so their warnings agree
 let
   inherit (panels)
     query
     panel
     row
+    stat
     states
     table
     variable
@@ -52,7 +50,7 @@ panels.dashboard {
       title = "Open problems";
       x = 0;
       y = 1;
-      w = 10;
+      w = 12;
       expr = "time() - alert_open_since_seconds";
       unit = "s";
       valueName = "open for";
@@ -65,9 +63,9 @@ panels.dashboard {
     })
     (states {
       title = "Watched units";
-      x = 10;
+      x = 12;
       y = 1;
-      w = 14;
+      w = 12;
       expr = unitStates;
       legend = "{{host}} {{name}}";
       mappings = {
@@ -85,51 +83,51 @@ panels.dashboard {
         };
       };
     })
-
     (row "Backups and nodes" null 9)
-    (panel {
+    (table {
       title = "Age of the newest backup";
       x = 0;
       y = 10;
-      w = 8;
+      w = 9;
+      expr = "time() - backup_last_snapshot_timestamp_seconds";
       unit = "s";
-      min = 0;
-      shaded = true;
       thresholds = maxBackupAge;
-      queries = [
-        (query "A" roles.series-1 "time() - backup_last_snapshot_timestamp_seconds" "{{repository}}")
-      ];
+      labels = [ "repository" ];
+      valueName = "Age";
+      sortDesc = true;
     })
-    (panel {
+    (stat {
       title = "Free space for backups";
-      x = 8;
+      x = 9;
       y = 10;
-      w = 8;
+      w = 6;
+      h = 8;
+      expr = "backup_free_bytes";
       unit = "bytes";
-      min = 0;
       thresholds = minBackupFree;
       dangerBelow = true;
-      queries = [ (query "A" roles.series-1 "backup_free_bytes" "free") ];
     })
-    (panel {
-      title = "Time since the last push of each node";
-      x = 16;
+    (table {
+      title = "Time since the last push";
+      x = 15;
       y = 10;
-      w = 8;
+      w = 9;
+      expr = "time() - push_time_seconds";
       unit = "s";
-      min = 0;
-      shaded = true;
       thresholds = maxPushSilence;
-      queries = [
-        (query "A" roles.series-1 "time() - max by (instance) (push_time_seconds)" "{{instance}}")
+      labels = [
+        "job"
+        "instance"
       ];
+      valueName = "Age";
+      sortDesc = true;
     })
     (row "Disks" null 18)
     (table {
       title = "SMART health";
       x = 0;
       y = 19;
-      w = 6;
+      w = 8;
       expr = "smartctl_device_smart_status{${host}}";
       unit = "bool_yes_no";
       valueName = "passed";
@@ -143,111 +141,81 @@ panels.dashboard {
     (panel {
       title = "Disk temperature";
       thresholds = resources.limits.diskTemperature;
-      x = 6;
+      x = 8;
       y = 19;
-      w = 6;
+      w = 16;
       unit = "celsius";
       shaded = true;
       queries = [
         (query "A" roles.series-1 (resources.diskTemperature host) "{{host}} {{device}}")
       ];
     })
-    (panel {
-      title = "Sectors reallocated or pending";
-      x = 12;
-      y = 19;
-      w = 6;
-      unit = "short";
-      min = 0;
-      shaded = true;
-      thresholds = 1;
-      queries = [
-        (query "A" roles.series-1
-          ''smartctl_device_attribute{${host}, attribute_name=~"Reallocated_Sector_Ct|Current_Pending_Sector|Offline_Uncorrectable", attribute_value_type="raw"}''
-          "{{host}} {{device}} {{attribute_name}}"
-        )
-      ];
-    })
-    (panel {
-      title = "Wear and media errors";
-      x = 18;
-      y = 19;
-      w = 6;
-      unit = "short";
-      min = 0;
-      shaded = true;
-      queries = [
-        (query "A" roles.series-1 "smartctl_device_percentage_used{${host}}" "{{host}} {{device}} % used")
-        (query "B" roles.series-3 "smartctl_device_media_errors{${host}}"
-          "{{host}} {{device}} media errors"
-        )
-      ];
-    })
-
-    (row "Memory" null 27)
-    (panel {
-      title = "zram compression";
+    (table {
+      title = "Sectors reallocated, pending or uncorrectable";
       x = 0;
-      y = 28;
-      w = 8;
-      unit = "none";
-      min = 1;
-      queries = [
-        (query "A" roles.series-1
-          "sum by (host) (zram_original_bytes{${host}}) / sum by (host) (zram_compressed_bytes{${host}})"
-          "{{host}}"
-        )
+      y = 27;
+      w = 12;
+      expr = ''smartctl_device_attribute{${host}, attribute_name=~"Reallocated_Sector_Ct|Current_Pending_Sector|Offline_Uncorrectable", attribute_value_type="raw"}'';
+      unit = "short";
+      thresholds = 1;
+      labels = [
+        "host"
+        "device"
+        "attribute_name"
       ];
-      shaded = true;
+      valueName = "Sectors";
+      sortDesc = true;
     })
-    (panel {
-      title = "RAM that zram takes";
-      x = 8;
-      y = 28;
-      w = 8;
-      unit = "bytes";
-      min = 0;
-      shaded = true;
-      queries = [
-        (query "A" roles.series-1 "sum by (host) (zram_memory_used_bytes{${host}})" "{{host}}")
+    (table {
+      title = "NVMe wear";
+      x = 12;
+      y = 27;
+      w = 6;
+      expr = "smartctl_device_percentage_used{${host}}";
+      unit = "percent";
+      labels = [
+        "host"
+        "device"
       ];
+      valueName = "Used";
+      coloured = false;
+      sortDesc = true;
     })
-    (panel {
-      title = "Swap traffic";
-      x = 16;
-      y = 28;
-      w = 8;
-      unit = "suffix: pages/s";
-      min = 0;
-      shaded = true;
-      queries = [
-        (query "A" roles.series-1
-          "rate(node_vmstat_pswpin{${host}}[$__rate_interval]) + rate(node_vmstat_pswpout{${host}}[$__rate_interval])"
-          "{{host}}"
-        )
+    (table {
+      title = "NVMe media errors";
+      x = 18;
+      y = 27;
+      w = 6;
+      expr = "smartctl_device_media_errors{${host}}";
+      unit = "short";
+      labels = [
+        "host"
+        "device"
       ];
+      valueName = "Errors";
+      coloured = false;
+      sortDesc = true;
     })
-
-    (row "btrfs" null 36)
-    (panel {
+    (row "btrfs" null 35)
+    (table {
       title = "Time since the last scrub and snapshot run";
       x = 0;
-      y = 37;
+      y = 36;
       w = 12;
+      expr = ''time() - node_systemd_timer_last_trigger_seconds{${host}, name=~"btrfs-scrub@.*|btrbk-.*"}'';
       unit = "s";
-      min = 0;
-      shaded = true;
-      queries = [
-        (query "A" roles.series-1
-          ''time() - node_systemd_timer_last_trigger_seconds{${host}, name=~"btrfs-scrub@.*|btrbk-.*"}''
-          "{{host}} {{name}}"
-        )
+      labels = [
+        "host"
+        "name"
       ];
+      valueName = "Age";
+      coloured = false;
+      sortDesc = true;
     })
     (panel {
       title = "Device errors";
       x = 12;
-      y = 37;
+      y = 36;
       w = 12;
       unit = "short";
       min = 0;
@@ -259,38 +227,40 @@ panels.dashboard {
         )
       ];
     })
-    (panel {
+    (table {
       title = "Snapshots of each archived folder";
       x = 0;
-      y = 45;
+      y = 44;
       w = 12;
+      expr = "btrbk_snapshots{${host}}";
       unit = "short";
-      min = 0;
-      shaded = true;
-      queries = [ (query "A" roles.series-1 "btrbk_snapshots{${host}}" "{{host}} {{folder}}") ];
+      labels = [
+        "host"
+        "folder"
+      ];
+      valueName = "Snapshots";
+      coloured = false;
     })
-    # A folder gets a snapshot only when it changed, so an old newest snapshot of a quiet folder
-    # is no fault, and the panel has no threshold
-    (panel {
+    (table {
       title = "Age of each folder's newest snapshot";
       x = 12;
-      y = 45;
+      y = 44;
       w = 12;
+      expr = "time() - btrbk_newest_snapshot_timestamp_seconds{${host}}";
       unit = "s";
-      min = 0;
-      shaded = true;
-      queries = [
-        (query "A" roles.series-1 "time() - btrbk_newest_snapshot_timestamp_seconds{${host}}"
-          "{{host}} {{folder}}"
-        )
+      labels = [
+        "host"
+        "folder"
       ];
+      valueName = "Age";
+      coloured = false;
+      description = "A folder gets a snapshot only when it changes. An old snapshot of a quiet folder is not a fault";
     })
-
-    (row "Syncthing" null 53)
+    (row "Syncthing" null 52)
     (states {
       title = "Peers";
       x = 0;
-      y = 54;
+      y = 53;
       w = 12;
       expr = "clamp_max(${peers}, 1)";
       legend = "{{host}} {{name}}";
@@ -308,7 +278,7 @@ panels.dashboard {
     (panel {
       title = "What each folder still needs";
       x = 12;
-      y = 54;
+      y = 53;
       w = 12;
       unit = "bytes";
       min = 0;
@@ -318,6 +288,26 @@ panels.dashboard {
           "{{host}} {{label}}"
         )
       ];
+    })
+    (row "Memory" null 61)
+    (stat {
+      title = "RAM that zram takes";
+      x = 0;
+      y = 62;
+      w = 12;
+      unit = "bytes";
+      expr = "sum by (host) (zram_memory_used_bytes{${host}})";
+      legend = "{{host}}";
+    })
+    (stat {
+      title = "zram compression";
+      x = 12;
+      y = 62;
+      w = 12;
+      unit = "suffix:×";
+      expr = "sum by (host) (zram_original_bytes{${host}}) / (sum by (host) (zram_compressed_bytes{${host}}) > 0)";
+      legend = "{{host}}";
+      decimals = 1;
     })
   ];
 }

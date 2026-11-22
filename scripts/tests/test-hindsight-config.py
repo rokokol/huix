@@ -61,7 +61,8 @@ def validate(f):
     # The only call counter of the API records LLM scopes: a query that filters it by
     # scope="rerank" matches nothing, and the panel stays empty without an error
     expressions = f["dashboardExpressions"]
-    assert any("hindsight_spend_key_usage_usd" in expr for expr in expressions)
+    assert not any("hindsight_spend_key_" in expr for expr in expressions)
+    assert any("hindsight_spend_key_usage_daily_usd" in expr for expr in f["spendExpressions"])
     latency_panel = f["latencyPanel"]
     assert latency_panel["type"] == "table"
     latency_query = latency_panel["targets"][0]["expr"]
@@ -104,6 +105,11 @@ def validate(f):
 
 
 fixture = json.loads(Path(sys.argv[1]).read_text())
+spend_path = Path(sys.argv[2])
+assert spend_path.is_file(), "Grafana does not provision the AI Spend dashboard"
+spend = json.loads(spend_path.read_text())
+fixture["keyBalancePanel"] = next(p for p in spend["panels"] if p["title"] == "Hindsight key")
+fixture["spendExpressions"] = [t["expr"] for p in spend["panels"] for t in p.get("targets", [])]
 validate(fixture)
 for name, mutate in [
     ("SQL_ASCII", lambda f: f.update(initdbArgs=[])),
@@ -128,7 +134,7 @@ for name, mutate in [
     ("a panel of a counter that has no rerank scope", lambda f: f["dashboardExpressions"].append(
         'sum by (success) (rate(hindsight_llm_calls_total{scope="rerank"}[5m]))')),
     ("a spend panel that reads tokens", lambda f: f.update(
-        dashboardExpressions=[e for e in f["dashboardExpressions"] if "hindsight_spend_key" not in e])),
+        spendExpressions=[e for e in f["spendExpressions"] if "hindsight_spend_key" not in e])),
     ("a latency table without LLM counts", lambda f: f["latencyPanel"]["targets"][0].update(
         expr=f["latencyPanel"]["targets"][0]["expr"].replace("hindsight_llm_duration_seconds_count", "missing_metric"))),
     ("a key balance table without remaining credit", lambda f: f["keyBalancePanel"]["targets"][0].update(

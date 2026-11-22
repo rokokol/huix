@@ -57,55 +57,68 @@ let
     maxPushSilence = seconds config.rokokol.pushgateway.maxSilence;
   };
 
-  dashboards = [
-    (import ./dashboards/hosts.nix { inherit roles panels resources; })
-    (import ./dashboards/guards.nix {
-      inherit
-        lib
-        roles
-        panels
-        maxBackupAge
-        resources
-        ;
-      minBackupFree = bytes config.rokokol.backup-heartbeat.minFree;
-      maxPushSilence = seconds config.rokokol.pushgateway.maxSilence;
-      syncthingHosts = lib.optional config.services.syncthing.enable hostName;
-    })
-    # The mail node owns these numbers and its report names a problem at each of them. They
-    # are written here once, since that node's configuration is not part of this flake
-    (import ./dashboards/mail.nix {
-      inherit
-        roles
-        panels
-        maxBackupAge
-        resources
-        ;
-      minCertificateLife = seconds "14d";
-      # The node reports the disk itself at this ratio, so the panel marks its threshold
-      maxDiskUsed = 0.85;
-      maxQuotaUsed = 0.9;
-    })
-    # The same for the VPN nodes: the disk and the sockets come from their list of open
-    # problems, the connection tracking table from their self-check
-    (import ./dashboards/vpn.nix {
-      inherit roles panels resources;
-      # The nodes report the disk themselves at this ratio
-      maxDiskUsed = 0.85;
-      maxConntrackUsed = 0.8;
-      maxStuckSockets = 200;
-      maxPushSilence = seconds config.rokokol.pushgateway.maxSilence;
-    })
-  ]
-  ++ lib.optional config.rokokol.mya-agent.hermes.monitor.enable (
-    import ./dashboards/hermes.nix { inherit roles panels; }
-  )
-  ++ lib.optional (config.rokokol.hindsight.enable or false) (
-    import ./dashboards/hindsight.nix {
-      inherit roles panels;
-      memoryModel = memory.model;
-      poolMax = config.rokokol.hindsight.poolMax;
-    }
-  );
+  hermes = config.rokokol.mya-agent.hermes.monitor.enable;
+  hindsight = config.rokokol.hindsight.enable or false;
+  dashboards =
+    lib.optional (hermes || hindsight) (
+      import ./dashboards/spend.nix {
+        inherit
+          lib
+          roles
+          panels
+          hermes
+          hindsight
+          ;
+        lowBalance = builtins.fromJSON config.rokokol.mya-agent.hermes.monitor.lowBalance;
+      }
+    )
+    ++ [
+      (import ./dashboards/hosts.nix { inherit roles panels resources; })
+      (import ./dashboards/guards.nix {
+        inherit
+          lib
+          roles
+          panels
+          maxBackupAge
+          resources
+          ;
+        minBackupFree = bytes config.rokokol.backup-heartbeat.minFree;
+        maxPushSilence = seconds config.rokokol.pushgateway.maxSilence;
+        syncthingHosts = lib.optional config.services.syncthing.enable hostName;
+      })
+      # The mail node owns these numbers and its report names a problem at each of them. They
+      # are written here once, since that node's configuration is not part of this flake
+      (import ./dashboards/mail.nix {
+        inherit
+          roles
+          panels
+          maxBackupAge
+          resources
+          ;
+        minCertificateLife = seconds "14d";
+        # The node reports the disk itself at this ratio, so the panel marks its threshold
+        maxDiskUsed = 0.85;
+        maxQuotaUsed = 0.9;
+      })
+      # The same for the VPN nodes: the disk and the sockets come from their list of open
+      # problems, the connection tracking table from their self-check
+      (import ./dashboards/vpn.nix {
+        inherit roles panels resources;
+        # The nodes report the disk themselves at this ratio
+        maxDiskUsed = 0.85;
+        maxConntrackUsed = 0.8;
+        maxStuckSockets = 200;
+        maxPushSilence = seconds config.rokokol.pushgateway.maxSilence;
+      })
+    ]
+    ++ lib.optional hermes (import ./dashboards/hermes.nix { inherit roles panels; })
+    ++ lib.optional hindsight (
+      import ./dashboards/hindsight.nix {
+        inherit roles panels;
+        memoryModel = memory.model;
+        poolMax = config.rokokol.hindsight.poolMax;
+      }
+    );
 in
 {
   imports = [ (import ./alerting.nix { inherit resources datasource; }) ];
