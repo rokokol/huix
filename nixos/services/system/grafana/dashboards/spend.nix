@@ -45,6 +45,23 @@ let
   day =
     key:
     withSample "${keyMetric key.prefix "usage_daily"} offset 2m" "time() - 120 - (${key.stamp} offset 2m) < 300";
+  # Fixed UTC steps exclude today and keep missing days out of the averages
+  pace =
+    key:
+    let
+      daily = "max(${day key})";
+      mean =
+        window: minimum:
+        "(avg_over_time(${window}) and (count_over_time(${window}) >= ${toString minimum}))";
+    in
+    "(${mean "${daily}[7d:1d]" 5} + ${mean "${daily}[14d:1d] offset 7d" 7}) / 2";
+  projected = rate: days: "(${rate}) * ${toString days}";
+  horizons = {
+    "1 week" = 7;
+    "2 weeks" = 14;
+    "30 days" = 30;
+  };
+  forecastWidth = 24 / (builtins.length keys + 1);
   today =
     key:
     withSample (keyMetric key.prefix "usage_daily") "(time() - ${key.stamp} < 300) and (${key.stamp} >= time() - time() % 86400)";
@@ -116,13 +133,47 @@ panels.dashboard {
         queries = [ (query "A" roles.series-1 (day key) key.name) ];
       }
     ) keys
-    ++ [ (row "OpenRouter · Spend and limits by key" null 15) ]
+    ++ [
+      (row "OpenRouter · Forecast" null 15)
+      (usd {
+        title = "Next 30 days · Total";
+        x = 0;
+        y = 16;
+        w = forecastWidth;
+        h = 6;
+        decimals = 2;
+        expr = projected (lib.concatMapStringsSep " + " (key: "(${pace key})") keys) horizons."30 days";
+        description = "The last week and the two weeks before it have equal weight. Each key needs at least five recent and seven earlier daily samples. The estimate assumes a constant daily rate and excludes subscriptions";
+      })
+    ]
+    ++ lib.imap0 (
+      i: key:
+      table {
+        title = "${key.name} · Projected spend";
+        x = (i + 1) * forecastWidth;
+        y = 16;
+        w = forecastWidth;
+        h = 6;
+        unit = "currencyUSD";
+        expr = lib.concatStringsSep "\n or " (
+          lib.mapAttrsToList (
+            horizon: days:
+            ''label_replace(${projected (pace key) days}, "horizon", "${horizon}", "__name__", ".*")''
+          ) horizons
+        );
+        labels = [ "horizon" ];
+        valueName = "USD";
+        coloured = false;
+        description = "Estimated total over each horizon. No data means there are too few daily samples";
+      }
+    ) keys
+    ++ [ (row "OpenRouter · Spend and limits by key" null 22) ]
     ++ lib.imap0 (
       i: key:
       table {
         title = "${key.name} key";
         x = i * 12;
-        y = 16;
+        y = 23;
         w = if builtins.length keys == 1 then 24 else 12;
         h = 6;
         unit = "currencyUSD";
@@ -134,11 +185,11 @@ panels.dashboard {
       }
     ) keys
     ++ lib.optionals hermes [
-      (row "OpenCode Go · Allowance, not extra charges" null 22)
+      (row "OpenCode Go · Allowance, not extra charges" null 29)
       (table {
         title = "Shared allowance used";
         x = 0;
-        y = 23;
+        y = 30;
         w = 9;
         h = 8;
         unit = "percent";
@@ -155,7 +206,7 @@ panels.dashboard {
       (usd {
         title = "Hermes · Usage value this month";
         x = 9;
-        y = 23;
+        y = 30;
         w = 6;
         h = 8;
         expr = withPush "mya_go_hermes_month_usd" goFresh;
@@ -165,7 +216,7 @@ panels.dashboard {
       (table {
         title = "Hermes · Usage value by model";
         x = 15;
-        y = 23;
+        y = 30;
         w = 9;
         h = 8;
         unit = "currencyUSD";
@@ -175,11 +226,11 @@ panels.dashboard {
         coloured = false;
         sortDesc = true;
       })
-      (row "Model prices · Estimates, not bills" null 31)
+      (row "Model prices · Estimates, not bills" null 38)
       (table {
         title = "Daily cost at current hosts";
         x = 0;
-        y = 32;
+        y = 39;
         w = 12;
         h = 9;
         unit = "currencyUSD";
@@ -196,7 +247,7 @@ panels.dashboard {
       (table {
         title = "Daily cost at the cheapest alternative";
         x = 12;
-        y = 32;
+        y = 39;
         w = 12;
         h = 9;
         unit = "currencyUSD";
