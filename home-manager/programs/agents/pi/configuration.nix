@@ -7,6 +7,7 @@
 }:
 let
   cfg = config.programs.pi-coding-agent;
+  piSlice = "pi";
   settingsPath = "${cfg.configDir}/settings.json";
   settingsSource = config.home.file.${settingsPath}.source;
   extensions = "${pkgs.pi-extensions}/lib/pi-extensions";
@@ -28,8 +29,14 @@ in
   };
 
   config = lib.mkIf config.rokokol.pi.enable {
+    systemd.user.slices.${piSlice}.Slice.MemoryMax = "25%";
+
     programs.pi-coding-agent = {
       enable = true;
+      package = pkgs.writeShellScriptBin "pi" ''
+        exec ${pkgs.systemd}/bin/systemd-run --user --scope --quiet --collect \
+          --slice=${piSlice}.slice -- ${lib.getExe pkgs.pi-coding-agent} "$@"
+      '';
       context = config.lib.file.mkOutOfStoreSymlink "${config.xdg.configHome}/agents/AGENTS.md";
       keybindings."tui.editor.deleteWordBackward" = [
         "ctrl+w"
