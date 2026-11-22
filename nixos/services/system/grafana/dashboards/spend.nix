@@ -55,6 +55,31 @@ let
         "(avg_over_time(${window}) and (count_over_time(${window}) >= ${toString minimum}))";
     in
     "(${mean "${daily}[7d:1d]" 5} + ${mean "${daily}[14d:1d] offset 7d" 7}) / 2";
+  smoothing = {
+    decay = "0.8";
+    days = 14;
+    minimum = 10;
+  };
+  smoothedPace =
+    key:
+    let
+      daily = "max(${day key})";
+      samples =
+        weighted:
+        lib.concatStringsSep "\n or " (
+          lib.genList (
+            age:
+            let
+              window = "${daily}[1d:1d]" + lib.optionalString (age > 0) " offset ${toString age}d";
+              value = if weighted then "last_over_time(${window})" else "present_over_time(${window})";
+            in
+            ''label_replace(${value} * ${smoothing.decay} ^ ${toString age}, "day_age", "${toString age}", "__name__", ".*")''
+          ) smoothing.days
+        );
+      # Divide by the weight of observed days only. A real zero still contributes weight
+      available = samples false;
+    in
+    "(sum(${samples true}) / sum(${available})) and (count(${available}) >= ${toString smoothing.minimum}) and present_over_time(${daily}[3d:1d])";
   projected = rate: days: "(${rate}) * ${toString days}";
   horizons = {
     "1 week" = 7;
@@ -155,16 +180,22 @@ panels.dashboard {
         w = forecastWidth;
         h = 6;
         unit = "currencyUSD";
-        expr = lib.concatStringsSep "\n or " (
-          lib.mapAttrsToList (
-            horizon: days:
-            ''label_replace(${projected (pace key) days}, "horizon", "${horizon}", "__name__", ".*")''
-          ) horizons
-        );
+        expr =
+          lib.concatStringsSep "\n or " (
+            lib.mapAttrsToList (
+              horizon: days:
+              ''label_replace(${projected (pace key) days}, "horizon", "${horizon}", "__name__", ".*")''
+            ) horizons
+          )
+          + ''
+            or label_replace(${
+              projected (smoothedPace key) horizons."30 days"
+            }, "horizon", "30 days (smoothed)", "__name__", ".*")
+          '';
         labels = [ "horizon" ];
         valueName = "USD";
         coloured = false;
-        description = "Estimated total over each horizon. No data means there are too few daily samples";
+        description = "Compare the two 30-day estimates. The smoothed estimate gives each older day ${smoothing.decay} times the weight of the next day. It needs ${toString smoothing.minimum} samples in ${toString smoothing.days} days and one in the last three days";
       }
     ) keys
     ++ [ (row "OpenRouter · Spend and limits by key" null 22) ]
