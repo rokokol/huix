@@ -83,6 +83,22 @@ class DashboardsTest(unittest.TestCase):
                     custom = panel(dashboard, title)["fieldConfig"]["defaults"]["custom"]
                     self.assertEqual(custom.get("drawStyle"), "bars")
 
+    def test_vpn_traffic_totals_show_each_identity_and_period(self):
+        dashboard = DASHBOARDS["vpn"][1]
+        for identity in ("inbound", "client"):
+            with self.subTest(identity=identity):
+                totals = panel(dashboard, f"Traffic totals by {identity}")
+                self.assertEqual(totals["type"], "table")
+                self.assertEqual(totals["fieldConfig"]["defaults"]["unit"], "bytes")
+                target, = totals["targets"]
+                self.assertTrue(target["instant"])
+                self.assertFalse(target["range"])
+                self.assertIn(f"vpn_{identity}_traffic_bytes_total", target["expr"])
+                self.assertNotIn("topk(", target["expr"])
+                organize = next(t["options"] for t in totals["transformations"] if t["id"] == "organize")
+                self.assertTrue({identity, "Total", "Last 30 days", "Last 7 days", "Last 24 hours"}
+                                <= organize["indexByName"].keys())
+
     def test_host_panels_are_scoped_and_station_has_shared_checks(self):
         for host in MANIFEST["hosts"]:
             dashboard = DASHBOARDS[host][1]
