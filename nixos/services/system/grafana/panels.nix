@@ -454,26 +454,40 @@ rec {
     })
   ];
 
-  serviceDiskCapacity =
+  serviceHealth =
     {
       y,
-      expr,
+      disk,
+      cpu,
+      memory,
       thresholds,
       forecast,
     }:
     [
-      (row "Capacity" null y)
+      (row "Health" null y)
+      (stat {
+        title = "Disk used";
+        description = "Share of disk capacity used, from the latest fresh node report";
+        x = 0;
+        y = y + 1;
+        w = 6;
+        h = 8;
+        unit = "percentunit";
+        expr = disk;
+        legend = "{{instance}}";
+        inherit thresholds;
+      })
       (panel {
         title = "Disk use history";
         description = "Share of disk capacity used on each node over time. Stale reports do not appear";
-        x = 0;
+        x = 6;
         y = y + 1;
-        w = 16;
+        w = 10;
         unit = "percentunit";
         min = 0;
         max = 1;
         inherit thresholds;
-        queries = [ (query "A" expr "{{instance}}") ];
+        queries = [ (query "A" disk "{{instance}}") ];
       })
       (stat {
         title = "Estimated disk use in seven days";
@@ -484,8 +498,30 @@ rec {
         h = 8;
         unit = "percentunit";
         thresholds = 1;
-        expr = forecast expr;
+        expr = forecast disk;
         legend = "{{instance}}";
+      })
+      (panel {
+        title = "CPU used";
+        description = "Share of CPU time outside idle over the previous hour";
+        x = 0;
+        y = y + 9;
+        w = 12;
+        unit = "percentunit";
+        min = 0;
+        max = 1;
+        queries = [ (query "A" cpu "{{instance}}") ];
+      })
+      (panel {
+        title = "Memory used";
+        description = "Share of RAM not available for new workloads";
+        x = 12;
+        y = y + 9;
+        w = 12;
+        unit = "percentunit";
+        min = 0;
+        max = 1;
+        queries = [ (query "A" memory "{{instance}}") ];
       })
     ];
 

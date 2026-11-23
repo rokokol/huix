@@ -79,6 +79,24 @@ class DashboardsTest(unittest.TestCase):
                 self.assertEqual(history["targets"][0]["expr"], current["targets"][0]["expr"])
                 self.assertEqual(history["targets"][0]["legendFormat"], "{{instance}}")
                 self.assertEqual(history["fieldConfig"]["defaults"]["unit"], "percentunit")
+                health = panel(dashboard, "Health")
+                self.assertEqual(health["type"], "row")
+                for title in ("CPU used", "Memory used"):
+                    resource = panel(dashboard, title)
+                    self.assertEqual(resource["type"], "timeseries")
+                    self.assertEqual(resource["fieldConfig"]["defaults"]["unit"], "percentunit")
+                    self.assertIn("push_time_seconds", resource["targets"][0]["expr"])
+                cpu = panel(dashboard, "CPU used")["targets"][0]["expr"]
+                self.assertIn(f"rate({uid}_cpu_busy_seconds_total", cpu)
+                self.assertIn(f"rate({uid}_cpu_seconds_total", cpu)
+                self.assertIn(f"{uid}_memory_used_ratio", panel(dashboard, "Memory used")["targets"][0]["expr"])
+                health_start = health["gridPos"]["y"]
+                next_row = min((item["gridPos"]["y"] for item in dashboard["panels"]
+                                if item["type"] == "row" and item["gridPos"]["y"] > health_start),
+                               default=float("inf"))
+                for item in (current, history, panel(dashboard, "CPU used"), panel(dashboard, "Memory used")):
+                    self.assertLess(health_start, item["gridPos"]["y"])
+                    self.assertLess(item["gridPos"]["y"], next_row)
 
     def test_discrete_series_use_bars(self):
         names = {

@@ -21,7 +21,6 @@ let
     ;
 
   node = ''job="mail", instance=~"$instance"'';
-  diskUsed = resources.freshDisk "mail" node;
 
   hourly = metric: by: "sum by (${by}) (increase(${metric}[1h]))";
   daily = metric: by: "sum by (${by}) (increase(${metric}[1d]))";
@@ -44,7 +43,7 @@ panels.dashboard {
       description = "Messages waiting in the mail queue at the latest report";
       x = 0;
       y = 1;
-      w = 6;
+      w = 8;
       unit = "short";
       expr = "mail_queue_messages{${node}}";
       legend = "{{instance}}";
@@ -54,31 +53,20 @@ panels.dashboard {
     (stat {
       title = "Age of the last backup push";
       description = "Time since the mail node last pushed a backup";
-      x = 6;
+      x = 8;
       y = 1;
-      w = 6;
+      w = 8;
       unit = "s";
       expr = "time() - mail_backup_last_push_timestamp_seconds{${node}}";
       legend = "{{instance}}";
       thresholds = maxBackupAge;
     })
     (stat {
-      title = "Disk used";
-      description = "Share of disk capacity used, from the latest fresh node report";
-      x = 12;
-      y = 1;
-      w = 6;
-      unit = "percentunit";
-      expr = diskUsed;
-      legend = "{{instance}}";
-      thresholds = maxDiskUsed;
-    })
-    (stat {
       title = "Time since last metrics push";
       description = "The Pushgateway retains the last report even when the mail node stops sending metrics";
-      x = 18;
+      x = 16;
       y = 1;
-      w = 6;
+      w = 8;
       unit = "s";
       expr = "time() - push_time_seconds{${node}}";
       legend = "{{instance}}";
@@ -352,9 +340,11 @@ panels.dashboard {
     (row "Who knocks" null 63)
   ]
   ++ panels.attackers "mail" node 64
-  ++ panels.serviceDiskCapacity {
+  ++ panels.serviceHealth {
     y = 72;
-    expr = diskUsed;
+    disk = resources.freshDisk "mail" node;
+    cpu = resources.freshCpu "mail" node;
+    memory = resources.freshMemory "mail" node;
     thresholds = maxDiskUsed;
     forecast = resources.visualForecast;
   };

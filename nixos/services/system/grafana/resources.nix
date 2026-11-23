@@ -32,6 +32,17 @@ let
   pushedDisk = prefix: selector: "${prefix}_disk_used_ratio{${selector}}";
   fresh = job: ''time() - push_time_seconds{job="${job}"} < ${toString maxPushSilence}'';
   freshDisk = prefix: selector: "(${pushedDisk prefix selector}) and on (instance) (${fresh prefix})";
+  freshMemory =
+    prefix: selector: "${prefix}_memory_used_ratio{${selector}} and on (instance) (${fresh prefix})";
+  # Both counters grow by the same number of seconds, so their ratio is utilization. The window is
+  # an hour because Mail pushes every quarter hour: a shorter one would divide by a rate of zero
+  freshCpu =
+    prefix: selector:
+    let
+      busy = "rate(${prefix}_cpu_busy_seconds_total{${selector}}[1h])";
+      total = "rate(${prefix}_cpu_seconds_total{${selector}}[1h])";
+    in
+    "clamp_max(${busy} / (${total} > 0), 1) and on (instance) (${fresh prefix})";
   prediction =
     series: "predict_linear((${series})[${limits.history}:10m], ${toString limits.forecastSeconds})";
   # A line through two points is not a trend, so the forecast waits for about two days of samples,
@@ -113,6 +124,8 @@ in
     limits
     diskUsed
     freshDisk
+    freshCpu
+    freshMemory
     forecast
     visualForecast
     cpuTemperature

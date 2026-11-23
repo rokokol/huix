@@ -22,7 +22,6 @@ let
     ;
 
   node = ''job="vpn", instance=~"$instance"'';
-  diskUsed = resources.freshDisk "vpn" node;
   pushAge = "time() - push_time_seconds{${node}}";
   fresh = "${pushAge} < ${toString maxPushSilence}";
   panelUp = "x_ui_panel_up{${node}} * on (instance) (${pushAge} < bool ${toString maxPushSilence})";
@@ -199,7 +198,7 @@ panels.dashboard {
       description = "Whether the VPN node reports that it needs a reboot";
       x = 0;
       y = 5;
-      w = 6;
+      w = 8;
       unit = "none";
       expr = current "vpn_reboot_required";
       legend = "{{instance}}";
@@ -215,22 +214,11 @@ panels.dashboard {
       };
     })
     (stat {
-      title = "Disk used";
-      description = "Share of disk capacity used, from the latest fresh node report";
-      x = 6;
-      y = 5;
-      w = 6;
-      unit = "percentunit";
-      expr = diskUsed;
-      legend = "{{instance}}";
-      thresholds = maxDiskUsed;
-    })
-    (stat {
       title = "Pending updates";
       description = "Number of package updates reported by each VPN node";
-      x = 12;
+      x = 8;
       y = 5;
-      w = 6;
+      w = 8;
       unit = "short";
       expr = current "vpn_pending_updates";
       legend = "{{instance}}";
@@ -239,9 +227,9 @@ panels.dashboard {
     (stat {
       title = "Uptime";
       description = "Time since each VPN node last booted";
-      x = 18;
+      x = 16;
       y = 5;
-      w = 6;
+      w = 8;
       unit = "s";
       expr = current "vpn_uptime_seconds";
       legend = "{{instance}}";
@@ -297,34 +285,13 @@ panels.dashboard {
     })
     (row "Resource history" null 26)
     (panel {
-      title = "Load";
-      description = "One-minute system load reported by each VPN node";
-      x = 0;
-      y = 27;
-      w = 8;
-      unit = "short";
-      min = 0;
-      queries = [ (query "A" "vpn_load1{${node}}" "{{instance}}") ];
-    })
-    (panel {
-      title = "Memory used";
-      description = "Share of memory used on each VPN node";
-      x = 8;
-      y = 27;
-      w = 8;
-      unit = "percentunit";
-      min = 0;
-      max = 1;
-      queries = [ (query "A" "vpn_memory_used_ratio{${node}}" "{{instance}}") ];
-    })
-    (panel {
       title = "Unit restarts per hour";
       description = "Service restarts during the hour before each bar";
       bars = true;
       interval = "1h";
-      x = 16;
+      x = 0;
       y = 27;
-      w = 8;
+      w = 24;
       unit = "short";
       min = 0;
       queries = [
@@ -537,9 +504,11 @@ panels.dashboard {
           x = 12;
         }
       ]
-  ++ panels.serviceDiskCapacity {
+  ++ panels.serviceHealth {
     y = 111;
-    expr = diskUsed;
+    disk = resources.freshDisk "vpn" node;
+    cpu = resources.freshCpu "vpn" node;
+    memory = resources.freshMemory "vpn" node;
     thresholds = maxDiskUsed;
     forecast = resources.visualForecast;
   };
