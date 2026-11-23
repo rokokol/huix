@@ -119,9 +119,9 @@ pkgs.lib.mapAttrs' (
     in
     pkgs.runCommand "grafana-dashboards-tests"
       {
-        nativeBuildInputs = [
-          pkgs.python3
-          pkgs.grafana
+        nativeBuildInputs = with pkgs; [
+          python3
+          grafana
         ];
         GRAFANA_HOME = "${pkgs.grafana}/share/grafana";
         GRAFANA_PLUGINS = station.services.grafana.settings.paths.plugins;

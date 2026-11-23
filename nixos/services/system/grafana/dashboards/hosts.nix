@@ -42,7 +42,7 @@ let
   folders = metric: "${metric} * on (folder) group_left (label) syncthing_config_folder_info";
   memoryUsed = "node_memory_MemTotal_bytes{${host}} - node_memory_MemAvailable_bytes{${host}}";
   cpuLoad = ''100 * (1 - avg by (host) (rate(node_cpu_seconds_total{${host}, mode="idle"}[$__rate_interval])))'';
-  infrastructurePanels = lib.optionals withInfrastructure ([
+  infrastructurePanels = lib.optionals withInfrastructure [
     (row "Backups and nodes" null 71)
     (table {
       title = "Age of the newest backup";
@@ -133,7 +133,7 @@ let
       coloured = false;
       description = "A folder gets a snapshot only when it changes. An old snapshot of a quiet folder is not a fault";
     })
-  ]);
+  ];
 in
 panels.dashboard {
   uid = hostName;
