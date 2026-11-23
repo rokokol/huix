@@ -383,6 +383,24 @@ Nothing here reaches the network
 Exit 0 done, 1 when the memory file cannot be read, 2 on a usage error
 ```
 
+## [`scripts/model-prices.py`](https://github.com/rokokol/huix/blob/master/scripts/model-prices.py)
+
+```
+usage: model-prices.py [-h] --models MODELS --metrics METRICS [--api API]
+
+Export configured OpenRouter endpoint prices for the Prometheus textfile collector
+
+Read model identifiers and provider tags from a JSON object of model-to-provider lists
+Write USD per million tokens, endpoint availability, fetch status and collection time
+Omit prices when the API does not supply a valid value or the model request fails
+
+options:
+  -h, --help         show this help message and exit
+  --models MODELS    JSON object of model-to-provider lists
+  --metrics METRICS  Prometheus textfile output path
+  --api API          OpenRouter API base URL
+```
+
 ## [`scripts/notify-center.sh`](https://github.com/rokokol/huix/blob/master/scripts/notify-center.sh)
 
 ```

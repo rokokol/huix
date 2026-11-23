@@ -32,12 +32,11 @@ run `grafana cli admin reset-admin-password` as the grafana user, then change th
 
 More: [rokokol.grafana options](../options/grafana.md)
 
+**Units:** `model-prices`
+
 ## [`nixos/services/system/grafana/panels.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/grafana/panels.nix)
 
-The pieces every dashboard here is built of, as Grafana's JSON model. Every colour is a role of
-ddlc-themes. Grafana keeps one colour per series whatever its theme, so the colours are the dark
-roles and the UI is dark too. No series takes series-2: it is the red of danger, and a plain
-line in it reads as an alarm
+The pieces every dashboard uses in Grafana's JSON model
 
 ## [`nixos/services/system/grafana/resources.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/grafana/resources.nix)
 

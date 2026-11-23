@@ -12,9 +12,9 @@ System: `x86_64-linux`
 
 Configured in [`nixos/configuration-station.nix`](https://github.com/rokokol/huix/blob/master/nixos/configuration-station.nix)
 
-**Services declared in this repository:** `alert-digest`, `alert-reconcile`, `backup-heartbeat`, `btrbk-restic`, `btrbk-syncthing`, `forgejo`, `forgejo-dump`, `forgejo-dump-dir`, `forgejo-mirrors`, `forgejo-owner`, `forgejo-runners`, `grafana-alerts`, `hermes-agent`, `hermes-backend`, `hermes-backup-zip`, `hermes-hindsight-settings`, `hermes-monitor`, `hermes-state`, `hindsight`, `hindsight-bank-template`, `hindsight-database`, `hindsight-monitor`, `hindsight-storage`, `mya-agent-clone`, `node-push-watch`, `postgresql`, `postgresqlBackup-hindsight`, `radicale`, `restic-backups-station`, `restic-cloud`, `restic-cloud-heartbeat`, `smartd`, `syncthing`, `syncthing-init`, `zram-metrics`
+**Services declared in this repository:** `alert-digest`, `alert-reconcile`, `backup-heartbeat`, `btrbk-restic`, `btrbk-syncthing`, `forgejo`, `forgejo-dump`, `forgejo-dump-dir`, `forgejo-mirrors`, `forgejo-owner`, `forgejo-runners`, `grafana-alerts`, `hermes-agent`, `hermes-backend`, `hermes-backup-zip`, `hermes-hindsight-settings`, `hermes-monitor`, `hermes-state`, `hindsight`, `hindsight-bank-template`, `hindsight-database`, `hindsight-monitor`, `hindsight-storage`, `model-prices`, `mya-agent-clone`, `node-push-watch`, `postgresql`, `postgresqlBackup-hindsight`, `radicale`, `restic-backups-station`, `restic-cloud`, `restic-cloud-heartbeat`, `smartd`, `syncthing`, `syncthing-init`, `zram-metrics`
 
-**Timers:** `alert-digest`, `alert-reconcile`, `backup-heartbeat`, `btrbk-restic`, `btrbk-syncthing`, `forgejo-dump`, `forgejo-mirrors`, `hermes-monitor`, `hindsight-monitor`, `node-push-watch`, `postgresqlBackup-hindsight`, `restic-backups-station`, `restic-cloud`, `restic-cloud-heartbeat`, `zram-metrics`
+**Timers:** `alert-digest`, `alert-reconcile`, `backup-heartbeat`, `btrbk-restic`, `btrbk-syncthing`, `forgejo-dump`, `forgejo-mirrors`, `hermes-monitor`, `hindsight-monitor`, `model-prices`, `node-push-watch`, `postgresqlBackup-hindsight`, `restic-backups-station`, `restic-cloud`, `restic-cloud-heartbeat`, `zram-metrics`
 
 Web services on the private network
 
