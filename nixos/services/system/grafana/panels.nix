@@ -51,6 +51,8 @@ rec {
       queries,
       min ? null,
       max ? null,
+      # The axis starts at this value and grows past it when the data needs room
+      softMax ? null,
       thresholds ? null,
       dangerBelow ? false,
       decimals ? null,
@@ -92,6 +94,7 @@ rec {
             spanNulls = false;
             thresholdsStyle.mode = if thresholds == null then "off" else "dashed";
           }
+          // lib.optionalAttrs (softMax != null) { axisSoftMax = softMax; }
           // lib.optionalAttrs steps { lineInterpolation = "stepAfter"; }
           // lib.optionalAttrs bars {
             drawStyle = "bars";
@@ -257,7 +260,7 @@ rec {
       dangerBelow ? false,
       # The labels shown beside the value, by name; every other label is hidden
       labels ? [ ],
-      # The heading of the value's column
+      # Set the value heading to null to show only the labels
       valueName ? "Value",
       # true for the largest value first, false for the smallest, null for the labels' order
       sortDesc ? null,
@@ -304,7 +307,7 @@ rec {
           # Grafana's own minimum, 150px, leaves no room for the value in a narrow panel
           custom.minWidth = 60;
         };
-        overrides = lib.optional byValue {
+        overrides = lib.optional (byValue && valueName != null) {
           matcher = {
             id = "byName";
             options = "Value";
@@ -329,12 +332,12 @@ rec {
       };
       transformations = lib.optional byValue {
         id = "organize";
-        options.includeByName = lib.genAttrs (labels ++ [ "Value" ]) (_: true);
+        options.includeByName = lib.genAttrs (labels ++ lib.optional (valueName != null) "Value") (_: true);
       };
       options = {
         showHeader = true;
       }
-      // lib.optionalAttrs (sortDesc != null && byValue) {
+      // lib.optionalAttrs (sortDesc != null && byValue && valueName != null) {
         sortBy = [
           {
             displayName = valueName;

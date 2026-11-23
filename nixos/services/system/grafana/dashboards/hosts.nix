@@ -202,11 +202,11 @@ panels.dashboard {
       thresholds = resources.limits.cpuTemperature;
     })
     (table {
-      title = "Disks";
-      description = "Largest used share among writable filesystems on each device";
+      title = "Disk use now";
+      description = "Current used share of each device, for the latest sample";
       x = 0;
       y = 5;
-      w = 12;
+      w = 6;
       unit = "percentunit";
       expr = resources.diskUsed host;
       thresholds = resources.limits.diskUsed;
@@ -214,12 +214,26 @@ panels.dashboard {
       valueName = "Used";
       sortDesc = true;
     })
+    (panel {
+      title = "Disks";
+      description = "Each bar shows the highest used share among writable filesystems on a device at that time";
+      x = 6;
+      y = 5;
+      w = 12;
+      unit = "percentunit";
+      min = 0;
+      max = 1;
+      bars = true;
+      interval = "15m";
+      thresholds = resources.limits.diskUsed;
+      queries = [ (query "A" (resources.diskUsed host) "{{device}}") ];
+    })
     (stat {
       title = "Estimated disk use in seven days";
       description = "Estimate from exponentially weighted daily slopes. Missing history gives no estimate. Alerts use a separate linear forecast";
-      x = 12;
+      x = 18;
       y = 5;
-      w = 12;
+      w = 6;
       h = 8;
       unit = "percentunit";
       thresholds = 1;
@@ -481,16 +495,21 @@ panels.dashboard {
       max = 1;
       queries = [ (query "A" "nvidia_smi_utilization_gpu_ratio{${gpu}}" "load") ];
     })
-    (stat {
-      title = "GPU memory used now";
-      description = "Share of the GPU's reported memory in use";
+    (panel {
+      title = "GPU memory used";
+      description = "Share of GPU memory in use over the selected time range";
       x = 12;
       y = 84;
       w = 12;
-      h = 8;
       unit = "percentunit";
-      expr = "nvidia_smi_memory_used_bytes{${gpu}} / nvidia_smi_memory_total_bytes{${gpu}}";
+      min = 0;
+      max = 1;
       decimals = 1;
+      queries = [
+        (query "A" "nvidia_smi_memory_used_bytes{${gpu}} / nvidia_smi_memory_total_bytes{${gpu}}"
+          "{{uuid}}"
+        )
+      ];
     })
     (panel {
       title = "GPU temperature";

@@ -85,13 +85,12 @@ panels.dashboard {
     (table {
       title = "Reported problems";
       description = "Problems reported by the mail node and their identifiers";
-      valueName = "Reported";
+      valueName = null;
       x = 0;
       y = 5;
       w = 16;
       expr = "node_problem{${node}}";
       unit = "none";
-      thresholds = 1;
       labels = [
         "instance"
         "key"
@@ -279,6 +278,7 @@ panels.dashboard {
       w = 12;
       unit = "short";
       min = 0;
+      softMax = 5;
       # The node reports every unaligned message and every failed session
       thresholds = 1;
       queries = [
@@ -342,6 +342,7 @@ panels.dashboard {
       w = 12;
       unit = "short";
       min = 0;
+      softMax = 5;
       thresholds = 1;
       queries = [
         (query "A" (daily "mail_collector_cursor_gaps_total{${node}}" "instance") "{{instance}}")

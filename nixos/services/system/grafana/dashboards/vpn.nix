@@ -169,13 +169,12 @@ panels.dashboard {
       w = 24;
       expr = current "node_problem";
       unit = "none";
-      thresholds = 1;
       labels = [
         "instance"
         "key"
         "summary"
       ];
-      valueName = "Reported";
+      valueName = null;
     })
     (row "VPN state history" null 17)
     (states {
