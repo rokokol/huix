@@ -179,6 +179,7 @@ panels.dashboard {
       w = 6;
       unit = "percent";
       expr = cpuLoad;
+      thresholds = resources.limits.cpuUsed * 100;
       decimals = 1;
     })
     (stat {
@@ -189,6 +190,7 @@ panels.dashboard {
       w = 6;
       unit = "percentunit";
       expr = "(${memoryUsed}) / node_memory_MemTotal_bytes{${host}}";
+      thresholds = resources.limits.memoryUsed;
       decimals = 1;
     })
     (stat {
@@ -249,6 +251,7 @@ panels.dashboard {
       unit = "percent";
       min = 0;
       max = 100;
+      thresholds = resources.limits.cpuUsed * 100;
       queries = [ (query "A" cpuLoad "load") ];
     })
     (panel {

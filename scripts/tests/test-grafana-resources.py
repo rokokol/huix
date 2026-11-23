@@ -32,14 +32,14 @@ def check_formulas(root):
     # A week case samples every half hour and looks at its last sample, because Prometheus drops
     # a series five minutes after one. The other cases need a handful of samples, and promtool
     # evaluates a rule at each step of the longest window in the case, so those stop at an hour
-    def case(name, rule, series, expected, week=True, every="30m", at="7d23h30m"):
+    def case(name, rule, series, expected, week=True, every=None, at=None):
         cases[rule].append({
             "name": name,
-            "interval": every if week else "10m",
+            "interval": every or ("30m" if week else "10m"),
             "input_series": [{"series": metric, "values": values} for metric, values in series.items()],
             "promql_expr_test": [{
                 "expr": f"count(({RULES[rule]['expr']}) > 0) or vector(0)",
-                "eval_time": at if week else "1h",
+                "eval_time": at or ("7d23h30m" if week else "1h"),
                 "exp_samples": [{"labels": "{}", "value": expected}],
             }],
         })
@@ -64,6 +64,28 @@ def check_formulas(root):
              {metric: "0.4+0.002x168", push: "0+3600x168"}, 0, every="1h", at="7d")
         case(f"{prefix}: the node reports its own full disk, not Grafana", "station-disk-full",
              {metric: "1+0x6", **fresh}, 0, week=False)
+
+        # The pushed counters grow by the same clock, so their ratio is the machine's own share of
+        # the time it has had. A stale push cannot raise one, and neither can a node that has
+        # pushed once: rate over an hour needs two samples to mean anything
+        busy = f'{prefix}_cpu_busy_seconds_total{{job="{prefix}",instance="fixture"}}'
+        total = f'{prefix}_cpu_seconds_total{{job="{prefix}",instance="fixture"}}'
+        memory = f'{prefix}_memory_used_ratio{{job="{prefix}",instance="fixture"}}'
+        for high in (False, True):
+            busy_share = LIMITS["cpuUsed"] + (0.05 if high else -0.05)
+            seconds = 600
+            case(f"{prefix}: CPU threshold {high}", f"{prefix}-cpu-high",
+                 {busy: f"0+{round(seconds * busy_share)}x6", total: f"0+{seconds}x6", **fresh},
+                 int(high), week=False)
+            used = LIMITS["memoryUsed"] + (0.05 if high else -0.05)
+            case(f"{prefix}: memory threshold {high}", f"{prefix}-memory-high",
+                 {memory: f"{used}+0x6", **fresh}, int(high), week=False)
+        case(f"{prefix}: a stale push cannot raise CPU", f"{prefix}-cpu-high",
+             {busy: "0+570x6", total: "0+600x6", push: "-86400+0x6"}, 0, week=False)
+        case(f"{prefix}: a stale push cannot raise memory", f"{prefix}-memory-high",
+             {memory: "0.99+0x6", push: "-86400+0x6"}, 0, week=False)
+        case(f"{prefix}: one push cannot measure CPU", f"{prefix}-cpu-high",
+             {busy: "570", total: "600", **fresh}, 0, week=False)
 
     provider = 'model_price_endpoint_available{model="fixture/model",provider="fixture/fp8"}'
     configured = 'model_price_route_configured{model="fixture/model",provider="fixture/fp8"}'
@@ -108,6 +130,18 @@ def check_formulas(root):
             f'node_hwmon_temp_celsius{{host="{station}",chip="cpu",sensor="temp1"}}': f"{value}+0x6",
             f'node_hwmon_chip_names{{host="{station}",chip="cpu",chip_name="coretemp"}}': "1+0x6",
         }, int(high), week=False)
+        # The station's CPU share is what the machine did not spend idle, read straight from its
+        # own exporter. Its rule averages a five-minute window, which needs samples finer than
+        # the ten minutes the other cases use
+        idle = 1 - (LIMITS["cpuUsed"] + (0.05 if high else -0.05))
+        case(f"station CPU threshold {high}", "station-cpu-high", {
+            f'node_cpu_seconds_total{{host="{station}",cpu="0",mode="idle"}}': f"0+{round(idle * 60)}x60",
+        }, int(high), week=False, every="1m")
+        used = LIMITS["memoryUsed"] + (0.05 if high else -0.05)
+        case(f"station memory threshold {high}", "station-memory-high", {
+            f'node_memory_MemTotal_bytes{{host="{station}"}}': "1000+0x6",
+            f'node_memory_MemAvailable_bytes{{host="{station}"}}': f"{round((1 - used) * 1000)}+0x6",
+        }, int(high), week=False)
         value = LIMITS["diskTemperature"] + (1 if high else -1)
         case(f"disk temperature threshold {high}", "station-disk-hot", {
             f'smartctl_device_temperature{{host="{station}",device="sda",temperature_type="current"}}': f"{value}+0x6",
@@ -137,6 +171,10 @@ def check_formulas(root):
             f'node_btrfs_device_errors_total{{{labels},type="read"}}': "0+0x4 1+0x2",
         }, 1, week=False)
 
+    # A rule with no case is a rule nobody has watched fail, and promtool passes an empty
+    # specification, so the emptiness is refused here instead
+    uncovered = sorted(uid for uid, own in cases.items() if not own)
+    assert not uncovered, uncovered
     # The rules are independent, so promtool checks them side by side: a week of samples for one
     # rule already takes most of a minute on its own
     def verify(uid):

@@ -16,12 +16,16 @@ let
     cpuTemperature = criticalTemperature;
     diskTemperature = 55;
     diskUsed = 0.9;
+    cpuUsed = 0.9;
+    memoryUsed = 0.9;
     forecastSeconds = 7 * 24 * 3600;
     history = "7d";
     forecastHold = "1h";
     diskHold = "30m";
+    loadHold = "15m";
     temperatureHold = "15m";
   };
+  percent = share: toString (builtins.floor (share * 100));
   fileSystems = ''fstype=~"btrfs|ext4|xfs|vfat"'';
   diskUsed = selector: ''
     max by (host, device) (
@@ -79,6 +83,10 @@ let
   priceMaxAge = toString (2 * modelPricesInterval);
   priceFresh = "and on () (${priceAge} < ${priceMaxAge})";
   station = ''host="${stationHost}"'';
+  # The station needs no push and no freshness guard; a node behind the Pushgateway reports the
+  # same two shares itself, and its rule waits for a fresh push
+  stationCpu = ''1 - avg by (host) (rate(node_cpu_seconds_total{${station}, mode="idle"}[5m]))'';
+  stationMemory = "1 - node_memory_MemAvailable_bytes{${station}} / node_memory_MemTotal_bytes{${station}}";
   hostDashboard = "{{ $labels.host }}";
   cpuTemperature = selector: ''
     max by (host) (
@@ -103,6 +111,35 @@ let
       dashboard
       ;
   };
+  # A node reports its own share, so the alert compares that share to the limit directly, and the
+  # freshness guard keeps a node that stopped pushing from raising one
+  usageAlerts =
+    prefix:
+    let
+      selector = ''job="${prefix}"'';
+    in
+    [
+      (
+        (rule "${prefix}-cpu-high" "CPU use is high"
+          "(${freshCpu prefix selector}) >= bool ${builtins.toJSON limits.cpuUsed}"
+          limits.loadHold
+          prefix
+        )
+        // {
+          summary = "CPU use stayed above ${percent limits.cpuUsed}%";
+        }
+      )
+      (
+        (rule "${prefix}-memory-high" "Memory use is high"
+          "(${freshMemory prefix selector}) >= bool ${builtins.toJSON limits.memoryUsed}"
+          limits.loadHold
+          prefix
+        )
+        // {
+          summary = "Memory use stayed above ${percent limits.memoryUsed}%";
+        }
+      )
+    ];
   # A node that reports its own disk reports it at its own ratio, so here it gets the forecast
   # alone, and the host names itself in the labels of the alert
   diskForecast = uidPrefix: series: dashboard: [
@@ -152,6 +189,26 @@ in
       limits.temperatureHold
       stationHost
     )
+    (
+      (rule "station-cpu-high" "CPU use is high"
+        "(${stationCpu}) >= bool ${builtins.toJSON limits.cpuUsed}"
+        limits.loadHold
+        stationHost
+      )
+      // {
+        summary = "CPU use stayed above ${percent limits.cpuUsed}%";
+      }
+    )
+    (
+      (rule "station-memory-high" "Memory use is high"
+        "(${stationMemory}) >= bool ${builtins.toJSON limits.memoryUsed}"
+        limits.loadHold
+        stationHost
+      )
+      // {
+        summary = "Memory use stayed above ${percent limits.memoryUsed}%";
+      }
+    )
     (rule "station-disk-hot" "Disk temperature is high"
       "${diskTemperature station} >= bool ${toString limits.diskTemperature}"
       limits.temperatureHold
@@ -184,9 +241,13 @@ in
         stationHost
       )
       // {
-        summary = "Disk use reached ${toString (builtins.floor (limits.diskUsed * 100))}%";
+        summary = "Disk use reached ${percent limits.diskUsed}%";
       }
     )
+  ]
+  ++ lib.concatMap usageAlerts [
+    "mail"
+    "vpn"
   ]
   ++ lib.concatMap (prefix: diskForecast prefix (freshDisk prefix ''job="${prefix}"'') prefix) [
     "mail"

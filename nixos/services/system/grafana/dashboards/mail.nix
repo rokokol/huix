@@ -3,7 +3,6 @@
   panels,
   maxBackupAge,
   minCertificateLife,
-  maxDiskUsed,
   maxQuotaUsed,
   resources,
 }:
@@ -345,7 +344,7 @@ panels.dashboard {
     disk = resources.freshDisk "mail" node;
     cpu = resources.freshCpu "mail" node;
     memory = resources.freshMemory "mail" node;
-    thresholds = maxDiskUsed;
+    inherit (resources) limits;
     forecast = resources.visualForecast;
   };
 }

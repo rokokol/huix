@@ -1,7 +1,6 @@
 {
   roles,
   panels,
-  maxDiskUsed,
   maxConntrackUsed,
   maxStuckSockets,
   maxPushSilence,
@@ -509,7 +508,7 @@ panels.dashboard {
     disk = resources.freshDisk "vpn" node;
     cpu = resources.freshCpu "vpn" node;
     memory = resources.freshMemory "vpn" node;
-    thresholds = maxDiskUsed;
+    inherit (resources) limits;
     forecast = resources.visualForecast;
   };
 }

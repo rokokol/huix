@@ -119,16 +119,12 @@ let
         resources
         ;
       minCertificateLife = seconds "14d";
-      # The node reports the disk itself at this ratio, so the panel marks its threshold
-      maxDiskUsed = 0.85;
       maxQuotaUsed = 0.9;
     })
     # The same for the VPN nodes: the disk and the sockets come from their list of open
     # problems, the connection tracking table from their self-check
     (import ./dashboards/vpn.nix {
       inherit roles panels resources;
-      # The nodes report the disk themselves at this ratio
-      maxDiskUsed = 0.85;
       maxConntrackUsed = 0.8;
       maxStuckSockets = 200;
       maxPushSilence = seconds config.rokokol.pushgateway.maxSilence;

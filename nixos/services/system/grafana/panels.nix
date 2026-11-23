@@ -460,7 +460,7 @@ rec {
       disk,
       cpu,
       memory,
-      thresholds,
+      limits,
       forecast,
     }:
     [
@@ -475,7 +475,7 @@ rec {
         unit = "percentunit";
         expr = disk;
         legend = "{{instance}}";
-        inherit thresholds;
+        thresholds = limits.diskUsed;
       })
       (panel {
         title = "Disk use history";
@@ -486,7 +486,7 @@ rec {
         unit = "percentunit";
         min = 0;
         max = 1;
-        inherit thresholds;
+        thresholds = limits.diskUsed;
         queries = [ (query "A" disk "{{instance}}") ];
       })
       (stat {
@@ -510,6 +510,7 @@ rec {
         unit = "percentunit";
         min = 0;
         max = 1;
+        thresholds = limits.cpuUsed;
         queries = [ (query "A" cpu "{{instance}}") ];
       })
       (panel {
@@ -521,6 +522,7 @@ rec {
         unit = "percentunit";
         min = 0;
         max = 1;
+        thresholds = limits.memoryUsed;
         queries = [ (query "A" memory "{{instance}}") ];
       })
     ];
