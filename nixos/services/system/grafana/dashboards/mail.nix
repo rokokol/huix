@@ -21,6 +21,7 @@ let
     ;
 
   node = ''job="mail", instance=~"$instance"'';
+  diskUsed = resources.freshDisk "mail" node;
 
   hourly = metric: by: "sum by (${by}) (increase(${metric}[1h]))";
   daily = metric: by: "sum by (${by}) (increase(${metric}[1d]))";
@@ -68,7 +69,7 @@ panels.dashboard {
       y = 1;
       w = 6;
       unit = "percentunit";
-      expr = resources.freshDisk "mail" node;
+      expr = diskUsed;
       legend = "{{instance}}";
       thresholds = maxDiskUsed;
     })
@@ -351,19 +352,10 @@ panels.dashboard {
     (row "Who knocks" null 63)
   ]
   ++ panels.attackers "mail" node 64
-  ++ [
-    (row "Capacity" null 72)
-    (stat {
-      title = "Estimated disk use in seven days";
-      description = "Estimate from exponentially weighted daily slopes. Missing history gives no estimate. Alerts use a separate linear forecast";
-      x = 0;
-      y = 73;
-      w = 24;
-      h = 8;
-      unit = "percentunit";
-      thresholds = 1;
-      expr = resources.visualForecast (resources.freshDisk "mail" node);
-      legend = "{{instance}}";
-    })
-  ];
+  ++ panels.serviceDiskCapacity {
+    y = 72;
+    expr = diskUsed;
+    thresholds = maxDiskUsed;
+    forecast = resources.visualForecast;
+  };
 }

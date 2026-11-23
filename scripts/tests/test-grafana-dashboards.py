@@ -66,6 +66,20 @@ class DashboardsTest(unittest.TestCase):
                                and a["y"] < b["y"] + b["h"] and b["y"] < a["y"] + a["h"])
                     self.assertFalse(overlap, f'{uid}: {left["title"]} overlaps {right["title"]}')
 
+    def test_service_disk_history_uses_the_current_disk_metric(self):
+        for uid in ("mail", "vpn"):
+            with self.subTest(dashboard=uid):
+                dashboard = DASHBOARDS[uid][1]
+                current = panel(dashboard, "Disk used")
+                history = panel(dashboard, "Disk use history")
+                self.assertEqual(current["type"], "stat")
+                self.assertEqual(history["type"], "timeseries")
+                self.assertTrue(current["targets"][0]["instant"])
+                self.assertTrue(history["targets"][0]["range"])
+                self.assertEqual(history["targets"][0]["expr"], current["targets"][0]["expr"])
+                self.assertEqual(history["targets"][0]["legendFormat"], "{{instance}}")
+                self.assertEqual(history["fieldConfig"]["defaults"]["unit"], "percentunit")
+
     def test_discrete_series_use_bars(self):
         names = {
             "hermes": ["Active agents"],

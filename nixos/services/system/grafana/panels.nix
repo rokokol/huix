@@ -454,6 +454,41 @@ rec {
     })
   ];
 
+  serviceDiskCapacity =
+    {
+      y,
+      expr,
+      thresholds,
+      forecast,
+    }:
+    [
+      (row "Capacity" null y)
+      (panel {
+        title = "Disk use history";
+        description = "Share of disk capacity used on each node over time. Stale reports do not appear";
+        x = 0;
+        y = y + 1;
+        w = 16;
+        unit = "percentunit";
+        min = 0;
+        max = 1;
+        inherit thresholds;
+        queries = [ (query "A" expr "{{instance}}") ];
+      })
+      (stat {
+        title = "Estimated disk use in seven days";
+        description = "Estimate from exponentially weighted daily slopes. Missing history gives no estimate. Alerts use a separate linear forecast";
+        x = 16;
+        y = y + 1;
+        w = 8;
+        h = 8;
+        unit = "percentunit";
+        thresholds = 1;
+        expr = forecast expr;
+        legend = "{{instance}}";
+      })
+    ];
+
   row = title: repeat: y: {
     type = "row";
     inherit title repeat;

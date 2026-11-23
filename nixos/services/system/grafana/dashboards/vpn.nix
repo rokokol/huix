@@ -22,6 +22,7 @@ let
     ;
 
   node = ''job="vpn", instance=~"$instance"'';
+  diskUsed = resources.freshDisk "vpn" node;
   pushAge = "time() - push_time_seconds{${node}}";
   fresh = "${pushAge} < ${toString maxPushSilence}";
   panelUp = "x_ui_panel_up{${node}} * on (instance) (${pushAge} < bool ${toString maxPushSilence})";
@@ -220,7 +221,7 @@ panels.dashboard {
       y = 5;
       w = 6;
       unit = "percentunit";
-      expr = resources.freshDisk "vpn" node;
+      expr = diskUsed;
       legend = "{{instance}}";
       thresholds = maxDiskUsed;
     })
@@ -536,19 +537,10 @@ panels.dashboard {
           x = 12;
         }
       ]
-  ++ [
-    (row "Capacity" null 111)
-    (stat {
-      title = "Estimated disk use in seven days";
-      description = "Estimate from exponentially weighted daily slopes. Missing history gives no estimate. Alerts use a separate linear forecast";
-      x = 0;
-      y = 112;
-      w = 24;
-      h = 8;
-      unit = "percentunit";
-      thresholds = 1;
-      expr = resources.visualForecast (resources.freshDisk "vpn" node);
-      legend = "{{instance}}";
-    })
-  ];
+  ++ panels.serviceDiskCapacity {
+    y = 111;
+    expr = diskUsed;
+    thresholds = maxDiskUsed;
+    forecast = resources.visualForecast;
+  };
 }
