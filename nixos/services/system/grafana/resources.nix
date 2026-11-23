@@ -3,6 +3,7 @@
   criticalTemperature,
   stationHost,
   maxPushSilence,
+  modelPricesInterval,
 }:
 
 # The thresholds, the queries and the rules of the resource alerts, in one place: a panel turns
@@ -41,7 +42,33 @@ let
   historyReady =
     series: "count_over_time((${series})[${limits.history}:10m] offset 1h) >= ${toString readySamples}";
   forecast = series: "(${prediction series}) and (${historyReady series})";
+  # A displayed estimate weights recent daily slopes more heavily; alert rules keep their fit
+  visualForecast =
+    series:
+    let
+      samples =
+        weighted:
+        lib.concatStringsSep " or " (
+          lib.genList (
+            age:
+            let
+              slope = "deriv((${series})[1d:1h] offset ${toString age}d)";
+              sample = if weighted then slope else "0 * ${slope} + 1";
+            in
+            ''label_replace((${sample}) * 0.8 ^ ${toString age}, "forecast_age", "${toString age}", "__name__", ".*")''
+          ) 7
+        );
+      weighted = samples true;
+      weights = samples false;
+      slope = "(sum without (forecast_age) (${weighted}) / sum without (forecast_age) (${weights}))";
+      available = "count without (forecast_age) (${weights}) >= 3";
+    in
+    "((${series}) + (${slope}) * ${toString limits.forecastSeconds}) and (${available}) and (${historyReady series})";
+  priceAge = "time() - max(model_price_collection_timestamp_seconds)";
+  priceMaxAge = toString (2 * modelPricesInterval);
+  priceFresh = "and on () (${priceAge} < ${priceMaxAge})";
   station = ''host="${stationHost}"'';
+  hostDashboard = "{{ $labels.host }}";
   cpuTemperature = selector: ''
     max by (host) (
       node_hwmon_temp_celsius{${selector}}
@@ -68,58 +95,84 @@ let
   # A node that reports its own disk reports it at its own ratio, so here it gets the forecast
   # alone, and the host names itself in the labels of the alert
   diskForecast = uidPrefix: series: dashboard: [
-    (rule "${uidPrefix}-disk-forecast" "Disk will fill within seven days"
-      "(${forecast series}) >= bool 1"
-      limits.forecastHold
-      dashboard
+    (
+      (rule "${uidPrefix}-disk-forecast" "Disk will fill within seven days"
+        "(${forecast series}) >= bool 1"
+        limits.forecastHold
+        dashboard
+      )
+      // {
+        summary = "Disk forecast: the current trend can exhaust free space within seven days";
+      }
     )
   ];
 in
 {
-  # Dashboards draw the same queries the rules evaluate, so a panel turns red where an alert fires
+  # Alert thresholds and their linear forecast are independent of the displayed estimate
   inherit
     limits
     diskUsed
     freshDisk
     forecast
+    visualForecast
     cpuTemperature
     diskTemperature
     ;
   rules = [
+    (rule "model-provider-missing" "A configured model endpoint is absent from OpenRouter"
+      "(last_over_time(model_price_endpoint_available[48h]) == bool 0) and on (model, provider) (model_price_route_configured == 1) ${priceFresh}"
+      "1h"
+      "ai-spend"
+    )
+    (rule "model-price-fetch-failed" "OpenRouter endpoint catalogue request failed"
+      "(model_price_fetch_success == bool 0) ${priceFresh}"
+      "2h"
+      "ai-spend"
+    )
+    (rule "model-price-collector-stale" "OpenRouter endpoint collector is stale"
+      "(${priceAge} >= bool ${priceMaxAge}) or absent(model_price_collection_timestamp_seconds)"
+      "2h"
+      "ai-spend"
+    )
     (rule "station-cpu-hot" "CPU temperature is high"
       "(${cpuTemperature station}) >= bool ${toString limits.cpuTemperature}"
       limits.temperatureHold
-      "hosts"
+      stationHost
     )
     (rule "station-disk-hot" "Disk temperature is high"
       "${diskTemperature station} >= bool ${toString limits.diskTemperature}"
       limits.temperatureHold
-      "guards"
+      stationHost
     )
     (rule "smart-health" "SMART health check failed" "smartctl_device_smart_status == bool 0" "15m"
-      "guards"
+      hostDashboard
     )
-    (rule "smart-sectors-new" "SMART sector error count increased" (growth ata) "15m" "guards")
+    (rule "smart-sectors-new" "SMART sector error count increased" (growth ata) "15m" hostDashboard)
     (rule "smart-sectors-pending" "SMART has pending or uncorrectable sectors"
       ''smartctl_device_attribute{attribute_name=~"Current_Pending_Sector|Offline_Uncorrectable", attribute_value_type="raw"} > bool 0''
       "15m"
-      "guards"
+      hostDashboard
     )
-    (rule "nvme-media-new" "NVMe media error count increased" (growth media) "15m" "guards")
+    (rule "nvme-media-new" "NVMe media error count increased" (growth media) "15m" hostDashboard)
     (rule "nvme-critical" "NVMe reports a critical warning" "smartctl_device_critical_warning > bool 0"
       "15m"
-      "guards"
+      hostDashboard
     )
     (rule "btrfs-errors-new" "Btrfs device errors increased" "increase(${btrfs}[24h]) > bool 0" "15m"
-      "guards"
+      hostDashboard
     )
   ]
-  ++ diskForecast "station" (diskUsed station) "hosts"
+  ++ diskForecast "station" (diskUsed station) stationHost
   ++ [
-    (rule "station-disk-full" "Disk use is high"
-      "(${diskUsed station}) >= bool ${builtins.toJSON limits.diskUsed}"
-      limits.diskHold
-      "hosts"
+    (
+      (rule "station-disk-full" "Disk use is high"
+        "(${diskUsed station}) >= bool ${builtins.toJSON limits.diskUsed}"
+        limits.diskHold
+        stationHost
+      )
+      // {
+        summary = "Disk use reached ${toString (builtins.floor (limits.diskUsed * 100))}%";
+      }
     )
   ]
   ++ lib.concatMap (prefix: diskForecast prefix (freshDisk prefix ''job="${prefix}"'') prefix) [

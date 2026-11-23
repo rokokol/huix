@@ -65,6 +65,8 @@ def validate(f):
     assert any("hindsight_spend_key_usage_daily_usd" in expr for expr in f["spendExpressions"])
     latency_panel = f["latencyPanel"]
     assert latency_panel["type"] == "table"
+    assert latency_panel.get("description")
+    assert "description" not in latency_panel.get("options", {})
     latency_query = latency_panel["targets"][0]["expr"]
     for metric in ("generate_query_embedding", "reranking", "hindsight_llm_duration_seconds_sum", "hindsight_llm_duration_seconds_count"):
         assert metric in latency_query, metric
@@ -110,6 +112,14 @@ assert spend_path.is_file(), "Grafana does not provision the AI Spend dashboard"
 spend = json.loads(spend_path.read_text())
 fixture["keyBalancePanel"] = next(p for p in spend["panels"] if p["title"] == "Hindsight key")
 fixture["spendExpressions"] = [t["expr"] for p in spend["panels"] for t in p.get("targets", [])]
+forecast_panels = [p for p in spend["panels"] if p["title"] in (
+    "Next 30 days · Total", "Hermes · Projected spend", "Hindsight · Projected spend"
+)]
+assert len(forecast_panels) == 3
+for panel in forecast_panels:
+    expression = panel["targets"][0]["expr"]
+    assert '"day_age"' in expression and " ^ " in expression, panel["title"]
+    assert "30 days (smoothed)" not in expression, panel["title"]
 validate(fixture)
 for name, mutate in [
     ("SQL_ASCII", lambda f: f.update(initdbArgs=[])),

@@ -34,10 +34,13 @@ let
     execErrState = "KeepLast";
     labels.huix_resource = "true";
     annotations = {
-      summary = definition.title;
+      summary = definition.summary or definition.title;
       description =
-        "${grafanaUrl}/d/${definition.dashboard} shows the value that raised this alert, and the"
-        + " rule evaluates ${definition.expr}";
+        if definition ? summary then
+          "${definition.summary}. See ${grafanaUrl}/d/${definition.dashboard}"
+        else
+          "${grafanaUrl}/d/${definition.dashboard} shows the value that raised this alert, and the"
+          + " rule evaluates ${definition.expr}";
     };
     data = [
       {

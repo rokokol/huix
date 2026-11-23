@@ -21,6 +21,10 @@ LIMITS = POLICY["definitions"]["limits"]
 
 
 def check_formulas(root):
+    for uid in ("station-cpu-hot", "station-disk-hot", "station-disk-forecast", "station-disk-full"):
+        assert RULES[uid]["dashboard"] == POLICY["station"], uid
+    for uid in ("smart-health", "smart-sectors-new", "smart-sectors-pending", "nvme-media-new", "nvme-critical", "btrfs-errors-new"):
+        assert RULES[uid]["dashboard"] == "{{ $labels.host }}", uid
     # promtool evaluates every rule of a group for every case at every step, and a case spans a
     # week, so each rule gets its own group and its own specification
     cases = {uid: [] for uid in RULES}
@@ -60,6 +64,26 @@ def check_formulas(root):
              {metric: "0.4+0.002x168", push: "0+3600x168"}, 0, every="1h", at="7d")
         case(f"{prefix}: the node reports its own full disk, not Grafana", "station-disk-full",
              {metric: "1+0x6", **fresh}, 0, week=False)
+
+    provider = 'model_price_endpoint_available{model="fixture/model",provider="fixture/fp8"}'
+    configured = 'model_price_route_configured{model="fixture/model",provider="fixture/fp8"}'
+    fetched = 'model_price_fetch_success{model="fixture/model"}'
+    collection = "model_price_collection_timestamp_seconds"
+    fresh = {collection: "0+600x6"}
+    stale = {collection: "-3601+0x6"}
+    routes = {configured: "1+0x6"}
+    case("a missing configured endpoint alerts", "model-provider-missing", {provider: "0+0x6", **routes, **fresh}, 1, week=False)
+    case("an available endpoint does not alert", "model-provider-missing", {provider: "1+0x6", **routes, **fresh}, 0, week=False)
+    case("a fetch failure keeps the last absence", "model-provider-missing", {provider: "0+0x2 _ _ _ _", **routes, **fresh}, 1, week=False)
+    case("a restored endpoint clears the alert", "model-provider-missing", {provider: "0+0x3 1+0x2", **routes, **fresh}, 0, week=False)
+    case("a removed route clears the alert", "model-provider-missing", {provider: "0+0x6", **fresh}, 0, week=False)
+    case("a stale snapshot cannot prove endpoint absence", "model-provider-missing", {provider: "0+0x6", **routes, **stale}, 0, week=False)
+    case("a failed model request alerts separately", "model-price-fetch-failed", {fetched: "0+0x6", **fresh}, 1, week=False)
+    case("a successful model request clears its alert", "model-price-fetch-failed", {fetched: "1+0x6", **fresh}, 0, week=False)
+    case("a stale snapshot cannot prove fetch failure", "model-price-fetch-failed", {fetched: "0+0x6", **stale}, 0, week=False)
+    case("an absent collector alerts", "model-price-collector-stale", {}, 1, week=False)
+    case("a fresh collector does not alert", "model-price-collector-stale", {collection: "0+600x6"}, 0, week=False)
+    case("a stale collector alerts", "model-price-collector-stale", {collection: "-3601+0x6"}, 1, week=False)
 
     station = POLICY["station"]
     selector = f'host="{station}",device="/dev/sda",fstype="ext4",mountpoint="/"'
@@ -131,6 +155,22 @@ def check_formulas(root):
         list(pool.map(verify, cases))
     print(f"Verified {sum(map(len, cases.values()))} PromQL cases", flush=True)
 
+    visual = root / "visual-forecast.tests.json"
+    samples = {"rising": 14, "falling": -14, "flat": 0.5}
+    visual.write_text(json.dumps({
+        "rule_files": [],
+        "tests": [{
+            "name": f"visual forecast: {name}",
+            "interval": "1h",
+            "promql_expr_test": [{
+                "expr": expr,
+                "eval_time": "7d",
+                "exp_samples": [{"labels": "{}", "value": samples[name]}],
+            }],
+        } for name, expr in POLICY["visualForecasts"].items()],
+    }))
+    subprocess.run(["promtool", "test", "rules", str(visual)], check=True)
+
 
 def port():
     with socket.socket() as listener:
@@ -164,6 +204,8 @@ def wait_for(description, predicate, processes):
 def check_runtime(root):
     prom_port, grafana_port, bridge_port = port(), port(), port()
     healthy = False
+    endpoint_available = True
+    route_configured = True
 
     class Metrics(BaseHTTPRequestHandler):
         def do_GET(self):
@@ -171,7 +213,13 @@ def check_runtime(root):
             # Prometheus refuses a target that names no format, and 3.x picks the parser by it
             self.send_header("Content-Type", "text/plain; version=0.0.4; charset=utf-8")
             self.end_headers()
-            self.wfile.write(f'smartctl_device_smart_status{{host="fixture",device="bad"}} {int(healthy)}\n'.encode())
+            self.wfile.write((
+                f'smartctl_device_smart_status{{host="fixture",device="bad"}} {int(healthy)}\n'
+                f'model_price_endpoint_available{{model="fixture/model",provider="fixture/fp8"}} {int(endpoint_available)}\n'
+                + ('model_price_route_configured{model="fixture/model",provider="fixture/fp8"} 1\n' if route_configured else '')
+                + f'model_price_fetch_success{{model="fixture/model"}} 1\n'
+                f'model_price_collection_timestamp_seconds {time.time()}\n'
+            ).encode())
 
         def log_message(self, format, *args):
             pass
@@ -195,6 +243,7 @@ def check_runtime(root):
             assert rule["for"] == RULES[rule["uid"]]["for"], (
                 f"{rule['uid']} carries {rule.get('for')} instead of its pending period"
             )
+            assert rule["noDataState"] == RULES[rule["uid"]].get("noDataState", "OK")
             rule["for"] = "0s"
     receiver = provision["contactPoints"]["contactPoints"][0]["receivers"][0]
     receiver["settings"]["url"] = f"http://127.0.0.1:{bridge_port}/alerts"
@@ -261,7 +310,17 @@ public_key_retrieval_disabled = true
                  lambda: causes.exists() and "SMART health check failed" in causes.read_text(), processes)
         healthy = True
         wait_for("Grafana sends recovery through the webhook", lambda: not causes.read_text(), processes)
-        print("Grafana loaded the rules and sent firing and resolved webhooks", flush=True)
+        endpoint_available = False
+        wait_for("Grafana reports a missing model endpoint",
+                 lambda: "A configured model endpoint is absent" in causes.read_text(), processes)
+        route_configured = False
+        wait_for("Grafana resolves the alert when the route is removed", lambda: not causes.read_text(), processes)
+        route_configured = True
+        wait_for("Grafana reports a missing endpoint again",
+                 lambda: "A configured model endpoint is absent" in causes.read_text(), processes)
+        endpoint_available = True
+        wait_for("Grafana reports endpoint recovery", lambda: not causes.read_text(), processes)
+        print("Grafana sent firing and resolved webhooks for disk health and endpoint availability", flush=True)
     finally:
         metrics.shutdown()
         for process in reversed(processes):

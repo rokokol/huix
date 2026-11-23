@@ -1106,11 +1106,11 @@
         "transcribe-cpp": "transcribe-cpp"
       },
       "locked": {
-        "lastModified": 1795296718,
-        "narHash": "sha256-BRvMrihkYB0oLHGx8lIlOhaiEXC2V+4K0i2s25RD2IA=",
+        "lastModified": 1795363469,
+        "narHash": "sha256-n3TqOUubvY0OUxh+zp5NlNn0DNEPygR0G2sb6lYO5Cg=",
         "owner": "rokokol",
         "repo": "MolvAI",
-        "rev": "40e3d7b38609bcc0d66a24c40fba7a0f67e8d092",
+        "rev": "618a7f3b020be690b6f131e0ee3e6c7b9b40288c",
         "type": "github"
       },
       "original": {

@@ -28,6 +28,13 @@ let
   panels = import ./panels.nix { inherit lib roles datasource; };
   models = import ../../../../lib/ai-models.nix;
   inherit (models) memory;
+  modelPricesScript = builtins.path {
+    name = "model-prices.py";
+    path = "${inputs.self}/scripts/model-prices.py";
+  };
+  modelPricesList = pkgs.writeText "model-prices.json" (builtins.toJSON models.chat);
+  modelPricesMetrics = "/run/model-prices/metrics.prom";
+  modelPricesInterval = 60 * 60;
 
   # An age such as 36h and a size such as 10G, as the watchers' options write them, in seconds
   # and bytes, so the dashboard turns red where the watcher alerts
@@ -52,65 +59,47 @@ let
 
   maxBackupAge = seconds config.rokokol.backup-heartbeat.maxAge;
   resources = import ./resources.nix {
-    inherit lib criticalTemperature;
+    inherit lib criticalTemperature modelPricesInterval;
     stationHost = hostName;
     maxPushSilence = seconds config.rokokol.pushgateway.maxSilence;
   };
 
   hermes = config.rokokol.mya-agent.hermes.monitor.enable;
   hindsight = config.rokokol.hindsight.enable or false;
-  dashboards =
+  hostDashboard = import ./dashboards/hosts.nix {
+    inherit
+      lib
+      roles
+      panels
+      resources
+      ;
+  };
+  hostDashboards = map (
+    host:
+    hostDashboard {
+      hostName = host;
+      withGpu =
+        inputs.self.nixosConfigurations.${host}.config.services.prometheus.exporters.nvidia-gpu.enable;
+      withInfrastructure = host == hostName;
+      inherit maxBackupAge;
+      minBackupFree = bytes config.rokokol.backup-heartbeat.minFree;
+      syncthingHosts = lib.optional config.services.syncthing.enable hostName;
+    }
+  ) (builtins.attrNames inputs.self.nixosConfigurations);
+  aiDashboards =
     lib.optional (hermes || hindsight) (
       import ./dashboards/spend.nix {
         inherit
           lib
-          roles
           panels
           hermes
           hindsight
           ;
         lowBalance = builtins.fromJSON config.rokokol.mya-agent.hermes.monitor.lowBalance;
+        modelRoutes = models.chat;
+        modelPricesMaxAge = 2 * modelPricesInterval;
       }
     )
-    ++ [
-      (import ./dashboards/hosts.nix { inherit roles panels resources; })
-      (import ./dashboards/guards.nix {
-        inherit
-          lib
-          roles
-          panels
-          maxBackupAge
-          resources
-          ;
-        minBackupFree = bytes config.rokokol.backup-heartbeat.minFree;
-        maxPushSilence = seconds config.rokokol.pushgateway.maxSilence;
-        syncthingHosts = lib.optional config.services.syncthing.enable hostName;
-      })
-      # The mail node owns these numbers and its report names a problem at each of them. They
-      # are written here once, since that node's configuration is not part of this flake
-      (import ./dashboards/mail.nix {
-        inherit
-          roles
-          panels
-          maxBackupAge
-          resources
-          ;
-        minCertificateLife = seconds "14d";
-        # The node reports the disk itself at this ratio, so the panel marks its threshold
-        maxDiskUsed = 0.85;
-        maxQuotaUsed = 0.9;
-      })
-      # The same for the VPN nodes: the disk and the sockets come from their list of open
-      # problems, the connection tracking table from their self-check
-      (import ./dashboards/vpn.nix {
-        inherit roles panels resources;
-        # The nodes report the disk themselves at this ratio
-        maxDiskUsed = 0.85;
-        maxConntrackUsed = 0.8;
-        maxStuckSockets = 200;
-        maxPushSilence = seconds config.rokokol.pushgateway.maxSilence;
-      })
-    ]
     ++ lib.optional hermes (import ./dashboards/hermes.nix { inherit roles panels; })
     ++ lib.optional hindsight (
       import ./dashboards/hindsight.nix {
@@ -119,6 +108,41 @@ let
         poolMax = config.rokokol.hindsight.poolMax;
       }
     );
+  serviceDashboards = [
+    # The mail node owns these numbers and its report names a problem at each of them. They
+    # are written here once, since that node's configuration is not part of this flake
+    (import ./dashboards/mail.nix {
+      inherit
+        roles
+        panels
+        maxBackupAge
+        resources
+        ;
+      minCertificateLife = seconds "14d";
+      # The node reports the disk itself at this ratio, so the panel marks its threshold
+      maxDiskUsed = 0.85;
+      maxQuotaUsed = 0.9;
+    })
+    # The same for the VPN nodes: the disk and the sockets come from their list of open
+    # problems, the connection tracking table from their self-check
+    (import ./dashboards/vpn.nix {
+      inherit roles panels resources;
+      # The nodes report the disk themselves at this ratio
+      maxDiskUsed = 0.85;
+      maxConntrackUsed = 0.8;
+      maxStuckSockets = 200;
+      maxPushSilence = seconds config.rokokol.pushgateway.maxSilence;
+    })
+  ];
+  otherDashboards = [ ];
+  dashboardDirectory =
+    name: items:
+    pkgs.runCommand "grafana-${name}-dashboards" { } ''
+      mkdir $out
+      ${lib.concatMapStrings (dashboard: ''
+        cp ${pkgs.writeText "${dashboard.uid}.json" (builtins.toJSON dashboard)} $out/${dashboard.uid}.json
+      '') items}
+    '';
 in
 {
   imports = [ (import ./alerting.nix { inherit resources datasource; }) ];
@@ -137,13 +161,50 @@ in
     dashboardTitles = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       readOnly = true;
-      default = map (dashboard: dashboard.title) dashboards;
+      default = map (dashboard: dashboard.title) (
+        aiDashboards ++ serviceDashboards ++ hostDashboards ++ otherDashboards
+      );
       defaultText = lib.literalMD "the titles of the dashboards this module provisions";
       description = "Titles of the provisioned dashboards, for what points a reader at them";
     };
   };
 
   config = lib.mkIf config.rokokol.grafana.enable {
+    systemd.tmpfiles.rules = [
+      "L+ ${config.rokokol.node-exporter.textfileDir}/model-prices.prom - - - - ${modelPricesMetrics}"
+    ];
+    systemd.services.model-prices = {
+      description = "Collect OpenRouter endpoint prices";
+      wants = [ "network-online.target" ];
+      after = [ "network-online.target" ];
+      serviceConfig = {
+        Type = "oneshot";
+        RuntimeDirectory = "model-prices";
+        RuntimeDirectoryPreserve = true;
+        ExecStart = lib.escapeShellArgs [
+          (lib.getExe pkgs.python3)
+          modelPricesScript
+          "--models"
+          modelPricesList
+          "--metrics"
+          modelPricesMetrics
+        ];
+        TimeoutStartSec = 120;
+        ProtectHome = "tmpfs";
+        ProtectSystem = "strict";
+        PrivateTmp = true;
+        PrivateDevices = true;
+        NoNewPrivileges = true;
+      };
+    };
+    systemd.timers.model-prices = {
+      wantedBy = [ "timers.target" ];
+      timerConfig = {
+        OnBootSec = "5m";
+        OnUnitInactiveSec = "${toString modelPricesInterval}s";
+      };
+    };
+
     assertions = [
       {
         assertion = config.rokokol.prometheus.enable;
@@ -217,13 +278,25 @@ in
         dashboards.settings.providers = [
           {
             name = "huix";
-            # Copies, not links: Grafana walks the directory and may pass a link by
-            options.path = pkgs.runCommand "grafana-dashboards" { } ''
-              mkdir $out
-              ${lib.concatMapStrings (dashboard: ''
-                cp ${pkgs.writeText "${dashboard.uid}.json" (builtins.toJSON dashboard)} $out/${dashboard.uid}.json
-              '') dashboards}
-            '';
+            options.path = dashboardDirectory "other" otherDashboards;
+          }
+          {
+            name = "ai";
+            folder = "AI";
+            folderUid = "ai-folder";
+            options.path = dashboardDirectory "ai" aiDashboards;
+          }
+          {
+            name = "hosts";
+            folder = "Hosts";
+            folderUid = "hosts-folder";
+            options.path = dashboardDirectory "hosts" hostDashboards;
+          }
+          {
+            name = "services";
+            folder = "Services";
+            folderUid = "services-folder";
+            options.path = dashboardDirectory "services" serviceDashboards;
           }
         ];
       };

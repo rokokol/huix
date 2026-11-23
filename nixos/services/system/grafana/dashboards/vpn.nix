@@ -54,6 +54,11 @@ in
 panels.dashboard {
   uid = "vpn";
   title = "VPN";
+  tags = [
+    "service"
+    "vpn"
+    "network"
+  ];
   templating.list = [
     (variable "instance" ''push_time_seconds{job="vpn"}'' "instance")
     (variable "vpn_node" "vpn_inbound_traffic_bytes_total" "node")
@@ -95,6 +100,7 @@ panels.dashboard {
     })
     (stat {
       title = "Time since last metrics push";
+      description = "Time since each VPN node last pushed its metrics";
       x = 18;
       y = 1;
       w = 6;
@@ -105,6 +111,7 @@ panels.dashboard {
     })
     (stat {
       title = "Reboot";
+      description = "Whether the VPN node reports that it needs a reboot";
       x = 0;
       y = 5;
       w = 6;
@@ -118,12 +125,13 @@ panels.dashboard {
         };
         "1" = {
           text = "required";
-          color = roles.kind-warning;
+          color = roles.danger;
         };
       };
     })
     (stat {
       title = "Disk used";
+      description = "Share of disk capacity used, from the latest fresh node report";
       x = 6;
       y = 5;
       w = 6;
@@ -134,6 +142,7 @@ panels.dashboard {
     })
     (stat {
       title = "Pending updates";
+      description = "Number of package updates reported by each VPN node";
       x = 12;
       y = 5;
       w = 6;
@@ -144,6 +153,7 @@ panels.dashboard {
     })
     (stat {
       title = "Uptime";
+      description = "Time since each VPN node last booted";
       x = 18;
       y = 5;
       w = 6;
@@ -153,6 +163,7 @@ panels.dashboard {
     })
     (table {
       title = "Reported problems";
+      description = "Problems reported by VPN nodes and their identifiers";
       x = 0;
       y = 9;
       w = 24;
@@ -169,6 +180,7 @@ panels.dashboard {
     (row "VPN state history" null 17)
     (states {
       title = "Xray history";
+      description = "Local Xray state reported by each VPN node over time";
       x = 0;
       y = 18;
       w = 8;
@@ -178,6 +190,7 @@ panels.dashboard {
     })
     (states {
       title = "Panel API history";
+      description = "Panel API state over time. A stale metrics push counts as down";
       x = 8;
       y = 18;
       w = 8;
@@ -187,116 +200,121 @@ panels.dashboard {
     })
     (panel {
       title = "Clients online history";
+      description = "Connected clients at each reported sample. Each panel includes its child nodes without duplicates. Do not add master and child counts. Unknown or stale values leave gaps";
+      bars = true;
+      interval = "15m";
       x = 16;
       y = 18;
       w = 8;
       unit = "short";
       min = 0;
       decimals = 0;
-      shaded = true;
-      description = "Each panel includes its child nodes without duplicates. Do not add master and child counts. Unknown or stale values leave gaps";
-      queries = [ (query "A" roles.series-1 (current "x_ui_online_clients") "{{instance}}") ];
+      queries = [ (query "A" (current "x_ui_online_clients") "{{instance}}") ];
     })
     (row "Resource history" null 26)
     (panel {
       title = "Load";
+      description = "One-minute system load reported by each VPN node";
       x = 0;
       y = 27;
       w = 8;
       unit = "short";
       min = 0;
-      shaded = true;
-      queries = [ (query "A" roles.series-1 "vpn_load1{${node}}" "{{instance}}") ];
+      queries = [ (query "A" "vpn_load1{${node}}" "{{instance}}") ];
     })
     (panel {
       title = "Memory used";
+      description = "Share of memory used on each VPN node";
       x = 8;
       y = 27;
       w = 8;
       unit = "percentunit";
       min = 0;
       max = 1;
-      shaded = true;
-      queries = [ (query "A" roles.series-1 "vpn_memory_used_ratio{${node}}" "{{instance}}") ];
+      queries = [ (query "A" "vpn_memory_used_ratio{${node}}" "{{instance}}") ];
     })
     (panel {
       title = "Unit restarts per hour";
+      description = "Service restarts during the hour before each bar";
+      bars = true;
+      interval = "1h";
       x = 16;
       y = 27;
       w = 8;
       unit = "short";
       min = 0;
-      shaded = true;
       queries = [
-        (query "A" roles.series-1 (hourly "vpn_unit_restarts_total{${node}}" "instance, unit")
-          "{{instance}} {{unit}}"
-        )
+        (query "A" (hourly "vpn_unit_restarts_total{${node}}" "instance, unit") "{{instance}} {{unit}}")
       ];
     })
     (panel {
       title = "Connection tracking table used";
+      description = "Share of the connection tracking table occupied on each VPN node";
       x = 0;
       y = 35;
       w = 12;
       unit = "percentunit";
       min = 0;
       max = 1;
-      shaded = true;
       thresholds = maxConntrackUsed;
-      queries = [ (query "A" roles.series-1 "vpn_conntrack_used_ratio{${node}}" "{{instance}}") ];
+      queries = [ (query "A" "vpn_conntrack_used_ratio{${node}}" "{{instance}}") ];
     })
     (panel {
       title = "Established sockets without a timer";
+      description = "Established sockets without a timer at each reported sample";
+      bars = true;
+      interval = "15m";
       x = 12;
       y = 35;
       w = 12;
       unit = "short";
       min = 0;
-      shaded = true;
       thresholds = maxStuckSockets;
       queries = [
-        (query "A" roles.series-1 "vpn_established_sockets_without_timer{${node}}" "{{instance}}")
+        (query "A" "vpn_established_sockets_without_timer{${node}}" "{{instance}}")
       ];
     })
     (row "Attacks" null 43)
     (panel {
       title = "fail2ban failed attempts per hour";
+      description = "Failed attempts by jail during the hour before each bar";
+      bars = true;
+      interval = "1h";
       x = 0;
       y = 44;
       w = 8;
       unit = "short";
       min = 0;
-      shaded = true;
       queries = [
-        (query "A" roles.series-1 (hourly "vpn_fail2ban_failed_total{${node}}" "instance, jail")
-          "{{instance}} {{jail}}"
-        )
+        (query "A" (hourly "vpn_fail2ban_failed_total{${node}}" "instance, jail") "{{instance}} {{jail}}")
       ];
     })
     (panel {
       title = "fail2ban bans per hour";
+      description = "Bans by jail during the hour before each bar";
+      bars = true;
+      interval = "1h";
       x = 8;
       y = 44;
       w = 8;
       unit = "short";
       min = 0;
-      shaded = true;
       queries = [
-        (query "A" roles.series-1 (hourly "vpn_fail2ban_banned_total{${node}}" "instance, jail")
-          "{{instance}} {{jail}}"
-        )
+        (query "A" (hourly "vpn_fail2ban_banned_total{${node}}" "instance, jail") "{{instance}} {{jail}}")
       ];
     })
     (panel {
       title = "Packets the firewall dropped per hour";
+      description = "Packets dropped during the hour before each bar";
+      bars = true;
+      interval = "1h";
       x = 16;
       y = 44;
       w = 8;
       unit = "short";
       min = 0;
-      shaded = true;
       queries = [
-        (query "A" roles.series-1 (hourly "vpn_ufw_drops_total{${node}}" "instance") "{{instance}}")
+        (query "A" (hourly "vpn_ufw_drops_total{${node}}" "instance") "{{instance}}")
       ];
     })
   ]
@@ -304,6 +322,7 @@ panels.dashboard {
   ++ [
     (table {
       title = "Active bans";
+      description = "Currently banned addresses by VPN node and fail2ban jail";
       x = 0;
       y = 60;
       w = 24;
@@ -320,6 +339,7 @@ panels.dashboard {
     (row "Traffic now" null 68)
     (bars {
       title = "Inbounds now, down";
+      description = "Recent download throughput by node and inbound";
       x = 0;
       y = 69;
       w = 12;
@@ -329,6 +349,7 @@ panels.dashboard {
     })
     (bars {
       title = "Inbounds now, up";
+      description = "Recent upload throughput by node and inbound";
       x = 12;
       y = 69;
       w = 12;
@@ -340,26 +361,26 @@ panels.dashboard {
     (row "Inbounds of $vpn_node" "vpn_node" 77)
     (panel {
       title = "Down, by inbound";
+      description = "Recent download throughput by inbound on the selected node";
       x = 0;
       y = 78;
       w = 12;
       unit = "Bps";
       min = 0;
-      shaded = true;
       queries = [
-        (query "A" roles.series-1 (inbounds ''node=~"$vpn_node", direction="down"'') "{{inbound}}")
+        (query "A" (inbounds ''node=~"$vpn_node", direction="down"'') "{{inbound}}")
       ];
     })
     (panel {
       title = "Up, by inbound";
+      description = "Recent upload throughput by inbound on the selected node";
       x = 12;
       y = 78;
       w = 12;
       unit = "Bps";
       min = 0;
-      shaded = true;
       queries = [
-        (query "A" roles.series-1 (inbounds ''node=~"$vpn_node", direction="up"'') "{{inbound}}")
+        (query "A" (inbounds ''node=~"$vpn_node", direction="up"'') "{{inbound}}")
       ];
     })
 
@@ -373,14 +394,14 @@ panels.dashboard {
         side:
         panel {
           title = "${side.title}, the ${toString topClients} busiest clients";
+          description = "Hourly throughput for clients selected by their combined upload and download traffic";
           inherit (side) x;
           y = 87;
           w = 12;
           unit = "Bps";
           min = 0;
-          shaded = true;
           queries = [
-            (query "A" roles.series-1
+            (query "A"
               ''
                 ${traffic ''vpn_client_traffic_bytes_total{${node}, direction="${side.direction}"}'' "instance, client"}
                 and on (instance, client)
@@ -404,18 +425,17 @@ panels.dashboard {
       ]
   ++ [
     (row "Capacity" null 95)
-    (panel {
-      title = "Disk use in seven days";
-      description = "Linear forecast from seven days of measurements the node actually made. The red line marks a full disk, and a gap a history too short to forecast";
+    (stat {
+      title = "Estimated disk use in seven days";
+      description = "Estimate from exponentially weighted daily slopes. Missing history gives no estimate. Alerts use a separate linear forecast";
       x = 0;
       y = 96;
       w = 24;
+      h = 8;
       unit = "percentunit";
       thresholds = 1;
-      shaded = true;
-      queries = [
-        (query "A" roles.series-1 (resources.forecast (resources.freshDisk "vpn" node)) "{{instance}}")
-      ];
+      expr = resources.visualForecast (resources.freshDisk "vpn" node);
+      legend = "{{instance}}";
     })
   ];
 }

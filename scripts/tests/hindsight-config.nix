@@ -19,7 +19,11 @@ let
     inherit (cfg) poolMax;
   };
   provisioned =
-    (builtins.head station.services.grafana.provision.dashboards.settings.providers).options.path;
+    (builtins.head (
+      builtins.filter (
+        provider: provider.name == "ai"
+      ) station.services.grafana.provision.dashboards.settings.providers
+    )).options.path;
   fixture = (pkgs.formats.json { }).generate "hindsight-config.json" {
     # What the dashboard asks Prometheus, so a query of a series that never exists is caught here
     # rather than on a panel that stays empty without saying so

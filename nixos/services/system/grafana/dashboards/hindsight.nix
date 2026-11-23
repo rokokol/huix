@@ -17,6 +17,10 @@ in
 panels.dashboard {
   uid = "hindsight";
   title = "Hindsight";
+  tags = [
+    "ai"
+    "memory"
+  ];
   links = [
     {
       title = "AI Spend";
@@ -27,6 +31,7 @@ panels.dashboard {
   panels = [
     (stat {
       title = "API";
+      description = "Whether Prometheus can scrape the Hindsight API";
       x = 0;
       y = 0;
       w = 6;
@@ -44,13 +49,17 @@ panels.dashboard {
       };
     })
     (stat {
-      title = "Failed operations in range";
+      title = "Failed operations";
+      description = "Failures in the selected range. No data means too few samples to measure changes in the operation counter";
       x = 6;
       y = 0;
       w = 6;
       unit = "short";
       thresholds = 1;
-      expr = ''round(sum(increase(hindsight_operation_operations_total{success="false"}[$__range])))'';
+      expr = ''
+        round(sum(increase(hindsight_operation_operations_total{success="false"}[$__range])))
+        or (sum(increase(hindsight_operation_operations_total[$__range])) * 0)
+      '';
     })
     (stat {
       title = "DB pool in use";
@@ -96,10 +105,9 @@ panels.dashboard {
       h = 9;
       unit = "s";
       min = 0;
-      shaded = true;
       description = "Each point uses the last hour. Gaps mean no duration samples for the operation";
       queries = [
-        (query "A" roles.series-1
+        (query "A"
           "histogram_quantile(0.95, sum by (le, operation) (rate(hindsight_operation_duration_seconds_bucket[1h])))"
           "{{operation}}"
         )
@@ -123,12 +131,14 @@ panels.dashboard {
     })
     (panel {
       title = "Requests waiting for a DB connection";
+      description = "Requests waiting for a database connection at each sample";
       x = 12;
       y = 13;
       w = 12;
       unit = "short";
       min = 0;
-      queries = [ (query "A" roles.series-1 "sum(hindsight_db_pool_waiting)" "Waiting") ];
+      bars = true;
+      queries = [ (query "A" "sum(hindsight_db_pool_waiting)" "Waiting") ];
     })
   ];
 }

@@ -1,10 +1,11 @@
 {
   lib,
-  roles,
   panels,
   hermes,
   hindsight,
   lowBalance,
+  modelRoutes,
+  modelPricesMaxAge,
 }:
 
 let
@@ -25,10 +26,7 @@ let
       // args
     );
   agentsFresh = "time() - hermes_collect_timestamp_seconds < 300";
-  goFresh = "time() - mya_go_last_run < 1800";
-  priceFresh = "time() - mya_price_last_run < 1800";
   withSample = expr: guard: "(${expr}) and on (job, instance, host) (${guard})";
-  withPush = expr: guard: "(${expr}) and on (job) (${guard})";
   keyMetric = prefix: field: "${prefix}_${field}_usd";
   keys =
     lib.optional hermes {
@@ -45,22 +43,12 @@ let
   day =
     key:
     withSample "${keyMetric key.prefix "usage_daily"} offset 2m" "time() - 120 - (${key.stamp} offset 2m) < 300";
-  # Fixed UTC steps exclude today and keep missing days out of the averages
-  pace =
-    key:
-    let
-      daily = "max(${day key})";
-      mean =
-        window: minimum:
-        "(avg_over_time(${window}) and (count_over_time(${window}) >= ${toString minimum}))";
-    in
-    "(${mean "${daily}[7d:1d]" 5} + ${mean "${daily}[14d:1d] offset 7d" 7}) / 2";
   smoothing = {
     decay = "0.8";
     days = 14;
     minimum = 10;
   };
-  smoothedPace =
+  pace =
     key:
     let
       daily = "max(${day key})";
@@ -87,6 +75,20 @@ let
     "30 days" = 30;
   };
   forecastWidth = 24 / (builtins.length keys + 1);
+  priceRoutes = lib.concatLists (
+    lib.mapAttrsToList (
+      model: providers: map (provider: { inherit model provider; }) providers
+    ) modelRoutes
+  );
+  priceFresh = "time() - max(model_price_collection_timestamp_seconds) < ${toString modelPricesMaxAge}";
+  priceQueries =
+    kind:
+    lib.imap0 (
+      i: route:
+      query "P${toString i}"
+        ''model_price_usd_per_million{model="${route.model}",provider="${route.provider}",kind="${kind}"} and on () (${priceFresh})''
+        "${route.model} · {{endpoint}}"
+    ) priceRoutes;
   today =
     key:
     withSample (keyMetric key.prefix "usage_daily") "(time() - ${key.stamp} < 300) and (${key.stamp} >= time() - time() % 86400)";
@@ -153,9 +155,10 @@ panels.dashboard {
         unit = "currencyUSD";
         decimals = 4;
         min = 0;
-        dailyBars = true;
+        bars = true;
+        interval = "1d";
         description = "Each bar ends at midnight UTC. The last minutes of spend may be absent. A gap means no recent sample. The two charts use independent scales";
-        queries = [ (query "A" roles.series-1 (day key) key.name) ];
+        queries = [ (query "A" (day key) key.name) ];
       }
     ) keys
     ++ [
@@ -168,7 +171,7 @@ panels.dashboard {
         h = 6;
         decimals = 2;
         expr = projected (lib.concatMapStringsSep " + " (key: "(${pace key})") keys) horizons."30 days";
-        description = "The last week and the two weeks before it have equal weight. Each key needs at least five recent and seven earlier daily samples. The estimate assumes a constant daily rate and excludes subscriptions";
+        description = "The estimate gives each older day ${smoothing.decay} times the weight of the next day. Each key needs ${toString smoothing.minimum} samples in ${toString smoothing.days} days and one in the last three days. It excludes subscriptions";
       })
     ]
     ++ lib.imap0 (
@@ -180,22 +183,16 @@ panels.dashboard {
         w = forecastWidth;
         h = 6;
         unit = "currencyUSD";
-        expr =
-          lib.concatStringsSep "\n or " (
-            lib.mapAttrsToList (
-              horizon: days:
-              ''label_replace(${projected (pace key) days}, "horizon", "${horizon}", "__name__", ".*")''
-            ) horizons
-          )
-          + ''
-            or label_replace(${
-              projected (smoothedPace key) horizons."30 days"
-            }, "horizon", "30 days (smoothed)", "__name__", ".*")
-          '';
+        expr = lib.concatStringsSep "\n or " (
+          lib.mapAttrsToList (
+            horizon: days:
+            ''label_replace(${projected (pace key) days}, "horizon", "${horizon}", "__name__", ".*")''
+          ) horizons
+        );
         labels = [ "horizon" ];
         valueName = "USD";
         coloured = false;
-        description = "Compare the two 30-day estimates. The smoothed estimate gives each older day ${smoothing.decay} times the weight of the next day. It needs ${toString smoothing.minimum} samples in ${toString smoothing.days} days and one in the last three days";
+        description = "Each older day has ${smoothing.decay} times the weight of the next day. The estimate needs ${toString smoothing.minimum} samples in ${toString smoothing.days} days and one in the last three days";
       }
     ) keys
     ++ [ (row "OpenRouter · Spend and limits by key" null 22) ]
@@ -215,82 +212,77 @@ panels.dashboard {
         description = "Month to date uses UTC. OpenRouter omits a limit when the key has none";
       }
     ) keys
-    ++ lib.optionals hermes [
-      (row "OpenCode Go · Allowance, not extra charges" null 29)
+    ++ [ (row "OpenRouter · Endpoint prices" null 29) ]
+    ++
+      lib.imap0
+        (
+          i: kind:
+          panel {
+            title = "${kind.title} price per million tokens";
+            description = "The price published by each configured OpenRouter endpoint. A gap means that no price was collected";
+            x = i * 8;
+            y = 30;
+            w = 8;
+            unit = "currencyUSD";
+            min = 0;
+            steps = true;
+            queries = priceQueries kind.value;
+          }
+        )
+        [
+          {
+            title = "Input";
+            value = "input";
+          }
+          {
+            title = "Output";
+            value = "output";
+          }
+          {
+            title = "Cached input";
+            value = "cache_read";
+          }
+        ]
+    ++ [
       (table {
-        title = "Shared allowance used";
+        title = "Configured endpoints not listed";
+        description = "Configured providers absent from the last successful OpenRouter response";
         x = 0;
-        y = 30;
+        y = 38;
         w = 9;
-        h = 8;
-        unit = "percent";
-        expr = withPush "mya_go_window_percent" goFresh;
+        unit = "short";
+        expr = "(model_price_endpoint_available == 0) and on () (${priceFresh})";
         labels = [
-          "account"
-          "window"
+          "model"
+          "provider"
         ];
-        valueName = "Used";
-        coloured = true;
-        thresholds = 100;
-        description = "100% means that the allowance for the window is exhausted";
+        valueName = "Available";
+        thresholds = 1;
+        dangerBelow = true;
       })
-      (usd {
-        title = "Hermes · Usage value this month";
+      (table {
+        title = "Price requests that failed";
+        description = "Models whose most recent OpenRouter request failed or returned invalid data";
         x = 9;
-        y = 30;
+        y = 38;
+        w = 9;
+        unit = "short";
+        expr = "(model_price_fetch_success == 0) and on () (${priceFresh})";
+        labels = [ "model" ];
+        valueName = "Success";
+        thresholds = 1;
+        dangerBelow = true;
+      })
+      (stat {
+        title = "Price collection age";
+        description = "Time since the price collector last wrote its result";
+        x = 18;
+        y = 38;
         w = 6;
         h = 8;
-        expr = withPush "mya_go_hermes_month_usd" goFresh;
-        decimals = 2;
-        description = "Hermes records this usage value against the plan. This value is not an extra charge or the subscription price";
-      })
-      (table {
-        title = "Hermes · Usage value by model";
-        x = 15;
-        y = 30;
-        w = 9;
-        h = 8;
-        unit = "currencyUSD";
-        expr = withPush "mya_go_hermes_month_usd_by_model" goFresh;
-        labels = [ "model" ];
-        valueName = "USD";
-        coloured = false;
-        sortDesc = true;
-      })
-      (row "Model prices · Estimates, not bills" null 38)
-      (table {
-        title = "Daily cost at current hosts";
-        x = 0;
-        y = 39;
-        w = 12;
-        h = 9;
-        unit = "currencyUSD";
-        expr = withPush "mya_price_usd_per_day" priceFresh;
-        labels = [
-          "model"
-          "host"
-        ];
-        valueName = "USD/day";
-        coloured = false;
-        sortDesc = true;
-        description = "Estimated with the fixed token profile of the price watcher. It does not measure actual use";
-      })
-      (table {
-        title = "Daily cost at the cheapest alternative";
-        x = 12;
-        y = 39;
-        w = 12;
-        h = 9;
-        unit = "currencyUSD";
-        expr = withPush "mya_price_cheapest_usd_per_day" priceFresh;
-        labels = [
-          "model"
-          "host"
-        ];
-        valueName = "USD/day";
-        coloured = false;
-        sortDesc = true;
-        description = "Same token profile as the current host. Check precision and availability before a change of host";
+        unit = "s";
+        expr = "time() - max(model_price_collection_timestamp_seconds)";
+        thresholds = modelPricesMaxAge;
       })
     ];
 }

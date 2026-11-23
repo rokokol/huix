@@ -106,6 +106,33 @@ pkgs.lib.mapAttrs' (
         touch "$out"
       '';
 
+  grafana-dashboards =
+    let
+      station = inputs.self.nixosConfigurations.nixos-station.config;
+      providers = station.services.grafana.provision.dashboards.settings.providers;
+      manifest = (pkgs.formats.json { }).generate "grafana-dashboards.json" {
+        inherit providers;
+        hosts = builtins.attrNames inputs.self.nixosConfigurations;
+        station = station.networking.hostName;
+      };
+      test = ./scripts/tests/test-grafana-dashboards.py;
+    in
+    pkgs.runCommand "grafana-dashboards-tests"
+      {
+        nativeBuildInputs = [
+          pkgs.python3
+          pkgs.grafana
+        ];
+        GRAFANA_HOME = "${pkgs.grafana}/share/grafana";
+        GRAFANA_PLUGINS = station.services.grafana.settings.paths.plugins;
+        migrationTest = ./scripts/tests/test-grafana-migration.py;
+      }
+      ''
+        python3 -B ${test} ${manifest}
+        python3 -B "$migrationTest" ${manifest}
+        touch "$out"
+      '';
+
   grafana-resources =
     let
       station = inputs.self.nixosConfigurations.nixos-station.config;
@@ -116,6 +143,11 @@ pkgs.lib.mapAttrs' (
           datasource =
             (builtins.head station.services.grafana.provision.datasources.settings.datasources).uid;
           definitions = { inherit (station.rokokol.grafana.resourcePolicy) limits rules; };
+          visualForecasts = {
+            rising = station.rokokol.grafana.resourcePolicy.visualForecast "vector(time() / 86400)";
+            falling = station.rokokol.grafana.resourcePolicy.visualForecast "vector(-time() / 86400)";
+            flat = station.rokokol.grafana.resourcePolicy.visualForecast "vector(0.5)";
+          };
           provisioning = {
             rules = alerting.rules.settings;
             contactPoints = alerting.contactPoints.settings;
@@ -143,6 +175,7 @@ pkgs.lib.mapAttrs' (
       }
       ''
         python3 -B "$scripts/tests/test-grafana-alerts.py"
+        python3 -B "$scripts/tests/test-model-prices.py"
         python3 -B "$scripts/tests/test-grafana-resources.py" ${specification}
         touch "$out"
       '';

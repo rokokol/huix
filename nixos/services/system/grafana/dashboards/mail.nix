@@ -31,11 +31,16 @@ in
 panels.dashboard {
   uid = "mail";
   title = "Mail";
+  tags = [
+    "service"
+    "mail"
+  ];
   templating.list = [ (variable "instance" ''push_time_seconds{job="mail"}'' "instance") ];
   panels = [
     (row "Mail now" null 0)
     (stat {
       title = "Queue";
+      description = "Messages waiting in the mail queue at the latest report";
       x = 0;
       y = 1;
       w = 6;
@@ -47,6 +52,7 @@ panels.dashboard {
     })
     (stat {
       title = "Age of the last backup push";
+      description = "Time since the mail node last pushed a backup";
       x = 6;
       y = 1;
       w = 6;
@@ -57,6 +63,7 @@ panels.dashboard {
     })
     (stat {
       title = "Disk used";
+      description = "Share of disk capacity used, from the latest fresh node report";
       x = 12;
       y = 1;
       w = 6;
@@ -77,6 +84,7 @@ panels.dashboard {
     })
     (table {
       title = "Reported problems";
+      description = "Problems reported by the mail node and their identifiers";
       valueName = "Reported";
       x = 0;
       y = 5;
@@ -92,6 +100,7 @@ panels.dashboard {
     })
     (stat {
       title = "Reboot";
+      description = "Whether the mail node reports that it needs a reboot";
       x = 16;
       y = 5;
       w = 8;
@@ -105,12 +114,13 @@ panels.dashboard {
         };
         "1" = {
           text = "required";
-          color = roles.kind-warning;
+          color = roles.danger;
         };
       };
     })
     (stat {
       title = "Unparsed reports";
+      description = "Reports the mail node has not parsed";
       x = 16;
       y = 9;
       w = 8;
@@ -122,6 +132,7 @@ panels.dashboard {
     })
     (table {
       title = "Certificate lifetime left";
+      description = "Time until each reported mail certificate expires";
       x = 0;
       y = 13;
       w = 12;
@@ -138,6 +149,7 @@ panels.dashboard {
     })
     (table {
       title = "Mailbox quota used";
+      description = "Share of the configured quota used by each mailbox";
       x = 12;
       y = 13;
       w = 12;
@@ -154,97 +166,114 @@ panels.dashboard {
     (row "Flow and spam" null 21)
     (panel {
       title = "Messages accepted per hour";
+      description = "Messages accepted during the hour before each bar";
+      bars = true;
+      interval = "1h";
       x = 0;
       y = 22;
       w = 8;
       unit = "short";
       min = 0;
       queries = [
-        (query "A" roles.series-1 (hourly "mail_accepted_messages_total{${node}}" "instance")
-          "{{instance}}"
-        )
+        (query "A" (hourly "mail_accepted_messages_total{${node}}" "instance") "{{instance}}")
       ];
     })
     (panel {
       title = "Deliveries per hour";
+      description = "Delivery attempts by result during the hour before each bar";
+      bars = true;
+      interval = "1h";
       x = 8;
       y = 22;
       w = 8;
       unit = "short";
       min = 0;
       queries = [
-        (query "A" roles.series-1 (deliveries "sent") "{{instance}} delivered")
-        (query "B" roles.series-3 (deliveries "deferred") "{{instance}} deferred")
-        (query "C" roles.series-4 (deliveries "bounced") "{{instance}} bounced")
+        (query "A" (deliveries "sent") "{{instance}} delivered")
+        (query "B" (deliveries "deferred") "{{instance}} deferred")
+        (query "C" (deliveries "bounced") "{{instance}} bounced")
       ];
     })
     (panel {
       title = "Queue history";
+      description = "Messages waiting in the mail queue at each reported sample";
+      bars = true;
+      interval = "15m";
       x = 16;
       y = 22;
       w = 8;
       unit = "short";
       min = 0;
       thresholds = 1;
-      queries = [ (query "A" roles.series-1 "mail_queue_messages{${node}}" "{{instance}}") ];
+      queries = [ (query "A" "mail_queue_messages{${node}}" "{{instance}}") ];
     })
     (panel {
       title = "rspamd actions per hour";
+      description = "Messages scanned by action during the hour before each bar";
+      bars = true;
+      interval = "1h";
       x = 0;
       y = 30;
       w = 12;
       unit = "short";
       min = 0;
-      shaded = true;
       queries = [
-        (query "A" roles.series-1 (hourly "mail_scanned_messages_total{${node}}" "instance, action")
+        (query "A" (hourly "mail_scanned_messages_total{${node}}" "instance, action")
           "{{instance}} {{action}}"
         )
       ];
     })
     (panel {
       title = "SMTP rejections per hour";
+      description = "SMTP rejections by reason during the hour before each bar";
+      bars = true;
+      interval = "1h";
       x = 12;
       y = 30;
       w = 12;
       unit = "short";
       min = 0;
-      shaded = true;
       queries = [
-        (query "A" roles.series-1 (hourly "mail_smtp_rejection_reasons_total{${node}}" "instance, reason")
+        (query "A" (hourly "mail_smtp_rejection_reasons_total{${node}}" "instance, reason")
           "{{instance}} {{reason}}"
         )
       ];
     })
     (panel {
       title = "Logins per hour";
+      description = "Login attempts by result during the hour before each bar";
+      bars = true;
+      interval = "1h";
       x = 0;
       y = 38;
       w = 12;
       unit = "short";
       min = 0;
       queries = [
-        (query "A" roles.series-1 (logins "succeeded") "{{instance}} succeeded")
-        (query "B" roles.series-4 (logins "failed") "{{instance}} failed")
+        (query "A" (logins "succeeded") "{{instance}} succeeded")
+        (query "B" (logins "failed") "{{instance}} failed")
       ];
     })
     (panel {
       title = "fail2ban bans per hour";
+      description = "Bans by jail during the hour before each bar";
+      bars = true;
+      interval = "1h";
       x = 12;
       y = 38;
       w = 12;
       unit = "short";
       min = 0;
-      shaded = true;
       queries = [
-        (query "A" roles.series-1 (hourly "mail_fail2ban_bans_total{${node}}" "instance, jail")
-          "{{instance}} {{jail}}"
-        )
+        (query "A" (hourly "mail_fail2ban_bans_total{${node}}" "instance, jail") "{{instance}} {{jail}}")
       ];
     })
     (row "Report and collector history" null 46)
     (panel {
       title = "Report failures per day";
+      description = "Unaligned messages and failed TLS sessions during the day before each bar";
+      bars = true;
+      interval = "1d";
       x = 0;
       y = 47;
       w = 12;
@@ -253,18 +282,18 @@ panels.dashboard {
       # The node reports every unaligned message and every failed session
       thresholds = 1;
       queries = [
-        (query "A" roles.series-1
+        (query "A"
           (daily ''mail_dmarc_messages_total{${node}, alignment="unaligned"}'' "instance, reporter")
           "{{instance}} DMARC unaligned from {{reporter}}"
         )
-        (query "B" roles.series-3
-          (daily ''mail_tls_rpt_sessions_total{${node}, result="failed"}'' "instance, reporter")
+        (query "B" (daily ''mail_tls_rpt_sessions_total{${node}, result="failed"}'' "instance, reporter")
           "{{instance}} TLS-RPT failed from {{reporter}}"
         )
       ];
     })
     (states {
       title = "The station, as the node sees it";
+      description = "Whether the station answered the mail node's connectivity check";
       x = 12;
       y = 47;
       w = 12;
@@ -281,24 +310,33 @@ panels.dashboard {
         };
       };
     })
-    (panel {
-      title = "Collector lag";
+    (stat {
+      title = "Collector last caught up";
+      description = "Time since the collector last read all available log entries";
       x = 0;
       y = 55;
-      w = 12;
+      w = 6;
+      h = 8;
       unit = "s";
-      min = 0;
-      queries = [
-        (query "A" roles.series-1 "time() - mail_collector_caught_up_timestamp_seconds{${node}}"
-          "{{instance}} since caught up"
-        )
-        (query "B" roles.series-3 "time() - mail_collector_last_event_timestamp_seconds{${node}}"
-          "{{instance}} since the newest event"
-        )
-      ];
+      expr = "time() - mail_collector_caught_up_timestamp_seconds{${node}}";
+      legend = "{{instance}}";
+    })
+    (stat {
+      title = "Newest mail log event";
+      description = "Age of the newest event read by the collector. A quiet log can make this age large";
+      x = 6;
+      y = 55;
+      w = 6;
+      h = 8;
+      unit = "s";
+      expr = "time() - mail_collector_last_event_timestamp_seconds{${node}}";
+      legend = "{{instance}}";
     })
     (panel {
       title = "Collector cursor gaps per day";
+      description = "Collector cursor gaps detected during the day before each bar";
+      bars = true;
+      interval = "1d";
       x = 12;
       y = 55;
       w = 12;
@@ -306,9 +344,7 @@ panels.dashboard {
       min = 0;
       thresholds = 1;
       queries = [
-        (query "A" roles.series-1 (daily "mail_collector_cursor_gaps_total{${node}}" "instance")
-          "{{instance}}"
-        )
+        (query "A" (daily "mail_collector_cursor_gaps_total{${node}}" "instance") "{{instance}}")
       ];
     })
     (row "Who knocks" null 63)
@@ -316,17 +352,17 @@ panels.dashboard {
   ++ panels.attackers "mail" node 64
   ++ [
     (row "Capacity" null 72)
-    (panel {
-      title = "Disk use in seven days";
-      description = "Linear forecast from seven days of measurements the node actually made. The red line marks a full disk, and a gap a history too short to forecast";
+    (stat {
+      title = "Estimated disk use in seven days";
+      description = "Estimate from exponentially weighted daily slopes. Missing history gives no estimate. Alerts use a separate linear forecast";
       x = 0;
       y = 73;
       w = 24;
+      h = 8;
       unit = "percentunit";
       thresholds = 1;
-      queries = [
-        (query "A" roles.series-1 (resources.forecast (resources.freshDisk "mail" node)) "{{instance}}")
-      ];
+      expr = resources.visualForecast (resources.freshDisk "mail" node);
+      legend = "{{instance}}";
     })
   ];
 }

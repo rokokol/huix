@@ -4,41 +4,20 @@
   datasource,
 }:
 
-# The pieces every dashboard here is built of, as Grafana's JSON model. Every colour is a role of
-# ddlc-themes. Grafana keeps one colour per series whatever its theme, so the colours are the dark
-# roles and the UI is dark too. No series takes series-2: it is the red of danger, and a plain
-# line in it reads as an alarm
+# The pieces every dashboard uses in Grafana's JSON model
 rec {
   ds = {
     type = "prometheus";
     uid = datasource;
   };
 
-  fixed = color: {
-    mode = "fixed";
-    fixedColor = color;
+  query = refId: expr: legend: {
+    inherit refId expr;
+    datasource = ds;
+    legendFormat = legend;
   };
 
-  # One series of a query; its colour stays fixed, so a host looks the same on every visit
-  query = refId: color: expr: legend: {
-    target = {
-      inherit refId expr;
-      datasource = ds;
-      legendFormat = legend;
-    };
-    override = {
-      matcher = {
-        id = "byFrameRefID";
-        options = refId;
-      };
-      properties = [
-        {
-          id = "color";
-          value = fixed color;
-        }
-      ];
-    };
-  };
+  seriesColor.mode = "palette-classic-by-name";
 
   # The danger threshold is a line on a graph and the colour of a value past it, above it or,
   # with dangerBelow, under it
@@ -72,13 +51,13 @@ rec {
       queries,
       min ? null,
       max ? null,
-      # A query of several series takes shades of its colour instead of one fixed colour
-      shaded ? false,
       thresholds ? null,
       dangerBelow ? false,
       decimals ? null,
       h ? 8,
-      dailyBars ? false,
+      bars ? false,
+      steps ? false,
+      interval ? null,
       # Shown as the panel's info tooltip: a series name alone does not say what is measured
       description ? null,
     }:
@@ -96,31 +75,25 @@ rec {
       };
       targets = map (
         q:
-        q.target
+        q
         // {
           instant = false;
           range = true;
         }
-        // lib.optionalAttrs dailyBars { interval = "1d"; }
+        // lib.optionalAttrs (interval != null) { inherit interval; }
       ) queries;
       fieldConfig = {
         defaults = {
           inherit unit;
-          color =
-            if shaded then
-              {
-                mode = "shades";
-                fixedColor = roles.series-1;
-              }
-            else
-              fixed roles.series-1;
+          color = seriesColor;
           custom = {
             lineWidth = 2;
             fillOpacity = 10;
             spanNulls = false;
             thresholdsStyle.mode = if thresholds == null then "off" else "dashed";
           }
-          // lib.optionalAttrs dailyBars {
+          // lib.optionalAttrs steps { lineInterpolation = "stepAfter"; }
+          // lib.optionalAttrs bars {
             drawStyle = "bars";
             barAlignment = -1;
             barWidthFactor = 0.9;
@@ -132,13 +105,13 @@ rec {
         // lib.optionalAttrs (min != null) { inherit min; }
         // lib.optionalAttrs (max != null) { inherit max; }
         // lib.optionalAttrs (decimals != null) { inherit decimals; };
-        overrides = lib.optionals (!shaded) (map (q: q.override) queries);
+        overrides = [ ];
       };
       options = {
         legend = {
           displayMode = "list";
           placement = "bottom";
-          showLegend = !dailyBars;
+          showLegend = true;
         };
         tooltip.mode = "multi";
       };
@@ -146,7 +119,7 @@ rec {
     # Grafana draws the info icon only when the key is present, so an absent description must
     # stay absent rather than become an empty string
     // lib.optionalAttrs (description != null) { inherit description; }
-    // lib.optionalAttrs dailyBars { interval = "1d"; };
+    // lib.optionalAttrs (interval != null) { inherit interval; };
 
   stat =
     {
@@ -178,7 +151,7 @@ rec {
       };
       targets = [
         (
-          (query "A" roles.series-1 expr legend).target
+          (query "A" expr legend)
           // {
             instant = true;
             range = false;
@@ -190,7 +163,19 @@ rec {
           inherit unit;
           noValue = "No data";
           thresholds = thresholdSteps thresholds dangerBelow;
-          mappings = lib.optional (mappings != { }) {
+          mappings = [
+            {
+              type = "special";
+              options = {
+                match = "null";
+                result = {
+                  text = "No data";
+                  color = roles.muted;
+                };
+              };
+            }
+          ]
+          ++ lib.optional (mappings != { }) {
             type = "value";
             options = mappings;
           };
@@ -218,6 +203,7 @@ rec {
       expr,
       legend,
       mappings,
+      description ? null,
     }:
     {
       type = "state-timeline";
@@ -231,7 +217,7 @@ rec {
           h
           ;
       };
-      targets = [ (query "A" roles.series-1 expr legend).target ];
+      targets = [ (query "A" expr legend) ];
       fieldConfig = {
         defaults = {
           # Under "thresholds" a state timeline paints every state the base colour and drops
@@ -251,7 +237,8 @@ rec {
         mergeValues = true;
         legend.showLegend = false;
       };
-    };
+    }
+    // lib.optionalAttrs (description != null) { inherit description; };
 
   # The current values of a query, one line each, coloured past the threshold
   table =
@@ -283,7 +270,7 @@ rec {
       description ? null,
     }:
     let
-      single = [ (query "A" roles.series-1 expr "").target ];
+      single = [ (query "A" expr "") ];
       targets = map (
         target:
         target
@@ -293,7 +280,7 @@ rec {
           format = "table";
         }
         // lib.optionalAttrs (interval != null) { inherit interval; }
-      ) (if queries != null then map (q: q.target) queries else single);
+      ) (if queries != null then queries else single);
       # A row of labels is what the filters and the value column address; a table of several
       # expressions keeps the series names instead
       byValue = labels != [ ];
@@ -354,11 +341,9 @@ rec {
             desc = sortDesc;
           }
         ];
-      }
-      # Grafana draws the info icon only when the key is present, so an absent description must
-      # stay absent rather than become an empty string
-      // lib.optionalAttrs (description != null) { inherit description; };
-    };
+      };
+    }
+    // lib.optionalAttrs (description != null) { inherit description; };
 
   # The current value of each series as a bar, the largest first
   bars =
@@ -371,6 +356,7 @@ rec {
       expr,
       legend,
       unit,
+      description ? null,
     }:
     {
       type = "bargauge";
@@ -384,12 +370,12 @@ rec {
           h
           ;
       };
-      targets = [ ((query "A" roles.series-1 expr legend).target // { instant = true; }) ];
+      targets = [ ((query "A" expr legend) // { instant = true; }) ];
       fieldConfig = {
         defaults = {
           inherit unit;
           min = 0;
-          color = fixed roles.series-1;
+          color = seriesColor;
         };
         overrides = [ ];
       };
@@ -423,13 +409,15 @@ rec {
           fields = "/^Last/";
         };
       };
-    };
+    }
+    // lib.optionalAttrs (description != null) { inherit description; };
 
   # Who knocks on a node: the addresses a jail found most in the last day and the latest bans, as
   # each kind of node pushes them under its own prefix. The jail says what a row is
   attackers = prefix: selector: y: [
     (table {
       title = "Addresses found most in a day";
+      description = "IP addresses with the most fail2ban findings during the reported day, by jail";
       x = 0;
       inherit y;
       w = 12;
@@ -446,6 +434,7 @@ rec {
     })
     (table {
       title = "Latest bans";
+      description = "Time since the latest reported ban of each IP address, by jail";
       x = 12;
       inherit y;
       w = 12;

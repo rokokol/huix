@@ -1,7 +1,13 @@
 { roles, panels }:
 
 let
-  inherit (panels) stat states table;
+  inherit (panels)
+    panel
+    query
+    stat
+    states
+    table
+    ;
   upDown = {
     "0" = {
       text = "Down";
@@ -16,6 +22,10 @@ in
 panels.dashboard {
   uid = "hermes";
   title = "Hermes";
+  tags = [
+    "ai"
+    "agent"
+  ];
   links = [
     {
       title = "AI Spend";
@@ -26,6 +36,7 @@ panels.dashboard {
   panels = [
     (stat {
       title = "Gateway";
+      description = "Whether the Hermes gateway reports that it is running";
       x = 0;
       y = 0;
       w = 8;
@@ -33,16 +44,21 @@ panels.dashboard {
       expr = "min(hermes_gateway_up)";
       mappings = upDown;
     })
-    (stat {
+    (panel {
       title = "Active agents";
+      description = "Agents active in the gateway at each sample";
       x = 8;
       y = 0;
       w = 8;
+      h = 4;
       unit = "short";
-      expr = "sum(hermes_gateway_active_agents)";
+      min = 0;
+      bars = true;
+      queries = [ (query "A" "sum(hermes_gateway_active_agents)" "Active agents") ];
     })
     (stat {
       title = "Overdue jobs";
+      description = "Scheduled Hermes jobs that are past their expected run time";
       x = 16;
       y = 0;
       w = 8;
@@ -52,6 +68,7 @@ panels.dashboard {
     })
     (states {
       title = "Platform availability";
+      description = "Connection status reported by the Hermes gateway for each platform";
       x = 0;
       y = 4;
       w = 12;
@@ -61,6 +78,7 @@ panels.dashboard {
     })
     (states {
       title = "Collector results";
+      description = "Whether each Hermes monitor data source was read successfully";
       x = 12;
       y = 4;
       w = 12;

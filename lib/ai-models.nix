@@ -7,12 +7,7 @@ in
     # Host order per model, primary first. This map is the single source: the Hermes
     # module derives provider_routing from it, and pi's hoster guard reads it directly.
     ${background} = [
-      "morph/fp8"
       "deepinfra/fp8"
-    ];
-    "z-ai/glm-5.3" = [
-      "morph/fp8"
-      "sail-research/fp8"
     ];
   };
   memory = {
