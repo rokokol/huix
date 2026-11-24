@@ -40,11 +40,18 @@ assert any(isinstance(package, str) and package.endswith("/pi-bg-bash") for pack
 assert any(isinstance(package, str) and package.endswith("/@narumitw/pi-usage") for package in settings["packages"])
 overrides = models["providers"]["openrouter"]["modelOverrides"]
 assert overrides
-for override in overrides.values():
+# The host list has one home, lib/ai-models.nix, and the fixture carries that map so the test
+# compares against it instead of restating a count
+routes = fixture["routes"]
+for model, override in overrides.items():
     routing = override["compat"]["openRouterRouting"]
     assert routing["zdr"] and routing["data_collection"] == "deny"
     assert routing["require_parameters"]
-    assert routing["order"] == routing["only"] and len(routing["only"]) == 2
+    assert routing["order"] == routing["only"] == routes[model], model
+# A model routed to one host has no fallback: the day that host is down, every background job
+# fails. The map is what decides who serves it, so the requirement sits on the map
+without_fallback = [model for model, hosts in routes.items() if len(hosts) < 2]
+assert not without_fallback, without_fallback
 assert set(fixture["groups"]) == {"huix", "research"}, fixture["groups"]
 registered = {}
 for group, directory in fixture["groups"].items():

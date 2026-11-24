@@ -81,6 +81,8 @@ let
     keybindings = base.home.file."${directory}/keybindings.json".source;
     hoster = base.home.file."${directory}/extensions/hoster.ts".source;
     modules = base.home.file."${directory}/modules.json".source;
+    # The same map the settings were built from, so a test compares against it and not a copy
+    routes = (import ../../lib/ai-models.nix).chat;
     groups = base.rokokol.agents.piPackages;
     activation = pkgs.writeText "pi-settings-activation.sh" base.home.activation.piSettings.data;
     changedActivation = pkgs.writeText "pi-settings-changed.sh" changed.home.activation.piSettings.data;
