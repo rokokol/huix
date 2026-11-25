@@ -218,16 +218,6 @@
       flake = false;
     };
 
-    opus-sound-layer = {
-      url = "github:Bodila51/opus-sound-layer";
-      flake = false;
-    };
-
-    pyloudnorm = {
-      url = "github:csteinmetz1/pyloudnorm";
-      flake = false;
-    };
-
     remotion-skills = {
       url = "github:remotion-dev/skills";
       flake = false;

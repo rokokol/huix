@@ -27,7 +27,7 @@ The `/hoster` command picks the host of the current OpenRouter model from the al
 
 `reversing/` holds Ghidra with ReVa, and REA with its own MCP and its own skill for the study of applications. REA uses Ghidra for a headless analysis, and reads the formats it supports without starting the graphical editor too
 
-The creative applications are gathered in `creative/`: Kdenlive with MCP and the Anatomy, Remotion and sound-layer skills, Blender with MCP, Audacity with MCP, FreeCAD with MCP, rea-video, a skill with a CLI that takes a finished film apart frame by frame and returns a plan to shoot it again, and compress-video, which compresses a video through FFmpeg for the chosen codecs and CRF. The video editor lets the manual cutting continue after the agent, and the sound tools pick effects, mix the tracks and check the result
+The creative applications live in `creative/`: Kdenlive, Blender, Audacity and FreeCAD all have MCP support. Anatomy makes technical illustrations, and Remotion makes videos. The rea-video skill analyzes a finished film and gives you a plan to make it again. The compress-video skill uses FFmpeg to compress video
 
 `design/` holds baoyu-design: the artifact types of claude.ai as local skills with their editors — a slide deck, a canvas, a design system, a dashboard and a film. The agent writes the files into the project folder, the editor opens beside it and saves the edits to the same place
 

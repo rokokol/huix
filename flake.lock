@@ -1313,22 +1313,6 @@
         "type": "github"
       }
     },
-    "opus-sound-layer": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1791620293,
-        "narHash": "sha256-zXvsypLSERwEK+mZDqMoOcKmafIRHXu2Zgbqp4XqyW4=",
-        "owner": "Bodila51",
-        "repo": "opus-sound-layer",
-        "rev": "52ac266a24b7dfd3cd06a28c34d5af360a8d7586",
-        "type": "github"
-      },
-      "original": {
-        "owner": "Bodila51",
-        "repo": "opus-sound-layer",
-        "type": "github"
-      }
-    },
     "papers-skill": {
       "inputs": {
         "nixpkgs": [
@@ -1387,22 +1371,6 @@
       "original": {
         "owner": "cachix",
         "repo": "git-hooks.nix",
-        "type": "github"
-      }
-    },
-    "pyloudnorm": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1767526972,
-        "narHash": "sha256-47CU/veoOQYv5G1QBm3F+j7ltmVvcWSY4hQWtaC6WEI=",
-        "owner": "csteinmetz1",
-        "repo": "pyloudnorm",
-        "rev": "b8d67bfd3ce5deef872f688fcfa491a0ca69fddd",
-        "type": "github"
-      },
-      "original": {
-        "owner": "csteinmetz1",
-        "repo": "pyloudnorm",
         "type": "github"
       }
     },
@@ -1654,10 +1622,8 @@
         "nixpkgs": "nixpkgs_3",
         "nixpkgs-stable": "nixpkgs-stable",
         "nixvim": "nixvim",
-        "opus-sound-layer": "opus-sound-layer",
         "papers-skill": "papers-skill",
         "pixel-point-skills": "pixel-point-skills",
-        "pyloudnorm": "pyloudnorm",
         "rea": "rea",
         "rea-video": "rea-video",
         "remotion-skills": "remotion-skills",
