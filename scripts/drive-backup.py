@@ -12,7 +12,8 @@ import sys
 import tarfile
 import tempfile
 import uuid
-from contextlib import contextmanager
+from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager, nullcontext
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 
@@ -188,12 +189,15 @@ class Source:
             output, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600
         )
         with os.fdopen(fd, "wb") as destination:
-            process = subprocess.Popen(
-                ["zstd", "-q", "-T0", "-c"],
-                stdin=subprocess.PIPE,
-                stdout=destination,
-                stderr=subprocess.DEVNULL,
-            )
+            self.compress(selection, destination)
+
+    def compress(self, selection, destination):
+        with subprocess.Popen(
+            ["zstd", "-q", "-T2", "-c"],
+            stdin=subprocess.PIPE,
+            stdout=destination,
+            stderr=subprocess.DEVNULL,
+        ) as process:
             assert process.stdin is not None
             try:
                 with tarfile.open(
@@ -286,13 +290,17 @@ class Remote:
         self.config = Path(config).expanduser().absolute()
         self.name = name
 
-    def run(self, *args, missing_ok=False):
+    def command(self, *args):
+        return ["rclone", "--config", str(self.config), *map(str, args)]
+
+    def run(self, *args, missing_ok=False, input_text=None):
         result = subprocess.run(
-            ["rclone", "--config", str(self.config), *map(str, args)],
+            self.command(*args),
             check=False,
             capture_output=True,
             text=True,
-            stdin=subprocess.DEVNULL,
+            stdin=subprocess.DEVNULL if input_text is None else None,
+            input=input_text,
             umask=0o077,
         )
         if result.returncode:
@@ -309,18 +317,45 @@ class Remote:
             else f"{self.name}:{destination}"
         )
 
-    def verify(self, local, remote_path):
+    def require_streaming(self, directory):
+        backend = json.loads(self.run("backend", "features", self.path(directory)))
+        if backend.get("Features", {}).get("PutStream") is not True:
+            raise BackupError("The remote does not support streaming uploads")
+
+    def stream(self, remote_path, read_fd):
+        digest = hashlib.sha256()
+        size = 0
+        with os.fdopen(read_fd, "rb") as stream, subprocess.Popen(
+            self.command("rcat", remote_path, "--streaming-upload-cutoff", "0"),
+            stdin=subprocess.PIPE,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            umask=0o077,
+        ) as process:
+            assert process.stdin is not None
+            try:
+                with process.stdin:
+                    while chunk := stream.read(1024 * 1024):
+                        process.stdin.write(chunk)
+                        digest.update(chunk)
+                        size += len(chunk)
+            except BrokenPipeError as error:
+                raise BackupError("rclone closed the archive stream") from error
+            if status := process.wait():
+                raise BackupError(f"rclone rcat failed (exit {status})")
+        return size, digest.hexdigest()
+
+    def verify(self, remote_path, size, digest):
         reply = json.loads(
             self.run(
                 "lsjson", remote_path, "--stat", "--hash", "--hash-type", "SHA-256"
             )
         )
-        digest = reply.get("Hashes", {}).get("sha256", "")
+        actual = reply.get("Hashes", {}).get("sha256", "")
         if (
             reply.get("IsDir") is not False
-            or reply.get("Size") != local.stat().st_size
-            or not re.fullmatch(r"[0-9a-fA-F]{64}", digest)
-            or digest.lower() != sha256(local)
+            or reply.get("Size") != size
+            or actual.lower() != digest
         ):
             raise BackupError(
                 "Remote size or SHA-256 is absent or does not match; previous archive retained"
@@ -438,6 +473,37 @@ def write_private(path, data):
         stream.write(data)
 
 
+def staging_directory(root, source):
+    root = Path(root).expanduser().resolve(strict=True)
+    if root.is_relative_to(source):
+        raise BackupError("The temporary directory must be outside the source")
+    return tempfile.TemporaryDirectory(prefix="drive-backup-", dir=root)
+
+
+def stream_archive(source, selection, remote, target):
+    with ThreadPoolExecutor(max_workers=1) as workers:
+        read_fd, write_fd = os.pipe()
+        with os.fdopen(write_fd, "wb") as destination:
+            upload = workers.submit(remote.stream, target, read_fd)
+            try:
+                source.compress(selection, destination)
+            except BrokenPipeError:
+                upload.result()
+                raise
+        return upload.result()
+
+
+def upload_metadata(remote, target, staging, name, data):
+    if staging is None:
+        remote.run("rcat", target, input_text=data)
+    else:
+        local = staging / name
+        write_private(local, data)
+        remote.run("copyto", str(local), target)
+    content = data.encode("utf-8")
+    remote.verify(target, len(content), hashlib.sha256(content).hexdigest())
+
+
 def archive(args):
     destination = str(PurePosixPath(args.to))
     if not args.to or ":" in args.to or ".." in PurePosixPath(args.to).parts:
@@ -462,46 +528,45 @@ def archive(args):
         private_config(remote.config)
         with pair_lock(key):
             selection = source.scan()
-            # Force staging outside the source even when TMPDIR points into it
-            temporary_root = next(
-                (
-                    p
-                    for p in (Path("/tmp"), Path("/var/tmp"))
-                    if not p.resolve().is_relative_to(source.path)
-                ),
-                None,
-            )
-            if temporary_root is None:
-                raise BackupError("No temporary directory exists outside the source")
-            with tempfile.TemporaryDirectory(
-                prefix="drive-backup-", dir=temporary_root
+            generation = uuid.uuid4().hex
+            archive_name = generation + ".tar.zst"
+            checksum = archive_name + ".sha256"
+            completion = generation + ".complete.json"
+            target = remote.path(directory, archive_name)
+            with (
+                nullcontext() if args.in_place
+                else staging_directory(args.tmpdir, source.path)
             ) as temp:
-                staging = Path(temp)
-                staging.chmod(0o700)
-                generation = uuid.uuid4().hex
-                payload = staging / (generation + ".tar.zst")
-                source.pack(selection, payload)
-                checksum = staging / (payload.name + ".sha256")
-                digest = sha256(payload)
-                write_private(checksum, f"{digest}  {payload.name}\n")
-                marker = {
-                    "version": 1,
-                    "generation": generation,
-                    "archive": payload.name,
-                    "checksum": checksum.name,
-                    "sha256": digest,
-                    "size": payload.stat().st_size,
-                }
-                completion = staging / (generation + ".complete.json")
-                write_private(completion, json.dumps(marker, sort_keys=True) + "\n")
+                staging = Path(temp) if temp is not None else None
+                if staging is not None:
+                    payload = staging / archive_name
+                    source.pack(selection, payload)
+                    size, digest = payload.stat().st_size, sha256(payload)
                 with config_lock(remote.config):
                     previous = previous_generations(remote, directory)
-                    for local in (payload, checksum, completion):
-                        if local == completion:
-                            source.check(selection)
-                        target = remote.path(directory, local.name)
-                        remote.run("copyto", str(local), target)
-                        remote.verify(local, target)
+                    if staging is None:
+                        remote.require_streaming(directory)
+                        size, digest = stream_archive(source, selection, remote, target)
+                    else:
+                        remote.run("copyto", str(payload), target)
+                    remote.verify(target, size, digest)
+                    upload_metadata(
+                        remote, remote.path(directory, checksum), staging, checksum,
+                        f"{digest}  {archive_name}\n",
+                    )
+                    marker = {
+                        "version": 1,
+                        "generation": generation,
+                        "archive": archive_name,
+                        "checksum": checksum,
+                        "sha256": digest,
+                        "size": size,
+                    }
+                    source.check(selection)
+                    upload_metadata(
+                        remote, remote.path(directory, completion), staging, completion,
+                        json.dumps(marker, sort_keys=True) + "\n",
+                    )
                     # A verified completion marker must exist before any prior generation is removed
                     for old in previous:
                         for name in (
@@ -517,7 +582,7 @@ def archive(args):
                     return {
                         "generation": generation,
                         "destination": remote.path(directory),
-                        "archive": payload.name,
+                        "archive": archive_name,
                         "sha256": digest,
                     }
 
@@ -633,11 +698,23 @@ def parser():
         "--to", required=True, help="destination path inside the remote"
     )
     create.add_argument(
+        "--in-place",
+        action="store_true",
+        help="stream the archive to the remote without local staging",
+    )
+    create.add_argument(
         "--dry-run",
         action="store_true",
         help="print the plan offline; create no files and contact no remote",
     )
-    create.set_defaults(operation=archive)
+    create.epilog = (
+        "Set DRIVE_BACKUP_TMPDIR to an existing directory outside the source. "
+        "The default is /var/tmp. --in-place ignores this variable. "
+        "After an interrupted stream, start a new upload."
+    )
+    create.set_defaults(
+        operation=archive, tmpdir=os.environ.get("DRIVE_BACKUP_TMPDIR", "/var/tmp")
+    )
     login = commands.add_parser(
         "auth",
         allow_abbrev=False,

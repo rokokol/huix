@@ -44,7 +44,11 @@ class ArchiveTests(unittest.TestCase):
             str(self.remote),
         ]
         self.env = mock.patch.dict(
-            os.environ, {"XDG_STATE_HOME": str(self.root / "state")}
+            os.environ,
+            {
+                "XDG_STATE_HOME": str(self.root / "state"),
+                "DRIVE_BACKUP_TMPDIR": str(self.root),
+            },
         )
         self.env.start()
         self.addCleanup(self.env.stop)
@@ -164,6 +168,117 @@ class ArchiveTests(unittest.TestCase):
         self.assertFalse(archive.exists())
         self.assertEqual(unrelated.read_bytes(), b"leave this alone")
         self.assertEqual(len(list(self.remote.rglob("*.complete.json"))), 1)
+
+    def test_archive_stages_under_configured_directory(self):
+        stage = self.root / "stage"
+        stage.mkdir()
+        (self.source / "data").write_text("data")
+        original = backup.Remote.run
+        staged = []
+
+        def run(remote, *args, **kwargs):
+            if args[0] == "copyto" and str(args[1]).endswith(".tar.zst"):
+                payload = Path(args[1])
+                self.assertTrue(payload.is_file())
+                staged.append(payload.parent.parent)
+            return original(remote, *args, **kwargs)
+
+        with mock.patch.dict(os.environ, {"DRIVE_BACKUP_TMPDIR": str(stage)}), (
+            mock.patch.object(backup.Remote, "run", run)
+        ):
+            code, _, err = self.cli()
+        self.assertEqual(code, 0, err)
+        self.assertEqual(staged, [stage])
+        self.assertEqual(list(stage.iterdir()), [])
+
+    def test_staging_rejects_symlink_into_source(self):
+        stage = self.root / "stage"
+        stage.symlink_to(self.source, target_is_directory=True)
+        with mock.patch.dict(os.environ, {"DRIVE_BACKUP_TMPDIR": str(stage)}):
+            code, _, _ = self.cli()
+        self.assertEqual(code, 1)
+        self.assertEqual(list(self.remote.iterdir()), [])
+
+    def test_in_place_streams_and_verifies_without_local_staging(self):
+        self.tree()
+        with mock.patch.dict(os.environ, {"DRIVE_BACKUP_TMPDIR": str(self.source)}), (
+            mock.patch.object(
+                backup.tempfile, "TemporaryDirectory", side_effect=AssertionError("staging")
+            )
+        ):
+            code, out, err = self.cli(self.args + ["--in-place"])
+        self.assertEqual(code, 0, err)
+        archive = next(self.remote.rglob("*.tar.zst"))
+        with self.members(archive) as tar:
+            self.assertIn("visible", tar.getnames())
+        digest = hashlib.sha256(archive.read_bytes()).hexdigest()
+        self.assertEqual(json.loads(out)["sha256"], digest)
+        marker = json.loads(next(self.remote.rglob("*.complete.json")).read_text())
+        self.assertEqual(marker["size"], archive.stat().st_size)
+        self.assertEqual(marker["sha256"], digest)
+        checksum = next(self.remote.rglob("*.tar.zst.sha256"))
+        self.assertEqual(checksum.read_text(), f"{digest}  {archive.name}\n")
+
+    def test_in_place_refuses_backend_that_cannot_stream(self):
+        (self.source / "data").write_text("data")
+        original = backup.Remote.run
+
+        def run(remote, *args, **kwargs):
+            if args[0] == "backend":
+                return '{"Features": {}}'
+            return original(remote, *args, **kwargs)
+
+        with mock.patch.object(backup.Remote, "run", run):
+            code, _, err = self.cli(self.args + ["--in-place"])
+        self.assertEqual(code, 1)
+        self.assertIn("stream", err)
+        self.assertEqual(list(self.remote.iterdir()), [])
+
+    def test_in_place_upload_failure_keeps_previous_completion(self):
+        (self.source / "data").write_text("first")
+        code, _, err = self.cli()
+        self.assertEqual(code, 0, err)
+        old = {p: p.read_bytes() for p in self.remote.rglob("*") if p.is_file()}
+        (self.source / "data").write_text("second")
+        original = backup.Remote.command
+
+        def command(remote, *args):
+            if args[0] == "rcat" and args[1].endswith(".tar.zst"):
+                return ["false"]
+            return original(remote, *args)
+
+        with mock.patch.object(backup.Remote, "command", command):
+            code, out, err = self.cli(self.args + ["--in-place"])
+        self.assertEqual(code, 1, err)
+        self.assertEqual(out, "")
+        self.assertEqual({p: p.read_bytes() for p in old if p.exists()}, old)
+        self.assertEqual(len(list(self.remote.rglob("*.complete.json"))), 1)
+
+    def test_in_place_hash_failure_keeps_previous_completion(self):
+        path = self.source / "data"
+        path.write_text("first")
+        code, _, err = self.cli()
+        self.assertEqual(code, 0, err)
+        old = {p: p.read_bytes() for p in self.remote.rglob("*") if p.is_file()}
+        path.write_text("second")
+        original = backup.Remote.run
+
+        def run(remote, *args, **kwargs):
+            reply = original(remote, *args, **kwargs)
+            if args[0] == "lsjson" and "--stat" in args and args[1].endswith(".tar.zst"):
+                item = json.loads(reply)
+                item["Hashes"]["sha256"] = "0" * 64
+                return json.dumps(item)
+            return reply
+
+        with mock.patch.object(backup.Remote, "run", run):
+            code, out, err = self.cli(self.args + ["--in-place"])
+        self.assertEqual(code, 1)
+        self.assertIn("SHA-256", err)
+        self.assertEqual(out, "")
+        self.assertEqual(len(list(self.remote.rglob("*.complete.json"))), 1)
+        for name, content in old.items():
+            self.assertEqual(name.read_bytes(), content)
 
     def test_hash_and_upload_failures_preserve_old_generation(self):
         (self.source / "data").write_text("first")
