@@ -1299,13 +1299,13 @@
     "open-artifact": {
       "flake": false,
       "locked": {
-        "narHash": "sha256-Ru9sHqjjI1uZOlZW1HBxaY9iGf67FEy4SG1lG+/tknw=",
+        "narHash": "sha256-hYwwLIMyhKUaMAgh+EewYiH61wHYk8z9GRuskPEBLpM=",
         "type": "file",
-        "url": "https://github.com/JimLiu/open-artifact/releases/download/v0.14.7/open-artifact-plugins.zip"
+        "url": "https://github.com/JimLiu/open-artifact/releases/download/v0.16.0/open-artifact-plugins.zip"
       },
       "original": {
         "type": "file",
-        "url": "https://github.com/JimLiu/open-artifact/releases/download/v0.14.7/open-artifact-plugins.zip"
+        "url": "https://github.com/JimLiu/open-artifact/releases/download/v0.16.0/open-artifact-plugins.zip"
       }
     },
     "papers-skill": {

@@ -17,7 +17,7 @@ Among them are the editor [Nixvim](nixvim/README.md), the file manager [Yazi](ya
 
 Pi takes its MCP servers and its skills from the shared lists of the agents. A server and a skill are declared once, beside the tool they belong to, and nothing is registered by hand. The calendar, the search for papers, Ghidra and the creative applications arrive this way. The skills of their own repositories come as flake inputs, and each host takes only the ones it needs
 
-Inside pi the tools are split into packages that switch off: `huix` for development and the system configuration, `reversing` for reverse engineering, `research` for papers and documentation, `creative` for video, sound and 3D, `design` for slides, canvases, design systems, dashboards and films, `remote` for communication and the control of devices. `pi config` switches a package off with its skills and its MCP servers, and `/mcp` switches off one server
+Inside pi the tools are split into packages that switch off: `huix` for development and the system configuration, `reversing` for reverse engineering, `research` for papers and documentation, `creative` for video, sound and 3D, `remote` for communication and the control of devices. `pi config` switches a package off with its skills and its MCP servers, and `/mcp` switches off one server
 
 The stock Home Manager module carries the base settings of pi. The preferences of the interface stay editable: they survive the runs, and Nix changes them only when the declarative source changes. The keys and the Codex login live apart from the Nix configuration
 
@@ -29,6 +29,6 @@ The `/hoster` command picks the host of the current OpenRouter model from the al
 
 The creative applications live in `creative/`: Kdenlive, Blender, Audacity and FreeCAD all have MCP support. Anatomy makes technical illustrations, and Remotion makes videos. The rea-video skill analyzes a finished film and gives you a plan to make it again. The compress-video skill uses FFmpeg to compress video
 
-`design/` provides [Open Artifact](https://github.com/JimLiu/open-artifact). One skill creates editable presentations, designs, dashboards, documents and other artifacts. The local editors save changes to the project files
+`design/` provides [Open Artifact](https://github.com/JimLiu/open-artifact). In Pi, `/open-artifact` creates editable presentations, designs, dashboards and documents. The local editors save changes to the project files
 
 A few tools grew into projects of their own; the root [README](../../README.md#extracted-into-their-own-repositories) links them all

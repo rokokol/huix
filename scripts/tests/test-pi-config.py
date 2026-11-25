@@ -31,6 +31,15 @@ assert not any("questionnaire" in extension for extension in settings["extension
 assert any(isinstance(package, str) and package.endswith("/@mrclrchtr/supi-ask-user") for package in settings["packages"])
 assert f'{fixture["directory"]}/extensions/resume.ts' not in settings["extensions"]
 assert not any(isinstance(package, str) and package.endswith("/@fahrizkyputra/pi-auto-resume") for package in settings["packages"])
+artifact_packages = [
+    source for source in settings["packages"]
+    if isinstance(source, str) and source.startswith("npm:pi-open-artifact@")
+]
+assert len(artifact_packages) == 1, artifact_packages
+assert not fixture["artifactFiles"], fixture["artifactFiles"]
+assert not any("/extensions/open-artifact" in extension for extension in settings["extensions"])
+assert not any((Path(group) / "skills/open-artifact").exists() for group in fixture["groups"].values())
+print("PASS: Pi uses the upstream Open Artifact package without a second extension or skill")
 module_catalog = json.loads(Path(fixture["modules"]).read_text())
 assert {name: module["source"] for name, module in module_catalog.items()} == fixture["groups"]
 assert models["providers"]["openrouter"]["compat"]["openRouterRouting"] == {

@@ -12,6 +12,7 @@ let
     inputs.home-manager.lib.homeManagerConfiguration {
       pkgs = agentPkgs;
       extraSpecialArgs = {
+        inherit inputs;
         huixDir = "/build/pi-test/huix";
         myWikiDir = "/build/pi-test/myWiki";
         piSharedDir = "/build/pi-test/.local/share/pi-shared";
@@ -24,6 +25,7 @@ let
       modules = [
         ../../home-manager/programs/agents/agents.nix
         ../../home-manager/programs/agents/pi
+        ../../home-manager/programs/design
         {
           options.rokokol.workstation.enable = lib.mkOption {
             type = lib.types.bool;
@@ -37,6 +39,7 @@ let
             };
             rokokol = {
               pi.enable = true;
+              open-artifact.enable = true;
               agents = {
                 groups = {
                   research = "Research tools";
@@ -84,6 +87,9 @@ let
     # The same map the settings were built from, so a test compares against it and not a copy
     routes = (import ../../lib/ai-models.nix).chat;
     groups = base.rokokol.agents.piPackages;
+    artifactFiles = lib.filter (lib.hasPrefix "${directory}/extensions/open-artifact") (
+      lib.attrNames base.home.file
+    );
     activation = pkgs.writeText "pi-settings-activation.sh" base.home.activation.piSettings.data;
     changedActivation = pkgs.writeText "pi-settings-changed.sh" changed.home.activation.piSettings.data;
     sharedActivation = pkgs.writeText "pi-shared-activation.sh" base.home.activation.piSharedState.data;

@@ -44,23 +44,8 @@ in
       pkgs.nodejs
     ];
 
-    rokokol.agents = {
-      skills.open-artifact = "${package}/share/skills/open-artifact";
-      skillGroups.open-artifact = "design";
-    };
-
-    # Pi has no adapter of its own, so an artifact it makes belongs to no conversation and a
-    # request from the page waits in the shared inbox. This extension attaches the session and
-    # answers the daemon; the Pi half of upstream's harness-node and harness-stdio examples
-    home.file = lib.mkIf config.rokokol.pi.enable {
-      "${config.programs.pi-coding-agent.configDir}/extensions/open-artifact.ts".source =
-        ./open-artifact-pi.ts;
-      "${config.programs.pi-coding-agent.configDir}/extensions/open-artifact-routing.ts".source =
-        ./open-artifact-routing.ts;
-    };
-
-    programs.pi-coding-agent.settings.extensions = lib.mkIf config.rokokol.pi.enable [
-      "${config.programs.pi-coding-agent.configDir}/extensions/open-artifact.ts"
+    programs.pi-coding-agent.settings.packages = lib.mkIf config.rokokol.pi.enable [
+      "npm:pi-open-artifact@0.16.0"
     ];
   };
 }

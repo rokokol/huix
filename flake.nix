@@ -203,7 +203,7 @@
 
     # The source checkout does not contain the built daemon and editors
     open-artifact = {
-      url = "file+https://github.com/JimLiu/open-artifact/releases/download/v0.14.7/open-artifact-plugins.zip";
+      url = "file+https://github.com/JimLiu/open-artifact/releases/download/v0.16.0/open-artifact-plugins.zip";
       flake = false;
     };
 
