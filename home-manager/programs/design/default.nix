@@ -1,6 +1,6 @@
 {
   imports = [
     ./group.nix
-    ./baoyu-design/baoyu-design.nix
+    ./open-artifact.nix
   ];
 }

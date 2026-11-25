@@ -201,10 +201,9 @@
       flake = false;
     };
 
-    # The original repository is unavailable; pin the mirror until an official source returns
-    # NOTICE.md covers Anthropic's material and the local tooling under different terms
-    baoyu-design = {
-      url = "github:hh0592821/baoyu-design/9c5253c002820d8dd4c9c31e9c8ca04b529a3e34";
+    # The source checkout does not contain the built daemon and editors
+    open-artifact = {
+      url = "file+https://github.com/JimLiu/open-artifact/releases/download/v0.14.7/open-artifact-plugins.zip";
       flake = false;
     };
 

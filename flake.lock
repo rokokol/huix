@@ -88,23 +88,6 @@
         "type": "github"
       }
     },
-    "baoyu-design": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1793910869,
-        "narHash": "sha256-VJSU7UDXmJcONQ+9Eqv8OlzouM8SoEyYIbTrNkGt70Y=",
-        "owner": "hh0592821",
-        "repo": "baoyu-design",
-        "rev": "9c5253c002820d8dd4c9c31e9c8ca04b529a3e34",
-        "type": "github"
-      },
-      "original": {
-        "owner": "hh0592821",
-        "repo": "baoyu-design",
-        "rev": "9c5253c002820d8dd4c9c31e9c8ca04b529a3e34",
-        "type": "github"
-      }
-    },
     "blender-mcp": {
       "flake": false,
       "locked": {
@@ -1313,6 +1296,18 @@
         "type": "github"
       }
     },
+    "open-artifact": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-Ru9sHqjjI1uZOlZW1HBxaY9iGf67FEy4SG1lG+/tknw=",
+        "type": "file",
+        "url": "https://github.com/JimLiu/open-artifact/releases/download/v0.14.7/open-artifact-plugins.zip"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://github.com/JimLiu/open-artifact/releases/download/v0.14.7/open-artifact-plugins.zip"
+      }
+    },
     "papers-skill": {
       "inputs": {
         "nixpkgs": [
@@ -1590,7 +1585,6 @@
         "anatomy": "anatomy",
         "archive-mount-yazi": "archive-mount-yazi",
         "audacity-mcp": "audacity-mcp",
-        "baoyu-design": "baoyu-design",
         "blender-mcp": "blender-mcp",
         "compress-yazi": "compress-yazi",
         "dav-mcp": "dav-mcp",
@@ -1622,6 +1616,7 @@
         "nixpkgs": "nixpkgs_3",
         "nixpkgs-stable": "nixpkgs-stable",
         "nixvim": "nixvim",
+        "open-artifact": "open-artifact",
         "papers-skill": "papers-skill",
         "pixel-point-skills": "pixel-point-skills",
         "rea": "rea",

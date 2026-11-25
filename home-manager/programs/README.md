@@ -29,6 +29,6 @@ The `/hoster` command picks the host of the current OpenRouter model from the al
 
 The creative applications live in `creative/`: Kdenlive, Blender, Audacity and FreeCAD all have MCP support. Anatomy makes technical illustrations, and Remotion makes videos. The rea-video skill analyzes a finished film and gives you a plan to make it again. The compress-video skill uses FFmpeg to compress video
 
-`design/` holds baoyu-design: the artifact types of claude.ai as local skills with their editors — a slide deck, a canvas, a design system, a dashboard and a film. The agent writes the files into the project folder, the editor opens beside it and saves the edits to the same place
+`design/` provides [Open Artifact](https://github.com/JimLiu/open-artifact). One skill creates editable presentations, designs, dashboards, documents and other artifacts. The local editors save changes to the project files
 
 A few tools grew into projects of their own; the root [README](../../README.md#extracted-into-their-own-repositories) links them all
