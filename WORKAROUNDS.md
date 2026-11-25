@@ -282,27 +282,6 @@ nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.waybar.version
 
 ---
 
-## kitty takes a finger on Wayland
-
-**Where:** `patches/kitty-wayland-touch.patch`, applied by `overlays/kitty.nix` to `kitty` on the laptop, the host with a touchscreen
-
-**Symptom it prevents:** kitty builds its own copy of GLFW, and its Wayland backend binds `wl_pointer` and `wl_keyboard` from the seat and never `wl_touch` (`glfw/wl_init.c`, `seatHandleCapabilities`): a finger on the terminal does nothing, neither a tap nor a scroll
-
-**Why this works:** the patch is two upstream proposals in a row. The first makes GLFW bind `wl_touch` and report touch events to kitty through `glfwSetTouchCallback`, one event per `wl_touch.frame` with every finger in it. The second turns those events into kitty's existing pointer paths, driven by the first finger. A finger that lifts within 8 px is a left click where it landed. A finger that moves at once scrolls on both axes through kitty's momentum scroller, the way a touchpad does; a program that asked for mouse reports receives the sideways part as a horizontal wheel. A finger held still for 400 ms before it moves drags the left button, which selects text. Before a drag the pointer moves under the finger, so the scroll reaches the split under the finger. A cancel from the compositor releases a held button. Tried on the laptop: taps on links, scrolls on both axes and selections, with the touchpad still working beside them
-
-**Removal check:** look at kitty as nixpkgs ships it
-
-```sh
-src=$(nix eval --raw .#nixosConfigurations.nixos-laptop.pkgs.kitty.src)
-grep -c 'wl_seat_get_touch' "$src/glfw/wl_init.c"; grep -c 'glfwSetTouchCallback' "$src/kitty/glfw.c"
-```
-
-Both `0` -> keep the patch. Only the first non-zero -> GLFW reports touch but kitty ignores it; the patch no longer applies, so cut it down to the second proposal. Both non-zero -> drop the patch and the overlay, then check a tap, a scroll and a selection
-
-**Upstream:** [kovidgoyal/kitty#10551](https://github.com/kovidgoyal/kitty/pull/10551) (the GLFW half, merged on 2026-10-02 after the 0.49.2 release, so no release carries it yet); the kitty half waits for it on branch `kitty-touch-mouse` of `rokokol/kitty`
-
----
-
 ## yazi takes a langmap
 
 **Where:** `patches/yazi-langmap.patch`, applied by `overlays/yazi.nix` to `yazi-unwrapped` on every host, for the `keymap.langmap` that `home-manager/programs/yazi/keymap.nix` builds from `lib/ru-layout.nix`

@@ -493,7 +493,6 @@
           overlays.hyprland
           overlays.rofi
           overlays.blueman
-          overlays.kitty
           overlays.pi-extensions
           overlays.yazi
           overlays.which-key
