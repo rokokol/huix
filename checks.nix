@@ -197,10 +197,21 @@ pkgs.lib.mapAttrs' (
       quietToolsExtension = ./home-manager/programs/agents/pi/quiet-tools.ts;
       quietToolsTest = ./scripts/tests/test-pi-quiet-tools.ts;
       modulesTest = ./scripts/tests/test-pi-modules.ts;
+      openArtifactExtension = ./home-manager/programs/design/open-artifact-pi.ts;
+      openArtifactRouting = ./home-manager/programs/design/open-artifact-routing.ts;
+      openArtifactTest = ./scripts/tests/test-pi-open-artifact.ts;
+      # The pair is installed side by side, and the extension names its router by a relative path,
+      # so tsc reads them from one directory rather than from two store paths
+      openArtifactDir = pkgs.runCommand "open-artifact-pi-extension" { } ''
+        mkdir -p $out
+        cp ${openArtifactExtension} $out/open-artifact-pi.ts
+        cp ${openArtifactRouting} $out/open-artifact-routing.ts
+      '';
       piRoot = "${pkgs.pi-coding-agent}/lib/node_modules/pi-monorepo";
       tsconfig = (pkgs.formats.json { }).generate "pi-tsconfig.json" {
         compilerOptions = {
           noEmit = true;
+          allowImportingTsExtensions = true;
           skipLibCheck = true;
           strict = true;
           module = "esnext";
@@ -212,6 +223,7 @@ pkgs.lib.mapAttrs' (
           paths."@earendil-works/pi-tui" = [
             "${piRoot}/node_modules/@earendil-works/pi-tui/dist/index.d.ts"
           ];
+          paths."typebox" = [ "${piRoot}/node_modules/typebox/build/index.d.mts" ];
         };
         files = [
           hosterExtension
@@ -219,6 +231,9 @@ pkgs.lib.mapAttrs' (
           modulesExtension
           modulesTest
           memoryExtension
+          "${openArtifactDir}/open-artifact-pi.ts"
+          "${openArtifactDir}/open-artifact-routing.ts"
+          openArtifactTest
           quietToolsExtension
           quietToolsTest
         ];
@@ -242,6 +257,7 @@ pkgs.lib.mapAttrs' (
           ${piRoot}
         node ${modulesTest} ${modulesExtension} ${piRoot}
         node ${quietToolsTest} ${quietToolsExtension} ${piRoot}
+        node ${openArtifactTest} ${openArtifactDir}/open-artifact-routing.ts
         touch "$out"
       '';
 
