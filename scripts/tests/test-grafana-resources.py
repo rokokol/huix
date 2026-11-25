@@ -54,6 +54,8 @@ def check_formulas(root):
              {metric: "0.4+0.002x575", **fresh}, 1)
         case(f"{prefix}: a flat disk does not fill", f"{prefix}-disk-forecast",
              {metric: "0.5+0x575", **fresh}, 0)
+        case(f"{prefix}: one jump followed by a plateau does not predict a full disk",
+             f"{prefix}-disk-forecast", {metric: "0.45+0x191 0.75+0x383", **fresh}, 0)
         case(f"{prefix}: stale pushes cannot forecast", f"{prefix}-disk-forecast",
              {metric: "0.4+0.002x575", push: "0+0x575"}, 0)
         case(f"{prefix}: a day of history cannot forecast", f"{prefix}-disk-forecast",
@@ -193,21 +195,21 @@ def check_formulas(root):
         list(pool.map(verify, cases))
     print(f"Verified {sum(map(len, cases.values()))} PromQL cases", flush=True)
 
-    visual = root / "visual-forecast.tests.json"
+    forecast = root / "disk-forecast.tests.json"
     samples = {"rising": 14, "falling": -14, "flat": 0.5}
-    visual.write_text(json.dumps({
+    forecast.write_text(json.dumps({
         "rule_files": [],
         "tests": [{
-            "name": f"visual forecast: {name}",
+            "name": f"disk forecast: {name}",
             "interval": "1h",
             "promql_expr_test": [{
                 "expr": expr,
                 "eval_time": "7d",
                 "exp_samples": [{"labels": "{}", "value": samples[name]}],
             }],
-        } for name, expr in POLICY["visualForecasts"].items()],
+        } for name, expr in POLICY["forecasts"].items()],
     }))
-    subprocess.run(["promtool", "test", "rules", str(visual)], check=True)
+    subprocess.run(["promtool", "test", "rules", str(forecast)], check=True)
 
 
 def port():

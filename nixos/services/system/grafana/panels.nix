@@ -454,6 +454,17 @@ rec {
     })
   ];
 
+  diskForecastStat =
+    args:
+    stat (
+      {
+        title = "Estimated disk use in seven days";
+        description = "The estimate gives more weight to recent daily trends. The panel shows no estimate without enough history";
+        unit = "percentunit";
+      }
+      // args
+    );
+
   serviceHealth =
     {
       y,
@@ -489,15 +500,12 @@ rec {
         thresholds = limits.diskUsed;
         queries = [ (query "A" disk "{{instance}}") ];
       })
-      (stat {
-        title = "Estimated disk use in seven days";
-        description = "Estimate from exponentially weighted daily slopes. Missing history gives no estimate. Alerts use a separate linear forecast";
+      (diskForecastStat {
         x = 16;
         y = y + 1;
         w = 8;
         h = 8;
-        unit = "percentunit";
-        thresholds = 1;
+        thresholds = limits.forecastFull;
         expr = forecast disk;
         legend = "{{instance}}";
       })

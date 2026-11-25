@@ -344,7 +344,6 @@ panels.dashboard {
     disk = resources.freshDisk "mail" node;
     cpu = resources.freshCpu "mail" node;
     memory = resources.freshMemory "mail" node;
-    inherit (resources) limits;
-    forecast = resources.visualForecast;
+    inherit (resources) limits forecast;
   };
 }

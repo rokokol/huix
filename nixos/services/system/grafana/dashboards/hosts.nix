@@ -15,6 +15,7 @@
 
 let
   inherit (panels)
+    diskForecastStat
     panel
     query
     row
@@ -230,16 +231,13 @@ panels.dashboard {
       thresholds = resources.limits.diskUsed;
       queries = [ (query "A" (resources.diskUsed host) "{{device}}") ];
     })
-    (stat {
-      title = "Estimated disk use in seven days";
-      description = "Estimate from exponentially weighted daily slopes. Missing history gives no estimate. Alerts use a separate linear forecast";
+    (diskForecastStat {
       x = 18;
       y = 5;
       w = 6;
       h = 8;
-      unit = "percentunit";
-      thresholds = 1;
-      expr = resources.visualForecast (resources.diskUsed host);
+      thresholds = resources.limits.forecastFull;
+      expr = resources.forecast (resources.diskUsed host);
       legend = "{{device}}";
     })
     (panel {

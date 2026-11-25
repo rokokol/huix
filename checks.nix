@@ -114,6 +114,9 @@ pkgs.lib.mapAttrs' (
         inherit providers;
         hosts = builtins.attrNames inputs.self.nixosConfigurations;
         station = station.networking.hostName;
+        diskForecastRules = builtins.filter (
+          rule: pkgs.lib.hasSuffix "-disk-forecast" rule.uid
+        ) station.rokokol.grafana.resourcePolicy.rules;
       };
       test = ./scripts/tests/test-grafana-dashboards.py;
     in
@@ -143,10 +146,10 @@ pkgs.lib.mapAttrs' (
           datasource =
             (builtins.head station.services.grafana.provision.datasources.settings.datasources).uid;
           definitions = { inherit (station.rokokol.grafana.resourcePolicy) limits rules; };
-          visualForecasts = {
-            rising = station.rokokol.grafana.resourcePolicy.visualForecast "vector(time() / 86400)";
-            falling = station.rokokol.grafana.resourcePolicy.visualForecast "vector(-time() / 86400)";
-            flat = station.rokokol.grafana.resourcePolicy.visualForecast "vector(0.5)";
+          forecasts = {
+            rising = station.rokokol.grafana.resourcePolicy.forecast "vector(time() / 86400)";
+            falling = station.rokokol.grafana.resourcePolicy.forecast "vector(-time() / 86400)";
+            flat = station.rokokol.grafana.resourcePolicy.forecast "vector(0.5)";
           };
           provisioning = {
             rules = alerting.rules.settings;

@@ -98,6 +98,17 @@ class DashboardsTest(unittest.TestCase):
                     self.assertLess(health_start, item["gridPos"]["y"])
                     self.assertLess(item["gridPos"]["y"], next_row)
 
+    def test_disk_forecast_panels_match_their_alerts(self):
+        for rule in MANIFEST["diskForecastRules"]:
+            uid = rule["dashboard"]
+            with self.subTest(dashboard=uid):
+                forecast = panel(DASHBOARDS[uid][1], "Estimated disk use in seven days")
+                target, = forecast["targets"]
+                self.assertTrue(target["instant"])
+                estimate = target["expr"].replace(', instance=~"$instance"', "")
+                threshold = forecast["fieldConfig"]["defaults"]["thresholds"]["steps"][-1]["value"]
+                self.assertEqual(rule["expr"], f"({estimate}) >= bool {threshold}")
+
     def test_discrete_series_use_bars(self):
         names = {
             "hermes": ["Active agents"],

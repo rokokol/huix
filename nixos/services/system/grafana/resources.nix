@@ -20,6 +20,7 @@ let
     memoryUsed = 0.9;
     forecastSeconds = 7 * 24 * 3600;
     history = "7d";
+    forecastFull = 1;
     forecastHold = "1h";
     diskHold = "30m";
     loadHold = "15m";
@@ -47,8 +48,6 @@ let
       total = "rate(${prefix}_cpu_seconds_total{${selector}}[1h])";
     in
     "clamp_max(${busy} / (${total} > 0), 1) and on (instance) (${fresh prefix})";
-  prediction =
-    series: "predict_linear((${series})[${limits.history}:10m], ${toString limits.forecastSeconds})";
   # A line through two points is not a trend, so the forecast waits for about two days of samples,
   # which a node that pushes every quarter hour reaches with 190 of them. The window ends an hour
   # back: a workstation that sleeps every night loses a quarter of a week to that, and pinning the
@@ -56,9 +55,8 @@ let
   readySamples = 190;
   historyReady =
     series: "count_over_time((${series})[${limits.history}:10m] offset 1h) >= ${toString readySamples}";
-  forecast = series: "(${prediction series}) and (${historyReady series})";
-  # A displayed estimate weights recent daily slopes more heavily; alert rules keep their fit
-  visualForecast =
+  # A past jump must have less effect than recent growth
+  forecast =
     series:
     let
       samples =
@@ -145,7 +143,7 @@ let
   diskForecast = uidPrefix: series: dashboard: [
     (
       (rule "${uidPrefix}-disk-forecast" "Disk will fill within seven days"
-        "(${forecast series}) >= bool 1"
+        "(${forecast series}) >= bool ${toString limits.forecastFull}"
         limits.forecastHold
         dashboard
       )
@@ -156,7 +154,6 @@ let
   ];
 in
 {
-  # Alert thresholds and their linear forecast are independent of the displayed estimate
   inherit
     limits
     diskUsed
@@ -164,7 +161,6 @@ in
     freshCpu
     freshMemory
     forecast
-    visualForecast
     cpuTemperature
     diskTemperature
     ;
