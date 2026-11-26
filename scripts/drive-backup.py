@@ -16,6 +16,7 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager, nullcontext
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
+from time import monotonic
 
 from pathspec import GitIgnoreSpec
 
@@ -67,6 +68,46 @@ class Selection:
     included: list
     excluded: list
     observed: dict
+
+
+class SourceProgress:
+    def __init__(self, selection):
+        self.total = sum(
+            entry.info.st_size for entry in selection.included
+            if stat.S_ISREG(entry.info.st_mode)
+        )
+        self.done = 0
+        self.next_update = 0
+
+    def show(self):
+        percent = self.done * 100 // self.total if self.total else 100
+        filled = percent // 5
+        bar = "#" * filled + "-" * (20 - filled)
+        print(f"\rRead source [{bar}] {percent:3d}%", end="", file=sys.stderr, flush=True)
+        self.next_update = monotonic() + 0.2
+
+    def __enter__(self):
+        self.show()
+        return self
+
+    def __exit__(self, *args):
+        print(file=sys.stderr, flush=True)
+
+    def advance(self, count):
+        self.done += count
+        if count and (self.done == self.total or monotonic() >= self.next_update):
+            self.show()
+
+
+class ProgressReader:
+    def __init__(self, stream, progress):
+        self.stream = stream
+        self.progress = progress
+
+    def read(self, size):
+        data = self.stream.read(size)
+        self.progress.advance(len(data))
+        return data
 
 
 class Source:
@@ -200,7 +241,8 @@ class Source:
         ) as process:
             assert process.stdin is not None
             try:
-                with tarfile.open(
+                progress = SourceProgress(selection) if sys.stderr.isatty() else nullcontext()
+                with progress as meter, tarfile.open(
                     fileobj=process.stdin, mode="w|", format=tarfile.PAX_FORMAT
                 ) as tar:
                     for entry in selection.included:
@@ -231,7 +273,8 @@ class Source:
                                 with os.fdopen(file_fd, "rb") as stream:
                                     unchanged(os.fstat(stream.fileno()), entry.info)
                                     item.size = entry.info.st_size
-                                    tar.addfile(item, stream)
+                                    reader = ProgressReader(stream, meter) if meter else stream
+                                    tar.addfile(item, reader)
                                     unchanged(os.fstat(stream.fileno()), entry.info)
                             unchanged(
                                 os.stat(name, dir_fd=parent, follow_symlinks=False),
@@ -548,7 +591,11 @@ def archive(args):
                         remote.require_streaming(directory)
                         size, digest = stream_archive(source, selection, remote, target)
                     else:
+                        if sys.stderr.isatty():
+                            note(INFO, "Upload archive")
                         remote.run("copyto", str(payload), target)
+                    if sys.stderr.isatty():
+                        note(INFO, "Verify archive")
                     remote.verify(target, size, digest)
                     upload_metadata(
                         remote, remote.path(directory, checksum), staging, checksum,
@@ -710,7 +757,8 @@ def parser():
     create.epilog = (
         "Set DRIVE_BACKUP_TMPDIR to an existing directory outside the source. "
         "The default is /var/tmp. --in-place ignores this variable. "
-        "After an interrupted stream, start a new upload."
+        "After an interrupted stream, start a new upload. "
+        "On a terminal, stderr shows source read progress, not upload progress."
     )
     create.set_defaults(
         operation=archive, tmpdir=os.environ.get("DRIVE_BACKUP_TMPDIR", "/var/tmp")

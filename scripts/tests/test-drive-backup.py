@@ -12,6 +12,7 @@ import sys
 import tarfile
 import tempfile
 import unittest
+from itertools import count
 from pathlib import Path
 from unittest import mock
 
@@ -53,8 +54,9 @@ class ArchiveTests(unittest.TestCase):
         self.env.start()
         self.addCleanup(self.env.stop)
 
-    def cli(self, args=None):
+    def cli(self, args=None, *, terminal=False):
         out, err = io.StringIO(), io.StringIO()
+        err.isatty = lambda: terminal
         with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
             code = backup.main(self.args if args is None else args)
         return code, out.getvalue(), err.getvalue()
@@ -98,6 +100,24 @@ class ArchiveTests(unittest.TestCase):
         self.assertNotIn(b"EXCLUDED-SECRET", decoded.stdout)
         self.assertNotIn(b"OUTSIDE-SECRET", decoded.stdout)
         return tarfile.open(fileobj=io.BytesIO(decoded.stdout), mode="r:")
+
+    def test_archive_progress_is_only_on_terminal_stderr(self):
+        (self.source / "data").write_bytes(b"x" * (1024 * 1024))
+        with mock.patch.object(backup, "monotonic", side_effect=count()):
+            code, out, err = self.cli(terminal=True)
+        self.assertEqual(code, 0, err)
+        self.assertIn("generation", json.loads(out))
+        self.assertRegex(err, r"\r[^\n]+\[[#-]+\]\s+[1-9]\d?%")
+        self.assertIn("100%\n", err)
+        self.assertIn("Upload archive", err)
+        self.assertIn("Verify archive", err)
+
+        code, out, err = self.cli()
+        self.assertEqual(code, 0, err)
+        self.assertIn("generation", json.loads(out))
+        self.assertNotIn("\r", err)
+        self.assertNotIn("Upload archive", err)
+        self.assertNotIn("Verify archive", err)
 
     def test_preview_prints_unicode_names_as_readable_json(self):
         (self.source / "лекция.mkv").write_text("sample")
@@ -206,8 +226,11 @@ class ArchiveTests(unittest.TestCase):
                 backup.tempfile, "TemporaryDirectory", side_effect=AssertionError("staging")
             )
         ):
-            code, out, err = self.cli(self.args + ["--in-place"])
+            code, out, err = self.cli(self.args + ["--in-place"], terminal=True)
         self.assertEqual(code, 0, err)
+        self.assertIn("100%\n", err)
+        self.assertIn("Verify archive", err)
+        self.assertNotIn("Upload archive", err)
         archive = next(self.remote.rglob("*.tar.zst"))
         with self.members(archive) as tar:
             self.assertIn("visible", tar.getnames())
