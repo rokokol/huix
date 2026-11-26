@@ -16,6 +16,7 @@
     "pi-bg-bash": "0.4.1",
     "pi-editor-selection": "0.1.7",
     "pi-intercom": "0.18.1",
-    "pi-multi-pass": "1.12.0"
+    "pi-multi-pass": "1.12.0",
+    "pi-open-artifact": "0.16.0"
   }
 }

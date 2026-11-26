@@ -33,9 +33,13 @@ assert f'{fixture["directory"]}/extensions/resume.ts' not in settings["extension
 assert not any(isinstance(package, str) and package.endswith("/@fahrizkyputra/pi-auto-resume") for package in settings["packages"])
 artifact_packages = [
     source for source in settings["packages"]
-    if isinstance(source, str) and source.startswith("npm:pi-open-artifact@")
+    if isinstance(source, str) and "pi-open-artifact" in source
 ]
 assert len(artifact_packages) == 1, artifact_packages
+artifact_package = Path(artifact_packages[0])
+assert artifact_package.is_relative_to("/nix/store"), artifact_package
+assert json.loads((artifact_package / "package.json").read_text())["name"] == "pi-open-artifact"
+assert str(artifact_package) not in fixture["disabledPackages"]
 assert not fixture["artifactFiles"], fixture["artifactFiles"]
 assert not any("/extensions/open-artifact" in extension for extension in settings["extensions"])
 assert not any((Path(group) / "skills/open-artifact").exists() for group in fixture["groups"].values())

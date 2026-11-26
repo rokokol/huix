@@ -12,6 +12,7 @@ import time
 COMMANDS = {
     "agents", "intercom", "subs",
     "btw", "goal", "supi-cache-history", "usage", "heads-up", "bg", "todos",
+    "open-artifact", "skill:open-artifact",
 }
 
 
@@ -94,6 +95,7 @@ def run(pi, extensions, node):
             assert response.get("success"), response
             names = {command["name"] for command in response["data"]["commands"]}
             assert COMMANDS <= names, f"Missing commands: {sorted(COMMANDS - names)}"
+            assert not (agent / "npm").exists(), "Pi installed an npm package at runtime"
             assert not {"auto-resume", "quota-resume", "codex-resume", "kg"} & names, "Auto-resume is loaded"
             assert "permission-system" not in names, "Duplicate permission gate is loaded"
             for event in observed:

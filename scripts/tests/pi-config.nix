@@ -8,7 +8,7 @@ let
   agentPkgs = inputs.self.nixosConfigurations.nixos-pc.pkgs;
   json = pkgs.formats.json { };
   home =
-    settings:
+    settings: openArtifact:
     inputs.home-manager.lib.homeManagerConfiguration {
       pkgs = agentPkgs;
       extraSpecialArgs = {
@@ -39,7 +39,7 @@ let
             };
             rokokol = {
               pi.enable = true;
-              open-artifact.enable = true;
+              open-artifact.enable = openArtifact;
               agents = {
                 groups = {
                   research = "Research tools";
@@ -74,8 +74,9 @@ let
         }
       ];
     };
-  base = (home { }).config;
-  changed = (home { theme = "dark"; }).config;
+  base = (home { } true).config;
+  changed = (home { theme = "dark"; } true).config;
+  disabled = (home { } false).config;
   directory = base.programs.pi-coding-agent.configDir;
   fixture = json.generate "pi-config-fixture.json" {
     inherit directory;
@@ -87,6 +88,7 @@ let
     # The same map the settings were built from, so a test compares against it and not a copy
     routes = (import ../../lib/ai-models.nix).chat;
     groups = base.rokokol.agents.piPackages;
+    disabledPackages = disabled.programs.pi-coding-agent.settings.packages;
     artifactFiles = lib.filter (lib.hasPrefix "${directory}/extensions/open-artifact") (
       lib.attrNames base.home.file
     );

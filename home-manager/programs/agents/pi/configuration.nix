@@ -11,9 +11,9 @@ let
   settingsPath = "${cfg.configDir}/settings.json";
   settingsSource = config.home.file.${settingsPath}.source;
   extensions = "${pkgs.pi-extensions}/lib/pi-extensions";
-  extensionNames = builtins.attrNames (builtins.fromJSON (
-    builtins.readFile ./extensions/package.json
-  )).dependencies;
+  extensionNames =
+    lib.filter (name: name != "pi-open-artifact" || (config.rokokol.open-artifact.enable or false))
+      (builtins.attrNames (builtins.fromJSON (builtins.readFile ./extensions/package.json)).dependencies);
   json = pkgs.formats.json { };
   models = import ../../../../lib/ai-models.nix;
   routes = models.chat;

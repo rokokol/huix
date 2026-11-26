@@ -43,9 +43,5 @@ in
       package
       pkgs.nodejs
     ];
-
-    programs.pi-coding-agent.settings.packages = lib.mkIf config.rokokol.pi.enable [
-      "npm:pi-open-artifact@0.16.0"
-    ];
   };
 }
