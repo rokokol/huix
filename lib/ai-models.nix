@@ -8,7 +8,7 @@ in
     # module derives provider_routing from it, and pi's hoster guard reads it directly.
     ${background} = [
       "deepinfra/fp8"
-      "novita/fp8"
+      "coreweave/fp8"
     ];
   };
   memory = {

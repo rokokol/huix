@@ -393,6 +393,9 @@ in
           order = providers;
           only = providers;
           data_collection = "deny";
+          # Zero data retention sat in config.yaml by hand since the key was added; here it
+          # survives a rebuild of this host instead of only the install it was typed into
+          zdr = true;
           require_parameters = true;
           # Per-model host order, straight from lib/ai-models.nix: without this block the
           # models the owner does not chat with fall back to the global order above, and a
