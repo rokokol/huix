@@ -11,7 +11,8 @@ const root = mkdtempSync(join(tmpdir(), "pi-modules-"));
 process.env.PI_CODING_AGENT_DIR = root;
 const source = "/nix/store/fixture-creative-pi-package";
 writeFileSync(join(root, "modules.json"), JSON.stringify({ creative: { source, description: "Creative tools", servers: ["fixture"] } }));
-writeFileSync(join(root, "resources-cache.json"), JSON.stringify({ skills: {}, tools: {
+const discoveredSkill = { name: "dynamic", description: "A skill registered by an extension", path: join(root, "dynamic/SKILL.md") };
+writeFileSync(join(root, "resources-cache.json"), JSON.stringify({ skills: { "ungrouped/dynamic": discoveredSkill }, tools: {
   removed: { old: { name: "old", tokens: 10 } }, fixture: { present: { name: "present", tokens: 10 } },
 } }));
 const settingsFile = join(root, "settings.json");
@@ -35,7 +36,10 @@ const ctx = { hasUI: false, isIdle: () => true,
     assert(!options.some(option => option.includes("automode")));
     return picked ? options.find(option => option.includes(picked!)) : undefined;
   }, notify: (message: string) => notices.push(message) } } as unknown as ExtensionCommandContext;
-extension({ getCommands: () => [], getMcpServers: () => [], registerCommand: (name: string, definition: RegisteredCommand) => {
+extension({ getCommands: () => settings().packages.some((item: { source?: string }) => item.source === source) ? [{
+  name: "skill:dynamic", description: discoveredSkill.description, source: "skill",
+  sourceInfo: { path: discoveredSkill.path, baseDir: join(source, "src"), origin: "top-level", scope: "temporary", source: "extension:index" },
+}] : [], getMcpServers: () => [], registerCommand: (name: string, definition: RegisteredCommand) => {
   assert.equal(name, "modules"); command = definition;
 } } as unknown as ExtensionAPI);
 const settings = () => JSON.parse(readFileSync(settingsFile, "utf8"));
@@ -52,9 +56,13 @@ await command.handler("automode off", ctx);
 assert.equal(reloads, 2, "Safety extensions are outside the switchable module catalog");
 await command.handler("", ctx);
 assert(notices.at(-1)?.includes("[x] creative"), "Enabled modules use a checked box");
+assert(notices.at(-1)?.split("--- Ungrouped ---")[0].includes("dynamic — skill"), "A discovered skill belongs to its extension's module");
+assert(!notices.at(-1)?.split("--- Ungrouped ---")[1].includes("dynamic"), "The old ungrouped row must not survive");
 assert(!notices.at(-1)?.includes("removed — MCP"), "Cached tools must not revive an unconfigured server");
 assert(notices.at(-1)?.includes("fixture — MCP"), "A catalog server remains visible with cached tools");
 assert(notices.at(-1)?.includes("present"), "A configured server retains its cached tools");
+await command.handler("skill creative/dynamic off", ctx);
+assert(notices.at(-1)?.includes("Switch the module"), "A discovered skill has no independent package filter");
 assert.equal(reloads, 2, "Cancelling the menu must not change anything");
 await command.handler("creative off", ctx);
 assert.equal(reloads, 3);
@@ -308,9 +316,17 @@ if (process.argv[3]) {
     pi.on("session_start", (_event, ctx) => ctx.ui.notify("MODULE_READY", "info"));
     pi.registerCommand("module-probe", { handler: async (_args, ctx) =>
       ctx.ui.notify("MCP:" + JSON.stringify(pi.getMcpServers().map(server => server.name)), "info") });
+    pi.registerCommand("artifact-probe", { handler: async (_args, ctx) => {
+      const names = new Set(pi.getAllTools().map(tool => tool.name));
+      ctx.ui.notify("ARTIFACT:" + ["Artifact", "ArtifactData", "ArtifactComments"].filter(name => names.has(name)).join(","), "info");
+    } });
   }`);
-  writeFileSync(join(root, "modules.json"), JSON.stringify({ creative: { source: group, description: "Creative fixture" } }));
-  writeFileSync(settingsFile, JSON.stringify({ packages: [group],
+  const artifacts = join(process.argv[4], "node_modules/pi-open-artifact");
+  writeFileSync(join(root, "modules.json"), JSON.stringify({
+    creative: { source: group, description: "Creative fixture" },
+    artifacts: { source: artifacts, description: "Open Artifact fixture" },
+  }));
+  writeFileSync(settingsFile, JSON.stringify({ packages: [group, artifacts],
     extensions: [resolve(process.argv[2]), inspector, "-builtin:mcp"],
     enableAnalytics: false, enableInstallTelemetry: false }));
   const client = new RpcClient({ cliPath: join(piRoot, "dist/bundle/cli.js"), cwd: root,
@@ -361,6 +377,22 @@ if (process.argv[3]) {
     await client.prompt("/module-probe");
     assert.equal(seen.at(-1), 'MCP:["fixture-module"]');
     console.log("PASS: real Pi reload removes and restores module skills, extensions and MCP registrations together");
+
+    for (const action of [undefined, "off", "on"]) {
+      if (action) {
+        const reloaded = ready();
+        await client.prompt(`/modules artifacts ${action}`);
+        await reloaded;
+      }
+      const active = action !== "off";
+      commands = await client.getCommands();
+      for (const name of ["open-artifact", "skill:open-artifact"]) {
+        assert.equal(commands.some(command => command.name === name), active, name);
+      }
+      await client.prompt("/artifact-probe");
+      assert.equal(seen.at(-1), active ? "ARTIFACT:Artifact,ArtifactData,ArtifactComments" : "ARTIFACT:");
+    }
+    console.log("PASS: the artifacts module switches the Open Artifact command, discovered skill and tools together");
   } finally {
     await client.stop();
   }

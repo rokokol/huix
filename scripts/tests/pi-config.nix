@@ -89,6 +89,7 @@ let
     routes = (import ../../lib/ai-models.nix).chat;
     groups = base.rokokol.agents.piPackages;
     disabledPackages = disabled.programs.pi-coding-agent.settings.packages;
+    disabledModules = disabled.home.file."${directory}/modules.json".source;
     artifactFiles = lib.filter (lib.hasPrefix "${directory}/extensions/open-artifact") (
       lib.attrNames base.home.file
     );

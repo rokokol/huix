@@ -29,6 +29,6 @@ The `/hoster` command picks the host of the current OpenRouter model from the al
 
 The creative applications live in `creative/`: Kdenlive, Blender, Audacity and FreeCAD all have MCP support. Anatomy makes technical illustrations, and Remotion makes videos. The rea-video skill analyzes a finished film and gives you a plan to make it again. The compress-video skill uses FFmpeg to compress video
 
-`design/` provides [Open Artifact](https://github.com/JimLiu/open-artifact). In Pi, `/open-artifact` creates editable presentations, designs, dashboards and documents. The local editors save changes to the project files
+`design/` provides [Open Artifact](https://github.com/JimLiu/open-artifact). In Pi, use `/open-artifact` to create editable presentations, designs, dashboards and documents. Use `/modules artifacts off` to unload its tools and skill without changes to project files
 
 A few tools grew into projects of their own; the root [README](../../README.md#extracted-into-their-own-repositories) links them all

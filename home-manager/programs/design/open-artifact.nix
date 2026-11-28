@@ -38,8 +38,14 @@ in
     default = config.rokokol.workstation.enable;
   };
 
-  config = lib.mkIf config.rokokol.open-artifact.enable {
-    home.packages = [
+  config = {
+    rokokol.pi.packageModules.artifacts = {
+      inherit (config.rokokol.open-artifact) enable;
+      package = "pi-open-artifact";
+      description = "Open Artifact tools and editor guides";
+    };
+
+    home.packages = lib.mkIf config.rokokol.open-artifact.enable [
       package
       pkgs.nodejs
     ];

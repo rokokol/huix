@@ -11,9 +11,18 @@ let
   settingsPath = "${cfg.configDir}/settings.json";
   settingsSource = config.home.file.${settingsPath}.source;
   extensions = "${pkgs.pi-extensions}/lib/pi-extensions";
-  extensionNames =
-    lib.filter (name: name != "pi-open-artifact" || (config.rokokol.open-artifact.enable or false))
-      (builtins.attrNames (builtins.fromJSON (builtins.readFile ./extensions/package.json)).dependencies);
+  extensionNames = builtins.attrNames (builtins.fromJSON (
+    builtins.readFile ./extensions/package.json
+  )).dependencies;
+  packageModules = config.rokokol.pi.packageModules;
+  packageSource = name: "${extensions}/node_modules/${name}";
+  bundledPackages = map packageSource (
+    lib.subtractLists (map (module: module.package) (lib.attrValues packageModules)) extensionNames
+  );
+  enabledPackageModules = lib.mapAttrs (_: module: {
+    inherit (module) description;
+    source = packageSource module.package;
+  }) (lib.filterAttrs (_: module: module.enable) packageModules);
   json = pkgs.formats.json { };
   models = import ../../../../lib/ai-models.nix;
   routes = models.chat;
@@ -26,6 +35,26 @@ in
 {
   options.rokokol.pi.enable = lib.mkEnableOption "Pi with the shared agent resources" // {
     default = osConfig.rokokol.pi.enable;
+  };
+
+  options.rokokol.pi.packageModules = lib.mkOption {
+    type = lib.types.attrsOf (
+      lib.types.submodule {
+        options = {
+          enable = lib.mkEnableOption "this module in Pi";
+          package = lib.mkOption {
+            type = lib.types.enum extensionNames;
+            description = "Package name in the Pi extension bundle";
+          };
+          description = lib.mkOption {
+            type = lib.types.str;
+            description = "Description of the Pi module";
+          };
+        };
+      }
+    );
+    default = { };
+    description = "Packages with their own switch in the Pi module catalog";
   };
 
   config = lib.mkIf config.rokokol.pi.enable {
@@ -46,7 +75,8 @@ in
       settings = {
         packages =
           lib.attrValues config.rokokol.agents.piPackages
-          ++ map (name: "${extensions}/node_modules/${name}") extensionNames;
+          ++ map (module: module.source) (lib.attrValues enabledPackageModules)
+          ++ bundledPackages;
         enableInstallTelemetry = false;
         enableAnalytics = false;
         showCacheMissNotices = true;
@@ -142,6 +172,7 @@ in
             parent = config.rokokol.agents.moduleParents.${name};
           }
         ) config.rokokol.agents.piPackages
+        // enabledPackageModules
       );
     };
   };

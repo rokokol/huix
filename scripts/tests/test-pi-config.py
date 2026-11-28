@@ -45,7 +45,9 @@ assert not any("/extensions/open-artifact" in extension for extension in setting
 assert not any((Path(group) / "skills/open-artifact").exists() for group in fixture["groups"].values())
 print("PASS: Pi uses the upstream Open Artifact package without a second extension or skill")
 module_catalog = json.loads(Path(fixture["modules"]).read_text())
-assert {name: module["source"] for name, module in module_catalog.items()} == fixture["groups"]
+assert module_catalog["artifacts"]["source"] == str(artifact_package)
+assert "artifacts" not in json.loads(Path(fixture["disabledModules"]).read_text())
+assert {name: module["source"] for name, module in module_catalog.items() if name != "artifacts"} == fixture["groups"]
 assert models["providers"]["openrouter"]["compat"]["openRouterRouting"] == {
     "data_collection": "deny", "zdr": True, "require_parameters": True,
 }

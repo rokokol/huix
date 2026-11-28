@@ -242,7 +242,7 @@ pkgs.lib.mapAttrs' (
           --node ${pkgs.nodejs}/bin/node
         node ${hosterTest} ${hosterExtension} \
           ${piRoot}
-        node ${modulesTest} ${modulesExtension} ${piRoot}
+        node ${modulesTest} ${modulesExtension} ${piRoot} ${extensions}/lib/pi-extensions
         node ${quietToolsTest} ${quietToolsExtension} ${piRoot}
         touch "$out"
       '';

@@ -10,7 +10,7 @@ const sourceOf = (item: Package) => typeof item === "string" ? item : item.sourc
 type Settings = { packages: Package[]; skills?: string[]; huixDisabledModules?: Record<string, Package>; [key: string]: unknown };
 type Catalog = Record<string, { source: string; description: string; servers?: string[]; parent?: string }>;
 type Preferences = { servers: Record<string, { enabled?: boolean; tools?: Record<string, McpExposure> }>; disabledSkills: string[] };
-type SkillEntry = { name: string; path: string; description: string; promptEnabled?: boolean; module?: string; packageSource?: string; packageRoot?: string };
+type SkillEntry = { name: string; path: string; description: string; promptEnabled?: boolean; module?: string; packageSource?: string; packageRoot?: string; moduleOnly?: boolean };
 type ToolEntry = { name: string; modelName: string; tokens: number; exposure?: string };
 type Cache = { skills: Record<string, SkillEntry>; tools: Record<string, Record<string, ToolEntry>> };
 export type ResourceNode = { id: string; name: string; kind: "module" | "skill" | "server" | "tool" | "separator";
@@ -58,6 +58,7 @@ export function configuredMcp(config: McpServerConfig, preference?: Preferences[
 }
 
 export function setSkillEnabled(settings: Settings, skill: SkillEntry, enabled: boolean) {
+  if (skill.moduleOnly) throw new Error(`Switch the module ${skill.module} to change this skill`);
   const index = skill.packageSource ? settings.packages.findIndex(item => sourceOf(item) === skill.packageSource) : -1;
   if (index >= 0 && skill.packageRoot) {
     const item = settings.packages[index];
@@ -241,7 +242,7 @@ export function resourceTree(nodes: ResourceNode[], done: (apply: boolean) => vo
         expand(node);
       }
       else if (node && helpers.matchesKey(data, "left")) expanded.delete(node.id);
-      else if (node && data === " " && node.kind !== "separator") {
+      else if (node && data === " " && node.kind !== "separator" && !node.skill?.moduleOnly) {
         // A server's box is its own switch: it never changes its tools. A tool's box is the
         // tool's own exposure and never changes the server box.
         node.enabled = !node.enabled;
@@ -366,15 +367,30 @@ export function setupModules(pi: ExtensionAPI, helpers?: UiHelpers, nativeMcp?: 
       }
     }
     for (const command of pi.getCommands().filter(command => command.source === "skill")) {
-      const path = command.sourceInfo.path;
+      const { path, scope, baseDir, origin, source } = command.sourceInfo;
+      const name = command.name.replace(/^skill:/, "");
+      if (scope === "temporary" && source.startsWith("extension:") && baseDir) {
+        const directory = canonical(baseDir);
+        const group = Object.entries(groups).find(([, entry]) => {
+          const root = canonical(entry.source);
+          return directory === root || directory.startsWith(`${root}/`);
+        });
+        if (group) {
+          const [module, entry] = group;
+          const oldKey = `ungrouped/${name}`;
+          if (cache.skills[oldKey] && canonical(cache.skills[oldKey].path) === canonical(path)) delete cache.skills[oldKey];
+          addSkill({ name, description: command.description ?? "", path, module, packageSource: entry.source, moduleOnly: true });
+          continue;
+        }
+      }
       if (Object.values(cache.skills).some(skill => canonical(skill.path) === canonical(path))) continue;
-      addSkill({ name: command.name.replace(/^skill:/, ""), description: command.description ?? "", path,
-        ...(command.sourceInfo.origin === "package" ? { packageSource: command.sourceInfo.source, packageRoot: command.sourceInfo.baseDir } : {}) });
+      addSkill({ name, description: command.description ?? "", path,
+        ...(origin === "package" ? { packageSource: source, packageRoot: baseDir } : {}) });
     }
     const activeSkills = new Set(pi.getCommands().filter(command => command.source === "skill").map(command => canonical(command.sourceInfo.path)));
     for (const [key, skill] of Object.entries(cache.skills)) {
       const groupEnabled = skill.module ? groupNodes.get(skill.module)?.enabled : true;
-      const node: ResourceNode = { id: `skill:${key}`, name: `${skill.name} — skill`, kind: "skill", skill,
+      const node: ResourceNode = { id: `skill:${key}`, name: `${skill.name} — skill${skill.moduleOnly ? " (module switch)" : ""}`, kind: "skill", skill,
         enabled: groupEnabled ? activeSkills.has(canonical(skill.path)) && !preferences.disabledSkills.includes(key) : !preferences.disabledSkills.includes(key),
         tokens: skill.promptEnabled === false ? 0 : estimatedTokens(helpers?.skillPrompt?.(skill) ?? `<skill><name>${skill.name}</name><description>${skill.description}</description><location>${skill.path}</location></skill>`), children: [] };
       (skill.module && groupNodes.has(skill.module) ? groupNodes.get(skill.module)!.children : ungrouped).push(node);

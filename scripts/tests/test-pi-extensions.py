@@ -95,6 +95,10 @@ def run(pi, extensions, node):
             assert response.get("success"), response
             names = {command["name"] for command in response["data"]["commands"]}
             assert COMMANDS <= names, f"Missing commands: {sorted(COMMANDS - names)}"
+            artifact_skill = next(command for command in response["data"]["commands"] if command["name"] == "skill:open-artifact")
+            origin = artifact_skill["sourceInfo"]
+            assert origin["scope"] == "temporary", origin
+            assert Path(origin["baseDir"]).is_relative_to(extensions / "node_modules/pi-open-artifact"), origin
             assert not (agent / "npm").exists(), "Pi installed an npm package at runtime"
             assert not {"auto-resume", "quota-resume", "codex-resume", "kg"} & names, "Auto-resume is loaded"
             assert "permission-system" not in names, "Duplicate permission gate is loaded"
