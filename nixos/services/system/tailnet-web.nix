@@ -95,6 +95,13 @@ in
             description = "URL that nginx forwards the requests of the site to";
           };
 
+          exactPath = lib.mkOption {
+            type = lib.types.nullOr (lib.types.strMatching "/[A-Za-z0-9_/-]+");
+            default = null;
+            example = "/api/mcp";
+            description = "Exact request path to forward; null forwards all paths";
+          };
+
           extraConfig = lib.mkOption {
             type = lib.types.lines;
             default = "";
@@ -148,23 +155,25 @@ in
               tailnetRanges ++ lib.optional site.lan lanNetwork
             )
             + "deny all;\n";
-          locations."/" = {
-            proxyPass = site.backend;
-            # Not recommendedProxySettings: it passes $host, which drops the port. A site lives
-            # on its own port, and a backend that checks the Origin of a form against the Host,
-            # as Forgejo does, then refuses every form. $http_host would carry the port too, but
-            # passes on whatever the client wrote, and the config check refuses it
-            recommendedProxySettings = false;
-            # Harmless for a backend that never upgrades, and Grafana Live needs it
-            proxyWebsockets = true;
-            extraConfig = ''
-              proxy_set_header Host $host:$server_port;
-              proxy_set_header X-Forwarded-Host $host:$server_port;
-              proxy_set_header X-Real-IP $remote_addr;
-              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-              proxy_set_header X-Forwarded-Proto $scheme;
-            ''
-            + site.extraConfig;
+          locations = lib.optionalAttrs (site.exactPath != null) { "/".return = "404"; } // {
+            ${if site.exactPath == null then "/" else "= ${site.exactPath}"} = {
+              proxyPass = site.backend + lib.optionalString (site.exactPath != null) site.exactPath;
+              # Not recommendedProxySettings: it passes $host, which drops the port. A site lives
+              # on its own port, and a backend that checks the Origin of a form against the Host,
+              # as Forgejo does, then refuses every form. $http_host would carry the port too, but
+              # passes on whatever the client wrote, and the config check refuses it
+              recommendedProxySettings = false;
+              # Harmless for a backend that never upgrades, and Grafana Live needs it
+              proxyWebsockets = true;
+              extraConfig = ''
+                proxy_set_header Host $host:$server_port;
+                proxy_set_header X-Forwarded-Host $host:$server_port;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+              ''
+              + site.extraConfig;
+            };
           };
         }
       ) cfg.sites;

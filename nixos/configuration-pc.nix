@@ -34,6 +34,7 @@
 
   rokokol = {
     workstation.enable = true;
+    obsidian-thing.client.enable = true;
     comfyui.enable = true;
     gpu-unlock.enable = true;
     molvai.enable = true;

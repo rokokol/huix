@@ -393,8 +393,6 @@ in
           order = providers;
           only = providers;
           data_collection = "deny";
-          # Zero data retention sat in config.yaml by hand since the key was added; here it
-          # survives a rebuild of this host instead of only the install it was typed into
           zdr = true;
           require_parameters = true;
           # Per-model host order, straight from lib/ai-models.nix: without this block the
@@ -563,11 +561,15 @@ in
 
         # Notes
 
-        The vault is at ~/myWiki. Read the vault's agent instructions before you edit notes
+        Use the Obsidian Thing MCP server for searches, reads, link queries and requested writes in myWiki. Read the vault's AGENTS.md with the MCP server before the first edit
 
-        The English vocabulary is at ~/myWiki/02. Zettelkasten/Слова.md
+        If MCP cannot do the operation, report the limit. Do not use direct file edits or Obsidian CLI without approval
 
-        Read the vault's fsrs-vocabulary skill before you add a vocabulary entry
+        Load vault skills from ~/myWiki/.agents/skills when MCP cannot serve them. Read the fsrs-vocabulary skill before you edit the dictionary through MCP
+
+        When the owner asks you to explain a complex topic, load the `explain` skill from the vault. It gives the owner's terms, notation and style. Search the vault for related notes when an example or a comparison would help
+
+        Keep agent memory in Hindsight. Do not put session output in myWiki unless the owner asks
 
         # GitHub
 

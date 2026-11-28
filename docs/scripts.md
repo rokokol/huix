@@ -281,16 +281,19 @@ options:
 
 ```
 usage: hindsight-monitor.py [-h] --metrics METRICS --key-file KEY_FILE
-                            --token-file TOKEN_FILE --state-dir STATE_DIR
-                            --bank BANK [--api API]
+                            [--key-only-prefix KEY_ONLY_PREFIX]
+                            [--token-file TOKEN_FILE] [--state-dir STATE_DIR]
+                            [--bank BANK] [--api API]
                             [--api-hindsight API_HINDSIGHT]
 
-Export the OpenRouter spend of Hindsight's key and observed rerank model calls
+Export OpenRouter key spend and optional Hindsight rerank counts
 
 options:
   -h, --help            show this help message and exit
   --metrics METRICS
   --key-file KEY_FILE
+  --key-only-prefix KEY_ONLY_PREFIX
+                        Export only OpenRouter key metrics with this prefix
   --token-file TOKEN_FILE
   --state-dir STATE_DIR
   --bank BANK

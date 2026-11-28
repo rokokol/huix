@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Export the OpenRouter spend of Hindsight's key and observed rerank model calls"""
+"""Export OpenRouter key spend and optional Hindsight rerank counts"""
 
 import argparse
 from datetime import datetime, timedelta, timezone
@@ -8,6 +8,7 @@ import fcntl
 import json
 import os
 from pathlib import Path
+import re
 import sys
 import time
 import urllib.error
@@ -80,21 +81,25 @@ def rerank_days(state, stats, now):
     return {day: count for day, count in days.items() if day >= oldest}
 
 
-def collect(args):
-    lines = []
-    spend_read = False
+def collect_key(args, prefix):
     try:
         data = request_json(args.api + "/key", args.key_file.read_text().strip())["data"]
-        for field, metric in FIELDS:
-            if data.get(field) is not None:
-                lines.append(f"hindsight_spend_key_{metric} {data[field]}\n")
-        spend_read = True
-    except (OSError, ValueError, KeyError):
+        if type(data.get("usage_daily")) not in (int, Decimal):
+            raise ValueError("Missing daily spend")
+        lines = [
+            f"{prefix}_key_{metric} {data[field]}\n"
+            for field, metric in FIELDS
+            if type(data.get(field)) in (int, Decimal)
+        ]
+    except (OSError, ValueError, KeyError, AttributeError):
         print("The spend counter could not be read; no credential was logged", file=sys.stderr)
-    # A counter that cannot be read leaves a zero here, so the dashboard shows a dead watch
-    # instead of holding the last value forever
-    lines.append(f"hindsight_spend_collect_success {int(spend_read)}\n")
+        return [f"{prefix}_collect_success 0\n"], False
+    lines.append(f"{prefix}_collect_success 1\n")
+    return lines, True
 
+
+def collect(args):
+    lines, spend_read = collect_key(args, "hindsight_spend")
     now = datetime.now(timezone.utc)
     calls_read = False
     state_path = args.state_dir / "rerank-calls.json"
@@ -130,12 +135,24 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--metrics", required=True, type=Path)
     parser.add_argument("--key-file", required=True, type=Path)
-    parser.add_argument("--token-file", required=True, type=Path)
-    parser.add_argument("--state-dir", required=True, type=Path)
-    parser.add_argument("--bank", required=True)
+    parser.add_argument("--key-only-prefix", help="Export only OpenRouter key metrics with this prefix")
+    parser.add_argument("--token-file", type=Path)
+    parser.add_argument("--state-dir", type=Path)
+    parser.add_argument("--bank")
     parser.add_argument("--api", default="https://openrouter.ai/api/v1")
     parser.add_argument("--api-hindsight", default="http://127.0.0.1:8888")
     args = parser.parse_args()
+    if args.key_only_prefix is not None:
+        prefix = args.key_only_prefix
+        if not re.fullmatch(r"[a-z][a-z0-9_]*", prefix):
+            parser.error("use a lowercase metric prefix")
+        lines, read = collect_key(args, prefix)
+        if read:
+            lines.append(f"{prefix}_collect_timestamp_seconds {int(time.time())}\n")
+        atomic_write(args.metrics, "".join(lines))
+        return 0 if read else 1
+    if not (args.token_file and args.state_dir and args.bank):
+        parser.error("Hindsight mode needs --token-file, --state-dir and --bank")
     args.state_dir.mkdir(parents=True, exist_ok=True)
     with (args.state_dir / "lock").open("a") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)

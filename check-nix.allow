@@ -1,1 +1,3 @@
+# The finding below exists only while this file is among the scanned paths: a partial run
+# with explicit PATH arguments reports the entry as unused, and it is still needed
 options-namespaced nixos/station/tests/test-meta.nix the meta option of the NixOS test framework, extended by the two fields it lacks

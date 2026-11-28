@@ -303,11 +303,18 @@ pkgs.lib.mapAttrs' (
           name = "huix-scripts";
           path = ./scripts;
         };
+        # The vault checker imports PyYAML and markdown-it, which the plain python3 here lacks
+        checkerPython = pkgs.python3.withPackages (ps: [
+          ps.pyyaml
+          ps.markdown-it-py
+          ps.mdit-py-plugins
+        ]);
       }
       ''
         bash "$scripts/tests/run.sh"
         python3 -B "$scripts/tests/test-hermes-monitor.py"
         python3 -B "$scripts/tests/test-hindsight-monitor.py"
+        python3 -B "$scripts/tests/test-mywiki-checker.py" "$checkerPython/bin/python3"
         touch "$out"
       '';
 

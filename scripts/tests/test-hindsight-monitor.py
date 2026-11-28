@@ -50,6 +50,26 @@ class MonitorTest(unittest.TestCase):
             api_hindsight="http://hindsight.invalid",
         )
 
+    def test_key_only_replaces_stale_spend_when_the_request_fails(self):
+        with tempfile.TemporaryDirectory() as directory:
+            args = self.args(Path(directory))
+            argv = [
+                "monitor", "--metrics", str(args.metrics), "--key-file", str(args.key_file),
+                "--key-only-prefix", "obsidian_thing_spend",
+            ]
+            with patch.object(monitor.sys, "argv", argv), patch.object(
+                monitor, "request_json", side_effect=[spend_payload(), OSError()]
+            ) as request:
+                self.assertEqual(monitor.main(), 0)
+                text = args.metrics.read_text()
+                self.assertIn("obsidian_thing_spend_key_usage_usd 0.000032\n", text)
+                self.assertIn("obsidian_thing_spend_collect_timestamp_seconds", text)
+                self.assertNotIn("hindsight_", text)
+                self.assertNotIn("limit", text)
+                self.assertEqual(monitor.main(), 1)
+                self.assertEqual(args.metrics.read_text(), "obsidian_thing_spend_collect_success 0\n")
+                self.assertEqual(request.call_count, 2)
+
     def test_collect_exports_the_spend_and_the_paid_reranks(self):
         with tempfile.TemporaryDirectory() as directory:
             args = self.args(Path(directory))

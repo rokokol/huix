@@ -3,6 +3,7 @@
   panels,
   hermes,
   hindsight,
+  obsidianThing,
   lowBalance,
   modelRoutes,
   modelPricesMaxAge,
@@ -38,6 +39,11 @@ let
       name = "Hindsight";
       prefix = "hindsight_spend_key";
       stamp = "hindsight_spend_collect_timestamp_seconds";
+    }
+    ++ lib.optional obsidianThing {
+      name = "myWiki";
+      prefix = "obsidian_thing_spend_key";
+      stamp = "obsidian_thing_spend_collect_timestamp_seconds";
     };
   # Prometheus aligns a one-day step to midnight UTC. Read the day before its gauge resets
   day =
@@ -74,6 +80,8 @@ let
     "2 weeks" = 14;
     "30 days" = 30;
   };
+  todayWidth = 24 / (builtins.length keys + (if hermes then 1 else 0));
+  keyWidth = 24 / builtins.length keys;
   forecastWidth = 24 / (builtins.length keys + 1);
   priceRoutes = lib.concatLists (
     lib.mapAttrsToList (
@@ -124,7 +132,7 @@ panels.dashboard {
       title = "OpenRouter credit balance";
       x = 0;
       y = 0;
-      w = 8;
+      w = todayWidth;
       h = 5;
       decimals = 2;
       expr = withSample "openrouter_balance_usd" agentsFresh;
@@ -136,9 +144,9 @@ panels.dashboard {
       i: key:
       usd {
         title = "${key.name} · Today (UTC)";
-        x = (if hermes then 8 else 0) + i * 8;
+        x = (i + (if hermes then 1 else 0)) * todayWidth;
         y = 0;
-        w = if hermes then 8 else 24;
+        w = todayWidth;
         h = 5;
         expr = today key;
         description = "OpenRouter's total for this key since midnight UTC. No data is not zero spend";
@@ -148,16 +156,16 @@ panels.dashboard {
       i: key:
       panel {
         title = "${key.name} · Spend by UTC day";
-        x = i * 12;
+        x = i * keyWidth;
         y = 5;
-        w = if builtins.length keys == 1 then 24 else 12;
+        w = keyWidth;
         h = 10;
         unit = "currencyUSD";
         decimals = 4;
         min = 0;
         bars = true;
         interval = "1d";
-        description = "Each bar ends at midnight UTC. The last minutes of spend may be absent. A gap means no recent sample. The two charts use independent scales";
+        description = "Each bar ends at midnight UTC. The last minutes of spend may be absent. A gap means no recent sample. Each chart has its own scale";
         queries = [ (query "A" (day key) key.name) ];
       }
     ) keys
@@ -200,9 +208,9 @@ panels.dashboard {
       i: key:
       table {
         title = "${key.name} key";
-        x = i * 12;
+        x = i * keyWidth;
         y = 23;
-        w = if builtins.length keys == 1 then 24 else 12;
+        w = keyWidth;
         h = 6;
         unit = "currencyUSD";
         expr = keySummary key;

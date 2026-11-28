@@ -1296,6 +1296,29 @@
         "type": "github"
       }
     },
+    "obsidian-thing": {
+      "inputs": {
+        "nix-best-practices": [
+          "skill-nix-best-practices"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1795806301,
+        "narHash": "sha256-5HHlnCM+xJ+wW/jOKJPXoUwL/Ii6+ZSKahstuSqzzbg=",
+        "owner": "rokokol",
+        "repo": "obsidian-thing",
+        "rev": "3edc4c4792f71ec2489ab00e8986b291249c285d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rokokol",
+        "repo": "obsidian-thing",
+        "type": "github"
+      }
+    },
     "open-artifact": {
       "flake": false,
       "locked": {
@@ -1616,6 +1639,7 @@
         "nixpkgs": "nixpkgs_3",
         "nixpkgs-stable": "nixpkgs-stable",
         "nixvim": "nixvim",
+        "obsidian-thing": "obsidian-thing",
         "open-artifact": "open-artifact",
         "papers-skill": "papers-skill",
         "pixel-point-skills": "pixel-point-skills",

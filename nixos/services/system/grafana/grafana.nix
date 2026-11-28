@@ -66,6 +66,7 @@ let
 
   hermes = config.rokokol.mya-agent.hermes.monitor.enable;
   hindsight = config.rokokol.hindsight.enable or false;
+  obsidianThing = config.rokokol.obsidian-thing.enable;
   hostDashboard = import ./dashboards/hosts.nix {
     inherit
       lib
@@ -87,13 +88,14 @@ let
     }
   ) (builtins.attrNames inputs.self.nixosConfigurations);
   aiDashboards =
-    lib.optional (hermes || hindsight) (
+    lib.optional (hermes || hindsight || obsidianThing) (
       import ./dashboards/spend.nix {
         inherit
           lib
           panels
           hermes
           hindsight
+          obsidianThing
           ;
         lowBalance = builtins.fromJSON config.rokokol.mya-agent.hermes.monitor.lowBalance;
         modelRoutes = models.chat;
@@ -129,7 +131,10 @@ let
       maxStuckSockets = 200;
       maxPushSilence = seconds config.rokokol.pushgateway.maxSilence;
     })
-  ];
+  ]
+  ++ lib.optional config.rokokol.obsidian-thing.enable (
+    import ./dashboards/obsidian-thing.nix { inherit panels roles; }
+  );
   otherDashboards = [ ];
   dashboardDirectory =
     name: items:

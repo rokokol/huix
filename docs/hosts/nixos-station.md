@@ -12,9 +12,9 @@ System: `x86_64-linux`
 
 Configured in [`nixos/configuration-station.nix`](https://github.com/rokokol/huix/blob/master/nixos/configuration-station.nix)
 
-**Services declared in this repository:** `alert-digest`, `alert-reconcile`, `backup-heartbeat`, `btrbk-restic`, `btrbk-syncthing`, `forgejo`, `forgejo-dump`, `forgejo-dump-dir`, `forgejo-mirrors`, `forgejo-owner`, `forgejo-runners`, `grafana-alerts`, `hermes-agent`, `hermes-backend`, `hermes-backup-zip`, `hermes-hindsight-settings`, `hermes-monitor`, `hermes-state`, `hindsight`, `hindsight-bank-template`, `hindsight-database`, `hindsight-monitor`, `hindsight-storage`, `model-prices`, `mya-agent-clone`, `node-push-watch`, `postgresql`, `postgresqlBackup-hindsight`, `radicale`, `restic-backups-station`, `restic-cloud`, `restic-cloud-heartbeat`, `smartd`, `syncthing`, `syncthing-init`, `zram-metrics`
+**Services declared in this repository:** `alert-digest`, `alert-reconcile`, `backup-heartbeat`, `btrbk-restic`, `btrbk-syncthing`, `forgejo`, `forgejo-dump`, `forgejo-dump-dir`, `forgejo-mirrors`, `forgejo-owner`, `forgejo-runners`, `grafana-alerts`, `hermes-agent`, `hermes-backend`, `hermes-backup-zip`, `hermes-hindsight-settings`, `hermes-monitor`, `hermes-state`, `hindsight`, `hindsight-bank-template`, `hindsight-database`, `hindsight-monitor`, `hindsight-storage`, `model-prices`, `mya-agent-clone`, `node-push-watch`, `obsidian-thing`, `obsidian-thing-key-spend`, `postgresql`, `postgresqlBackup-hindsight`, `prometheus`, `radicale`, `restic-backups-station`, `restic-cloud`, `restic-cloud-heartbeat`, `smartd`, `syncthing`, `syncthing-init`, `zram-metrics`
 
-**Timers:** `alert-digest`, `alert-reconcile`, `backup-heartbeat`, `btrbk-restic`, `btrbk-syncthing`, `forgejo-dump`, `forgejo-mirrors`, `hermes-monitor`, `hindsight-monitor`, `model-prices`, `node-push-watch`, `postgresqlBackup-hindsight`, `restic-backups-station`, `restic-cloud`, `restic-cloud-heartbeat`, `zram-metrics`
+**Timers:** `alert-digest`, `alert-reconcile`, `backup-heartbeat`, `btrbk-restic`, `btrbk-syncthing`, `forgejo-dump`, `forgejo-mirrors`, `hermes-monitor`, `hindsight-monitor`, `model-prices`, `node-push-watch`, `obsidian-thing-key-spend`, `postgresqlBackup-hindsight`, `restic-backups-station`, `restic-cloud`, `restic-cloud-heartbeat`, `zram-metrics`
 
 Web services on the private network
 
@@ -24,13 +24,14 @@ Web services on the private network
 | `grafana` | `3200` | yes |
 | `hermes` | `9120` | no |
 | `hindsight` | `8788` | no |
+| `obsidian-thing` | `8767` | no |
 | `pushgateway` | `9091` | no |
 | `radicale` | `5232` | no |
 | `searxng` | `9001` | no |
 
 **The firewall opens:** TCP —, UDP `41641`
 
-**Sops secrets, by name:** `alert-mail-aliases`, `alert-mail-msmtprc`, `drive-backup-client`, `forgejo-runner-nixos-pc`, `github-mirror-token`, `github-token`, `github-token-classic`, `grafana-admin-password`, `grafana-secret-key`, `hermes-dashboard-password`, `hermes-dashboard-secret`, `hermes-webhook-secret`, `hindsight-api-token`, `hindsight-client-token`, `mail-agent`, `opencode-go-mya-key`, `openrouter-api-key`, `openrouter-hindsight-api-key`, `pc-mac`, `pushgateway-htpasswd`, `radicale-password-mya`, `radicale-password-rokokol`, `restic-server-htpasswd`, `rokokol-password-hash`, `searxng-secret-key`, `station-restic-password`, `station-restic-rest-password`, `syncthing-cert-nixos-station`, `syncthing-key-nixos-station`, `telegram-api-hash`, `telegram-api-id`, `telegram-bot-token`, `telegram-owner-chat-id`
+**Sops secrets, by name:** `alert-mail-aliases`, `alert-mail-msmtprc`, `drive-backup-client`, `forgejo-runner-nixos-pc`, `github-mirror-token`, `github-token`, `github-token-classic`, `grafana-admin-password`, `grafana-secret-key`, `hermes-dashboard-password`, `hermes-dashboard-secret`, `hermes-webhook-secret`, `hindsight-api-token`, `hindsight-client-token`, `mail-agent`, `obsidian-thing-metrics-token`, `obsidian-thing-vault-token`, `opencode-go-mya-key`, `openrouter-api-key`, `openrouter-hindsight-api-key`, `openrouter-my-wiki-key`, `pc-mac`, `pushgateway-htpasswd`, `radicale-password-mya`, `radicale-password-rokokol`, `restic-server-htpasswd`, `rokokol-password-hash`, `searxng-secret-key`, `station-restic-password`, `station-restic-rest-password`, `syncthing-cert-nixos-station`, `syncthing-key-nixos-station`, `telegram-api-hash`, `telegram-api-id`, `telegram-bot-token`, `telegram-owner-chat-id`
 
 Session variables
 

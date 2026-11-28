@@ -169,6 +169,12 @@
       flake = false;
     };
 
+    obsidian-thing = {
+      url = "github:rokokol/obsidian-thing";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nix-best-practices.follows = "skill-nix-best-practices";
+    };
+
     gruvbox-gtk-theme = {
       url = "github:Fausto-Korpsvart/Gruvbox-GTK-Theme";
       flake = false;

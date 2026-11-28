@@ -66,6 +66,14 @@ because this repository is public and the addresses are not
 
 More: [rokokol.mail-agent options](../options/mail-agent.md)
 
+## [`nixos/services/tools/obsidian-thing.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/tools/obsidian-thing.nix)
+
+**Options:** `rokokol.obsidian-thing.background`, `rokokol.obsidian-thing.client.enable`, `rokokol.obsidian-thing.enable`
+
+More: [rokokol.obsidian-thing options](../options/obsidian-thing.md)
+
+**Units:** `obsidian-thing`, `obsidian-thing-key-spend`, `prometheus`
+
 ## [`nixos/services/tools/paper-search.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/tools/paper-search.nix)
 
 The private settings of paper-search-mcp, the paper search server behind the papers skill.

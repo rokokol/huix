@@ -25,7 +25,7 @@ creation_rules:
       - age:
           - *rokokol
           - *station
-  - path_regex: secrets/hindsight\.yaml$
+  - path_regex: secrets/(hindsight|obsidian-thing)\.yaml$
     key_groups:
       - age:
           - *rokokol

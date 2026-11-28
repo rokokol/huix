@@ -123,6 +123,7 @@ in
       telegram.threadId = config.rokokol.mya-agent.hermes.reportsTopic;
     };
     prometheus.enable = true;
+    obsidian-thing.enable = true;
     grafana.enable = true;
     pushgateway.enable = true;
     forgejo = {

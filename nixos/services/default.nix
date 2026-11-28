@@ -40,6 +40,7 @@
     ./tools/forgejo-mirrors.nix
     ./tools/forgejo.nix
     ./tools/mail-agent.nix
+    ./tools/obsidian-thing.nix
     ./tools/paper-search.nix
     ./tools/radicale.nix
     ./tools/searxng.nix

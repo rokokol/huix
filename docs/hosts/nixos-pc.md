@@ -24,7 +24,7 @@ Web services on the private network
 
 **The firewall opens:** TCP `22000`, UDP `21027`, `22000`, `41641`
 
-**Sops secrets, by name:** `drive-backup-client`, `forgejo-runner-nixos-pc`, `hindsight-client-token`, `mail-agent`, `opencode-go-pi-key`, `openrouter-pi-key`, `radicale-password-rokokol`, `syncthing-cert-nixos-pc`, `syncthing-key-nixos-pc`, `telegram-api-hash`, `telegram-api-id`, `unpaywall-email`
+**Sops secrets, by name:** `drive-backup-client`, `forgejo-runner-nixos-pc`, `hindsight-client-token`, `mail-agent`, `obsidian-thing-client-token`, `opencode-go-pi-key`, `openrouter-pi-key`, `radicale-password-rokokol`, `syncthing-cert-nixos-pc`, `syncthing-key-nixos-pc`, `telegram-api-hash`, `telegram-api-id`, `unpaywall-email`
 
 Session variables
 

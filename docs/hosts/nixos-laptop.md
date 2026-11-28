@@ -18,7 +18,7 @@ Configured in [`nixos/configuration-laptop.nix`](https://github.com/rokokol/huix
 
 **The firewall opens:** TCP `22000`, UDP `21027`, `22000`, `41641`
 
-**Sops secrets, by name:** `drive-backup-client`, `hindsight-client-token`, `opencode-go-pi-key`, `openrouter-pi-key`, `radicale-password-rokokol`, `syncthing-cert-nixos-laptop`, `syncthing-key-nixos-laptop`
+**Sops secrets, by name:** `drive-backup-client`, `hindsight-client-token`, `obsidian-thing-client-token`, `opencode-go-pi-key`, `openrouter-pi-key`, `radicale-password-rokokol`, `syncthing-cert-nixos-laptop`, `syncthing-key-nixos-laptop`
 
 Session variables
 

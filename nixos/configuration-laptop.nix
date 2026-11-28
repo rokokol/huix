@@ -15,6 +15,7 @@
   boot.kernelPackages = pkgs.linuxPackages_6_12;
 
   rokokol.workstation.enable = true;
+  rokokol.obsidian-thing.client.enable = true;
   rokokol.sensors.enable = true;
   rokokol.paper-search.enable = false;
   rokokol.syncthing.deviceId = "IACQG6Z-QHUKT7Y-EZXPKTH-BIT3LJR-BCXTRV6-FZZK3LB-SUKSHBR-UG44GAM";

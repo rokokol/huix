@@ -18,6 +18,8 @@ dir: nixos/services/system/grafana/dashboards
 
 Mail counters arrive at least every quarter hour. Use windows that hold several samples
 
+## [`nixos/services/system/grafana/dashboards/obsidian-thing.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/grafana/dashboards/obsidian-thing.nix)
+
 ## [`nixos/services/system/grafana/dashboards/spend.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/grafana/dashboards/spend.nix)
 
 ## [`nixos/services/system/grafana/dashboards/vpn.nix`](https://github.com/rokokol/huix/blob/master/nixos/services/system/grafana/dashboards/vpn.nix)

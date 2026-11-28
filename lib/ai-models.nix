@@ -29,6 +29,12 @@ in
     model = "qwen/qwen3-embedding-8b";
     dimensions = 1024;
   };
+  vaultEmbeddings = {
+    provider = "openrouter";
+    model = "google/gemini-embedding-2";
+    route = "google-vertex/us";
+    dimensions = 1024;
+  };
   stt.model = "microsoft/mai-transcribe-2";
   tts.model = "mistralai/voxtral-mini-tts-3-0";
   reranker = {
